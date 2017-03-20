@@ -72,6 +72,7 @@ class FRBObs(object):
         # Restrict to unique sources
         uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
         self.uniq_frb = self.frbcat[uidx]
+        self.nfrb = len(self.uniq_frb)
 
     def __repr__(self):
         txt = '<{:s}:  FRB Catalog with {:d} sources\n'.format(self.__class__.__name__,
