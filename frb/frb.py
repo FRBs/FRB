@@ -52,4 +52,9 @@ class FRB(object):
         # Set
         setattr(self, wtype, value)
 
-
+    def __repr__(self):
+        txt = '<{:s}: S={} nu_c={}, DM={}'.format(
+                self.__class__.__name__, self.S, self.nu_c, self.DM)
+        # Finish
+        txt = txt + '>'
+        return (txt)
