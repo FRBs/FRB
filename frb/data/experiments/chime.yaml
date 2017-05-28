@@ -1,6 +1,7 @@
-Channels: 16000
+Name: CHIME
 CreationDate: 2017-May-28
-Dnu: !astropy.units.Quantity
+Channels: 16000
+Dnu: !astropy.units.Quantity  # Bandwidth
   unit: &id001 !astropy.units.Unit
     unit: MHz
   value: 400.0
@@ -8,12 +9,11 @@ FOV: !astropy.units.Quantity
   unit: !astropy.units.Unit
     unit: deg2
   value: 134.0
-Gain: !astropy.units.Quantity
+G: !astropy.units.Quantity  # Gain
   unit: !astropy.units.Unit
     unit: K / Jy
   value: 1.38
-Name: CHIME
-Polarizations: 2
+np: 2  # Number of polarizations
 Ref: Chawla et al. 2017
 Trec: !astropy.units.Quantity
   unit: !astropy.units.Unit

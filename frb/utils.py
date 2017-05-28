@@ -3,6 +3,8 @@
 
 from __future__ import print_function, absolute_import, division, unicode_literals
 
+from astropy import units as u
+
 
 def loadjson(filename):
     """
@@ -34,7 +36,6 @@ def loadyaml(filename):
         data = ayaml.load(infile)
     # Return
     return data
-
 
 
 def radec_to_coord(radec):
@@ -108,3 +109,23 @@ def radec_to_coord(radec):
         raise IOError("Bad input type for radec")
     # Return
     return coord
+
+
+def Tsky(nu):
+    """ Sky temperature
+     Tsky for all other surveys has been evaluated assuming an average sky
+     temperature of 34 K at 408 MHz and a spectral index of −2.6
+    Follows Haslam et al. 1982
+
+    Parameters
+    ----------
+    nu : Quantity
+
+    Returns
+    -------
+    Tsky : Quantity
+
+
+    """
+    # TODO  -- Need some guidance here
+    return 34*u.K * (nu/(408*u.MHz))**(-2.6)

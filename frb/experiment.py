@@ -3,6 +3,8 @@
 
 from __future__ import print_function, absolute_import, division, unicode_literals
 
+import numpy as np
+
 from pkg_resources import resource_filename
 
 from . import utils
@@ -29,17 +31,28 @@ class Experiment(object):
         else:
             raise IOError("Not ready for this Experiment: {:s}".format(self.name))
 
-    def signal_to_noise(self, frb):
+    def signal_to_noise(self, frb, beta=1., T_Sky=None):
         """
         Follows Cordes & McLaughlin 2003
 
         Parameters
         ----------
         frb : FRB
+        beta : float, optional
+           Factor for digitization losses
 
         Returns
         -------
         s2n : float
 
         """
-        s2n = frb.S * self.data['Gain'] self.data['beta']
+        # T_Sky
+        if T_Sky is None:
+            T_Sky = utils.Tsky(frb.nu_c)
+        #
+        sqrt_term = np.sqrt(frb.Wb/(self.data['np']*self.data['Dnu']))
+        # Here we go
+        s2n = frb.S * self.data['G'] / self.data['beta'] / (
+            self.data['Trec'] + T_Sky) / sqrt_term
+        # Return
+        return s2n
