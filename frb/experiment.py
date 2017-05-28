@@ -29,10 +29,17 @@ class Experiment(object):
         else:
             raise IOError("Not ready for this Experiment: {:s}".format(self.name))
 
-    def signal_to_noise(self):
+    def signal_to_noise(self, frb):
         """
+        Follows Cordes & McLaughlin 2003
+
+        Parameters
+        ----------
+        frb : FRB
+
         Returns
         -------
         s2n : float
 
         """
+        s2n = frb.S * self.data['Gain'] self.data['beta']
