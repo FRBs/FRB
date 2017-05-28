@@ -1,4 +1,4 @@
-""" Module for calculations related to FRB experiments
+""" Module for an FRB event
 """
 
 from __future__ import print_function, absolute_import, division, unicode_literals
@@ -7,16 +7,21 @@ from pkg_resources import resource_filename
 
 from . import utils
 
-class Experiment(object):
+class FRB(object):
     """
     """
-    def __init__(self, name):
+    def __init__(self, S, Wi, nu, coord=None):
         """
         Parameters
         ----------
-        name : str
+        S : Quantity
+          Source density of the burst
+        Wi : Quantity
+        nu : Quantity
+          Characteristic frequency of the event
+        coord
         """
-        self.name = name
+        self.S = S  # Source density (e.g. Jy)
         #
         self.setup()
 
