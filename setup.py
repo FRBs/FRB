@@ -22,12 +22,12 @@ setup_keywords = dict()
 #
 # THESE SETTINGS NEED TO BE CHANGED FOR EVERY PRODUCT.
 #
-setup_keywords['name'] = 'DM'
-setup_keywords['description'] = 'Python code for DM calculations'
+setup_keywords['name'] = 'FRB'
+setup_keywords['description'] = 'Python code for FRB calculations'
 setup_keywords['author'] = 'FRB Community'
 setup_keywords['author_email'] = 'xavier@ucolick.org'
 setup_keywords['license'] = 'BSD'
-setup_keywords['url'] = 'https://github.com/FRBs/DM'
+setup_keywords['url'] = 'https://github.com/FRBs/FRB'
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #

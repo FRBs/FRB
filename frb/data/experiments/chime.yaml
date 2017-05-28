@@ -1,0 +1,24 @@
+Channels: 16000
+CreationDate: 2017-May-28
+Dnu: !astropy.units.Quantity
+  unit: &id001 !astropy.units.Unit
+    unit: MHz
+  value: 400.0
+FOV: !astropy.units.Quantity
+  unit: !astropy.units.Unit
+    unit: deg2
+  value: 134.0
+Gain: !astropy.units.Quantity
+  unit: !astropy.units.Unit
+    unit: K / Jy
+  value: 1.38
+Name: CHIME
+Polarizations: 2
+Ref: Chawla et al. 2017
+Trec: !astropy.units.Quantity
+  unit: !astropy.units.Unit
+    unit: K
+  value: 50.0
+nu: !astropy.units.Quantity
+  unit: *id001
+  value: 600.0
