@@ -3,41 +3,31 @@
 
 from __future__ import print_function, absolute_import, division, unicode_literals
 
-from pkg_resources import resource_filename
-
 from . import utils
 
 class FRB(object):
     """
     """
-    def __init__(self, S, Wi, nu, coord=None):
+    def __init__(self, S, width, nu_c, DM, coord=None):
         """
         Parameters
         ----------
         S : Quantity
           Source density of the burst
-        Wi : Quantity
-        nu : Quantity
-          Characteristic frequency of the event
-        coord
+        width : Quantity
+          Width
+        nu_c : Quantity
+          Centre frequency
+        DM : Quantity
+        coord : multi-format, optional
+          RA/DEC in one of many formats (see utils.radec_to_coord)
         """
-        self.S = S  # Source density (e.g. Jy)
+        self.S = S
+        self.width = width
+        self.nu_c = nu_c
+        self.DM = DM
+        # Coord
+        if coord is not None:
+            self.coord = utils.radec_to_coord(coord)
         #
-        self.setup()
 
-    def setup(self):
-        """ Load the characteristics of the experiment
-        """
-        if self.name == "CHIME":
-            self.data_file=resource_filename('frbdm', 'data/experiments/chime.yaml')
-            self.data = utils.loadyaml(self.data_file)
-        else:
-            raise IOError("Not ready for this Experiment: {:s}".format(self.name))
-
-    def signal_to_noise(self):
-        """
-        Returns
-        -------
-        s2n : float
-
-        """
