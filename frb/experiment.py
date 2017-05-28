@@ -24,7 +24,7 @@ class Experiment(object):
         """ Load the characteristics of the experiment
         """
         if self.name == "CHIME":
-            self.data_file=resource_filename('frbdm', 'data/experiments/chime.yaml')
+            self.data_file=resource_filename('frb', 'data/experiments/chime.yaml')
             self.data = utils.loadyaml(self.data_file)
         else:
             raise IOError("Not ready for this Experiment: {:s}".format(self.name))
