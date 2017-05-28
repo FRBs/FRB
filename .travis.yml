@@ -1,0 +1,152 @@
+language: python
+
+notifications:
+  email: false
+
+# The apt packages below are needed for sphinx builds, which can no longer
+# be installed with sudo apt-get.
+addons:
+    apt:
+        packages:
+            - graphviz
+            - texlive-latex-extra
+            - dvipng
+            - libgsl0-dev
+
+python:
+    - 2.7
+    - 3.5
+    - 3.6
+
+    # This is just for "egg_info".  All other builds are explicitly given in the matrix
+env:
+    global:
+        # The following versions are the 'default' for tests, unless
+        # overidden underneath. They are defined here in order to save having
+        # to repeat them for all configurations.
+        - NUMPY_VERSION=1.12
+        - ASTROPY_VERSION=stable
+        - CONDA_INSTALL='conda install -c astropy-ci-extras --yes'
+        - PIP_INSTALL='pip install'
+
+    matrix:
+        - SETUP_CMD='egg_info'
+
+matrix:
+    include:
+
+        # Do a coverage test in Python 2.
+        #- python: 2.7
+        #  env: SETUP_CMD='test --coverage'
+
+        # Check for sphinx doc build warnings - we do this first because it
+        # may run for a long time. Add -w flag to fail on any warning.
+        #- python: 2.7
+        #  env: SETUP_CMD='build_sphinx'
+        #- python: 3.4
+        #  env: SETUP_CMD='build_sphinx -w'
+
+
+        # Try Astropy development version
+        #- python: 2.7
+        #  env: ASTROPY_VERSION=development SETUP_CMD='test'
+        #- python: 3.3
+        #  env: ASTROPY_VERSION=development SETUP_CMD='test'
+
+        # Try all python versions with the latest numpy
+        #- python: 2.6
+        #  env: SETUP_CMD='test'
+        - python: 2.7
+          env: SETUP_CMD='test'
+        #- python: 3.3
+        #  env: SETUP_CMD='test'
+        #- python: 3.4
+        #  env: SETUP_CMD='test'
+        - python: 3.5
+          env: SETUP_CMD='test'
+        - python: 3.6
+          env: SETUP_CMD='test'
+
+        # Try older numpy versions.
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.9 SETUP_CMD='test'
+        # Skip these, because the require astropy versions < 1.0
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.8 SETUP_CMD='test'
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.7 SETUP_CMD='test'
+        #- python: 2.7
+        #  env: NUMPY_VERSION=1.6 SETUP_CMD='test'
+
+before_install:
+
+    # Use utf8 encoding. Should be default, but this is insurance against
+    # future changes
+    - export PYTHONIOENCODING=UTF8
+    - wget http://repo.continuum.io/miniconda/Miniconda-latest-Linux-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b -p $HOME/miniconda
+    - export PATH=$HOME/miniconda/bin:$PATH
+    - export GSL_PATH=$HOME/miniconda
+    - hash -r
+    - conda config --set always_yes yes --set changeps1 no
+    - conda update --yes conda
+    - conda install -c https://conda.anaconda.org/asmeurer gsl
+
+    # UPDATE APT-GET LISTINGS
+    - sudo apt-get update
+
+    # DOCUMENTATION DEPENDENCIES
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then sudo apt-get install graphviz texlive-latex-extra dvipng; fi
+
+install:
+
+    # CONDA
+    - conda create --yes -n test -c astropy-ci-extras python=$TRAVIS_PYTHON_VERSION
+    - source activate test
+    - $CONDA_INSTALL numpy=$NUMPY_VERSION Cython # NEEDED FOR CYTHON
+
+    # CORE DEPENDENCIES
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION pytest pip Cython jinja2; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pytest-xdist; fi
+
+    # ASTROPY
+    - if [[ $SETUP_CMD != egg_info ]] && [[ $ASTROPY_VERSION == development ]]; then $PIP_INSTALL git+http://github.com/astropy/astropy.git#egg=astropy; fi
+    - if [[ $SETUP_CMD != egg_info ]] && [[ $ASTROPY_VERSION == stable ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION astropy; fi
+
+    # OPTIONAL DEPENDENCIES
+    # Here you can add any dependencies your package may have. You can use
+    # conda for packages available through conda, or pip for any other
+    # packages. You should leave the `numpy=$NUMPY_VERSION` in the `conda`
+    # install since this ensures Numpy does not get automatically upgraded.
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION scipy; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION h5py; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION psutil; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL git+https://github.com/linetools/linetools.git; fi
+    #- if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL pyyaml; fi
+    - if [[ $SETUP_CMD != egg_info ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION matplotlib; fi
+
+    # DOCUMENTATION DEPENDENCIES
+    # build_sphinx needs sphinx and matplotlib (for plot_directive). Note that
+    # this matplotlib will *not* work with py 3.x, but our sphinx build is
+    # currently 2.7, so that's fine
+    - if [[ $SETUP_CMD == build_sphinx* ]]; then $CONDA_INSTALL numpy=$NUMPY_VERSION Sphinx=1.3; fi
+
+    # COVERAGE DEPENDENCIES
+    #- if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_INSTALL coverage coveralls; fi
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then $PIP_INSTALL coverage==3.7.1 coveralls; fi
+
+before_script:
+  - export SYSTEM_GSL=yes
+  - pkg-config --exists gsl
+  - pkg-config --modversion gsl
+  - pkg-config --libs gsl
+
+script:
+   - python setup.py $SETUP_CMD
+
+after_success:
+    # If coveralls.io is set up for this package, uncomment the line
+    # below and replace "packagename" with the name of your package.
+    # The coveragerc file may be customized as needed for your package.
+    - if [[ $SETUP_CMD == 'test --coverage' ]]; then coveralls --rcfile='pypit/tests/coveragerc'; fi
