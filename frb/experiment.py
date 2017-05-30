@@ -19,6 +19,7 @@ class Experiment(object):
         Parameters
         ----------
         name : str
+          See YAML files in data/experiment
         """
         self.name = name
         #
@@ -27,11 +28,9 @@ class Experiment(object):
     def setup(self):
         """ Load the characteristics of the experiment
         """
-        if self.name == "CHIME":
-            self.data_file=resource_filename('frb', 'data/experiments/chime.yaml')
-            self.data = utils.loadyaml(self.data_file)
-        else:
-            raise IOError("Not ready for this Experiment: {:s}".format(self.name))
+        self.data_file=resource_filename('frb', 'data/experiments/{:s}.yaml'.format(
+            self.name.lower()))
+        self.data = utils.loadyaml(self.data_file)
 
     def signal_to_noise(self, frb, beta=1., T_Sky=None, t_scatt=None):
         """
@@ -59,7 +58,7 @@ class Experiment(object):
             except AttributeError:
                 t_scatt = 0.*u.s
         # t_chan  (Lorimer & Kramer 2005)
-        t_chan = 8.3e-6*u.s * self.data['Dnu'].to('MHz').value * (
+        t_chan = 8.3e-6*u.s * (self.data['Dnu'].to('MHz').value/self.data['Channels']) * (
             frb.nu_c.to('GHz').value)**(-3) * frb.DM.to('pc/cm**3').value
         # Wb
         Wb = np.sqrt(frb.Wi**2 + t_chan**2 + t_samp**2 + t_scatt**2)
@@ -69,10 +68,10 @@ class Experiment(object):
         #
         sqrt_term = np.sqrt(Wb/(self.data['np']*self.data['Dnu']))
         # Here we go
-        s2n = frb.S * self.data['G'] * frb.Wi / self.data['beta'] / (
+        s2n = frb.S * self.data['G'] * frb.Wi / beta / (
             self.data['Trec'] + T_Sky) / sqrt_term
         # Return
-        return s2n
+        return s2n.decompose()
 
     def __repr__(self):
         txt = '<{:s}: name={:s} data={}'.format(
