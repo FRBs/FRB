@@ -5,12 +5,12 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pdb
 import numpy as np
 import warnings
-import h5py
+
+from pkg_resources import resource_filename
 
 from astropy import units as u
-from astropy.table import Table, vstack
+from astropy.table import Table
 
-import frbdm
 
 try:
     basestring
@@ -53,7 +53,7 @@ class FRBObs(object):
 
         """
         import glob
-        path = '/home/xavier/FRB/DM/frbdm/data/FRBs/'
+        path = resource_filename('frb', '/data/FRBs/')
         if frbcat_file is None:
             fils = glob.glob(path + 'frbcat_*')
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
@@ -71,6 +71,7 @@ class FRBObs(object):
             print("Using {:s} for the FRB catalog".format(self.frbcat_file))
         # Restrict to unique sources
         uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
+        pdb.set_trace()
         self.uniq_frb = self.frbcat[uidx]
         self.nfrb = len(self.uniq_frb)
 

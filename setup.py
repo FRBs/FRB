@@ -71,12 +71,12 @@ setup_keywords['tests_require']=['pytest']
 data_files = []
 
 # walk through the data directory, adding all files
-data_generator = os.walk('DM/data')
+data_generator = os.walk('frb/data')
 for path, directories, files in data_generator:
     for f in files:
         data_path = '/'.join(path.split('/')[1:])
         data_files.append(data_path + '/' + f)
-setup_keywords['package_data'] = {'DM': data_files,
+setup_keywords['package_data'] = {'frb': data_files,
                                   '': ['*.rst', '*.txt', '*.yaml']}
 setup_keywords['include_package_data'] = True
 
