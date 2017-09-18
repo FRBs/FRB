@@ -5,12 +5,13 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pdb
 import numpy as np
 import warnings
-import h5py
+
+from pkg_resources import resource_filename
 
 from astropy import units as u
-from astropy.table import Table, vstack
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
 
-import frbdm
 
 try:
     basestring
@@ -53,7 +54,7 @@ class FRBObs(object):
 
         """
         import glob
-        path = '/home/xavier/FRB/DM/frbdm/data/FRBs/'
+        path = resource_filename('frb', '/data/FRBs/')
         if frbcat_file is None:
             fils = glob.glob(path + 'frbcat_*')
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
@@ -69,8 +70,17 @@ class FRBObs(object):
             raise IOError("Not prepared for this file format")
         if self.verbose:
             print("Using {:s} for the FRB catalog".format(self.frbcat_file))
+        # Muck with RA/DEC
+        coord_list = []
+        cname = []
+        for row in self.frbcat:
+            cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
+        self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        self.frbcat['RA'] = self.coords.ra.value
+        self.frbcat['DEC'] = self.coords.dec.value
         # Restrict to unique sources
         uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
+        self.unidx = uidx
         self.uniq_frb = self.frbcat[uidx]
         self.nfrb = len(self.uniq_frb)
 
