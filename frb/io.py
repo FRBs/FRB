@@ -6,7 +6,7 @@ import gzip
 import json
 from pkg_resources import resource_filename
 
-from . import utils
+from frb import utils
 
 
 def load_dla_fits():

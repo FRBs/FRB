@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 from pkg_resources import resource_filename
 
-from . import utils
+from frb import utils
 
 class FRB(object):
     """
