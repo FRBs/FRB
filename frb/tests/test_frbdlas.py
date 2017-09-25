@@ -11,6 +11,7 @@ from astropy.units import Quantity
 from astropy import units as u
 
 from frb.dlas import approx_avgDM
+from frb.dlas import monte_DM
 
 #def data_path(filename):
 #    data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -28,4 +29,8 @@ def test_approx_avgDM():
     with pytest.raises(IOError):
         approx_avgDM(10.)
 
-
+def test_monte_DM():
+    zeval = np.array([0.,1.,2.])
+    DMs = monte_DM(np.array(zeval))
+    assert DMs.shape[0] == 100
+    assert DMs.shape[1] == zeval.size

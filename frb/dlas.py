@@ -7,11 +7,14 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 
+from scipy.interpolate import interp1d
+
 from astropy import units as u
 
 from .io import load_dla_fits
 
-def approx_avgDM(zeval, use_boot=False, verbose=False):
+
+def approx_avgDM(zeval, dla_model='atan', verbose=False):
     """ Calculate the average DM from intervening galaxies
     This method is approximate (and fast) and accurate
     to better than 1% in-so-far as the analysis is correct.
@@ -22,7 +25,7 @@ def approx_avgDM(zeval, use_boot=False, verbose=False):
     ----------
     zeval : float or ndarray
       Redshift(s) for evaluation
-    use_boot
+    dla_model : str, optional
 
     Returns
     -------
@@ -31,6 +34,7 @@ def approx_avgDM(zeval, use_boot=False, verbose=False):
 
     """
     # Init
+    mlz = _model_lz(dla_model)
     if isinstance(zeval, float):
         flg_float = True
         zeval = np.array([zeval])
@@ -45,11 +49,10 @@ def approx_avgDM(zeval, use_boot=False, verbose=False):
     # Load DLA fits model
     dla_fits = load_dla_fits()
     # Evaluate l(z)
-    param = dla_fits['lz']['atan']
-    lz = param['A'] + param['B'] * np.arctan(zcalc-param['C'])
+    lz = mlz['eval'](zcalc)
 
     # Average NHI
-    avgNHI = avgN_dbl_pow(dla_fits=dla_fits)
+    avgNHI = _avgN_dbl_pow(dla_fits=dla_fits)
 
     # Take ne/nH
     nenH_p = dla_fits['nenH']['loglog']
@@ -80,7 +83,80 @@ def approx_avgDM(zeval, use_boot=False, verbose=False):
     return (DM_values / u.cm**2).to('pc/cm**3')
 
 
-def avgN_dbl_pow(lgNmin=20.3, dla_fits=None):
+def monte_DM(zeval, model='atan', nrand=100, verbose=False):
+    """
+    Parameters
+    ----------
+    zeval : ndarray
+      Array of redshifts for evaluation
+    model
+    nrand : int, optional
+      Number of samples on NHI
+    verbose : bool, optional
+
+    Returns
+    -------
+    rand_DM : ndarray
+      Random DM values
+      Reported in cm**-2  (unitless array)
+
+    """
+    # Init
+    dla_fits = load_dla_fits()
+    nenH_param = dla_fits['nenH']['loglog']
+    mlz = _model_lz(model)
+    lgNmax = np.linspace(20.3, 22., 10000)
+    intfN = _int_dbl_pow(dla_fits['fN']['dpow'], lgNmax=lgNmax)
+
+    # Interpolate (cubic is *very* slow)
+    interp_fN = interp1d(intfN/intfN[-1], lgNmax)
+
+    # l(z) model
+    # Evaluate l(z) in small z intervals
+    zmax = np.max(zeval)
+    z = np.linspace(0., zmax, 50000)
+    dz = np.median(z-np.roll(z,1))
+    lz = mlz['eval'](z, param=mlz['param'])
+    # Setup for n(z) and drawing zdla
+    nzc = np.cumsum(lz*dz)  # Note nzc[0] is not 0
+    avgz = np.cumsum(z*lz*dz) / nzc
+    interp_avgz = interp1d(z, avgz)
+    nzc[0] = 0.
+    interp_nz = interp1d(z, nzc)
+    interp_revnz = interp1d((nzc-nzc[0])/nzc[-1], z)  # Accurate to ~1%
+    #
+    rand_DM = np.zeros((nrand, zeval.size))
+    nz = interp_nz(zeval)
+    for kk,inz in enumerate(nz):
+        # Random number of DLAs
+        rn = np.random.poisson(inz, size=nrand)
+        ndla = np.sum(rn)
+        if ndla == 0:
+            continue
+        # Draw NHI
+        rval = np.random.uniform(size=ndla)
+        rNHI = interp_fN(rval)
+        # nenH
+        nenH = nenH_param['bp'] + nenH_param['m'] * (rNHI-20.3)
+        # Draw zdla
+        rval2 = np.random.uniform(size=ndla)
+        zdla = interp_revnz(rval2*inz/nzc[-1])
+        # DM values
+        DMi = 10.**(rNHI + nenH) / (1+zdla)
+        # Generate a dummy array
+        DMarr = np.zeros((nrand, max(rn)))
+        cnt = 0
+        for jj in range(nrand): # Fill
+            if rn[jj] > 0:
+                DMarr[jj,:rn[jj]] = DMi[cnt:cnt+rn[jj]]
+                cnt += rn[jj]
+        # Fill em up
+        rand_DM[:,kk] = np.sum(DMarr,axis=1)
+
+    # Return
+    return rand_DM
+
+def _avgN_dbl_pow(lgNmin=20.3, dla_fits=None):
     """  Calculate <NHI> for the double power-law
 
     Parameters
@@ -103,10 +179,27 @@ def avgN_dbl_pow(lgNmin=20.3, dla_fits=None):
     # Numerator
     num = (10**param['Nd'])**2 *(fterm-sterm)
     # Denom
-    denom = int_dbl_pow(param, lgNmin=lgNmin)
+    denom = _int_dbl_pow(param, lgNmin=lgNmin)
     return np.log10(num/denom)
 
-def int_dbl_pow(param, lgNmin=20.3, lgNmax=None):
+def _atan_lz(zval, param=None):
+    """ arctan l(z) model
+    Parameters
+    ----------
+    zval : float or ndarray
+
+    Returns
+    -------
+    atan_lz : float or ndarray
+
+    """
+    if param is None:
+        dfits = load_dla_fits()
+        param = dfits['lz']['atan']
+    lz = param['A'] + param['B'] * np.arctan(zval-param['C'])
+    return lz
+
+def _int_dbl_pow(param, lgNmin=20.3, lgNmax=None):
     """ Integrate the double power-law for f(N)
     For normalizing with l(z) and for doing random draws
 
@@ -137,3 +230,21 @@ def int_dbl_pow(param, lgNmin=20.3, lgNmax=None):
     # Finish
     val = 10**param['Nd'] * (fterm-sterm)
     return val
+
+def _model_lz(name):
+    """ Return the model for l(z)
+    Enables multiple ways to model the DLA observations
+    Returns
+    -------
+    mlz : dict
+    """
+    # Fit parameters
+    dfits = load_dla_fits()
+    #
+    mlz = dict(name=name)
+    if name == 'atan':
+        mlz['param'] = dfits['lz']['atan']
+        mlz['eval'] = _atan_lz
+    else:
+        raise IOError("Bad lz model name!!")
+    return mlz
