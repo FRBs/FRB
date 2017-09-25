@@ -11,8 +11,12 @@ from astropy import units as u
 
 from .io import load_dla_fits
 
-def avgDM(zeval, use_boot=False, verbose=False):
+def approx_avgDM(zeval, use_boot=False, verbose=False):
     """ Calculate the average DM from intervening galaxies
+    This method is approximate (and fast) and accurate
+    to better than 1% in-so-far as the analysis is correct.
+
+    From Prochaska & Neeleman 2017
 
     Parameters
     ----------
@@ -32,51 +36,48 @@ def avgDM(zeval, use_boot=False, verbose=False):
         zeval = np.array([zeval])
     else:
         flg_float = False
-    #
+    # Error on upper bound
     if np.max(zeval) > 5.:
         raise IOError("Calculation is only valid to z=5")
-    #
-    if use_boot:
-        pdb.set_trace()
-    else:
-        zcalc = np.linspace(0., 5., 1000)
-        dz = np.median(zcalc-np.roll(zcalc,1))
-        # Load DLA fits model
-        dla_fits = load_dla_fits()
-        # Evaluate l(z)
-        param = dla_fits['lz']['atan']
-        lz = param['A'] + param['B'] * np.arctan(zcalc-param['C'])
+    # Calculate
+    zcalc = np.linspace(0., 5., 10000)
+    dz = np.median(zcalc-np.roll(zcalc,1))
+    # Load DLA fits model
+    dla_fits = load_dla_fits()
+    # Evaluate l(z)
+    param = dla_fits['lz']['atan']
+    lz = param['A'] + param['B'] * np.arctan(zcalc-param['C'])
 
-        # Average NHI
-        avgNHI = avgN_dbl_pow(dla_fits=dla_fits)
+    # Average NHI
+    avgNHI = avgN_dbl_pow(dla_fits=dla_fits)
 
-        # Take ne/nH
-        nenH_p = dla_fits['nenH']['loglog']
-        nenH = nenH_p['bp'] + nenH_p['m'] * (avgNHI - 20.3)
+    # Take ne/nH
+    nenH_p = dla_fits['nenH']['loglog']
+    nenH = nenH_p['bp'] + nenH_p['m'] * (avgNHI - 20.3)
 
-        # Integrate lz for n(z)
-        cumul = np.cumsum(lz * dz)
+    # Integrate lz for n(z)
+    cumul = np.cumsum(lz * dz)
 
-        # Average <z>
-        avgz = np.cumsum(zcalc * lz * dz) / cumul
+    # Average <z>
+    avgz = np.cumsum(zcalc * lz * dz) / cumul
 
-        '''
-        # <DM> for a single DLA (rest-frame)
-        DM_DLA = 10. ** (avgNHI + nenH) / u.cm ** 2
-        if verbose:
-            print("DM for an average DLA = {} (rest-frame)".format(DM_DLA.to('pc/cm**3')))
-        '''
+    '''
+    # <DM> for a single DLA (rest-frame)
+    DM_DLA = 10. ** (avgNHI + nenH) / u.cm ** 2
+    if verbose:
+        print("DM for an average DLA = {} (rest-frame)".format(DM_DLA.to('pc/cm**3')))
+    '''
 
-        # Altogether now
-        avgDM_values = 10 ** avgNHI * 10 ** nenH * cumul / (1 + avgz) #/ u.cm ** 2
+    # Altogether now
+    avgDM_values = 10 ** avgNHI * 10 ** nenH * cumul / (1 + avgz) #/ u.cm ** 2
 
-        # Finish up
-        DM_values = np.zeros_like(zeval)
-        for kk,iz in enumerate(zeval):
-            iminz = np.argmin(np.abs(iz - zcalc))
-            DM_values[kk] = avgDM_values[iminz]
-        # Return
-        return (DM_values / u.cm**2).to('pc/cm**3')
+    # Finish up
+    DM_values = np.zeros_like(zeval)
+    for kk,iz in enumerate(zeval):
+        iminz = np.argmin(np.abs(iz - zcalc))
+        DM_values[kk] = avgDM_values[iminz]
+    # Return
+    return (DM_values / u.cm**2).to('pc/cm**3')
 
 
 def avgN_dbl_pow(lgNmin=20.3, dla_fits=None):
