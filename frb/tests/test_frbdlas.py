@@ -14,6 +14,7 @@ from frb.dlas import approx_avgDM
 from frb.dlas import monte_DM
 from frb.dlas import monte_tau
 
+
 def test_approx_avgDM():
     DM = approx_avgDM(1.)
     assert isinstance(DM, Quantity)
@@ -25,6 +26,7 @@ def test_approx_avgDM():
     # Error
     with pytest.raises(IOError):
         approx_avgDM(10.)
+
 
 def test_monte_DM():
     """ Monte-carlo of DM values
