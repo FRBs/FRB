@@ -8,9 +8,7 @@ import warnings
 import h5py
 
 from astropy import units as u
-from astropy.table import Table, vstack
-
-import frbdm
+from astropy.table import Table
 
 try:
     basestring
