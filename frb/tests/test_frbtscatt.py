@@ -46,6 +46,7 @@ def test_temp_smearing():
     assert tau.unit == u.ms
     assert np.isclose(tau.to('ms').value, 1.956703740723121)
 
+
 def test_ang_broadening():
     # Galaxy at z=1
     turb = Turbulence(def_ne, def_l0, def_L0, zL=1.)
