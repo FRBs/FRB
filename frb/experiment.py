@@ -9,7 +9,7 @@ from pkg_resources import resource_filename
 
 from astropy import units as u
 
-from . import utils
+from frb import utils
 
 class Experiment(object):
     """
