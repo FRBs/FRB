@@ -46,7 +46,7 @@ Installing frb
 Presently, you must download the code from github::
 
 	#go to the directory where you would like to install specdb.
-	git clone https://github.com/FRB/FRB.git
+	git clone https://github.com/FRBs/FRB.git
 
 From there, you can build and install with
 

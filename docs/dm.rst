@@ -28,7 +28,7 @@ frb.dlas.approx_avgDM() method::
 
 This may be calucated a single or array of redshifts.
 The return value is an astropy Quantity with default
-unites of pc/cm^2.
+unites of pc/cm^3.
 
 .. _PN17: http://coming.soon
 
@@ -42,7 +42,7 @@ given sightline or sightlines.  Here is an example call::
     zeval = np.array([0.,1.,2.])
     DMs = monte_DM(np.array(zeval), nrand=1000)  # Returned without units
 
-The values returned are in units of cm^-2 but
+The values returned are in units of pc/cm^3 but
 without astropy units attached.
 One can then perform stats on these outputs to the
 heart's desire.
