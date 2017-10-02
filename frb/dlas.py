@@ -88,7 +88,7 @@ def monte_DM(zeval, model='atan', nrand=100, verbose=False):
     """
     Parameters
     ----------
-    zeval : ndarray
+    zeval : float or ndarray
       Array of redshifts for evaluation
     model
     nrand : int, optional
@@ -99,9 +99,12 @@ def monte_DM(zeval, model='atan', nrand=100, verbose=False):
     -------
     rand_DM : ndarray
       Random DM values
-      Reported in cm**-2  (unitless array)
+      Reported in pc/cm**3  (unitless array)
 
     """
+    # Convert to array
+    if isinstance(zeval, float):
+        zeval = np.array([zeval])
     # Init
     dla_fits = load_dla_fits()
     nenH_param = dla_fits['nenH']['loglog']
@@ -155,7 +158,8 @@ def monte_DM(zeval, model='atan', nrand=100, verbose=False):
         rand_DM[:,kk] = np.sum(DMarr,axis=1)
 
     # Return
-    return rand_DM
+    unit_conv = (1/u.cm**2).to('pc/cm**3').value
+    return rand_DM * unit_conv
 
 
 
