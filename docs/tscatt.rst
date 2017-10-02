@@ -75,3 +75,14 @@ at a given redshift and for a given observed wavelength
     theta = turb.angular_broadening(lobs, zsource) # Returned in arcsec
 
 
+Intervening Galaxies
+--------------------
+
+One may generate a set of random draws for temporal smearing
+due to intervening galaxies towards a source with given
+redshift using the *monte_tau* method::
+
+    from frb.dlas import monte_tau
+    zeval = np.array([0.,1.,2.])
+    taus = monte_tau(np.array(zeval))  # Returned unitless but in ms
+

@@ -162,10 +162,10 @@ def monte_DM(zeval, model='atan', nrand=100, verbose=False):
     return rand_DM * unit_conv
 
 
-
 def monte_tau(zeval, nrand=100, chk=False, nHI=0.1, avg_ne=-2.6,
               sigma_ne=0.5, cosmo=None, lobs=50*u.cm, turb=None):
     """ Generate random draws of tau at a series of redshifts
+
     Parameters
     ----------
     zeval : ndarray

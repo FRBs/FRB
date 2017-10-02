@@ -21,6 +21,7 @@ def_L0 = 0.001 * u.pc
 def_ne = 1e-2 / u.cm**3
 def_DL = 1 * u.kpc
 
+
 def test_init_turb():
     #
     turb = Turbulence(def_ne, def_l0, def_L0)
