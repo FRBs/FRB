@@ -33,13 +33,10 @@ def test_init_turb():
 
 
 def test_temp_smearing():
-    # Galaxy at z=1
-    turb = Turbulence(def_ne, def_l0, def_L0, zL=1.)
     inu = 1 * u.GHz
     lobs = (const.c/inu).to('cm')
-    # SM, rdiff
-    turb.set_SM_obj(def_DL)
-    turb.set_rdiff(lobs)
+    # Galaxy at z=1
+    turb = Turbulence(def_ne, def_l0, def_L0, zL=1., DL=def_DL, lobs=lobs)
     # tau
     zsource = 2.
     tau = turb.temporal_smearing(lobs, zsource)

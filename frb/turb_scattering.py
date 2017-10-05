@@ -20,15 +20,16 @@ class Turbulence(object):
     """ Class for turbulence calculations in a plasma
     Primarily used for scattering calculations
     """
-    def __init__(self, ne, l0, L0, zL=0., beta=11./3, SM=None, verbose=True):
+    def __init__(self, ne, l0, L0, zL=0., beta=11./3, SM=None, verbose=True,
+                 **kwargs):
         """
         Parameters
         ----------
-        ne : Quantity, optional
+        ne : Quantity
           Electron density 
         l0 : Quantity
           Inner scale
-        L0 : Quantity, optional
+        L0 : Quantity
           Outer scale
         SM : Quantity, optional
           Generally calculated but can be input
@@ -36,6 +37,9 @@ class Turbulence(object):
           Redshift of scattering medium
         beta : float, optional
           Exponent of turbulence.  Default is for Kolmogorov
+        **kwargs :
+          Passed to init methods
+          e.g. sets SM if DL is provided
         """
         # Init
         self.beta = beta
@@ -46,17 +50,21 @@ class Turbulence(object):
         self.verbose = verbose
 
         # Set SM?
+        self.SM = None
         if SM is not None:
             self.SM = SM
         else:
-            self.SM = None
+            if 'DL' in kwargs.keys():
+                self.set_SM_obj(kwargs['DL'])
+
 
         # Might check for units here (SM and beta)
 
         # Set rdiff based on its 'regime'
         self.regime = 0 # Undefined
         if self.SM is not None:
-            self.set_rdiff()
+            if 'lobs' in kwargs.keys():
+                self.set_rdiff(kwargs['lobs'])
 
     @property
     def CN2_gal(self):
@@ -68,12 +76,9 @@ class Turbulence(object):
         -------
         CN2 : Quantity
         """
-        # Check
-        if (self.ne is None) or (self.L0 is None):
-            raise ValueError("Must specify ne and L0")
         # Simple expression
         CN2 = 1.8e-3 * (self.ne/(1e-2*u.cm**(-3)))**2 * (self.L0/(0.001*u.pc))**(-2/3)
-        return CN2 * u.m**(-20/3.)
+        return (CN2 * u.m**(-20/3.)).si
 
     @property
     def SMeff(self):
@@ -103,7 +108,7 @@ class Turbulence(object):
         -------
 
         """
-        self.SM = self.CN2_gal * DL
+        self.SM = (self.CN2_gal * DL).decompose()
         if self.verbose:
             print("Set SM={}".format(self.SM.decompose()))
 
@@ -129,7 +134,7 @@ class Turbulence(object):
         r1 = 1. / np.sqrt(C * self.SM * (self.l0**(self.beta-4.) * (self.beta/4.) *
           gamma(-self.beta/2.)))
         # Is rdiff >> l0?
-        r2 = np.power(2**(2-self.beta) * C * self.SM * gamma(-self.beta/2.) /
+        r2 = np.power(2**(2-self.beta) * C * self.beta * self.SM * gamma(-self.beta/2.) /
           gamma(self.beta/2.), 1./(2-self.beta))
         # Query
         if r1 < self.l0:
@@ -143,7 +148,10 @@ class Turbulence(object):
             self.rdiff = r2.to('m')
             self.regime = 2  # rdiff >> l0
         else: # Undefined
-            pdb.set_trace()
+            if self.verbose:
+                print('In the regime rdiff >~ l_0.  Be careful here!')
+            self.rdiff = r2.to('m')
+            self.regime = 2  # rdiff >> l0
 
     def angular_broadening(self, lobs, zsource, cosmo=None):
         """ Broadening of a point source due to turbulent scattering

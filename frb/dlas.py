@@ -162,7 +162,7 @@ def monte_DM(zeval, model='atan', nrand=100, verbose=False):
     return rand_DM * unit_conv
 
 
-def monte_tau(zeval, nrand=100, chk=False, nHI=0.1, avg_ne=-2.6,
+def monte_tau(zeval, nrand=100, nHI=0.1, avg_ne=-2.6,
               sigma_ne=0.5, cosmo=None, lobs=50*u.cm, turb=None):
     """ Generate random draws of tau at a series of redshifts
 
@@ -180,8 +180,10 @@ def monte_tau(zeval, nrand=100, chk=False, nHI=0.1, avg_ne=-2.6,
       Fiducial value for n_HI;  used for DL value
     lobs : Quantity
       Wavelength for analysis
-    turb : Turbulence object
-      Usually defined internally
+    turb : Turbulence object, optional
+      Usually defined internally and that is the highly recommended approach
+    cosmo : astropy.cosmology, optional
+      Defaults to Planck15
 
     Returns
     -------
@@ -205,9 +207,9 @@ def monte_tau(zeval, nrand=100, chk=False, nHI=0.1, avg_ne=-2.6,
     nz_s[0] = 0.
 
     # Turbulence
-    f_ne = 1e-3/u.cm**3  # Scale off of this
     if turb is None:
-        turb = _init_dla_turb(ne=f_ne)
+        turb = _init_dla_turb()
+    f_ne=turb.ne
     zsource = 2.
     turb.set_rdiff(lobs)
     fiducial_tau = turb.temporal_smearing(lobs, zsource)
@@ -303,7 +305,7 @@ def _atan_lz(zval, param=None):
     return lz
 
 
-def _dla_nz(zarr, mlz=None, model='atan', analy_pth=None):
+def _dla_nz(zarr, mlz=None, model='atan'):
     """ Calculate the number of DLAs intersected on average
     to a given redshift
     Parameters

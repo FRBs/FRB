@@ -79,7 +79,7 @@ Intervening Galaxies
 --------------------
 
 One may generate a set of random draws for temporal smearing
-due to intervening galaxies towards a source with given
+due to the ISM of intervening galaxies towards a source with given
 redshift using the *monte_tau* method::
 
     from frb.dlas import monte_tau
