@@ -37,6 +37,7 @@ Here is a simple instantiation::
     def_L0 = 0.001 * u.pc
     def_ne = 1e-2 / u.cm**3
     def_DL = 1 * u.kpc
+    def_zL = 1.
     turb = Turbulence(def_ne, def_l0, def_L0)
 
 The resultant object can then be used for scattering
@@ -53,7 +54,7 @@ at a given redshift and for a given observed wavelength
 (or frequency).  Here is an example::
 
     from astropy import constants as const
-    turb = Turbulence(def_ne, def_l0, def_L0, zL=1.)
+    turb = Turbulence(def_ne, def_l0, def_L0, def_zL)
     inu = 1 * u.GHz
     lobs = (const.c/inu).to('cm')
     # SM, rdiff

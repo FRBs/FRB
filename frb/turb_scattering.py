@@ -20,7 +20,7 @@ class Turbulence(object):
     """ Class for turbulence calculations in a plasma
     Primarily used for scattering calculations
     """
-    def __init__(self, ne, l0, L0, zL=0., beta=11./3, SM=None, verbose=True, **kwargs):
+    def __init__(self, ne, l0, L0, zL, beta=11./3, SM=None, verbose=True, **kwargs):
         """
         Parameters
         ----------
@@ -32,7 +32,7 @@ class Turbulence(object):
           Outer scale
         SM : Quantity, optional
           Generally calculated but can be input
-        zL : float, optional
+        zL : float
           Redshift of scattering medium
         beta : float, optional
           Exponent of turbulence.  Default is for Kolmogorov
