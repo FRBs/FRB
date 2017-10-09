@@ -55,7 +55,7 @@ class FRBCat(object):
 
         """
         import glob
-        path = resource_filename('frb', 'data/FRBs')
+        path = resource_filename('frb', 'data/FRBs/')
         if frbcat_file is None:
             fils = glob.glob(path + '/frbcat_*')
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
@@ -76,7 +76,10 @@ class FRBCat(object):
         cname = []
         for row in self.frbcat:
             cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
-        self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        try:
+            self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        except:
+            pdb.set_trace()
         self.frbcat['RA'] = self.coords.ra.value
         self.frbcat['DEC'] = self.coords.dec.value
         # Restrict to unique sources
