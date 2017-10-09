@@ -28,6 +28,13 @@ Dispersion Measure
 
    dm
 
+Scattering
+----------
+
+.. toctree::
+   :maxdepth: 2
+
+   tscatt
 
 FRB Scripts
 -----------

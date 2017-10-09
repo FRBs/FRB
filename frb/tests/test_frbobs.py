@@ -8,7 +8,7 @@ import os
 
 from astropy.table import Table
 
-from frbdm.frbobs import FRBObs
+from frb.frbobs import FRBObs
 
 #def data_path(filename):
 #    data_dir = os.path.join(os.path.dirname(__file__), 'files')
