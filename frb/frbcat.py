@@ -4,9 +4,13 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import pdb
+import warnings
+
+from pkg_resources import resource_filename
 
 from astropy import units as u
 from astropy.table import Table
+from astropy.coordinates import SkyCoord
 
 from pkg_resources import resource_filename
 
@@ -67,8 +71,17 @@ class FRBCat(object):
             raise IOError("Not prepared for this file format")
         if self.verbose:
             print("Using {:s} for the FRB catalog".format(self.frbcat_file))
+        # Muck with RA/DEC
+        coord_list = []
+        cname = []
+        for row in self.frbcat:
+            cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
+        self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        self.frbcat['RA'] = self.coords.ra.value
+        self.frbcat['DEC'] = self.coords.dec.value
         # Restrict to unique sources
         uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
+        self.unidx = uidx
         self.uniq_frb = self.frbcat[uidx]
         self.nfrb = len(self.uniq_frb)
 
