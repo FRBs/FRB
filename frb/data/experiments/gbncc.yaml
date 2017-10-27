@@ -1,24 +1,24 @@
-Name: CHIME
-CreationDate: 2017-May-28
-Channels: 16000
+Name: GBNCC
+CreationDate: 2017-May-29
+Channels: 4096
 Dnu: !astropy.units.Quantity  # Bandwidth
   unit: &id001 !astropy.units.Unit
     unit: MHz
-  value: 400.0
+  value: 100.0
 FOV: !astropy.units.Quantity
   unit: !astropy.units.Unit
     unit: deg2
-  value: 134.0
+  value: 0.408
 G: !astropy.units.Quantity  # Gain
   unit: !astropy.units.Unit
     unit: K / Jy
-  value: 1.38
+  value: 2.
 np: 2  # Number of polarizations
 Ref: Chawla et al. 2017
 Trec: !astropy.units.Quantity
   unit: !astropy.units.Unit
     unit: K
-  value: 50.0
+  value: 23.0
 nu: !astropy.units.Quantity
   unit: *id001
-  value: 600.0
+  value: 350.0

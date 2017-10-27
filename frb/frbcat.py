@@ -2,8 +2,8 @@
 """
 from __future__ import print_function, absolute_import, division, unicode_literals
 
-import pdb
 import numpy as np
+import pdb
 import warnings
 
 from pkg_resources import resource_filename
@@ -12,13 +12,14 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
+from pkg_resources import resource_filename
 
 try:
     basestring
 except NameError:  # For Python 3
     basestring = str
 
-class FRBObs(object):
+class FRBCat(object):
     """ Class to load up and provide FRB Observations in a simple package
     Designed to ingest tables from FRBCAT
 
@@ -54,9 +55,9 @@ class FRBObs(object):
 
         """
         import glob
-        path = resource_filename('frb', '/data/FRBs/')
+        path = resource_filename('frb', 'data/FRBs/')
         if frbcat_file is None:
-            fils = glob.glob(path + 'frbcat_*')
+            fils = glob.glob(path + '/frbcat_*')
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
             fils.sort()
             infil = fils[-1]  # Expecting these are ordered by date
@@ -75,7 +76,10 @@ class FRBObs(object):
         cname = []
         for row in self.frbcat:
             cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
-        self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        try:
+            self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
+        except:
+            pdb.set_trace()
         self.frbcat['RA'] = self.coords.ra.value
         self.frbcat['DEC'] = self.coords.dec.value
         # Restrict to unique sources

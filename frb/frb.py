@@ -3,6 +3,7 @@
 
 from __future__ import print_function, absolute_import, division, unicode_literals
 
+from . import utils
 from pkg_resources import resource_filename
 
 from frb import utils
@@ -10,34 +11,53 @@ from frb import utils
 class FRB(object):
     """
     """
-    def __init__(self, S, Wi, nu, coord=None):
+    def __init__(self, S, nu_c, DM, coord=None):
         """
         Parameters
         ----------
         S : Quantity
           Source density of the burst
-        Wi : Quantity
-        nu : Quantity
-          Characteristic frequency of the event
-        coord
+        width : Quantity
+          Width
+        nu_c : Quantity
+          Centre frequency
+        DM : Quantity
+        coord : multi-format, optional
+          RA/DEC in one of many formats (see utils.radec_to_coord)
         """
-        self.S = S  # Source density (e.g. Jy)
+        self.S = S
+        self.nu_c = nu_c
+        self.DM = DM
+        # Coord
+        if coord is not None:
+            self.coord = utils.radec_to_coord(coord)
         #
-        self.setup()
 
-    def setup(self):
-        """ Load the characteristics of the experiment
+    def set_width(self, wtype, value, overwrite=False):
+        """ Set a Width value
+        Parameters
+        ----------
+        wtype : str
+          Indicates the type of width
+        value : Quantity
+        overwrite : bool, optional
         """
-        if self.name == "CHIME":
-            self.data_file=resource_filename('frbdm', 'data/experiments/chime.yaml')
-            self.data = utils.loadyaml(self.data_file)
-        else:
-            raise IOError("Not ready for this Experiment: {:s}".format(self.name))
+        # Restrict types
+        assert wtype in ['Wi', 'Wb', 'Wobs']  # Intrinsic, broadened, observed
+        # Check
+        if hasattr(self, wtype) and (not overwrite):
+            raise IOError("Width type {:s} is already set!".format(wtype))
+        # Vette
+        try:
+            value.to('s')
+        except:
+            raise IOError("Bad Quantity for value")
+        # Set
+        setattr(self, wtype, value)
 
-    def signal_to_noise(self):
-        """
-        Returns
-        -------
-        s2n : float
-
-        """
+    def __repr__(self):
+        txt = '<{:s}: S={} nu_c={}, DM={}'.format(
+                self.__class__.__name__, self.S, self.nu_c, self.DM)
+        # Finish
+        txt = txt + '>'
+        return (txt)
