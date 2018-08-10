@@ -24,7 +24,7 @@ class FRBCat(object):
 
     Attributes
     ----------
-    
+
     """
 
     def __init__(self, frbcat_file=None, verbose=True, **kwargs):
