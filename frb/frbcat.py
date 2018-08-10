@@ -14,11 +14,6 @@ from astropy.coordinates import SkyCoord
 
 from pkg_resources import resource_filename
 
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
-
 class FRBCat(object):
     """ Class to load up and provide FRB Observations in a simple package
     Designed to ingest tables from FRBCAT
