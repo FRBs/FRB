@@ -36,7 +36,6 @@ class FRBCat(object):
         # Name, Creation date
         if verbose:
             pass
-            #print("Created on {:s}".format(spdbu.hdf_decode(self.qcat.cat_attr['CREATION_DATE'])))
         # Return
         return
 
