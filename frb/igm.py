@@ -17,31 +17,55 @@ from astropy.cosmology import Planck15
 from frb.io import load_dla_fits
 from frb.turb_scattering import Turbulence
 
+# Fukugita 2004 (Table 1)
+def fukugita04_dict():
+    f04_dict = {}
+    f04_dict['M_sphere'] = 0.0015
+    f04_dict['M_disk'] = 0.00055
+    f04_dict['M_HI'] = 0.00062
+    f04_dict['M_H2'] = 0.00016
+    f04_dict['M_WD'] = 0.00036
+    f04_dict['M_NS'] = 0.00005
+    f04_dict['M_BH'] = 0.00007
+    f04_dict['M_BD'] = 0.00014
+    # Return
+    return f04_dict
 
-def average_DM(z, cosmo=None):
+def average_DM(z, cosmo=None, cumul=False, neval=10000):
     """
     Calculate the average DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
 
     Parameters
     ----------
-    z: float or ndarray
+    z: float
+    cumul: bool, optional
+      Return the DM as a function of z
 
     Returns
     -------
-    DM: float or ndarray
-      mirrors z type
+    DM: Quantity
+      One value if cumul=False
+      else evaluated at a series of z (neval)
+    zeval: ndarray
+      Evaluation redshifts if cumul=True
 
     """
     # Cosmology
     if cosmo is None:
         cosmo = Planck15
-    #
+    # Init
+    zeval = np.linspace(0., z, neval)
 
-def avg_rhoMstar(z):
+    # Get baryon mass density of 'diffuse' gas
+    rho_b = cosmo.Ob(zeval) * cosmo.critical_density.to('Msun/Mpc**3')
+
+def avg_rhoISM(z):
     """
-    Return mass density in stars as calculated by
-    Madau & Dickinson (2014)
+    Co-moving Mass density of the ISM
+
+    Assumes z=0 properties for z<1
+    and otherwise M_ISM = M* for z>1
 
     Parameters
     ----------
@@ -49,18 +73,52 @@ def avg_rhoMstar(z):
 
     Returns
     -------
-    rho_Mstar: float or ndarray
+    rhoISM : Quantity
+      Units of Msun/Mpc^3
 
     """
+    # Init
+    z, flg_z = z_to_array(z)
+    rhoISM_unitless = np.zeros_like(z)
+    # Mstar
+    rhoMstar = avg_rhoMstar(z, remnants=False)
+    # z<1
+    f04_dict = fukugita04_dict()
+    M_ISM = f04_dict['M_HI'] + f04_dict['M_H2']
+    f_ISM = M_ISM/(f04_dict['M_sphere']+f04_dict['M_disk'])
+    lowz = z<1
+    rhoISM_unitless[lowz] = f_ISM * rhoMstar[lowz].value
+    # z>1
+    rhoISM_unitless[~lowz] = rhoMstar[~lowz].value
+    # Finish
+    rhoISM = rhoISM_unitless * units.Msun / units.Mpc**3
+    #
+    return rhoISM
+
+
+
+def avg_rhoMstar(z, remnants=True):
+    """
+    Return mass density in stars as calculated by
+    Madau & Dickinson (2014)
+
+    Parameters
+    ----------
+    z: float or ndarray
+    remnants: bool, optional
+      Include remnants in the calculation?
+
+    Returns
+    -------
+    rho_Mstar: Quantity
+      Units of Msun/Mpc^3
+
+    """
+    # Init
+    z, flg_z = z_to_array(z)
     # Load
     stellar_mass_file = resource_filename('frb', 'data/IGM/stellarmass.dat')
     rho_mstar_tbl = Table.read(stellar_mass_file, format='ascii')
-    # float or ndarray?
-    if not isiterable(z):
-        z = np.array([z])
-        flg_z = 0
-    else:
-        flg_z = 1
     # Output
     rho_Mstar_unitless = np.zeros_like(z)
 
@@ -74,7 +132,17 @@ def avg_rhoMstar(z):
 
     # Finish
     rho_Mstar = rho_Mstar_unitless * units.Msun / units.Mpc**3
-# Return
+
+    # Remnants
+    if remnants:
+        # Fukugita 2004 (Table 1)
+        f04_dict = fukugita04_dict()
+        f_remnants = (f04_dict['M_WD'] + f04_dict['M_NS'] + f04_dict['M_BH'] + f04_dict['M_BD']) / (
+                f04_dict['M_sphere'] + f04_dict['M_disk'])
+        # Apply
+        rho_Mstar *= (1+f_remnants)
+
+    # Return
     if flg_z:
         return rho_Mstar
     else:
@@ -93,7 +161,7 @@ def avg_rhoSFR(z):
 
     Returns
     -------
-    SFR: float or ndarray
+    SFR: Quantity
       Units of Msun/yr/Mpc^3
 
     """
@@ -102,3 +170,13 @@ def avg_rhoSFR(z):
 
     # Return
     return rho_SFR
+
+def z_to_array(z):
+    # float or ndarray?
+    if not isiterable(z):
+        z = np.array([z])
+        flg_z = 0
+    else:
+        flg_z = 1
+    # Return
+    return z, flg_z
