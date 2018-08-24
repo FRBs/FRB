@@ -61,9 +61,9 @@ matrix:
         #  env: SETUP_CMD='test'
 
         # Do a coverage test.
-        - os: linux
-          env: SETUP_CMD='test --coverage'
-               NUMPY_VERSION=1.13
+        #- os: linux
+        #  env: SETUP_CMD='test --coverage'
+        #       NUMPY_VERSION=1.13
 
         # Check for sphinx doc build warnings - we do this first because it
         # may run for a long time
