@@ -5,10 +5,12 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 
+from pkg_resources import resource_filename
+
 from scipy.interpolate import interp1d
 
 from astropy import units
-from astropy import constants
+from astropy.table import Table
 from astropy.utils import isiterable
 from astropy.cosmology import Planck15
 
@@ -38,7 +40,8 @@ def average_DM(z, cosmo=None):
 
 def avg_rhoMstar(z):
     """
-    Kludging for now
+    Return mass density in stars as calculated by
+    Madau & Dickinson (2014)
 
     Parameters
     ----------
@@ -49,29 +52,29 @@ def avg_rhoMstar(z):
     rho_Mstar: float or ndarray
 
     """
+    # Load
+    stellar_mass_file = resource_filename('frb', 'data/IGM/stellarmass.dat')
+    rho_mstar_tbl = Table.read(stellar_mass_file, format='ascii')
+    # float or ndarray?
     if not isiterable(z):
         z = np.array([z])
         flg_z = 0
     else:
         flg_z = 1
-    # Eye-ball of Madau & Dickinson (2014)
-    zval = [0., 0.5, 1., 1.5, 2., 3., 4.]
-    logrho_val = [8.8, 8.7, 8.55, 8.35, 8.15, 7.7, 7.3]
     # Output
-    logrho_Mstar_unitless = np.zeros_like(z)
+    rho_Mstar_unitless = np.zeros_like(z)
 
     # Extrema
-    highz = z > zval[-1]
-    logrho_Mstar_unitless[highz] = logrho_val[-1]
+    highz = z > rho_mstar_tbl['z'][-1]
+    rho_Mstar_unitless[highz] = rho_mstar_tbl['rho_Mstar'][-1]
 
     # Interpolate
-    fint = interp1d(zval, logrho_val, kind='cubic')
-    logrho_Mstar_unitless[~highz] = fint(z[~highz])
+    fint = interp1d(rho_mstar_tbl['z'], rho_mstar_tbl['rho_Mstar'], kind='cubic')
+    rho_Mstar_unitless[~highz] = fint(z[~highz])
 
     # Finish
-    rho_Mstar = 10**logrho_Mstar_unitless * units.Msun / units.Mpc**3
-
-    # Return
+    rho_Mstar = rho_Mstar_unitless * units.Msun / units.Mpc**3
+# Return
     if flg_z:
         return rho_Mstar
     else:
