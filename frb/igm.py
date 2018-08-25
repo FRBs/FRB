@@ -13,6 +13,7 @@ from astropy import units
 from astropy.table import Table
 from astropy.utils import isiterable
 from astropy.cosmology import Planck15
+from astropy import constants
 
 from frb.io import load_dla_fits
 from frb.turb_scattering import Turbulence
@@ -31,7 +32,33 @@ def fukugita04_dict():
     # Return
     return f04_dict
 
-def average_DM(z, cosmo=None, cumul=False, neval=10000):
+def average_fHI(z, z_reion=7.):
+    """
+    Average HI fraction
+
+
+    Parameters
+    ----------
+    z
+    z_reion
+
+    Returns
+    -------
+
+    """
+    z, flg_z = z_to_array(z)
+    fHI = np.zeros_like(z)
+    #
+    zion = z > z_reion
+    fHI[zion] = 1.
+    # Return
+    if flg_z:
+        return fHI
+    else:
+        return fHI[0]
+
+def average_DM(z, cosmo=None, cumul=False, neval=10000,
+               mu=1.3):
     """
     Calculate the average DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
@@ -39,6 +66,8 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000):
     Parameters
     ----------
     z: float
+    mu: float
+      Reduced mass correction for He when calculating n_H
     cumul: bool, optional
       Return the DM as a function of z
 
@@ -57,8 +86,23 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000):
     # Init
     zeval = np.linspace(0., z, neval)
 
-    # Get baryon mass density of 'diffuse' gas
-    rho_b = cosmo.Ob(zeval) * cosmo.critical_density.to('Msun/Mpc**3')
+    # Get baryon mass density
+    rho_b = cosmo.Ob(zeval) * cosmo.critical_density0.to('Msun/Mpc**3')
+
+    # Dense components
+    rho_Mstar = avg_rhoMstar(zeval, remnants=True)
+    rho_ISM = avg_rhoISM(zeval)
+
+    # Diffuse
+    rho_diffuse = rho_b - (rho_Mstar+rho_ISM)
+
+    # Here we go
+    n_H = (rho_diffuse/constants.m_p/mu)
+    n_He = n_H / 12.  # 25% He mass fraction
+
+    pdb.set_trace()
+
+
 
 def avg_rhoISM(z):
     """
