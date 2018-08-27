@@ -10,7 +10,7 @@
 # Column 5: Q_HeIII with M_{1450} < -21 AGN 
 # Column 6: Lower bound on column 5 (68.26% equal-tailed credible interval)
 # Column 7: Upper bound on column 5 (68.26% equal-tailed credible interval)
-    
+z         Q_HeIII_18  Q_HeIII_18_l  Q_HeIII_18_u  Q_HeIII_21    Q_HeIII_21_l  Q_HeIII_21_u
 12.000  1.000000e-10  1.000000e-10  1.000000e-10  1.000000e-10  1.000000e-10  1.000000e-10
 11.988  4.374927e-09  2.218632e-10  1.508848e-07  1.860788e-09  2.667322e-10  1.104288e-08
 11.976  8.743113e-09  3.519406e-10  3.034705e-07  3.678510e-09  4.431452e-10  2.215664e-08

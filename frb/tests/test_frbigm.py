@@ -30,4 +30,7 @@ def test_igmDM():
     # Cumulative
     DM_cum, zeval = igm.average_DM(1., cumul=True)
     assert DM == DM_cum[-1]
+    # Cross through HeII reionization
+    DM4 = igm.average_DM(4.)
+    assert np.isclose(DM4.value, 3866.9971167)
 
