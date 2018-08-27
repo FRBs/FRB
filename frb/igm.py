@@ -15,11 +15,15 @@ from astropy.utils import isiterable
 from astropy.cosmology import Planck15
 from astropy import constants
 
-from frb.io import load_dla_fits
-from frb.turb_scattering import Turbulence
-
-# Fukugita 2004 (Table 1)
 def fukugita04_dict():
+    """
+    Data from Fukugita 2004, Table 1
+
+    Returns
+    -------
+    f04_dict: dict
+
+    """
     f04_dict = {}
     f04_dict['M_sphere'] = 0.0015
     f04_dict['M_disk'] = 0.00055
@@ -60,6 +64,7 @@ def average_fHI(z, z_reion=7.):
     else:
         return fHI[0]
 
+
 def average_He_nume(z, z_HIreion=7., z_HeIIreion=3.):
     """
     Average number of electrons contributed by He as a function of redshift
@@ -68,11 +73,13 @@ def average_He_nume(z, z_HIreion=7., z_HeIIreion=3.):
 
     Parameters
     ----------
-    z
+    z: float or ndarray
+      Redshift
 
     Returns
     -------
-    fHe: ndarray
+    neHe: ndarray
+      Number of free electrons per Helium nucelus
 
     """
     z, flg_z = z_to_array(z)
@@ -100,6 +107,7 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     Parameters
     ----------
     z: float
+      Redshift
     mu: float
       Reduced mass correction for He when calculating n_H
     cumul: bool, optional
@@ -110,7 +118,7 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     DM: Quantity
       One value if cumul=False
       else evaluated at a series of z (neval)
-    zeval: ndarray
+    zeval: ndarray, optional
       Evaluation redshifts if cumul=True
 
     """
@@ -150,7 +158,6 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
         return DM_cum[-1]
 
 
-
 def avg_rhoISM(z):
     """
     Co-moving Mass density of the ISM
@@ -160,7 +167,8 @@ def avg_rhoISM(z):
 
     Parameters
     ----------
-    z
+    z: float or ndarray
+      Redshift
 
     Returns
     -------
@@ -196,6 +204,7 @@ def avg_rhoMstar(z, remnants=True):
     Parameters
     ----------
     z: float or ndarray
+      Redshift
     remnants: bool, optional
       Include remnants in the calculation?
 
@@ -249,6 +258,7 @@ def avg_rhoSFR(z):
     Parameters
     ----------
     z: float or ndarray
+      Redshift
 
     Returns
     -------
@@ -263,6 +273,22 @@ def avg_rhoSFR(z):
     return rho_SFR
 
 def z_to_array(z):
+    """
+    Convert input scalar or array to an array
+
+    Parameters
+    ----------
+    z: float or ndarray
+      Redshift
+
+    Returns
+    -------
+    z: ndarray
+    flg_z: int
+      0 -- Input was a scalar
+      1 -- Input was an array
+
+    """
     # float or ndarray?
     if not isiterable(z):
         z = np.array([z])
