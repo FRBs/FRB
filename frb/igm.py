@@ -283,6 +283,7 @@ def avg_rhoSFR(z):
     # Return
     return rho_SFR
 
+
 def z_to_array(z):
     """
     Convert input scalar or array to an array
