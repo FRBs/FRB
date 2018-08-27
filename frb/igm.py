@@ -32,9 +32,12 @@ def fukugita04_dict():
     # Return
     return f04_dict
 
+
 def average_fHI(z, z_reion=7.):
     """
     Average HI fraction
+    1 = neutral
+    0 = fully ionized
 
 
     Parameters
@@ -44,7 +47,7 @@ def average_fHI(z, z_reion=7.):
 
     Returns
     -------
-
+    fHI: float or ndarray
     """
     z, flg_z = z_to_array(z)
     fHI = np.zeros_like(z)
@@ -57,8 +60,39 @@ def average_fHI(z, z_reion=7.):
     else:
         return fHI[0]
 
-def average_DM(z, cosmo=None, cumul=False, neval=10000,
-               mu=1.3):
+def average_He_nume(z, z_HIreion=7., z_HeIIreion=3.):
+    """
+    Average number of electrons contributed by He as a function of redshift
+    per He nucleus
+
+
+    Parameters
+    ----------
+    z
+
+    Returns
+    -------
+    fHe: ndarray
+
+    """
+    z, flg_z = z_to_array(z)
+    fHeI = np.zeros_like(z)
+    fHeII = np.zeros_like(z)
+    # HeI ionized at HI reionization
+    zion = z > z_HIreion
+    fHeI[zion] = 1.
+    # HeII ionized at HeII reionization
+    zion2 = z > z_HeIIreion
+    fHeII[zion2] = 1.
+    # Combine
+    neHe = (1.-fHeI) + (1.-fHeII)  #  No 2 on the second term as the first one gives you the first electron
+    # Return
+    if flg_z:
+        return neHe
+    else:
+        return neHe[0]
+
+def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     """
     Calculate the average DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
@@ -97,8 +131,18 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000,
     rho_diffuse = rho_b - (rho_Mstar+rho_ISM)
 
     # Here we go
-    n_H = (rho_diffuse/constants.m_p/mu)
+    n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
     n_He = n_H / 12.  # 25% He mass fraction
+
+    n_e = n_H * (1.-average_fHI(zeval)) + n_He*(average_He_nume(zeval))
+
+    # Cosmology
+    denom = np.sqrt((1+zeval)**3 * cosmo.Om0 + cosmo.Ode0)
+    num = 1+zeval
+
+    # Time to Sum
+    dz = zeval[1] - zeval[0]
+    DM_cum = ((constants.c/cosmo.H0) * np.cumsum(num * n_e * dz / denom)).to('pc/cm**3')
 
     pdb.set_trace()
 
