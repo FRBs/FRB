@@ -65,10 +65,13 @@ def average_fHI(z, z_reion=7.):
         return fHI[0]
 
 
-def average_He_nume(z, z_HIreion=7., z_HeIIreion=3.):
+def average_He_nume(z, z_HIreion=7.):
     """
     Average number of electrons contributed by He as a function of redshift
     per He nucleus
+
+    Following Kulkarni, Worseck & Hennawi 2018
+        https://arxiv.org/abs/1807.09774
 
 
     Parameters
@@ -83,14 +86,22 @@ def average_He_nume(z, z_HIreion=7., z_HeIIreion=3.):
 
     """
     z, flg_z = z_to_array(z)
+    # Load Kulkarni Table
+    He_file = resource_filename('frb', 'data/IGM/qheIII.txt')
+    qHeIII = Table.read(He_file, format='ascii')
+    # Fully re-ionized
+    first_ionized = np.where(qHeIII['Q_HeIII_18'] >= 1.)[0][0]
+    z_HeIIreion = qHeIII['z'][first_ionized]
+    #
     fHeI = np.zeros_like(z)
     fHeII = np.zeros_like(z)
     # HeI ionized at HI reionization
     zion = z > z_HIreion
     fHeI[zion] = 1.
     # HeII ionized at HeII reionization
-    zion2 = z > z_HeIIreion
-    fHeII[zion2] = 1.
+    zion2 = (z > z_HeIIreion) & (z < z_HIreion)
+    fi_HeIII = interp1d(qHeIII['z'], qHeIII['Q_HeIII_18'])
+    fHeII[zion2] = 1. - fi_HeIII(z[zion2])
     # Combine
     neHe = (1.-fHeI) + (1.-fHeII)  #  No 2 on the second term as the first one gives you the first electron
     # Return
