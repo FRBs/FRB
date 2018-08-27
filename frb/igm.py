@@ -118,10 +118,10 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     if cosmo is None:
         cosmo = Planck15
     # Init
-    zeval = np.linspace(0., z, neval)
+    zeval = np.linspace(0., z, neval)[1:]
 
     # Get baryon mass density
-    rho_b = cosmo.Ob(zeval) * cosmo.critical_density0.to('Msun/Mpc**3')
+    rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3') * (1+zeval)**3
 
     # Dense components
     rho_Mstar = avg_rhoMstar(zeval, remnants=True)
@@ -136,15 +136,18 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
 
     n_e = n_H * (1.-average_fHI(zeval)) + n_He*(average_He_nume(zeval))
 
-    # Cosmology
-    denom = np.sqrt((1+zeval)**3 * cosmo.Om0 + cosmo.Ode0)
-    num = 1+zeval
+    # Cosmology -- 2nd term is the (1+z) factor for DM
+    denom = np.sqrt((1+zeval)**3 * cosmo.Om0 + cosmo.Ode0) * (1+zeval) * (1+zeval)
 
     # Time to Sum
     dz = zeval[1] - zeval[0]
-    DM_cum = ((constants.c/cosmo.H0) * np.cumsum(num * n_e * dz / denom)).to('pc/cm**3')
+    DM_cum = ((constants.c/cosmo.H0) * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
 
-    pdb.set_trace()
+    # Return
+    if cumul:
+        return DM_cum, zeval
+    else:
+        return DM_cum[-1]
 
 
 
