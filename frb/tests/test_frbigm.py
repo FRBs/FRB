@@ -34,3 +34,8 @@ def test_igmDM():
     DM4 = igm.average_DM(4.)
     assert np.isclose(DM4.value, 3866.9971167)
 
+
+def test_z_from_DM():
+    z = igm.z_from_DM(1000.*u.pc/u.cm**3)
+    # Test
+    assert np.isclose(z, 0.95200554)
