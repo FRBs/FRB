@@ -110,6 +110,31 @@ def average_He_nume(z, z_HIreion=7.):
     else:
         return neHe[0]
 
+
+def z_from_DM(DM, cosmo=None):
+    """
+    Report back an estimated redshift from an input IGM DM
+    Any contributions from the Galaxy and/or host need to have been 'removed'
+
+    Parameters
+    ----------
+    DM: Quantity
+    cosmo: astropy.cosmology, optional
+
+    Returns
+    -------
+    z: float
+
+    """
+    # Calculate DMs
+    all_DM, zeval = average_DM(20., cosmo=cosmo, neval=20000, cumul=True)
+    # Interpolate
+    fint = interp1d(all_DM.value, zeval)
+    # Evaluate
+    z = fint(DM.to('pc/cm**3').value)
+    return z
+
+
 def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     """
     Calculate the average DM 'expected' based on our empirical
