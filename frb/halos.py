@@ -24,7 +24,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     # Parameters
     #
     Mhigh = 1e16  # Msun
-    Mhigh = 5e15  # Msun
+    Mhigh = 1e16  # Msun
     # mNFW
     y0 = 2.
     alpha = 2.
@@ -75,13 +75,22 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         lM = np.log(M)
         dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
         n_spl = IUS(lM, dndlM)
-
         cum_n = np.array([n_spl.integral(np.log(Mlow), ilM) for ilM in lM])
         ncum_n = cum_n/cum_n[-1]
         try:
             mhalo_spl = IUS(ncum_n, lM)
-        except:
-            pdb.set_trace()
+        except ValueError:
+            # Kludge me
+            print("REDUCING Mhigh by 2x")
+            Mhigh /= 2.
+            M = np.logspace(np.log10(Mlow), np.log10(Mhigh), num=1000)
+            lM = np.log(M)
+            dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
+            n_spl = IUS(lM, dndlM)
+            cum_n = np.array([n_spl.integral(np.log(Mlow), ilM) for ilM in lM])
+            ncum_n = cum_n/cum_n[-1]
+            #
+            mhalo_spl = IUS(ncum_n, lM)
 
 
         # Volume -- Box with base l = 2Mpc
@@ -148,4 +157,5 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 # Command line execution
 if __name__ == '__main__':
     build_grid(outfile='z1_mNFW_10000', ntrial=10000)
+    #build_grid(outfile='test', ntrial=10)
 
