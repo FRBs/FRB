@@ -14,10 +14,58 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import constants
 
-def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1):
 
+def init_hmf():
     # Hidden here to avoid it becoming a dependency
     import aemHMF
+    # Setup HMF
+    # https://github.com/astropy/astropy/blob/master/astropy/cosmology/parameters.py
+    sigma8 = 0.8159
+    ns = 0.9667
+    Neff = 3.046
+    cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
+                  "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
+    hmf = aemHMF.Aemulus_HMF()
+    hmf.set_cosmology(cosmo_dict)
+    # Return
+    return hmf
+
+def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
+
+
+    hmf = init_hmf()
+
+    M = np.logspace(np.log10(Mlow), np.log10(Mhigh), num=1000)
+    lM = np.log(M)
+
+    ratios = []
+    for z in zvals:
+        a = 1./(1.0 + z) # scale factor
+
+        # Setup
+        dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
+        M_spl = IUS(lM, M * dndlM)
+
+        # Integrate
+        rho_tot = M_spl.integral(np.log(Mlow), np.log(Mhigh)) * units.M_sun / units.Mpc ** 3
+        # Cosmology
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z)  # Tinker calculations are all mass
+        ratio = (rho_tot*cosmo.h**3 / rho_M).decompose()
+        #
+        ratios.append(ratio)
+    ratios = np.array(ratios)
+    # Boost halos if extend beyond rvir
+    if rmax != 1.:
+        from pyigm.cgm.models import ModifiedNFW
+        c = 7.7
+        nfw = ModifiedNFW(c=c)
+        M_ratio = nfw.fy_DM(rmax * nfw.c) / nfw.fy_DM(nfw.c)
+        ratios *= M_ratio
+    # Return
+    return np.array(ratios)
+
+
+def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1):
     from pyigm.cgm.models import ModifiedNFW
 
     # #############3
@@ -36,15 +84,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     # Random numbers
     rstate = np.random.RandomState(seed)
 
-    # Setup HMF
-    # https://github.com/astropy/astropy/blob/master/astropy/cosmology/parameters.py
-    sigma8 = 0.8159
-    ns = 0.9667
-    Neff = 3.046
-    cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
-              "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
-    hmf = aemHMF.Aemulus_HMF()
-    hmf.set_cosmology(cosmo_dict)
+    # Init HMF
+    hmf = init_hmf()
 
     # Boxes
     nbox = int(z_FRB / dz_box)
@@ -150,6 +191,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             DM_grid[itrial,iz] += DMs
     # Write
     if outfile is not None:
+        print("Writing to {}".format(outfile))
         np.save(outfile, DM_grid, allow_pickle=False)
 
     return DM_grid
