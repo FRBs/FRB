@@ -59,7 +59,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         from pyigm.cgm.models import ModifiedNFW
         c = 7.7
         nfw = ModifiedNFW(c=c)
-        M_ratio = nfw.fy_DM(rmax * nfw.c) / nfw.fy_DM(nfw.c)
+        M_ratio = nfw.fy_dm(rmax * nfw.c) / nfw.fy_dm(nfw.c)
         ratios *= M_ratio
     # Return
     return np.array(ratios)
