@@ -95,6 +95,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     #
     npad = 6 # Mpc
     base_l = 2*dX + npad
+    print('L_base = {} cMpc'.format(base_l))
     warnings.warn("Worry about being big enough given cMpc vs pMpc")
 
     DM_grid = np.zeros((ntrial,nz))
@@ -184,7 +185,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 cgm.z = zbox # To be consistent with above;  close enough
                 cgm.setup_param(cosmo=cosmo)
                 # DM
-                DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)
+                DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)  # AM NOT DIVIDING BY 1+z here BUT COULD
                 DMs.append(DM)
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
