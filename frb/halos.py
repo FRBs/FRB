@@ -31,6 +31,21 @@ def init_hmf():
     return hmf
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
+    """
+    Calculate the fraction of dark matter in collapsed halos
+     over a mass range and at a given redshift
+
+    Args:
+        zvals: ndarray
+        Mlow: float
+        Mhigh: float
+        rmax: float
+          Extent of the halo in units of rvir
+
+    Returns:
+        ratios: ndarray
+          rho_halo / rho_m
+    """
 
 
     hmf = init_hmf()
@@ -65,13 +80,30 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     return np.array(ratios)
 
 
-def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1):
+def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
+    dz_grid = 0.01):
+    """
+    Generate a universe of dm halos with DM measurements
+
+    Args:
+        z_FRB: float
+        ntrial: int
+        seed: int
+        Mlow: float
+        r_max: float
+          Extent of the halo in units of rvir
+        outfile: str
+        dz_box: float
+          Size of the slice of the universe for each sub-calculation
+        dz_grid: float
+          redshift spacing in the DM grid
+
+    Returns:
+        DM_grid: ndarray (ntrial, nz)
+
+    """
     from pyigm.cgm.models import ModifiedNFW
 
-    # #############3
-    # Parameters
-    #
-    Mhigh = 1e16  # Msun
     Mhigh = 1e16  # Msun
     # mNFW
     y0 = 2.
@@ -89,7 +121,6 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     # Boxes
     nbox = int(z_FRB / dz_box)
-    dz_grid = 0.01
     nz = int(z_FRB / dz_grid)
     dX = int(np.sqrt(ntrial))+1
     #
@@ -118,6 +149,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         n_spl = IUS(lM, dndlM)
         cum_n = np.array([n_spl.integral(np.log(Mlow), ilM) for ilM in lM])
         ncum_n = cum_n/cum_n[-1]
+        # As z increases, we have numerical issues at the high mass end (they are too rare)
         try:
             mhalo_spl = IUS(ncum_n, lM)
         except ValueError:
@@ -133,7 +165,6 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             #
             mhalo_spl = IUS(ncum_n, lM)
 
-
         # Volume -- Box with base l = 2Mpc
         D_zn = cosmo.comoving_distance(zbox + dz_box/2.) # Full box
         D_zp = cosmo.comoving_distance(ss*dz_box) # Previous
@@ -146,11 +177,14 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
         # Assume Gaussian stats for number of halos
         N_halo = int(np.round(avg_N + np.sqrt(avg_N)*rstate.randn(1)))
+
         # Random masses
         randM = rstate.random_sample(N_halo)
         rM = np.exp(mhalo_spl(randM))
+
         # r200
         r200 = (((3*rM*units.M_sun.cgs) / (4*np.pi*200*cosmo.critical_density(zbox)))**(1/3)).to('kpc')
+
         # Random locations (X,Y,Z)
         X_c = rstate.random_sample(N_halo)*base_l # Mpc
         Y_c = rstate.random_sample(N_halo)*base_l # Mpc
@@ -159,7 +193,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         # Redshifts
         z_ran = D_to_z(Z_c)
 
-        # Random loop
+        # Loop on trials
         all_DMs = []
         for itrial in range(ntrial):
             # X,Y trial
