@@ -5,12 +5,12 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import gzip
 import json
 from pkg_resources import resource_filename
+import os
 
-from frb import utils
 
 
 def load_dla_fits():
-    dla_fit_file = resource_filename('frb','data/IGM/dla_fits.json')
+    dla_fit_file = resource_filename('frb',os.path.join('data','IGM','dla_fits.json'))
     dla_fits = loadjson(dla_fit_file)
     # Return
     return dla_fits
