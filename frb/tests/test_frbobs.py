@@ -19,7 +19,7 @@ def test_init():
     assert isinstance(frbobs.frbcat, Table)
     assert isinstance(frbobs.uniq_frb, Table)
     # Specify file
-    frbobs2 = FRBCat(frbcat_file='frbcat_2017-03-16.csv')
-    assert len(frbobs2.frbcat) == 53
-    assert len(frbobs2.uniq_frb) == 18
+    frbobs2 = FRBCat(frbcat_file='frbcat_2017-04-06.csv')
+    assert len(frbobs2.frbcat) == 56
+    assert len(frbobs2.uniq_frb) == 21
 

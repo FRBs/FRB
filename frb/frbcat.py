@@ -63,7 +63,7 @@ class FRBCat(object):
             infil = fils[-1]  # Expecting these are ordered by date
             self.frbcat_file = infil
         else:
-            self.frbcat_file = path+frbcat_file
+            self.frbcat_file = os.path.join(path,frbcat_file)
         # Read
         if 'csv' in self.frbcat_file:
             self.frbcat = Table.read(self.frbcat_file, format='csv')
