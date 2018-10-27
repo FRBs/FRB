@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 import warnings
+import os
 
 from pkg_resources import resource_filename
 
@@ -12,7 +13,6 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
-from pkg_resources import resource_filename
 
 try:
     basestring
@@ -55,9 +55,9 @@ class FRBCat(object):
 
         """
         import glob
-        path = resource_filename('frb', 'data/FRBs/')
+        path = resource_filename('frb', os.path.join('data','FRBs'))
         if frbcat_file is None:
-            fils = glob.glob(path + '/frbcat_*')
+            fils = glob.glob(os.path.join(path,'frbcat_*'))
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
             fils.sort()
             infil = fils[-1]  # Expecting these are ordered by date
