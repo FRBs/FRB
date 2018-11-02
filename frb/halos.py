@@ -38,7 +38,9 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     Args:
         zvals: ndarray
         Mlow: float
+          In h^-1 units already so this will be applied for the halo mass function
         Mhigh: float
+          In h^-1 units already
         rmax: float
           Extent of the halo in units of rvir
 
@@ -46,11 +48,9 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         ratios: ndarray
           rho_halo / rho_m
     """
-
-
     hmf = init_hmf()
 
-    M = np.logspace(np.log10(Mlow), np.log10(Mhigh), num=1000)
+    M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
 
     ratios = []
@@ -69,7 +69,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         #
         ratios.append(ratio)
     ratios = np.array(ratios)
-    # Boost halos if extend beyond rvir
+    # Boost halos if extend beyond rvir (homologous in mass)
     if rmax != 1.:
         from pyigm.cgm.models import ModifiedNFW
         c = 7.7
@@ -90,6 +90,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         ntrial: int
         seed: int
         Mlow: float
+          h^-1 mass
         r_max: float
           Extent of the halo in units of rvir
         outfile: str
@@ -144,11 +145,11 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         print('zbox = {}'.format(zbox))
         a = 1./(1.0 + zbox) # Scale factor
         # Mass function
-        M = np.logspace(np.log10(Mlow), np.log10(Mhigh), num=1000)
+        M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
         lM = np.log(M)
         dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
         n_spl = IUS(lM, dndlM)
-        cum_n = np.array([n_spl.integral(np.log(Mlow), ilM) for ilM in lM])
+        cum_n = np.array([n_spl.integral(np.log(Mlow*cosmo.h), ilM) for ilM in lM])
         ncum_n = cum_n/cum_n[-1]
         # As z increases, we have numerical issues at the high mass end (they are too rare)
         try:
@@ -157,11 +158,11 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             # Kludge me
             print("REDUCING Mhigh by 2x")
             Mhigh /= 2.
-            M = np.logspace(np.log10(Mlow), np.log10(Mhigh), num=1000)
+            M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
             lM = np.log(M)
             dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
             n_spl = IUS(lM, dndlM)
-            cum_n = np.array([n_spl.integral(np.log(Mlow), ilM) for ilM in lM])
+            cum_n = np.array([n_spl.integral(np.log(Mlow*cosmo.h), ilM) for ilM in lM])
             ncum_n = cum_n/cum_n[-1]
             #
             mhalo_spl = IUS(ncum_n, lM)
@@ -173,7 +174,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         V = D_z * (base_l*units.Mpc)**2
 
         # Average N_halo
-        avg_n = hmf.n_bin(Mlow, Mhigh, a) * cosmo.h**3 * units.Mpc**-3
+        avg_n = hmf.n_bin(Mlow*cosmo.h, Mhigh*cosmo.h, a) * cosmo.h**3 * units.Mpc**-3
         avg_N = (V * avg_n).value
 
         # Assume Gaussian stats for number of halos
@@ -181,7 +182,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
         # Random masses
         randM = rstate.random_sample(N_halo)
-        rM = np.exp(mhalo_spl(randM))
+        rM = np.exp(mhalo_spl(randM)) / cosmo.h
 
         # r200
         r200 = (((3*rM*units.M_sun.cgs) / (4*np.pi*200*cosmo.critical_density(zbox)))**(1/3)).to('kpc')
