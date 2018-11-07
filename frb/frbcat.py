@@ -84,6 +84,7 @@ class FRBCat(object):
         # Set
         self.frbcat['RA'] = self.coords.icrs.ra.value
         self.frbcat['DEC'] = self.coords.icrs.dec.value
+        
         # Restrict to unique sources
         if orig:
             uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
