@@ -79,7 +79,9 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     # Return
     return np.array(ratios)
 
-def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20):
+
+def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
+                   cumul=False):
     """
     Calculate the average number of intersections to halos of a
     given minimum mass to a given zFRB.
@@ -96,13 +98,19 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20):
           Halo mass function from Aeumulus
         Mhigh: float, optional
           Mass of maximum halo in Solar masses
-        nsammple: int
+        nsammple: int, optional
           Number of samplings in redshift
           20 should be enough
+        cumul: bool, optional
+          Return the cumulative instead
 
     Returns:
+        cumul is False
         Navg: float
           Number of average intersections
+        cumul is True
+        zeval: ndarray
+        Ncumul: ndarray
     """
     # HMF
     if hmf is None:
@@ -133,10 +141,13 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20):
     dX[0] = 0.
 
     # Finish
-    Navg = np.sum(loX * dX)
+    if cumul:
+        Navg = np.cumsum(loX * dX)
+        return zs, Navg
+    else:
+        Navg = np.sum(loX * dX)
+        return Navg
 
-    # Return
-    return Navg
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
     dz_grid = 0.01):
