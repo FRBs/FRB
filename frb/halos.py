@@ -79,6 +79,64 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     # Return
     return np.array(ratios)
 
+def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20):
+    """
+    Calculate the average number of intersections to halos of a
+    given minimum mass to a given zFRB.
+
+    Args:
+        Mlow: float
+          Mass of minimum halo in Solar masses
+          The code deals with h^-1 factors so that you do not
+        zFRB:
+        radius: Quantity, optional
+          The calculation will use rvir for Mlow unless this is specified
+          And this rvir *will* vary with redshift
+        hmf: HMF class, optional
+          Halo mass function from Aeumulus
+        Mhigh: float, optional
+          Mass of maximum halo in Solar masses
+        nsammple: int
+          Number of samplings in redshift
+          20 should be enough
+
+    Returns:
+        Navg: float
+          Number of average intersections
+    """
+    # HMF
+    if hmf is None:
+        hmf = init_hmf()
+    #
+    zs = np.linspace(0., zFRB, nsample)
+    # Mean density
+    ns = []
+    for iz in zs:
+        ns.append(hmf.n_bin(Mlow * cosmo.h, Mhigh * cosmo.h, 1 / (1 + iz)) * cosmo.h ** 3)  # * units.Mpc**-3
+    # Interpolate
+    ns = units.Quantity(ns*units.Mpc**-3)
+    # Radii
+    if radius is None:
+        rhoc = cosmo.critical_density(zs)
+        r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
+    else:
+        r200 = np.ones_like(zs) * radius
+    # Ap
+    Ap = np.pi * r200**2
+
+    # l(X)
+    loX = ((constants.c/cosmo.H0) * ns * Ap).decompose()
+
+    # dX
+    X = cosmo.absorption_distance(zs)
+    dX = X - np.roll(X,1)
+    dX[0] = 0.
+
+    # Finish
+    Navg = np.sum(loX * dX)
+
+    # Return
+    return Navg
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
     dz_grid = 0.01):
