@@ -53,7 +53,7 @@ def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     isrt = np.argsort(seps)
     # Add?
     if add_sep:
-        catalog['separation'] = seps.to('arcmin').value
+        catalog['separation'] = seps.to('arcmin')
     # Sort
     srt_catalog = catalog[isrt]
     # Return
