@@ -8,11 +8,15 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy.table import Table
 
-from astroquery.sdss import SDSS
+try:
+    from astroquery.sdss import SDSS
+except ImportError:
+    print("Warning: You need to install astroquery to use the survey tools...")
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from frb.surveys import images
+
 
 class SDSS_Survey(surveycoord.SurveyCoord):
     def __init__(self, coord, radius, **kwargs):
