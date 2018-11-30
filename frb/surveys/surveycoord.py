@@ -1,6 +1,8 @@
 """ Parent class for surveying at a given coordinate"""
 from abc import ABCMeta
 
+import os
+
 from frb.surveys import images
 from frb.surveys import survey_io
 
@@ -26,6 +28,12 @@ class SurveyCoord(object):
         self.cutout_size = None
 
     def get_catalog(self):
+        """
+        
+        Returns:
+            Copy of self.catalog
+
+        """
         pass
 
     def get_cutout(self, imsize):
@@ -43,22 +51,51 @@ class SurveyCoord(object):
             assert 'radius' in self.catalog.meta.keys()
             assert 'survey' in self.catalog.meta.keys()
             
-    def write_catalog(self, out_dir='./', verbose=False):
+    def write_catalog(self, out_dir, ftype='ecsv', verbose=None):
         """
-        Write catalog to disk
-        Simple wrapper to survey_io.write_catalog
+        Write an input astropy Table to disk
 
         Args:
+            tbl: astropy.table.Table
             out_dir: str
               Folder for output
+            root: str
+              Root name of the output file
+            ftype: str, optional
+              File type, e.g. ecsv
             verbose: bool, optional
 
         Returns:
 
         """
-        survey_io.write_catalog(self.catalog, out_dir, verbose=verbose)
+        if verbose is None:
+            verbose = self.verbose
+        # Check
+        if ftype not in ['ecsv']:
+            raise IOError("Unallowed file type: {:s}".format(ftype))
+        #
+        root = self.survey
+        # Outfile
+        basename = root+'.{:s}'.format(ftype)
+        outfile = os.path.join(out_dir, basename)
+
+        # Write
+        self.catalog.write(outfile, overwrite=True)
+        if verbose:
+            print("Wrote: {:s}".format(outfile))
 
     def write_cutout(self, output_dir='./', root=None, verbose=None):
+        """
+        Write the cutout image to disk
+
+        Args:
+            output_dir: str
+            root: str, optional
+            verbose: bool, optional
+
+        Returns:
+
+        """
         if root is None:
             root = self.survey+'_cutout'
         if verbose is None:
