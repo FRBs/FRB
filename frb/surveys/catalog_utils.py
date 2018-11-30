@@ -5,10 +5,14 @@ import pdb
 from astropy.coordinates import SkyCoord
 from astropy import units
 
-from astroquery.heasarc import Heasarc
+try:
+    from astroquery.heasarc import Heasarc
+except ImportError:
+    print("Warning: You need to install astroquery to use the survey tools...")
 
 # Instantiate
 heasarc = Heasarc()
+
 
 def clean_heasarc(catalog):
     # RA/DEC
@@ -16,6 +20,7 @@ def clean_heasarc(catalog):
     catalog.rename_column("DEC", "dec")
     for key in ['ra', 'dec']:
         catalog[key].unit = units.deg
+
 
 def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     """

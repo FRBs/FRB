@@ -2,7 +2,10 @@
 
 import requests
 from io import BytesIO
-from PIL import Image
+try:
+    from PIL import Image
+except ImportError:
+    print("Warning: You need to install PIL to write SDSS cutout images")
 
 from matplotlib import pyplot as plt
 
