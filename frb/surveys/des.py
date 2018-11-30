@@ -1,23 +1,25 @@
 """ DES Survey """
 
-
-
-
 import pdb
 
 import numpy as np
 from astropy.table import Table
-from pyvo.dal import sia
 from astropy import units, io, utils
+
+# Dependencies
 try:
     from dl import queryClient as qc, authClient as ac, helpers
 except ImportError:
-    print("Warning:  You need to install data")
-
-token = ac.login('anonymous')
-
-_DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
-_svc = sia.SIAService(_DEF_ACCESS_URL)
+    print("Warning:  You need to install datalab to query DES data")
+else:
+    token = ac.login('anonymous')
+    try:
+        from pyvo.dal import sia
+    except ImportError:
+        print("Warning:  You need to install pyvo to retrieve DES images")
+    else:
+        _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+        _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 from frb.surveys import surveycoord
 
@@ -33,10 +35,10 @@ class DES_Survey(surveycoord.SurveyCoord):
         Download image given coordinates,fov and
         photometric band
 
-        The method `download_deepest_image has been
+        The method `download_deepest_image` has been
         taken from https://datalab.noao.edu/desdr1/analysis/DwarfGalaxyDESDR1_20171101.html#resources
         (credits to Knut Olsen, Robert Nikutta, Stephanie Juneau & NOAO Data Lab Team)
-        and modified slightly (by Sunil Simha).
+        and modified slightly for our needs (by Sunil Simha).
         
         Parameters
         ----------
