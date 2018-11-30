@@ -62,6 +62,10 @@ class SDSS_Survey(surveycoord.SurveyCoord):
                                            photoobj_fields=photoobj_fields)
         if photom_catalog is None:
             self.catalog = Table()
+            self.catalog.meta['radius'] = self.radius
+            self.catalog.meta['survey'] = self.survey
+            # Validate
+            self.validate_catalog()
             return
 
         # Now query for photo-z
@@ -106,7 +110,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         self.validate_catalog()
 
         # Return
-        return catalog
+        return self.catalog.copy()
 
     def get_cutout(self, imsize):
         # URL
