@@ -4,9 +4,10 @@ from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
 from frb.surveys import heasarc
 
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST']
+
 
 def load_survey_by_name(name, coord, radius, **kwargs):
-    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST']
 
     if name not in allowed_surveys:
         raise IOError("Not ready for input survey.\n These are allowed: {}".format(allowed_surveys))
