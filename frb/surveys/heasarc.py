@@ -47,3 +47,8 @@ class NVSS_Survey(HEASARC_Survey):
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
         self.survey = 'NVSS'
+        
+class FIRST_Survey(HEASARC_Survey):
+    def __init__(self, coord, radius, **kwargs):
+        HEASARC_Survey.__init__(self, coord, radius, 'first', **kwargs)
+        self.survey = 'FIRST'
