@@ -21,6 +21,7 @@ class SurveyCoord(object):
 
         # Typically set items
         self.survey = None
+        self.query = None
 
         # Standard products
         self.catalog = None
