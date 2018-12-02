@@ -18,9 +18,9 @@ class DECaL_Survey(DL_Survey):
         if band is  'g':
             bandstr = "g DECam SDSS c0001 4720.0 1520.0"
         elif band is 'r':
-            bandstr = "r DECam SDSS c0002 6415.0 1480.0	"
+            bandstr = "r DECam SDSS c0002 6415.0 1480.0"
         elif band is 'z':
-            bandstr = "z DECam SDSS c0004 9260.0 1520.0	"
+            bandstr = "z DECam SDSS c0004 9260.0 1520.0"
         table_cols = ['prodtype']
         col_vals = ['image']
         return table_cols, col_vals, bandstr
@@ -44,13 +44,14 @@ class DECaL_Survey(DL_Survey):
         self.query += "\nWHERE q3c_radial_query(ra,dec,{:f},{:f},{:f})".format(
             self.coord.ra.value,self.coord.dec.value,self.radius.to(units.deg).value)
 
-    def _select_best_img(self,imgTable,verbose):
+    def _select_best_img(self,imgTable,verbose,timeout=120):
         """
         Just one image here so no problem
         """
         row = imgTable[0]
+        url = row['access_url'].decode()
         if verbose:
-            print ('downloading deepest stacked image...')
+            print ('downloading image...')
         
         imagedat = io.fits.open(utils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))
         return imagedat
