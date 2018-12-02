@@ -2,13 +2,13 @@
 
 import numpy as np
 from astropy import units, io, utils
-from frb.surveys.dlsurvey import DL_Survey
+from frb.surveys import dlsurvey
 from pyvo.dal import sia
 
-class DECaL_Survey(DL_Survey):
+class DECaL_Survey(dlsurvey.DL_Survey):
 
     def __init__(self,coord,radius, **kwargs):
-        DL_Survey.__init__(self,coord,radius, **kwargs)
+        dlsurvey.DL_Survey.__init__(self,coord,radius, **kwargs)
         self.survey = 'DECaL'
         self.bands = ['g', 'r', 'z']
         self.svc = sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
@@ -29,21 +29,15 @@ class DECaL_Survey(DL_Survey):
         """
         Generate SQL query for catalog search
         """
-        self.query = "SELECT "
         if query_fields is None:
             object_id_fields = ['decals_id','brick_primary','brickid','ra','dec']
             mag_fields = ['mag_g','mag_r','mag_z','mag_w1','mag_w2','mag_w3','mag_w4']
             snr_fields = ['snr_g','snr_r','snr_z','snr_w1','snr_w2','snr_w3','snr_w4']
             query_fields = object_id_fields+mag_fields+snr_fields
         
-        for field in query_fields:
-            self.query += "{:s},".format(field)
+        database = "ls_dr7.tractor"
+        self.query = dlsurvey._default_query_str(query_fields,database,self.coord,self.radius)
         
-        self.query = self.query[:-1] #remove the last comma
-        self.query += "\nFROM ls_dr7.tractor"
-        self.query += "\nWHERE q3c_radial_query(ra,dec,{:f},{:f},{:f})".format(
-            self.coord.ra.value,self.coord.dec.value,self.radius.to(units.deg).value)
-
     def _select_best_img(self,imgTable,verbose,timeout=120):
         """
         Just one image here so no problem
