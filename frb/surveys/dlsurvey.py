@@ -21,10 +21,11 @@ class DL_Survey(surveycoord.SurveyCoord):
         
         #Define photmetric band names.
         self.token = ac.login('anonymous')
-        self.bands = None
+        self.bands = []
         #Instantiate sia service 
         self.svc = None
         #Generate query
+        self.query = None
         self.qc_profile = None
     
     def _parse_cat_band(self,band):
@@ -113,24 +114,35 @@ class DL_Survey(surveycoord.SurveyCoord):
         self.cutout = self.get_image(imsize, band).data
         return self.cutout
 
-
-
-
-
-
-
-        
-
-        
-
-
-        
-
-
-
-
-
-
-
-
-    
+def _default_query_str(query_fields,database,coord,radius):
+    """
+    Generates default query string for
+    a catalog search.
+    Parameters
+    ----------
+    query_fields: list of str
+        A list of query fields to
+        retrieve from the database
+    database: str
+        Name of the databse
+    coord: astropy SkyCoord
+        Central coordinate of the search
+    radius: astropy Quantity (Angular)
+        Search radius
+    Returns
+    -------
+    default_query: str
+        A query to be fed to datalab's
+        SQL client
+    """
+    query_field_str = ""
+    for field in query_fields:
+        query_field_str += " {:s},".format(field)
+    #Remove last comma
+    query_field_str = query_field_str[:-1]
+    default_query = """SELECT{:s}
+    FROM {:s}
+    WHERE q3c_radial_search(ra,dec,{:f},{:f},{:f})
+    """.format(query_field_str,database,coord.ra.value,
+                            coord.dec.value,radius.to(units.deg).value)
+    return default_query
