@@ -21,6 +21,15 @@ def clean_heasarc(catalog):
     for key in ['ra', 'dec']:
         catalog[key].unit = units.deg
 
+def clean_cat(catalog, pdict, fill_mask=None):
+    for key,value in pdict.items():
+        if value in catalog.keys():
+            catalog.rename_column(value, key)
+    # Mask
+    if fill_mask is not None:
+        if catalog.mask is not None:
+            catalog = catalog.filled(fill_mask)
+    return catalog
 
 def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     """
