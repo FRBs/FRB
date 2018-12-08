@@ -38,7 +38,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         pass
 
     
-    def get_catalog(self,query_fields=None):
+    def get_catalog(self,query_fields=None, print_query=False):
         """
         Get catalog sources around the given coordinates
         within a radius.
@@ -51,6 +51,8 @@ class DL_Survey(surveycoord.SurveyCoord):
         qc.set_profile(self.qc_profile)
 
         self._gen_cat_query(query_fields)
+        if print_query:
+            print(self.query)
         result = qc.query(self.token,sql=self.query)
         cat = helpers.convert(result)
         # TODO:: Suppress the print output from convert
@@ -138,11 +140,12 @@ def _default_query_str(query_fields,database,coord,radius):
     query_field_str = ""
     for field in query_fields:
         query_field_str += " {:s},".format(field)
-    #Remove last comma
+    # Remove last comma
     query_field_str = query_field_str[:-1]
-    default_query = """SELECT{:s}
-    FROM {:s}
-    WHERE q3c_radial_search(ra,dec,{:f},{:f},{:f})
-    """.format(query_field_str,database,coord.ra.value,
-                            coord.dec.value,radius.to(units.deg).value)
+    # Finish
+    default_query = 'SELECT{:s}'.format(query_field_str)
+    default_query += "\nFROM {:s}".format(database)
+    default_query += "\nWHERE q3c_radial_query(ra,dec,{:f},{:f},{:f})".format(
+        coord.ra.value,coord.dec.value,radius.to(units.deg).value)
+
     return default_query
