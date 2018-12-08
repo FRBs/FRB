@@ -11,7 +11,7 @@ from astropy import units, io, utils
 try:
     from dl import queryClient as qc, authClient as ac, helpers
 except ImportError:
-    print("Warning:  You need to install data")
+    print("Warning:  You need to install dl")
 
 from frb.surveys import surveycoord
 
