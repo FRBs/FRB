@@ -37,8 +37,7 @@ class DL_Survey(surveycoord.SurveyCoord):
     def _select_best_img(self,imgTable,verbose,timeout=120):
         pass
 
-    
-    def get_catalog(self,query_fields=None, print_query=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False):
         """
         Get catalog sources around the given coordinates
         within a radius.
@@ -49,11 +48,14 @@ class DL_Survey(surveycoord.SurveyCoord):
             SQL query.
         """
         qc.set_profile(self.qc_profile)
-
-        self._gen_cat_query(query_fields)
+        # Generate the query
+        if query is None:
+            self._gen_cat_query(query_fields)
+            query = self.query
         if print_query:
-            print(self.query)
-        result = qc.query(self.token,sql=self.query)
+            print(query)
+        # Do it
+        result = qc.query(self.token, sql=query)
         cat = helpers.convert(result)
         # TODO:: Suppress the print output from convert
         # TODO:: Dig into why the heck it doesn't want to natively
