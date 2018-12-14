@@ -14,8 +14,8 @@ photom = {}
 photom['DES'] = {}
 DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
-    photom['DES']['DES_{:s}'.format(band)] = 'mag_auto_{:s}'.format(band)
-    photom['DES']['DES_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band)
+    photom['DES']['DES_{:s}'.format(band)] = 'mag_auto_{:s}'.format(band.lower())
+    photom['DES']['DES_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
 photom['DES']['DES_ID'] = 'coadd_object_id'
 photom['DES']['ra'] = 'ra'
 photom['DES']['dec'] = 'dec'
@@ -23,10 +23,10 @@ photom['DES']['DES_tile'] = 'tilename'
 
 # DES-WISE
 photom['DES-WISE'] = {}
-DES_WISE_bands = ['1', '2', '3', '4']
+DES_WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in DES_WISE_bands:
-    photom['DES-WISE']['W{:s}'.format(band)] = 'w{:s}mpro'.format(band)
-    photom['DES-WISE']['W{:s}_err'.format(band)] = 'w{:s}sigmpro'.format(band)
+    photom['DES-WISE']['{:s}'.format(band)] = '{:s}mpro'.format(band.lower())
+    photom['DES-WISE']['{:s}_err'.format(band)] = '{:s}sigmpro'.format(band.lower())
 photom['DES-WISE']['DES_ID'] = 'coadd_object_id'
 photom['DES-WISE']['DES_ra'] = 'des_ra'
 photom['DES-WISE']['DES_dec'] = 'des_dec'
@@ -71,10 +71,10 @@ class DES_Survey(dlsurvey.DL_Survey):
             idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'])
             # Fill me
             for band in DES_WISE_bands:
-                main_cat['W{:s}'.format(band)] = -999.
-                main_cat['W{:s}'.format(band)][idx] = wise_cat['W{:s}'.format(band)]
-                main_cat['W{:s}_err'.format(band)] = -999.
-                main_cat['W{:s}_err'.format(band)][idx] = wise_cat['W{:s}_err'.format(band)]
+                main_cat['{:s}'.format(band)] = -999.
+                main_cat['{:s}'.format(band)][idx] = wise_cat['{:s}'.format(band)]
+                main_cat['{:s}_err'.format(band)] = -999.
+                main_cat['{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band)]
 
         # Finish
         self.catalog = main_cat
