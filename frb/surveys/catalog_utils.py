@@ -9,9 +9,9 @@ try:
     from astroquery.heasarc import Heasarc
 except ImportError:
     print("Warning: You need to install astroquery to use the survey tools...")
-
-# Instantiate
-heasarc = Heasarc()
+else:
+    # Instantiate
+    heasarc = Heasarc()
 
 
 def clean_heasarc(catalog):
