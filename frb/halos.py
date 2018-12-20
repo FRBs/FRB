@@ -62,14 +62,14 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
-        rho_tot = M_spl.integral(np.log(Mlow), np.log(Mhigh)) * units.M_sun / units.Mpc ** 3
+        rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
         rho_M = cosmo.critical_density(z) * cosmo.Om(z)  # Tinker calculations are all mass
-        ratio = (rho_tot*cosmo.h**3 / rho_M).decompose()
+        ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)
     ratios = np.array(ratios)
-    # Boost halos if extend beyond rvir (homologous in mass)
+    # Boost halos if extend beyond rvir (homologous in mass, but constant concentration is an approx)
     if rmax != 1.:
         from pyigm.cgm.models import ModifiedNFW
         c = 7.7
@@ -150,7 +150,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
 
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
-    dz_grid = 0.01):
+    dz_grid = 0.01, verbose=False):
     """
     Generate a universe of dm halos with DM measurements
 
@@ -207,6 +207,9 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     z_val = np.array([z_at_value(cosmo.comoving_distance, iz) for iz in D_val*units.Mpc])
     D_to_z = IUS(D_val, z_val)
 
+    # Save halos
+    halos = [[] for i in range(ntrial)]
+
     # Loop me
     prev_zbox = 0.
     for ss in range(nbox):
@@ -261,6 +264,14 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         Y_c = rstate.random_sample(N_halo)*base_l # Mpc
         Z_c = (rstate.random_sample(N_halo)*D_z.to('Mpc') + D_zp).value
 
+        # Check mass fraction
+        if verbose:
+            Mtot = np.log10(np.sum(rM))
+            M_m = (cosmo.critical_density(zbox)*cosmo.Om(zbox) * V).to('M_sun')
+            #print("N_halo: {}  avg_N: {}".format(N_halo, avg_N))
+            print("z: {}  Mhalo/M_m = {}".format(zbox, 10**Mtot/M_m.value))
+            print(frac_in_halos([zbox], Mlow, Mhigh))
+
         # Redshifts
         z_ran = D_to_z(Z_c)
 
@@ -289,8 +300,10 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 cgm.z = zbox # To be consistent with above;  close enough
                 cgm.setup_param(cosmo=cosmo)
                 # DM
-                DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)  # AM NOT DIVIDING BY 1+z here BUT COULD
+                DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+cgm.z)
                 DMs.append(DM)
+                # Save halos too
+                halos[itrial].append([cgm.M_halo.to('M_sun'), R_phys[iobj], DM, z_ran[iobj]])
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
             DM_grid[itrial,iz] += DMs
@@ -299,7 +312,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         print("Writing to {}".format(outfile))
         np.save(outfile, DM_grid, allow_pickle=False)
 
-    return DM_grid
+    return DM_grid, halos
 
 # Command line execution
 if __name__ == '__main__':
