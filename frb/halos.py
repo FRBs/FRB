@@ -150,7 +150,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
 
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
-    dz_grid = 0.01, verbose=False):
+    dz_grid = 0.01, verbose=True):
     """
     Generate a universe of dm halos with DM measurements
 
@@ -180,7 +180,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     alpha = 2.
     fb = 0.75  # constant for all halos (for now)
 
-    warnings.warn("Need to do concentration properly!")
+    warnings.warn("Ought to do concentration properly someday!")
     cgm = ModifiedNFW(alpha=alpha, y0=y0, f_hot=fb)
 
     # Random numbers
@@ -316,6 +316,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
 # Command line execution
 if __name__ == '__main__':
-    build_grid(outfile='z1_mNFW_10000', ntrial=10000)
+    #build_grid(outfile='z1_mNFW_10000', ntrial=10000)
+    build_grid(outfile='z1_mNFW_10000_21dec2018', ntrial=10000)
     #build_grid(outfile='test', ntrial=10)
 
