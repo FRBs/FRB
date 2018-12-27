@@ -24,6 +24,15 @@ from astropy.table import Table
 m_p = constants.m_p.cgs.value  # g
 
 def init_hmf():
+    """
+    Initialize the Aemulus Halo Mass Function
+
+    WARNING: This uses the original version which codes Tinker+2008
+    We may refactor to use the more accurate, new version
+
+    Returns:
+
+    """
     # Hidden here to avoid it becoming a dependency
     import aemHMF
     # Setup HMF
@@ -38,10 +47,13 @@ def init_hmf():
     # Return
     return hmf
 
+
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
     Calculate the fraction of dark matter in collapsed halos
      over a mass range and at a given redshift
+
+    Requires Aemulus HMF to be installed
 
     Args:
         zvals: ndarray
@@ -91,17 +103,20 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
                    cumul=False):
     """
-    Calculate the average number of intersections to halos of a
+    Calculate the (approximate) average number of intersections to halos of a
     given minimum mass to a given zFRB.
+
+    Requires Aemulus HMF to be installed
 
     Args:
         Mlow: float
           Mass of minimum halo in Solar masses
           The code deals with h^-1 factors so that you do not
-        zFRB:
+        zFRB: float
+          Redshift of the FRB
         radius: Quantity, optional
-          The calculation will use rvir for Mlow unless this is specified
-          And this rvir *will* vary with redshift
+          The calculation will specify this radius as rvir derived from
+           Mlow unless this is specified. And this rvir *will* vary with redshift
         hmf: HMF class, optional
           Halo mass function from Aeumulus
         Mhigh: float, optional
@@ -110,13 +125,13 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
           Number of samplings in redshift
           20 should be enough
         cumul: bool, optional
-          Return the cumulative instead
+          Return the cumulative quantities instead
 
     Returns:
-        cumul is False
+        If cumul is False
         Navg: float
           Number of average intersections
-        cumul is True
+        elif cumul is True
         zeval: ndarray
         Ncumul: ndarray
     """
@@ -141,7 +156,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
     Ap = np.pi * r200**2
 
     # l(X)
-    loX = ((constants.c/cosmo.H0) * ns * Ap).decompose()
+    loX = ((constants.c/cosmo.H0) * ns * Ap).decompose().value
 
     # dX
     X = cosmo.absorption_distance(zs)
@@ -160,21 +175,24 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
     dz_grid = 0.01, verbose=True):
     """
-    Generate a universe of dm halos with DM measurements
+    Generate a universe of dark matter halos with DM measurements
+    Mainly an internal function for generating useful output grids.
+
+    Requires the Aemulus Halo Mass function
 
     Args:
-        z_FRB: float
-        ntrial: int
-        seed: int
-        Mlow: float
+        z_FRB: float, optional
+        ntrial: int, optional
+        seed: int, optional
+        Mlow: float, optional
           h^-1 mass
-        r_max: float
+        r_max: float, optional
           Extent of the halo in units of rvir
-        outfile: str
+        outfile: str, optional
           Write
-        dz_box: float
+        dz_box: float, optional
           Size of the slice of the universe for each sub-calculation
-        dz_grid: float
+        dz_grid: float, optional
           redshift spacing in the DM grid
 
     Returns:
@@ -339,17 +357,18 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     return DM_grid, halo_tbl
 
+
 def rad3d2(xyz):
     """ Calculate radius to x,y,z inputted
     Assumes the origin is 0,0,0
 
     Parameters
     ----------
-    xyz : Tuple or ndarray
+        xyz : Tuple or ndarray
 
     Returns
     -------
-    rad3d : float or ndarray
+        rad3d : float or ndarray
 
     """
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
@@ -357,7 +376,7 @@ def rad3d2(xyz):
 
 class ModifiedNFW(object):
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
-    for the hot, virialized gas.  Currently only valid for z=0
+    for the hot, virialized gas.
 
     Parameters:
         log_Mhalo: float, optional
@@ -767,8 +786,8 @@ class LMC(ModifiedNFW):
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
                              alpha=alpha, y0=y0, **kwargs)
         # Position from Sun
-        self.distance = 50 * u.kpc
-        self.coord = SkyCoord('J052334.6-694522', unit=(u.hourangle, u.deg),
+        self.distance = 50 * units.kpc
+        self.coord = SkyCoord('J052334.6-694522', unit=(units.hourangle, units.deg),
                               distance=self.distance)
 
 class SMC(ModifiedNFW):
@@ -801,8 +820,8 @@ class M33(ModifiedNFW):
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
                              alpha=alpha, y0=y0, **kwargs)
         # Position from Sun
-        self.distance = 840 * u.kpc
-        self.coord = SkyCoord(ra=23.4621*u.deg, dec=30.6600*u.deg, distance=self.distance)
+        self.distance = 840 * units.kpc
+        self.coord = SkyCoord(ra=23.4621*units.deg, dec=30.6600*units.deg, distance=self.distance)
 
 
 class ICM(ModifiedNFW):
