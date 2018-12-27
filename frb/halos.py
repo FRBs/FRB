@@ -7,13 +7,21 @@ import pdb
 
 import warnings
 
-from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+from pkg_resources import resource_filename
 
+from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+from scipy.special import hyp2f1
+from scipy.interpolate import interp1d
+
+from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import constants
+from astropy.table import Table
 
+# Speed up calculations
+m_p = constants.m_p.cgs.value  # g
 
 def init_hmf():
     # Hidden here to avoid it becoming a dependency
@@ -163,6 +171,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         r_max: float
           Extent of the halo in units of rvir
         outfile: str
+          Write
         dz_box: float
           Size of the slice of the universe for each sub-calculation
         dz_grid: float
@@ -170,10 +179,10 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     Returns:
         DM_grid: ndarray (ntrial, nz)
+        halo_tbl: Table
+          Table of all the halos intersected
 
     """
-    from pyigm.cgm.models import ModifiedNFW
-
     Mhigh = 1e16  # Msun
     # mNFW
     y0 = 2.
@@ -207,8 +216,9 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     z_val = np.array([z_at_value(cosmo.comoving_distance, iz) for iz in D_val*units.Mpc])
     D_to_z = IUS(D_val, z_val)
 
-    # Save halos
-    halos = [[] for i in range(ntrial)]
+    # Save halo info
+    #halos = [[] for i in range(ntrial)]
+    halo_i, M_i, R_i, DM_i, z_i = [], [], [], [], []
 
     # Loop me
     prev_zbox = 0.
@@ -302,21 +312,545 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 # DM
                 DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+cgm.z)
                 DMs.append(DM)
-                # Save halos too
-                halos[itrial].append([cgm.M_halo.to('M_sun'), R_phys[iobj], DM, z_ran[iobj]])
+                # Save halo info
+                #halos[itrial].append([cgm.M_halo.to('M_sun'), R_phys[iobj], DM, z_ran[iobj]])
+                halo_i.append(itrial)
+                M_i.append(cgm.M_halo.value)
+                R_i.append(R_phys[iobj].value)
+                DM_i.append(DM)
+                z_i.append(z_ran[iobj])
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
             DM_grid[itrial,iz] += DMs
+
+    # Table the halos
+    halo_tbl = Table()
+    halo_tbl['trial'] = halo_i
+    halo_tbl['M'] = M_i
+    halo_tbl['R'] = R_i
+    halo_tbl['DM'] = DM_i
+    halo_tbl['z'] = z_i
+
     # Write
     if outfile is not None:
         print("Writing to {}".format(outfile))
         np.save(outfile, DM_grid, allow_pickle=False)
+        halo_tbl.write(outfile+'.fits', overwrite=True)
 
-    return DM_grid, halos
+    return DM_grid, halo_tbl
 
-# Command line execution
-if __name__ == '__main__':
-    #build_grid(outfile='z1_mNFW_10000', ntrial=10000)
-    build_grid(outfile='z1_mNFW_10000_21dec2018', ntrial=10000)
-    #build_grid(outfile='test', ntrial=10)
+def rad3d2(xyz):
+    """ Calculate radius to x,y,z inputted
+    Assumes the origin is 0,0,0
 
+    Parameters
+    ----------
+    xyz : Tuple or ndarray
+
+    Returns
+    -------
+    rad3d : float or ndarray
+
+    """
+    return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
+
+
+class ModifiedNFW(object):
+    """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
+    for the hot, virialized gas.  Currently only valid for z=0
+
+    Parameters:
+        log_Mhalo: float, optional
+          log10 of the Halo mass (solar masses)
+        c: float, optional
+          concentration of the halo
+        f_hot: float, optional
+          Fraction of the baryons in this hot phase
+          Will likely use this for all diffuse gas
+        alpha: float, optional
+          Parameter to modify NFW profile power-law
+        y0: float, optional
+          Parameter to modify NFW profile position
+        z: float, optional
+          Redshift of the halo
+
+    Attributes:
+        H0: Quantity;  Hubble constant
+        fb: float; Cosmic fraction of baryons (stars+dust+gas) in the entire halo
+           Default to 0.16
+        r200: Quantity
+           Virial radius
+        rho0: Quantity
+           Density normalization
+        M_b: Quantity
+           Mass in baryons of the
+
+
+    """
+    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., **kwargs):
+        # Init
+        # Param
+        self.log_Mhalo = log_Mhalo
+        self.M_halo = 10.**self.log_Mhalo * constants.M_sun.cgs
+        self.c = c
+        self.alpha = alpha
+        self.y0 = y0
+        self.z = z
+        self.f_hot = f_hot
+        self.zero_inner_ne = 0. # kpc
+
+        # Init more
+        self.setup_param()
+
+    def setup_param(self, cosmo=None):
+        """ Setup key parameters of the model
+        """
+        # Cosmology
+        self.H0 = 70. *units.km/units.s/ units.Mpc
+        if cosmo is None:
+            self.rhoc = 9.2e-30 * units.g / units.cm**3
+            self.fb = 0.16       # Baryon fraction
+        else:
+            self.rhoc = cosmo.critical_density(self.z)
+            self.fb = cosmo.Ob0/cosmo.Om0
+        # Dark Matter
+        self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
+        self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
+        # Baryons
+        self.M_b = self.M_halo * self.fb
+        self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
+        # Misc
+        self.mu = 1.33   # Reduced mass correction for Helium
+
+    def fy_dm(self, y):
+        """ Enclosed mass function for the Dark Matter NFW
+        Assumes the NFW profile
+
+        Parameters
+        ----------
+        y : float or ndarray
+
+        Returns
+        -------
+        f_y : float or ndarray
+        """
+        f_y = np.log(1+y) - y/(1+y)
+        #
+        return f_y
+
+    def fy_b(self, y):
+        """ Enclosed mass function for the baryons
+
+        Parameters
+            y: float or ndarray
+
+        Returns
+        -------
+            f_y: float or ndarray
+              Enclosed mass
+        """
+        f_y = (y/(self.y0 + y))**(1+self.alpha) * (
+                self.y0**(-self.alpha) * (self.y0 + y)**(1+self.alpha) * hyp2f1(
+            1+self.alpha, 1+self.alpha, 2+self.alpha, -1*y/self.y0)
+                - self.y0) / (1+self.alpha) / self.y0
+        return f_y
+
+    def ne(self, xyz):
+        """ Calculate n_e from n_H with a correction for Helium
+        Assume 25% mass is Helium and both electrons have been stripped
+
+        Parameters
+        ----------
+        xyz : ndarray (3, npoints)
+          Coordinate(s) in kpc
+
+        Returns
+        -------
+        n_e : float or ndarray
+          electron density in cm**-3
+
+        """
+        ne = self.nH(xyz) * 1.1667
+        if self.zero_inner_ne > 0.:
+            rad = np.sum(xyz**2, axis=0)
+            inner = rad < self.zero_inner_ne**2
+            if np.any(inner):
+                if len(xyz.shape) == 1:
+                    ne = 0.
+                else:
+                    ne[inner] = 0.
+        # Return
+        return ne
+
+    def nH(self, xyz):
+        """ Calculate the Hydrogen number density
+        Includes a correction for Helium
+
+        Parameters
+        ----------
+        xyz : ndarray
+          Coordinate(s) in kpc
+
+        Returns
+        -------
+        nH : float or ndarray
+          Density in cm**-3
+
+        """
+        nH = (self.rho_b(xyz) / self.mu / m_p).cgs.value
+        # Return
+        return nH
+
+    def rho_b(self, xyz):
+        """ Mass density in baryons in the halo; modified
+
+        Parameters
+        ----------
+        xyz : ndarray
+          Position (assumes kpc)
+
+        Returns
+        -------
+        rho : Quantity
+          Density in g / cm**-3
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        y = self.c * (radius/self.r200.to('kpc').value)
+        rho = self.rho0_b * self.f_hot / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
+        # Return
+        return rho
+
+    def Ne_Rperp(self, Rperp, step_size=0.1*units.kpc, rmax=1., add_units=True, cumul=False):
+        """ Calculate N_e at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+
+        Parameters
+        ----------
+        Rperp : Quantity
+          Impact parameter, typically in kpc
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+        add_units : bool, optional
+          Speed up calculations by avoiding units
+        cumul: bool, optional
+
+        Returns
+        -------
+        if cumul:
+          zval: ndarray (kpc)
+             z-values where z=0 is the midplane
+          Ne_cumul: ndarray
+             Cumulative Ne values (pc cm**-3)
+        else:
+          Ne: Quantity
+             Column density of total electrons
+        """
+        dz = step_size.to('kpc').value
+
+        # Cut at rmax*rvir
+        if Rperp > rmax*self.r200:
+            if add_units:
+                return 0. / units.cm**2
+            else:
+                return 0.
+        # Generate a sightline to rvir
+        zmax = np.sqrt((rmax*self.r200) ** 2 - Rperp ** 2).to('kpc')
+        zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,zval.size))
+        xyz[0, :] = Rperp.to('kpc').value
+        xyz[2, :] = zval
+
+        # Integrate
+        ne = self.ne(xyz) # cm**-3
+        if cumul:
+            Ne_cumul = np.cumsum(ne) * dz * 1000  # pc cm**-3
+            return zval, Ne_cumul
+        Ne = np.sum(ne) * dz * 1000  # pc cm**-3
+
+        # Return
+        if add_units:
+            return Ne * units.pc / units.cm**3
+        else:
+            return Ne
+
+
+class MB04(ModifiedNFW):
+    """
+    Halo based on the Maller & Bullock (2004) model of
+    virialized halo gas.
+
+    Parameters:
+        Rc: Quantity
+          cooling radius
+
+    """
+    def __init__(self, Rc=167*units.kpc, log_Mhalo=12.2, c=7.67, f_hot=0.75, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
+
+        # Setup
+        self.Rs = self.r200/self.c
+        self.Rc = Rc
+        self.Cc = (self.Rc/self.Rs).decompose().value
+        self.rhoV = 1. * constants.m_p/units.cm**3  # Will be renormalized
+
+        # For development
+        self.debug=False
+
+        # Normalize
+        self.norm_rhoV()
+
+    def norm_rhoV(self):
+        """
+        Normalize the density constant from MB04
+
+        Returns:
+
+        """
+        # Set rhoV to match expected baryon mass
+        r = np.linspace(1., self.r200.to('kpc').value, 1000)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,r.size))
+        xyz[2, :] = r
+        #
+        dr = r[1] - r[0]
+        Mass_unnorm = 4 * np.pi * np.sum(r**2 * self.rho_b(xyz)) * dr * units.kpc**3 # g * kpc**3 / cm**3
+        # Ratio
+        rtio = (Mass_unnorm/self.M_b).decompose().value
+        self.rhoV = self.rhoV.cgs/rtio
+        #
+        print("rhoV normalized to {} to give M_b={}".format((self.rhoV/constants.m_p).cgs,
+                                                            self.M_b.to('Msun')))
+
+    def rho_b(self, xyz):
+        """
+        Baryonic density profile
+
+        Args:
+            xyz: ndarray
+              Position array assumed in kpc
+
+        Returns:
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        x = radius/self.Rs.to('kpc').value
+        #
+        rho = self.rhoV * (1+ (3.7/x)*np.log(1+x) - (3.7/self.Cc) * np.log(1+self.Cc))**(3/2)
+        if self.debug:
+            pdb.set_trace()
+        #
+        return rho
+
+
+class YF17(ModifiedNFW):
+    """
+    Y. Faerman et al (2017) model of the Milky Way
+
+    For the un-normalized density profile, we adopt the
+    average of the warm and hot components in
+    """
+    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
+
+        # Read
+        #faerman_file = resource_filename('pyigm', '/data/CGM/Models/Faerman_2017_ApJ_835_52-density-full.txt')
+        faerman_file = resource_filename('frb', '/data/Halos/Faerman_2017_ApJ_835_52-density-full.txt')
+        self.yf17 = Table.read(faerman_file, format='ascii.cds')
+        self.yf17['nH'] = self.yf17['nHhot'] + self.yf17['nHwarm']
+
+        # For development
+        self.debug=False
+
+        # Setup
+        self.rhoN = constants.m_p/units.cm**3
+        self.setup_yfdensity()
+
+    def setup_yfdensity(self):
+        """
+        Normalize the density profile from the input mass
+
+        Returns:
+            Initializes self.rhoN, the density normalization
+
+        """
+        # Setup Interpolation
+        self.yf17_interp = interp1d(self.yf17['Radius'], self.yf17['nH'], kind='cubic', bounds_error=False, fill_value=0.)
+
+        # Set rhoN to match expected baryon mass
+        r = np.linspace(1., self.r200.to('kpc').value, 1000)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,r.size))
+        xyz[2, :] = r
+        #
+        dr = r[1] - r[0]
+        Mass_unnorm = 4 * np.pi * np.sum(r**2 * self.rho_b(xyz)) * dr * units.kpc**3 # g * kpc**3 / cm**3
+        # Ratio
+        rtio = (Mass_unnorm/self.M_b).decompose().value
+        self.rhoN = self.rhoN.cgs/rtio
+        #
+        print("rhoN normalized to {} to give M_b={}".format((self.rhoN/constants.m_p).cgs,
+                                                            self.M_b.to('Msun')))
+
+    def rho_b(self, xyz):
+        """
+        Calculate the baryonic density
+
+        Args:
+            xyz: ndarray
+              Coordinates in kpc
+
+        Returns:
+            rho: Quantity array
+              Baryonic mass density (g/cm**3)
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        #
+        rho = self.rhoN * self.yf17_interp(radius)
+        if self.debug:
+            pdb.set_trace()
+        #
+        return rho
+
+
+class MilkyWay(ModifiedNFW):
+    """ Fiducial model for the Galaxy
+
+    Halo mass follows latest constraints
+
+    Density profile is similar to Maller & Bullock 2004
+
+    """
+    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, alpha=2, y0=2, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
+                             alpha=alpha, y0=y0, **kwargs)
+
+
+class M31(ModifiedNFW):
+    """
+    Preferred model for M31
+
+    Taking mass from van der Marel 2012
+
+    """
+    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, alpha=2, y0=2, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
+                             alpha=alpha, y0=y0, **kwargs)
+        # Position from Sun
+        self.distance = 752 * units.kpc # (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
+        self.coord = SkyCoord('J004244.3+411609', unit=(units.hourangle, units.deg),
+                              distance=self.distance)
+
+
+class LMC(ModifiedNFW):
+    """
+    Preferred model for LMC
+
+    Taking data from D'Onghia & Fox ARAA 2016
+
+    """
+    def __init__(self, log_Mhalo=np.log10(1.7e10), c=12.1, f_hot=0.75, alpha=2, y0=2, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
+                             alpha=alpha, y0=y0, **kwargs)
+        # Position from Sun
+        self.distance = 50 * u.kpc
+        self.coord = SkyCoord('J052334.6-694522', unit=(u.hourangle, u.deg),
+                              distance=self.distance)
+
+class SMC(ModifiedNFW):
+    """
+    Preferred model for SMC
+
+    Taking data from D'Onghia & Fox ARAA 2016
+
+    """
+    def __init__(self, log_Mhalo=np.log10(2.4e9), c=15.0, f_hot=0.75, alpha=2, y0=2, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
+                             alpha=alpha, y0=y0, **kwargs)
+        # Position from Sun
+        self.distance = 61 * units.kpc
+        self.coord = SkyCoord('J005238.0-724801', unit=(units.hourangle, units.deg),
+                              distance=self.distance)
+
+class M33(ModifiedNFW):
+    """
+    Preferred model for SMC
+
+    Taking data from Corbelli 2006
+
+    """
+    def __init__(self, log_Mhalo=np.log10(5e11), c=8.36, f_hot=0.75, alpha=2, y0=2, **kwargs):
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
+                             alpha=alpha, y0=y0, **kwargs)
+        # Position from Sun
+        self.distance = 840 * u.kpc
+        self.coord = SkyCoord(ra=23.4621*u.deg, dec=30.6600*u.deg, distance=self.distance)
+
+
+class ICM(ModifiedNFW):
+    """
+    Intracluster medium (ICM) model following the analysis
+    of Vikhilnin et al. 2006
+
+    """
+    def __init__(self, log_Mhalo=np.log10(5e14), c=3.5, f_hot=0.70, **kwargs):
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
+
+        # Using the Vihilnin et al. 2006 values for A907
+        #   I chose A1413 previously
+        self.n0 = 6.252e-3 #/ u.cm**3
+        self.rc = 136.9 #* u.kpc
+        self.rs = 1887.1 #* u.kpc
+        self.alpha = 1.556
+        self.beta = 0.594
+        self.epsilon = 4.998
+        self.n02 = 0.
+
+        # Fixed
+        self.gamma = 3
+
+    def ne(self, xyz):
+        """
+
+        Parameters
+        ----------
+        xyz : ndarray
+          Coordinate(s) in kpc
+
+        Returns
+        -------
+        n_e : float or ndarray
+          electron density in cm**-3
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+
+        # This ignores the n02 term
+        npne = self.n0**2 * (radius/self.rc)**(-self.alpha) / (
+                (1+(radius/self.rc)**2)**(3*self.beta - self.alpha/2.)) * (1 /
+                                                                           (1+(radius/self.rs)**self.gamma)**(self.epsilon/self.gamma))
+        if self.n02 > 0:
+            pdb.set_trace()  # Not coded yet
+
+        ne = np.sqrt(npne / 1.1667)
+        # Return
+        return ne
