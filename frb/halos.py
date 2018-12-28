@@ -172,8 +172,8 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
         return Navg
 
 
-def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box = 0.1,
-    dz_grid = 0.01, verbose=True):
+def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box=0.1,
+    dz_grid=0.01, verbose=True):
     """
     Generate a universe of dark matter halos with DM measurements
     Mainly an internal function for generating useful output grids.
@@ -205,10 +205,11 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     # mNFW
     y0 = 2.
     alpha = 2.
-    fb = 0.75  # constant for all halos (for now)
+    f_hot = 0.75  # constant for all halos (for now)
 
     warnings.warn("Ought to do concentration properly someday!")
-    cgm = ModifiedNFW(alpha=alpha, y0=y0, f_hot=fb)
+    cgm = ModifiedNFW(alpha=alpha, y0=y0, f_hot=f_hot)
+    icm = ICM()
 
     # Random numbers
     rstate = np.random.RandomState(seed)
@@ -448,6 +449,7 @@ class ModifiedNFW(object):
         Parameters
         ----------
         y : float or ndarray
+          y = c(r/r200)
 
         Returns
         -------
@@ -595,6 +597,42 @@ class ModifiedNFW(object):
             return Ne * units.pc / units.cm**3
         else:
             return Ne
+
+    def mass_r(self, r, step_size=0.1*units.kpc):
+        """ Calculate N_e at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+
+        Parameters
+        ----------
+        r : Quantity
+          Radius, typically in kpc
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+
+        Returns
+        -------
+          Mr: Quantity
+             Enclosed mass within r
+             Msun units
+        """
+        dr = step_size.to('kpc').value
+
+        # Generate a sightline to rvir
+        rval = np.arange(0., r.to('kpc').value+dr, dr)  # kpc
+
+        # Set xyz
+        xyz = np.zeros((3,rval.size))
+        xyz[2, :] = rval
+
+        # Integrate
+        nH = self.nH(xyz)  # cm**-3
+        Mr_number = 4*np.pi*np.sum(nH*rval**2) * dr * self.mu * m_p  # g kpc**3/cm**3
+        Mr = Mr_number * units.g * (units.kpc**3)/(units.cm**3)#
+
+        # Return
+        return Mr.to('M_sun')
 
 
 class MB04(ModifiedNFW):
@@ -829,23 +867,65 @@ class ICM(ModifiedNFW):
     Intracluster medium (ICM) model following the analysis
     of Vikhilnin et al. 2006
 
+    We scale the model to the profile fitted to A907
+
     """
-    def __init__(self, log_Mhalo=np.log10(5e14), c=3.5, f_hot=0.70, **kwargs):
-        # Init ModifiedNFW
+    def __init__(self, log_Mhalo=np.log10(5e14), c=5, f_hot=0.70, **kwargs):
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
 
+        # Scale the profile by r200
+        self.scale_profile()
+
+    def scale_profile(self):
         # Using the Vihilnin et al. 2006 values for A907
-        #   I chose A1413 previously
-        self.n0 = 6.252e-3 #/ u.cm**3
-        self.rc = 136.9 #* u.kpc
-        self.rs = 1887.1 #* u.kpc
-        self.alpha = 1.556
-        self.beta = 0.594
-        self.epsilon = 4.998
-        self.n02 = 0.
+        self.a907_r200 = 1820 * units.kpc  # Derived in the method below and hard-coded here
+        self.a907_c200 = 5.28
+        # A907 values
+        self.a907_n0 = 6.252e-3 #/ u.cm**3
+        self.a907_rc = 136.9 * (self.r200/self.a907_r200).decompose() #* u.kpc
+        self.a907_rs = 1887.1 * (self.r200/self.a907_r200).decompose() #* u.kpc
+        self.a907_alpha = 1.556
+        self.a907_beta = 0.594
+        self.a907_epsilon = 4.998
+        self.a907_n02 = 0.
+
+        # Scale/set
+        self.rc = self.a907_rc * (self.r200/self.a907_r200).decompose() #* u.kpc
+        self.rs = self.a907_rs * (self.r200/self.a907_r200).decompose() #* u.kpc
+        self.alpha = self.a907_alpha
+        self.beta = self.a907_beta
+        self.epsilon = self.a907_epsilon
+        self.n02 = self.a907_n02
+        self.n0 = 6.252e-3 #/ u.cm**3  (temporary)
 
         # Fixed
         self.gamma = 3
+
+        # Now the hot gas mass for the central density
+        Mb_M200 = self.mass_r(self.r200)
+        self.n0 *= (self.M_b*self.f_hot/Mb_M200).decompose()
+
+    def a907_nfw(self):
+        """
+        Code to regenrate the r200 and c200 values for A907
+        Now hard-coded
+        """
+        self.a907_c500 = 3.5
+        self.a907_M500 = 5e14 * units.Msun
+        self.a907_r500 = (((3*self.a907_M500) / (4*np.pi*500*self.rhoc))**(1/3)).to('kpc')
+        self.a907_Rs = self.a907_r500 / self.a907_c500  # Do not confuse with rs
+        # Code to re-calculate these
+        fy_500 = self.fy_dm(self.a907_r500 / self.a907_Rs)
+        yval = np.linspace(3.5, 10, 100)
+        rval = self.a907_Rs * yval
+        Mval = self.a907_M500 * self.fy_dm(yval) / fy_500
+        avg_rho = Mval / (4 * np.pi * rval ** 3 / 3.)
+        scaled_rho = (avg_rho / (200 * self.rhoc)).decompose()
+        srt = np.argsort(scaled_rho)
+        f_Mr = IUS(scaled_rho[srt], rval[srt])
+        self.a907_r200 = float(f_Mr(1.))*units.kpc
+        self.a907_c200 = (self.a907_r200 / self.a907_Rs).decompose()
+        self.a907_M200 = self.a907_M500 * self.fy_dm(self.a907_r200/self.a907_Rs) / fy_500
 
     def ne(self, xyz):
         """
@@ -863,13 +943,21 @@ class ICM(ModifiedNFW):
         """
         radius = np.sqrt(rad3d2(xyz))
 
+        npne = np.zeros_like(radius)
+
+        # Zero out inner 10kpc
+        ok_r = radius > 10.
+
         # This ignores the n02 term
-        npne = self.n0**2 * (radius/self.rc)**(-self.alpha) / (
-                (1+(radius/self.rc)**2)**(3*self.beta - self.alpha/2.)) * (1 /
-                                                                           (1+(radius/self.rs)**self.gamma)**(self.epsilon/self.gamma))
+        npne[ok_r] = self.n0**2 * (radius[ok_r]/self.rc)**(-self.alpha) / (
+                (1+(radius[ok_r]/self.rc)**2)**(3*self.beta - self.alpha/2.)) * (1 /
+                                                                           (1+(radius[ok_r]/self.rs)**self.gamma)**(self.epsilon/self.gamma))
         if self.n02 > 0:
             pdb.set_trace()  # Not coded yet
 
-        ne = np.sqrt(npne / 1.1667)
+        ne = np.sqrt(npne * 1.1667)
         # Return
         return ne
+
+    def nH(self, xyz):
+        return self.ne(xyz) / 1.1667
