@@ -324,17 +324,21 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             # Loop -- FIND A WAY TO SPEED THIS UP!
             DMs = []
             for iobj in np.where(intersect)[0]:
-                cgm.log_Mhalo=np.log10(rM[iobj])
-                cgm.M_halo = 10.**cgm.log_Mhalo * constants.M_sun.cgs
-                cgm.z = zbox # To be consistent with above;  close enough
-                cgm.setup_param(cosmo=cosmo)
+                # Init
+                if rM[iobj] > 1e14: # Use ICM model
+                    model = icm
+                else:
+                    model = cgm
+                model.log_Mhalo=np.log10(rM[iobj])
+                model.M_halo = 10.**model.log_Mhalo * constants.M_sun.cgs
+                model.z = zbox # To be consistent with above;  close enough
+                model.setup_param(cosmo=cosmo)
                 # DM
-                DM = cgm.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+cgm.z)
+                DM = model.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+model.z)
                 DMs.append(DM)
                 # Save halo info
-                #halos[itrial].append([cgm.M_halo.to('M_sun'), R_phys[iobj], DM, z_ran[iobj]])
                 halo_i.append(itrial)
-                M_i.append(cgm.M_halo.value)
+                M_i.append(model.M_halo.value)
                 R_i.append(R_phys[iobj].value)
                 DM_i.append(DM)
                 z_i.append(z_ran[iobj])
@@ -873,6 +877,8 @@ class ICM(ModifiedNFW):
     def __init__(self, log_Mhalo=np.log10(5e14), c=5, f_hot=0.70, **kwargs):
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
 
+    def setup_param(self, cosmo=None):
+        super(ICM, self).setup_param(cosmo=cosmo)
         # Scale the profile by r200
         self.scale_profile()
 
