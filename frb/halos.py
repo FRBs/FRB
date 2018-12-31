@@ -91,7 +91,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     ratios = np.array(ratios)
     # Boost halos if extend beyond rvir (homologous in mass, but constant concentration is an approx)
     if rmax != 1.:
-        from pyigm.cgm.models import ModifiedNFW
+        #from pyigm.cgm.models import ModifiedNFW
         c = 7.7
         nfw = ModifiedNFW(c=c)
         M_ratio = nfw.fy_dm(rmax * nfw.c) / nfw.fy_dm(nfw.c)
@@ -813,6 +813,39 @@ class M31(ModifiedNFW):
         self.distance = 752 * units.kpc # (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
         self.coord = SkyCoord('J004244.3+411609', unit=(units.hourangle, units.deg),
                               distance=self.distance)
+
+    def DM_from_Galactic(self, scoord, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given a direction
+
+        Args:
+            scoord:  SkyCoord
+               Coordinates of the sightline
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        # Setup the geometry
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Seperation
+        sep = self.coord.separation(scoord)
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a*x0 + b*y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+        # DM
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
 
 
 class LMC(ModifiedNFW):
