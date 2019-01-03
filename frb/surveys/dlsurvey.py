@@ -69,11 +69,23 @@ class DL_Survey(surveycoord.SurveyCoord):
         # Return
         return self.catalog.copy()
     
-    def get_image(self,imsize,band,timeout=120,verbose=False):
+    def get_image(self, imsize, band, timeout=120, verbose=False):
         """
         Get images from the catalog if available
-        for a given fov and band.
+            for a given fov and band.
+
+        Args:
+            imsize: Quantity
+            band: str
+            timeout: int
+              Time to wait in seconds before timing out
+            verbose:
+
+        Returns:
+            img_hdu: HDU
+
         """
+
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
@@ -99,24 +111,41 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         if(len(imgTable)>0):
             imagedat = self._select_best_img(imgTable,verbose,timeout)
-            image = imagedat[0]
+            img_hdu = imagedat[0]
         else:
             print('No image available')
-            image = None
-        return image
+            img_hdu = None
+        return img_hdu
     
-    def get_cutout(self, imsize,band=None):
+    def get_cutout(self, imsize, band=None):
         """
-        Get cutout 
+        Get cutout
+
+        Args:
+            imsize: Quantity
+              e.g 10*units.arcsec
+            band:
+              e.g. 'r'
+
+        Returns:
+            self.cutout: data
+            self.cutout_hdr: Header
+
         """
         if "r" in self.bands:
             band = "r"
         elif band is None:
             band = self.bands[-1]
             raise UserWarning("Retrieving cutout in {:s} band".format(band))
-        
-        self.cutout = self.get_image(imsize, band).data
-        return self.cutout
+
+        img_hdu = self.get_image(imsize, band)
+        if img_hdu is not None:
+            self.cutout = img_hdu.data
+            self.cutout_hdr = img_hdu.header
+        else:
+            self.cutout = img_hdu.data
+            self.cutout_hdr = img_hdu.header
+        return self.cutout, self.cutout_hdr
 
 def _default_query_str(query_fields,database,coord,radius):
     """
