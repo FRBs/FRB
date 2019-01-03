@@ -3,7 +3,29 @@
 import numpy as np
 from astropy import units, io, utils
 from frb.surveys import dlsurvey
-from pyvo.dal import sia
+
+# Dependencies
+try:
+    from pyvo.dal import sia
+except ImportError:
+    print("Warning:  You need to install pyvo to retrieve DECaL images")
+    _svc = None
+else:
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr7"
+    _svc = sia.SIAService(_DEF_ACCESS_URL)
+
+photom = {}
+#DECaL
+photom['DECaL'] = {}
+DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
+for band in DECaL_bands:
+    photom['DECaL']['DECaL_{:s}'.format(band)] = 'mag_{:s}'.format(band.lower())
+    #photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
+photom['DECaL']['DECaL_ID'] = 'decals_id'
+photom['DECaL']['ra'] = 'ra'
+photom['DECaL']['dec'] = 'dec'
+photom['DECaL']['DECaL_brick'] = 'brickid'
 
 class DECaL_Survey(dlsurvey.DL_Survey):
 
@@ -11,7 +33,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self,coord,radius, **kwargs)
         self.survey = 'DECaL'
         self.bands = ['g', 'r', 'z']
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
+        self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
     
     def _parse_cat_band(self,band):
