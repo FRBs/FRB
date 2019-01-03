@@ -10,18 +10,13 @@ from frb.surveys import catalog_utils
 
 # Dependencies
 try:
-    from dl import queryClient as qc, authClient as ac, helpers
+    from pyvo.dal import sia
 except ImportError:
-    print("Warning:  You need to install datalab to query DES data")
+    print("Warning:  You need to install pyvo to retrieve DES images")
+    _svc = None
 else:
-    token = ac.login('anonymous')
-    try:
-        from pyvo.dal import sia
-    except ImportError:
-        print("Warning:  You need to install pyvo to retrieve DES images")
-    else:
-        _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
-        _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+    _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 photom = {}
 #DES
@@ -54,7 +49,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self,coord,radius, **kwargs)
         self.survey = 'DES'
         self.bands = ['g', 'r', 'i', 'z', 'Y']
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/des_dr1")
+        self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/des_dr1")
         self.qc_profile = "default"
         self.database = "des_dr1.main"
 
