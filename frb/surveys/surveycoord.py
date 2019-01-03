@@ -51,7 +51,8 @@ class SurveyCoord(object):
             assert 'radius' in self.catalog.meta.keys()
             assert 'survey' in self.catalog.meta.keys()
             
-    def write_catalog(self, out_dir, ftype='ecsv', verbose=None):
+    def write_catalog(self, out_dir, ftype='ecsv', verbose=None, create_dirs=False,
+                      overwrite=True):
         """
         Write an input astropy Table to disk
 
@@ -63,6 +64,10 @@ class SurveyCoord(object):
               Root name of the output file
             ftype: str, optional
               File type, e.g. ecsv
+            create_dirs: bool, optional
+              Create the folders to the output dir (if needed)?
+            overwrite: bool, optional
+              Overwrite the existing file?
             verbose: bool, optional
 
         Returns:
@@ -75,12 +80,22 @@ class SurveyCoord(object):
             raise IOError("Unallowed file type: {:s}".format(ftype))
         #
         root = self.survey
+
+        # Generate output folder?
+        if create_dirs:
+            if not os.path.exists(out_dir):
+                os.makedirs(out_dir)
+
         # Outfile
         basename = root+'.{:s}'.format(ftype)
         outfile = os.path.join(out_dir, basename)
 
+        if (not overwrite) and (os.path.isfile(outfile)):
+            print("Output catalog file already exists.  Use overwrite=True as desired")
+            return
+
         # Write
-        self.catalog.write(outfile, overwrite=True)
+        self.catalog.write(outfile, overwrite=overwrite)
         if verbose:
             print("Wrote: {:s}".format(outfile))
 
