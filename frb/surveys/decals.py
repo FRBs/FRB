@@ -2,7 +2,9 @@
 
 import numpy as np
 from astropy import units, io, utils
+
 from frb.surveys import dlsurvey
+from frb.surveys import catalog_utils
 
 # Dependencies
 try:
@@ -35,7 +37,16 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.bands = ['g', 'r', 'z']
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
-    
+
+    def get_catalog(self, query=None, query_fields=None, print_query=False):
+        # Query
+        main_cat = super().get_catalog(query_fields=query_fields, print_query=print_query)
+        # Clean
+        self.catalog = catalog_utils.clean_cat(main_cat, photom['DECaL'])
+        self.validate_catalog()
+        # Return
+        return self.catalog
+
     def _parse_cat_band(self,band):
         if band is  'g':
             bandstr = "g DECam SDSS c0001 4720.0 1520.0"
