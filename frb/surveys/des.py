@@ -3,24 +3,10 @@
 import pdb
 
 import numpy as np
-from astropy.table import Table
 from astropy import units, io, utils
-from pyvo.dal import sia
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
-
-photom = {}
-#DES
-photom['DES'] = {}
-DES_bands = ['g', 'r', 'i', 'z', 'Y']
-for band in DES_bands:
-    photom['DES']['DES_{:s}'.format(band)] = 'mag_auto_{:s}'.format(band.lower())
-    photom['DES']['DES_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
-photom['DES']['DES_ID'] = 'coadd_object_id'
-photom['DES']['ra'] = 'ra'
-photom['DES']['dec'] = 'dec'
-photom['DES']['DES_tile'] = 'tilename'
 
 # Dependencies
 try:
@@ -36,6 +22,18 @@ else:
     else:
         _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
         _svc = sia.SIAService(_DEF_ACCESS_URL)
+
+photom = {}
+#DES
+photom['DES'] = {}
+DES_bands = ['g', 'r', 'i', 'z', 'Y']
+for band in DES_bands:
+    photom['DES']['DES_{:s}'.format(band)] = 'mag_auto_{:s}'.format(band.lower())
+    photom['DES']['DES_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
+photom['DES']['DES_ID'] = 'coadd_object_id'
+photom['DES']['ra'] = 'ra'
+photom['DES']['dec'] = 'dec'
+photom['DES']['DES_tile'] = 'tilename'
 
 # DES-WISE
 photom['DES-WISE'] = {}

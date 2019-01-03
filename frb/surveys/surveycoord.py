@@ -31,13 +31,13 @@ class SurveyCoord(object):
         """
         
         Returns:
-            Copy of self.catalog
+            self.catalog
 
         """
         pass
 
     def get_cutout(self, imsize):
-        pass
+        return None
 
     def get_image(self, imsize, filter):
         pass

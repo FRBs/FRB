@@ -2,9 +2,10 @@
 
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
+from frb.surveys.decals import DECaL_Survey
 from frb.surveys import heasarc
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'DECaL']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -21,6 +22,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = heasarc.NVSS_Survey(coord, radius, **kwargs)
     elif name == 'FIRST':
         survey = heasarc.FIRST_Survey(coord, radius, **kwargs)
+    elif name == 'DECaL':
+        survey = DECaL_Survey(coord, radius, **kwargs)
 
     # Return
     return survey

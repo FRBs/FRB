@@ -113,6 +113,16 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         return self.catalog.copy()
 
     def get_cutout(self, imsize):
+        """
+        Grab a cutout from SDSS
+
+        Args:
+            imsize: Quantity
+
+        Returns:
+            self.cutout -- PNG of the field
+
+        """
         # URL
         sdss_url = get_url(self.coord, imsize=imsize.to('arcsec').value)
         # Image

@@ -1,5 +1,7 @@
 """ Surveys to be accessed through the HEASARC interface (via astroquery"""
 
+import pdb
+
 from astropy.table import Table
 from astropy import units
 
@@ -10,6 +12,7 @@ except ImportError:
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
+
     
 class HEASARC_Survey(surveycoord.SurveyCoord):
     def __init__(self, coord, radius, mission, **kwargs):
@@ -39,8 +42,8 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         self.catalog.meta['survey'] = self.survey
         # Validate
         self.validate_catalog()
-        # Return 
-        return self.catalog.copy()
+        # Return
+        return self.catalog
         
         
 class NVSS_Survey(HEASARC_Survey):
