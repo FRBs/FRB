@@ -3,6 +3,7 @@
 import pdb
 
 import numpy as np
+from astropy.table import Table
 from astropy import units, io, utils
 from pyvo.dal import sia
 
@@ -21,6 +22,21 @@ photom['DES']['ra'] = 'ra'
 photom['DES']['dec'] = 'dec'
 photom['DES']['DES_tile'] = 'tilename'
 
+# Dependencies
+try:
+    from dl import queryClient as qc, authClient as ac, helpers
+except ImportError:
+    print("Warning:  You need to install datalab to query DES data")
+else:
+    token = ac.login('anonymous')
+    try:
+        from pyvo.dal import sia
+    except ImportError:
+        print("Warning:  You need to install pyvo to retrieve DES images")
+    else:
+        _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+        _svc = sia.SIAService(_DEF_ACCESS_URL)
+
 # DES-WISE
 photom['DES-WISE'] = {}
 DES_WISE_bands = ['W1', 'W2', 'W3', 'W4']
@@ -35,7 +51,7 @@ photom['DES-WISE']['WISE_dec'] = 'dec'
 
 
 class DES_Survey(dlsurvey.DL_Survey):
-    
+
     def __init__(self,coord,radius, **kwargs):
         dlsurvey.DL_Survey.__init__(self,coord,radius, **kwargs)
         self.survey = 'DES'
@@ -108,7 +124,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         url = row['access_url'].decode()
         if verbose:
             print ('downloading deepest stacked image...')
-        
+
         imagedat = io.fits.open(utils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))
         return imagedat
 
