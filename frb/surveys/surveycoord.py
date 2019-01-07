@@ -6,6 +6,7 @@ import os
 from frb.surveys import images
 from frb.surveys import survey_io
 
+
 class SurveyCoord(object):
     """
 
@@ -29,7 +30,7 @@ class SurveyCoord(object):
 
     def get_catalog(self):
         """
-        
+
         Returns:
             self.catalog
 
