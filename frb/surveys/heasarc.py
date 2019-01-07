@@ -68,6 +68,8 @@ class SkyView_Survey(surveycoord.SurveyCoord):
             img_hdu = self.get_wenss()
         elif self.mission.lower() == 'gleam':
             img_hdu = self.get_gleam()
+        elif self.mission.lower() == 'tgss':
+            img_hdu = self.get_tgss()
 
         self.cutout = img_hdu.data
         self.cutout_hdr = img_hdu.header
