@@ -59,17 +59,20 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         # Instantiate astroquery object
         self.skyview = SkyView()
 
-    def get_cutout(self):
+    def get_cutout(self, radius=None):
+        radius = radius if radius is not None else self.radius
+        self.cutout_size = 2*radius
+
         if self.mission.lower() == 'first':
-            img_hdu = self.get_first()
+            img_hdu = self.get_first(radius)
         elif self.mission.lower() == 'nvss':
-            img_hdu = self.get_nvss()
+            img_hdu = self.get_nvss(radius)
         elif self.mission.lower() == 'wenss':
-            img_hdu = self.get_wenss()
+            img_hdu = self.get_wenss(radius)
         elif self.mission.lower() == 'gleam':
-            img_hdu = self.get_gleam()
+            img_hdu = self.get_gleam(radius)
         elif self.mission.lower() == 'tgss':
-            img_hdu = self.get_tgss()
+            img_hdu = self.get_tgss(radius)
 
         self.cutout = img_hdu.data
         self.cutout_hdr = img_hdu.header
@@ -83,28 +86,28 @@ class SkyView_Survey(surveycoord.SurveyCoord):
 
         return self.cutout
 
-    def get_first(self):
+    def get_first(self, radius):
         return SkyView.get_images(position=self.coord,
                                   survey='VLA FIRST (1.4 GHz)',
-                                  radius=self.radius)[0][0]
+                                  radius=radius)[0][0]
 
-    def get_nvss(self):
+    def get_nvss(self, radius):
         return SkyView.get_images(position=self.coord, survey='NVSS',
-                                  radius=self.radius)[0][0]
+                                  radius=radius)[0][0]
 
-    def get_wenss(self):
+    def get_wenss(self, radius):
         return SkyView.get_images(position=self.coord, survey='WENSS',
-                                  radius=self.radius)[0][0]
+                                  radius=radius)[0][0]
 
-    def get_gleam(self, band="170-231 MHz"):
+    def get_gleam(self, radius, band="170-231 MHz"):
         return SkyView.get_images(position=self.coord,
                                   survey='GLEAM {0}'.format(band),
-                                  radius=self.radius)[0][0]
+                                  radius=radius)[0][0]
 
-    def get_tgss(self):
+    def get_tgss(self, radius):
         return SkyView.get_images(position=self.coord,
                                   survey='TGSS ADR1',
-                                  radius=self.radius)[0][0]
+                                  radius=radius)[0][0]
 
 
 class NVSS_Survey(HEASARC_Survey, SkyView_Survey):
