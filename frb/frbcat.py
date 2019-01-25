@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 import warnings
+import os
 
 from pkg_resources import resource_filename
 
@@ -12,12 +13,7 @@ from astropy import units as u
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
-from pkg_resources import resource_filename
 
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
 
 class FRBCat(object):
     """ Class to load up and provide FRB Observations in a simple package
@@ -28,6 +24,7 @@ class FRBCat(object):
 
     Attributes
     ----------
+
     """
 
     def __init__(self, frbcat_file=None, verbose=True, **kwargs):
@@ -39,7 +36,6 @@ class FRBCat(object):
         # Name, Creation date
         if verbose:
             pass
-            #print("Created on {:s}".format(spdbu.hdf_decode(self.qcat.cat_attr['CREATION_DATE'])))
         # Return
         return
 
@@ -55,15 +51,15 @@ class FRBCat(object):
 
         """
         import glob
-        path = resource_filename('frb', 'data/FRBs/')
+        path = resource_filename('frb', os.path.join('data','FRBs'))
         if frbcat_file is None:
-            fils = glob.glob(path + '/frbcat_*')
+            fils = glob.glob(os.path.join(path,'frbcat_*'))
             #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
             fils.sort()
             infil = fils[-1]  # Expecting these are ordered by date
             self.frbcat_file = infil
         else:
-            self.frbcat_file = path+frbcat_file
+            self.frbcat_file = os.path.join(path,frbcat_file)
         # Read
         if 'csv' in self.frbcat_file:
             self.frbcat = Table.read(self.frbcat_file, format='csv')#, delimiter='#')
