@@ -84,7 +84,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         # Integrate
         rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
-        rho_M = cosmo.critical_density(z) * cosmo.Om(z)  # Tinker calculations are all mass
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z) / (1+z)**3  # Tinker calculations are all mass
         ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)
@@ -241,7 +241,9 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     # Loop me
     prev_zbox = 0.
-    for ss in range(nbox):
+    #for ss in range(nbox):
+    #for ss in [0]:
+    for ss in [5]:
         zbox = ss*dz_box + dz_box/2.
         print('zbox = {}'.format(zbox))
         a = 1./(1.0 + zbox) # Scale factor
@@ -296,7 +298,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         # Check mass fraction
         if verbose:
             Mtot = np.log10(np.sum(rM))
-            M_m = (cosmo.critical_density(zbox)*cosmo.Om(zbox) * V).to('M_sun')
+            M_m = (cosmo.critical_density(zbox)*cosmo.Om(zbox) * V/(1+zbox)**3).to('M_sun')
             #print("N_halo: {}  avg_N: {}".format(N_halo, avg_N))
             print("z: {}  Mhalo/M_m = {}".format(zbox, 10**Mtot/M_m.value))
             print(frac_in_halos([zbox], Mlow, Mhigh))
@@ -306,6 +308,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
         # Loop on trials
         all_DMs = []
+        all_nhalo = []
+        all_r200 = []
         for itrial in range(ntrial):
             # X,Y trial
             X_trial = npad//2 + (2*itrial%dX)  # Step by 2Mpc
@@ -318,8 +322,10 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             R_phys = R_com * 1000. / (1+z_ran) * units.kpc
             # Cut
             intersect = R_phys < r_max*r200
-            #print("We hit {} halos".format(np.sum(intersect)))
+            print("We hit {} halos".format(np.sum(intersect)))
+            all_nhalo.append(np.sum(intersect))
             if not np.any(intersect):
+                all_DMs.append(0.)
                 continue
             # Loop -- FIND A WAY TO SPEED THIS UP!
             DMs = []
@@ -331,7 +337,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                     model = cgm
                 model.log_Mhalo=np.log10(rM[iobj])
                 model.M_halo = 10.**model.log_Mhalo * constants.M_sun.cgs
-                model.z = zbox # To be consistent with above;  close enough
+                model.z = zbox # To be consistent with above;  should be close enough
                 model.setup_param(cosmo=cosmo)
                 # DM
                 DM = model.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+model.z)
@@ -342,9 +348,14 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 R_i.append(R_phys[iobj].value)
                 DM_i.append(DM)
                 z_i.append(z_ran[iobj])
+                all_r200.append(cgm.r200.value)
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
             DM_grid[itrial,iz] += DMs
+            all_DMs.append(np.sum(DMs))
+            #print(DMs, np.log10(rM[intersect]), R_phys[intersect])
+            if (itrial % 100) == 0:
+                pdb.set_trace()
 
     # Table the halos
     halo_tbl = Table()
@@ -430,13 +441,14 @@ class ModifiedNFW(object):
         """ Setup key parameters of the model
         """
         # Cosmology
-        self.H0 = 70. *units.km/units.s/ units.Mpc
         if cosmo is None:
             self.rhoc = 9.2e-30 * units.g / units.cm**3
             self.fb = 0.16       # Baryon fraction
+            self.H0 = 70. *units.km/units.s/ units.Mpc
         else:
             self.rhoc = cosmo.critical_density(self.z)
             self.fb = cosmo.Ob0/cosmo.Om0
+            self.H0 = cosmo.H0
         # Dark Matter
         self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
         self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
@@ -603,7 +615,7 @@ class ModifiedNFW(object):
             return Ne
 
     def mass_r(self, r, step_size=0.1*units.kpc):
-        """ Calculate N_e at an input impact parameter Rperp
+        """ Calculate baryonic halo mass (not total) to a given radius
         Just a simple sum in steps of step_size
 
         Parameters
@@ -612,13 +624,11 @@ class ModifiedNFW(object):
           Radius, typically in kpc
         step_size : Quantity, optional
           Step size used for numerical integration (sum)
-        rmax : float, optional
-          Maximum radius for integration in units of r200
 
         Returns
         -------
           Mr: Quantity
-             Enclosed mass within r
+             Enclosed baryonic mass within r
              Msun units
         """
         dr = step_size.to('kpc').value
