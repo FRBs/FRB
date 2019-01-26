@@ -16,6 +16,10 @@ except ImportError:
 from frb.surveys import surveycoord
 
 class DL_Survey(surveycoord.SurveyCoord):
+    """
+    A survey class for all databases hosted
+    by NOAO's DataLab. Inherits from SurveyCoord
+    """
     def __init__(self, coord, radius, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         
@@ -142,7 +146,7 @@ def _default_query_str(query_fields,database,coord,radius):
     query_field_str = query_field_str[:-1]
     default_query = """SELECT{:s}
     FROM {:s}
-    WHERE q3c_radial_search(ra,dec,{:f},{:f},{:f})
+    WHERE q3c_radial_query(ra,dec,{:f},{:f},{:f})
     """.format(query_field_str,database,coord.ra.value,
                             coord.dec.value,radius.to(units.deg).value)
     return default_query
