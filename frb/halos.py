@@ -53,6 +53,9 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     Calculate the fraction of dark matter in collapsed halos
      over a mass range and at a given redshift
 
+    Note that the fraction of DM associated with these halos
+    will be scaled down by an additional factor of f_diffuse
+
     Requires Aemulus HMF to be installed
 
     Args:
@@ -173,7 +176,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
 
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box=0.1,
-    dz_grid=0.01, verbose=True):
+    dz_grid=0.01, f_hot=0.75, verbose=True):
     """
     Generate a universe of dark matter halos with DM measurements
     Mainly an internal function for generating useful output grids.
@@ -194,6 +197,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
           Size of the slice of the universe for each sub-calculation
         dz_grid: float, optional
           redshift spacing in the DM grid
+        f_hot: float
+          Fraction of the cosmic fraction of matter in diffuse gas (for DM)
 
     Returns:
         DM_grid: ndarray (ntrial, nz)
@@ -205,7 +210,6 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     # mNFW
     y0 = 2.
     alpha = 2.
-    f_hot = 0.75  # constant for all halos (for now)
 
     warnings.warn("Ought to do concentration properly someday!")
     cgm = ModifiedNFW(alpha=alpha, y0=y0, f_hot=f_hot)
