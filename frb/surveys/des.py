@@ -8,9 +8,9 @@ from pyvo.dal import sia
 class DES_Survey(dlsurvey.DL_Survey):
     
     def __init__(self,coord,radius, **kwargs):
-        DL_Survey.__init__(self,coord,radius, **kwargs)
+        dlsurvey.DL_Survey.__init__(self,coord,radius, **kwargs)
         self.survey = 'DES'
-        self.bands = ['g', 'r', 'i', 'z', 'Y']
+        self.bands = ['g', 'r', 'i', 'z', 'y']
         self.svc = sia.SIAService("https://datalab.noao.edu/sia/des_dr1")
         self.qc_profile = "default"
 
