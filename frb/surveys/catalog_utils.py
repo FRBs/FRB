@@ -9,9 +9,9 @@ try:
     from astroquery.heasarc import Heasarc
 except ImportError:
     print("Warning: You need to install astroquery to use the survey tools...")
-
-# Instantiate
-heasarc = Heasarc()
+else:
+    # Instantiate
+    heasarc = Heasarc()
 
 
 def clean_heasarc(catalog):
@@ -21,6 +21,15 @@ def clean_heasarc(catalog):
     for key in ['ra', 'dec']:
         catalog[key].unit = units.deg
 
+def clean_cat(catalog, pdict, fill_mask=None):
+    for key,value in pdict.items():
+        if value in catalog.keys():
+            catalog.rename_column(value, key)
+    # Mask
+    if fill_mask is not None:
+        if catalog.mask is not None:
+            catalog = catalog.filled(fill_mask)
+    return catalog
 
 def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     """
@@ -53,7 +62,7 @@ def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     isrt = np.argsort(seps)
     # Add?
     if add_sep:
-        catalog['separation'] = seps.to('arcmin').value
+        catalog['separation'] = seps.to('arcmin')
     # Sort
     srt_catalog = catalog[isrt]
     # Return
