@@ -9,12 +9,15 @@ import os
 from pkg_resources import resource_filename
 
 from scipy.interpolate import interp1d
+from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from astropy import units
 from astropy.table import Table
 from astropy.utils import isiterable
 from astropy.cosmology import Planck15
 from astropy import constants
+
+from frb import halos
 
 def fukugita04_dict():
     """
@@ -138,8 +141,10 @@ def z_from_DM(DM, cosmo=None):
 
 def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     """
-    Calculate the average DM 'expected' based on our empirical
+    Calculate the average cosmic DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
+
+    This includes both the IGM and galactic halos, i.e. any and all diffuse gas
 
     Parameters
     ----------
@@ -194,6 +199,46 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     else:
         return DM_cum[-1]
 
+
+def avg_DMhalos(z, logMmin=10., f_diffuse=0.75, cumul=False):
+    """
+    Average DM_halos term from halos along the sightline to an FRB
+
+    Args:
+        z: float
+          Redshift of the FRB
+        logMmin: float, optional
+          Lowest mass halos to consider
+        f_diffuse: float, optional
+          Fraction of the cosmic baryon fraction in diffuse gas
+        cumul: bool, optional
+          Return a cumulative evaluation?
+
+    Returns:
+        DM: Quantity
+          One value if cumul=False
+          else evaluated at a series of z
+        zeval: ndarray, optional
+          Evaluation redshifts if cumul=True
+    """
+
+    # Cosmic DM
+    DM_cosmic, zeval = average_DM(z, cumul=True)
+    # Halo mass fraction
+    zvals = np.linspace(0., z, 20)
+    fhalos = halos.frac_in_halos(zvals, 10**logMmin, 1e16, rmax=1.)
+    fhalos_interp = IUS(zvals, fhalos)
+
+    # DM halos
+    dDM = DM_cosmic.value - np.roll(DM_cosmic.value,1)
+    dDM[0] = dDM[1]
+    DM_halos = np.cumsum(dDM*fhalos_interp(zeval)*f_diffuse)
+
+    # Return
+    if cumul:
+        return DM_halos, zeval
+    else:
+        return DM_halos[-1]
 
 def avg_rhoISM(z):
     """
