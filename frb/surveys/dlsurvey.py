@@ -11,7 +11,7 @@ from astropy import units, io, utils
 try:
     from dl import queryClient as qc, authClient as ac, helpers
 except ImportError:
-    print("Warning:  You need to install data")
+    print("Warning:  You need to install dl")
 
 from frb.surveys import surveycoord
 
@@ -41,8 +41,7 @@ class DL_Survey(surveycoord.SurveyCoord):
     def _select_best_img(self,imgTable,verbose,timeout=120):
         pass
 
-    
-    def get_catalog(self,query_fields=None):
+    def get_catalog(self, query=None, query_fields=None, print_query=False):
         """
         Get catalog sources around the given coordinates
         within a radius.
@@ -53,9 +52,14 @@ class DL_Survey(surveycoord.SurveyCoord):
             SQL query.
         """
         qc.set_profile(self.qc_profile)
-
-        self._gen_cat_query(query_fields)
-        result = qc.query(self.token,sql=self.query)
+        # Generate the query
+        if query is None:
+            self._gen_cat_query(query_fields)
+            query = self.query
+        if print_query:
+            print(query)
+        # Do it
+        result = qc.query(self.token, sql=query)
         cat = helpers.convert(result)
         # TODO:: Suppress the print output from convert
         # TODO:: Dig into why the heck it doesn't want to natively
@@ -69,11 +73,23 @@ class DL_Survey(surveycoord.SurveyCoord):
         # Return
         return self.catalog.copy()
     
-    def get_image(self,imsize,band,timeout=120,verbose=False):
+    def get_image(self, imsize, band, timeout=120, verbose=False):
         """
         Get images from the catalog if available
-        for a given fov and band.
+            for a given fov and band.
+
+        Args:
+            imsize: Quantity
+            band: str
+            timeout: int
+              Time to wait in seconds before timing out
+            verbose:
+
+        Returns:
+            img_hdu: HDU
+
         """
+
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
@@ -99,23 +115,42 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         if(len(imgTable)>0):
             imagedat = self._select_best_img(imgTable,verbose,timeout)
-            image = imagedat[0]
+            img_hdu = imagedat[0]
         else:
             print('No image available')
-            image = None
-        return image
+            img_hdu = None
+        return img_hdu
     
-    def get_cutout(self, imsize,band=None):
+    def get_cutout(self, imsize, band=None):
         """
-        Get cutout 
+        Get cutout (and header)
+
+        Args:
+            imsize: Quantity
+              e.g 10*units.arcsec
+            band:
+              e.g. 'r'
+
+        Returns:
+            self.cutout: data
+              Header is held in self.cutout_hdr
+
         """
+        self.cutout_size = imsize
+
         if "r" in self.bands:
             band = "r"
         elif band is None:
             band = self.bands[-1]
             raise UserWarning("Retrieving cutout in {:s} band".format(band))
-        
-        self.cutout = self.get_image(imsize, band).data
+
+        img_hdu = self.get_image(imsize, band)
+        if img_hdu is not None:
+            self.cutout = img_hdu.data
+            self.cutout_hdr = img_hdu.header
+        else:
+            self.cutout = img_hdu.data
+            self.cutout_hdr = img_hdu.header
         return self.cutout
 
 def _default_query_str(query_fields,database,coord,radius):
@@ -142,7 +177,7 @@ def _default_query_str(query_fields,database,coord,radius):
     query_field_str = ""
     for field in query_fields:
         query_field_str += " {:s},".format(field)
-    #Remove last comma
+    # Remove last comma
     query_field_str = query_field_str[:-1]
     default_query = """SELECT{:s}
     FROM {:s}
