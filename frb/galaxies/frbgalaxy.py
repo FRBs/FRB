@@ -23,12 +23,28 @@ from astropy.table import Table
 from linetools import utils as ltu
 
 from frb.galaxies import defs
+from frb.galaxies import nebular
 
 
 class FRBGalaxy(object):
     """
 
     """
+    @classmethod
+    def from_dict(cls, idict, **kwargs):
+        # Instantiate
+        slf = cls(idict['ra'], idict['dec'], idict['FRB'], **kwargs)
+
+        if slf.cosmo.name != idict['cosmo']:
+            raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
+
+        # Fill me up
+        for attr in slf.main_attr:
+            if attr in idict.keys():
+                setattr(slf,attr,idict[attr])
+        #
+        return slf
+
     def __init__(self, ra, dec, frb, cosmo=None):
 
         # Init
@@ -45,9 +61,30 @@ class FRBGalaxy(object):
         self.redshift = {}
         self.photom = {}
         self.morphology = {}
-        self.lines = {}
-        self.derived = {}
+        self.neb_lines = {}
         self.kinematics = {}
+        self.derived = {}
+        self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines', 'kinematics', 'derived')
+
+    @property
+    def z(self):
+        if len(self.redshift) == 0:
+            return None
+        else:
+            return self.redshift['z']
+
+    def calc_nebular_EBV(self, method='Ha/Hb', **kwargs):
+        # Checks
+        assert len(self.neb_lines) > 0
+        # Do it
+        EBV = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
+        self.derived['EBV_nebular'] = EBV
+
+    def calc_nebular_SFR(self, method='Ha', **kwargs):
+        # Checks
+        assert len(self.neb_lines) > 0
+        assert len(self.redshift) > 0
+        #
 
     def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True):
         phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
@@ -74,7 +111,7 @@ class FRBGalaxy(object):
         cigale_tbl = Table.read(cigale_file)
 
         # Derived quantities
-        cigale_translate = [ # Internal key,  CIGALE key
+        cigale_translate = [  # Internal key,  CIGALE key
             ('Mstar', 'bayes.stellar.m_star'),
             ('f_AGN', 'bayes.agn.fracAGN_dale2014'),
             ('u-r', 'bayes.param.restframe_u_prime-r_prime'),
@@ -83,6 +120,7 @@ class FRBGalaxy(object):
             ('EBV_photom', 'bayes.attenuation.E_BVs.stellar.old'),
             ('Z_photom', 'bayes.stellar.metallicity')
         ]
+
         # Do it
         cigale = {}
         for item in cigale_translate:
@@ -102,6 +140,59 @@ class FRBGalaxy(object):
             if (key not in self.derived.keys()) or (overwrite):
                 self.derived[key] = item
 
+    def parse_ppxf(self, ppxf_line_file, overwrite=True, format='ascii.ecsv'):
+
+        ppxf_tbl = Table.read(ppxf_line_file, format=format)
+        names = ppxf_tbl['name'].data
+        ppxf_translate = [  # Internal key,  CIGALE key
+            ('Ha', 'Halpha'),
+            ('Hb', 'Hbeta'),
+            ('Hg', 'Hgamma'),
+            ('[NII] 6583',  '[NII]6583_d'),  # [NII] 6583 flux erg/s/cm^2; pPXF
+            ('[OII] 3726',  '[OII]3726'),    # [OII] flux erg/s/cm^2; pPXF
+            ('[OII] 3729',  '[OII]3729'),    # [OII] flux erg/s/cm^2; pPXF
+            ('[OIII] 5007',  '[OII]5007_d')  # [OII] 5007 flux erg/s/cm^2; pPXF
+        ]
+
+        # Fluxes first
+        ppxf = {}
+        for item in ppxf_translate:
+            if not(item[0] in defs.valid_neb_lines):
+                raise AssertionError("{} not valid!!".format(item[0]))
+            tidx = np.where(names == item[1])[0]
+            if len(tidx) > 0:
+                tidx = tidx[0]
+                ppxf[item[0]] = ppxf_tbl['flux'][tidx]
+                ppxf[item[0]+'_err'] = ppxf_tbl['err'][tidx]
+
+        # Fill Nebular
+        for line in defs.valid_neb_lines:
+            # Value
+            if line in ppxf.keys():
+                if (line in self.neb_lines.keys()) and (not overwrite):
+                    pass
+                else:
+                    self.neb_lines[line] = ppxf[line]
+                    # Try error
+                    if line+'_err' in ppxf.keys():
+                        self.neb_lines[line+'_err'] = ppxf[line+'_err']
+
+    def set_z(self, z, origin, err=None):
+        # Set internal
+        if origin == 'spec':
+            key = 'z_spec'
+        elif origin == 'phot':
+            key = 'z_phot'
+        self.redshift[key] = z
+        if err is not None:
+            self.redshift[key+'_err'] = err
+
+        # Preferred?
+        if (origin == 'spec') or ((origin == 'phot') and ('z' not in self.redshift.keys())):
+            self.redshift['z'] = z
+            if err is not None:
+                self.redshift['z_err'] = err
+
     def vette_dict(self, dict, valid_defs):
         pass
 
@@ -118,13 +209,10 @@ class FRBGalaxy(object):
         frbgal_dict['FRB'] = self.frb
         frbgal_dict['cosmo'] = self.cosmo.name
 
-        # Photometry
-        if len(self.photom) > 0:
-            frbgal_dict['photom'] = self.photom
-
-        # Derived quantities
-        if len(self.derived) > 0:
-            frbgal_dict['derived'] = self.derived
+        # Main attributes
+        for attr in self.main_attr:
+            if len(getattr(self,attr)) > 0:
+                frbgal_dict[attr] = getattr(self,attr)
 
         # JSONify
         jdict = ltu.jsonify(frbgal_dict)
