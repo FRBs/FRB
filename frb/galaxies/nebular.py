@@ -8,18 +8,36 @@ import numpy as np
 from scipy.interpolate import interp1d
 
 from astropy.table import Table
+from astropy import units
 
-def calc_dust_extinct(neb_lines, method, curve='MW'):
+def load_extinction(curve):
+    """
+    This method may move elsewhere..
 
+    Parameters
+    ----------
+    curve
+
+    Returns
+    -------
+
+    """
     # Load the extinction curve
     if curve == 'MW':
         dust_file = resource_filename('frb', 'data/Dust/MW_dust.dat')
         MW_dust = Table.read(dust_file, format='ascii')
     else:
         raise IOError("Not ready for this extinction curve!")
-
     # Generate function for interpolating
     alAV = interp1d(MW_dust['wave'], MW_dust['Al_AV'])
+
+    return alAV
+
+
+def calc_dust_extinct(neb_lines, method, curve='MW'):
+
+    # Dust extinction curve
+    alAV = load_extinction(curve)
 
     # Which ratio?
     if method == 'Ha/Hb':
@@ -46,6 +64,32 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
 
     AV = 2.5 * np.log10(Ha_Hb_intrin/fratio_obs) / (a1AV - a2AV)
 
-    EBV = AV / 3.1
+    return AV
 
-    return EBV
+def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
+
+    if method == 'Ha':
+        wave = 6564.6  # redder
+        flux = neb_lines['Ha']
+        #
+        conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+    else:
+        raise IOError("Not prepared for method: {}".format(method))
+
+    # Dust correct?
+    if AV is not None:
+        alAV = load_extinction(curve)
+        al = AV * alAV(wave)
+    else:
+        al = 0.
+
+    # Cosmology
+    DL = cosmo.luminosity_distance(z)
+
+    # Luminosity
+    Lum = flux * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
+
+    # SFR
+    SFR = Lum.to('erg/s').value * conversion
+
+    return SFR

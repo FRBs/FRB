@@ -73,18 +73,27 @@ class FRBGalaxy(object):
         else:
             return self.redshift['z']
 
-    def calc_nebular_EBV(self, method='Ha/Hb', **kwargs):
+    def calc_nebular_AV(self, method='Ha/Hb', **kwargs):
         # Checks
         assert len(self.neb_lines) > 0
         # Do it
-        EBV = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
-        self.derived['EBV_nebular'] = EBV
+        AV = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
+        self.derived['AV_nebular'] = AV
 
     def calc_nebular_SFR(self, method='Ha', **kwargs):
         # Checks
         assert len(self.neb_lines) > 0
         assert len(self.redshift) > 0
-        #
+        # Dust?
+        if 'AV_nebular' in self.derived.keys():
+            AV = self.derived['AV_nebular']
+            print("Using AV={} for a dust correction of the SFR".format(AV))
+        else:
+            print("Not making a dust correction of the SFR.  Set AV_nebular to do so or input AV to this method")
+            AV = None
+        # Calculate
+        SFR = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'], self.cosmo, AV=AV)
+        self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
 
     def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True):
         phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
