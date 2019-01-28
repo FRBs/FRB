@@ -24,6 +24,7 @@ valid_derived_photom = [
     'Mstar',           # Stellar mass; linear in Msun CIGALE
     'f_AGN',           # Fraction of AGN contribution to light; CIGALE
     'u-r',             # Rest-frame; CIGALE
+    'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE

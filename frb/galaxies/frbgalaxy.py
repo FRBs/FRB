@@ -15,7 +15,7 @@ from scipy.interpolate import interp1d
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import Planck15
 from astropy.cosmology import z_at_value
 from astropy import constants
 from astropy.table import Table
@@ -29,11 +29,17 @@ class FRBGalaxy(object):
     """
 
     """
-    def __init__(self, ra, dec, frb):
+    def __init__(self, ra, dec, frb, cosmo=None):
 
         # Init
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
         self.frb = frb
+
+        # Cosmology
+        if cosmo is None:
+            self.cosmo = Planck15
+        else:
+            self.cosmo = cosmo
 
         # Main attributes
         self.redshift = {}
@@ -68,18 +74,29 @@ class FRBGalaxy(object):
         cigale_tbl = Table.read(cigale_file)
 
         # Derived quantities
-        cigale_translate = [
+        cigale_translate = [ # Internal key,  CIGALE key
             ('Mstar', 'bayes.stellar.m_star'),
             ('f_AGN', 'bayes.agn.fracAGN_dale2014'),
-            ('u-r', 'bayes.param.restframe_u_prime-r_prime')
+            ('u-r', 'bayes.param.restframe_u_prime-r_prime'),
+            ('Lnu_r', 'bayes.param.restframe_Lnu(r_prime)'),
+            ('SFR_photom', 'bayes.sfh.sfr'),
+            ('EBV_photom', 'bayes.attenuation.E_BVs.stellar.old'),
+            ('Z_photom', 'bayes.stellar.metallicity')
         ]
         # Do it
         cigale = {}
         for item in cigale_translate:
-            assert item[0] in defs.valid_derived_photom
+            if not(item[0] in defs.valid_derived_photom):
+                raise AssertionError("{} not valid!!".format(item[0]))
             if item[1] in cigale_tbl.keys():
                 cigale[item[0]] = cigale_tbl[item[1]][0]          # Solar masses, linear
                 cigale[item[0]+'_err'] = cigale_tbl[item[1]+'_err'][0]          # Solar masses, linear
+
+        # Absolute magnitude (astronomers...)
+        if 'Lnu_r' in cigale.keys():
+            cigale['M_r'] = -2.5*np.log10(cigale['Lnu_r']) + 34.1
+            cigale['M_r_err'] = 2.5*(cigale['Lnu_r_err']/cigale['Lnu_r']) / np.log(10)
+
         # Fill Derived
         for key, item in cigale.items():
             if (key not in self.derived.keys()) or (overwrite):
@@ -99,10 +116,15 @@ class FRBGalaxy(object):
         frbgal_dict['ra'] = self.coord.ra.value
         frbgal_dict['dec'] = self.coord.dec.value
         frbgal_dict['FRB'] = self.frb
+        frbgal_dict['cosmo'] = self.cosmo.name
 
         # Photometry
         if len(self.photom) > 0:
             frbgal_dict['photom'] = self.photom
+
+        # Derived quantities
+        if len(self.derived) > 0:
+            frbgal_dict['derived'] = self.derived
 
         # JSONify
         jdict = ltu.jsonify(frbgal_dict)
