@@ -58,6 +58,6 @@ valid_derived_photom = [
     ]
 
 valid_derived_nebular = [
-    'EBV_nebular',     # E(B-V) from nebular line analysis (e.g. Ha/Hb)
+    'AV_nebular',      # AV from nebular line analysis (e.g. Ha/Hb)
     'SFR_nebular',     # SFR in Msun/yr from nebular emission (e.g. Halpha); pPXF+
     ]
