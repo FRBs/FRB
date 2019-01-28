@@ -15,6 +15,7 @@ else:
     flg_aemHMF = True
 
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 
 from frb import halos
 
@@ -85,6 +86,11 @@ def test_milky_way():
 def test_m31():
     M31 = halos.M31()
     assert np.isclose(M31.coord.distance.to('kpc').value, 752.)
+    # DM through the halo
+    coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
+    DM = M31.DM_from_Galactic(coord)
+    assert DM.unit == u.pc/u.cm**3
+    assert np.isclose(DM.value, 133.63954635)
 
 def test_satellites():
     smc = halos.SMC()
@@ -95,4 +101,4 @@ def test_ICM():
     icm = halos.ICM(log_Mhalo=14.5)
     ne = icm.ne(dummy_xyz)
     #
-    assert np.isclose(ne, 0.02868129)
+    assert np.isclose(ne, 0.03179812)

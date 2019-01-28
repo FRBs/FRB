@@ -53,6 +53,9 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     Calculate the fraction of dark matter in collapsed halos
      over a mass range and at a given redshift
 
+    Note that the fraction of DM associated with these halos
+    will be scaled down by an additional factor of f_diffuse
+
     Requires Aemulus HMF to be installed
 
     Args:
@@ -84,14 +87,14 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         # Integrate
         rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
-        rho_M = cosmo.critical_density(z) * cosmo.Om(z)  # Tinker calculations are all mass
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z) / (1+z)**3  # Tinker calculations are all mass
         ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)
     ratios = np.array(ratios)
     # Boost halos if extend beyond rvir (homologous in mass, but constant concentration is an approx)
     if rmax != 1.:
-        from pyigm.cgm.models import ModifiedNFW
+        #from pyigm.cgm.models import ModifiedNFW
         c = 7.7
         nfw = ModifiedNFW(c=c)
         M_ratio = nfw.fy_dm(rmax * nfw.c) / nfw.fy_dm(nfw.c)
@@ -173,7 +176,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
 
 
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box=0.1,
-    dz_grid=0.01, verbose=True):
+    dz_grid=0.01, f_hot=0.75, verbose=True):
     """
     Generate a universe of dark matter halos with DM measurements
     Mainly an internal function for generating useful output grids.
@@ -194,6 +197,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
           Size of the slice of the universe for each sub-calculation
         dz_grid: float, optional
           redshift spacing in the DM grid
+        f_hot: float
+          Fraction of the cosmic fraction of matter in diffuse gas (for DM)
 
     Returns:
         DM_grid: ndarray (ntrial, nz)
@@ -205,7 +210,6 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     # mNFW
     y0 = 2.
     alpha = 2.
-    f_hot = 0.75  # constant for all halos (for now)
 
     warnings.warn("Ought to do concentration properly someday!")
     cgm = ModifiedNFW(alpha=alpha, y0=y0, f_hot=f_hot)
@@ -241,7 +245,9 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     # Loop me
     prev_zbox = 0.
-    for ss in range(nbox):
+    #for ss in range(nbox):
+    #for ss in [0]:
+    for ss in [5]:
         zbox = ss*dz_box + dz_box/2.
         print('zbox = {}'.format(zbox))
         a = 1./(1.0 + zbox) # Scale factor
@@ -296,7 +302,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         # Check mass fraction
         if verbose:
             Mtot = np.log10(np.sum(rM))
-            M_m = (cosmo.critical_density(zbox)*cosmo.Om(zbox) * V).to('M_sun')
+            M_m = (cosmo.critical_density(zbox)*cosmo.Om(zbox) * V/(1+zbox)**3).to('M_sun')
             #print("N_halo: {}  avg_N: {}".format(N_halo, avg_N))
             print("z: {}  Mhalo/M_m = {}".format(zbox, 10**Mtot/M_m.value))
             print(frac_in_halos([zbox], Mlow, Mhigh))
@@ -306,6 +312,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
         # Loop on trials
         all_DMs = []
+        all_nhalo = []
+        all_r200 = []
         for itrial in range(ntrial):
             # X,Y trial
             X_trial = npad//2 + (2*itrial%dX)  # Step by 2Mpc
@@ -318,8 +326,10 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             R_phys = R_com * 1000. / (1+z_ran) * units.kpc
             # Cut
             intersect = R_phys < r_max*r200
-            #print("We hit {} halos".format(np.sum(intersect)))
+            print("We hit {} halos".format(np.sum(intersect)))
+            all_nhalo.append(np.sum(intersect))
             if not np.any(intersect):
+                all_DMs.append(0.)
                 continue
             # Loop -- FIND A WAY TO SPEED THIS UP!
             DMs = []
@@ -331,7 +341,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                     model = cgm
                 model.log_Mhalo=np.log10(rM[iobj])
                 model.M_halo = 10.**model.log_Mhalo * constants.M_sun.cgs
-                model.z = zbox # To be consistent with above;  close enough
+                model.z = zbox # To be consistent with above;  should be close enough
                 model.setup_param(cosmo=cosmo)
                 # DM
                 DM = model.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+model.z)
@@ -342,9 +352,14 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 R_i.append(R_phys[iobj].value)
                 DM_i.append(DM)
                 z_i.append(z_ran[iobj])
+                all_r200.append(cgm.r200.value)
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
             DM_grid[itrial,iz] += DMs
+            all_DMs.append(np.sum(DMs))
+            #print(DMs, np.log10(rM[intersect]), R_phys[intersect])
+            if (itrial % 100) == 0:
+                pdb.set_trace()
 
     # Table the halos
     halo_tbl = Table()
@@ -430,13 +445,14 @@ class ModifiedNFW(object):
         """ Setup key parameters of the model
         """
         # Cosmology
-        self.H0 = 70. *units.km/units.s/ units.Mpc
         if cosmo is None:
             self.rhoc = 9.2e-30 * units.g / units.cm**3
             self.fb = 0.16       # Baryon fraction
+            self.H0 = 70. *units.km/units.s/ units.Mpc
         else:
             self.rhoc = cosmo.critical_density(self.z)
             self.fb = cosmo.Ob0/cosmo.Om0
+            self.H0 = cosmo.H0
         # Dark Matter
         self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
         self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
@@ -603,7 +619,7 @@ class ModifiedNFW(object):
             return Ne
 
     def mass_r(self, r, step_size=0.1*units.kpc):
-        """ Calculate N_e at an input impact parameter Rperp
+        """ Calculate baryonic halo mass (not total) to a given radius
         Just a simple sum in steps of step_size
 
         Parameters
@@ -612,13 +628,11 @@ class ModifiedNFW(object):
           Radius, typically in kpc
         step_size : Quantity, optional
           Step size used for numerical integration (sum)
-        rmax : float, optional
-          Maximum radius for integration in units of r200
 
         Returns
         -------
           Mr: Quantity
-             Enclosed mass within r
+             Enclosed baryonic mass within r
              Msun units
         """
         dr = step_size.to('kpc').value
@@ -813,6 +827,39 @@ class M31(ModifiedNFW):
         self.distance = 752 * units.kpc # (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
         self.coord = SkyCoord('J004244.3+411609', unit=(units.hourangle, units.deg),
                               distance=self.distance)
+
+    def DM_from_Galactic(self, scoord, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given a direction
+
+        Args:
+            scoord:  SkyCoord
+               Coordinates of the sightline
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        # Setup the geometry
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Seperation
+        sep = self.coord.separation(scoord)
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a*x0 + b*y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+        # DM
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
 
 
 class LMC(ModifiedNFW):
