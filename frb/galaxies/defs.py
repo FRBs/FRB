@@ -49,6 +49,7 @@ valid_morphology = [
     'reff_ang',   # Effective radius in arcsec; Galfit
     'reff_kpc',   # Effective radius in kpc; Galfit
     'n',          # Sersic index; Galfit
+    'PA',         # Position angle (deg); Galfit
     'b/a',        # Ellipticity; Galfit
 ]
 
