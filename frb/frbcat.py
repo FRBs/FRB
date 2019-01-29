@@ -14,10 +14,6 @@ from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
 
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
 
 class FRBCat(object):
     """ Class to load up and provide FRB Observations in a simple package
@@ -28,6 +24,7 @@ class FRBCat(object):
 
     Attributes
     ----------
+
     """
 
     def __init__(self, frbcat_file=None, verbose=True, **kwargs):
@@ -39,7 +36,6 @@ class FRBCat(object):
         # Name, Creation date
         if verbose:
             pass
-            #print("Created on {:s}".format(spdbu.hdf_decode(self.qcat.cat_attr['CREATION_DATE'])))
         # Return
         return
 
@@ -66,24 +62,37 @@ class FRBCat(object):
             self.frbcat_file = os.path.join(path,frbcat_file)
         # Read
         if 'csv' in self.frbcat_file:
-            self.frbcat = Table.read(self.frbcat_file, format='csv')
+            self.frbcat = Table.read(self.frbcat_file, format='csv')#, delimiter='#')
         else:
             raise IOError("Not prepared for this file format")
         if self.verbose:
             print("Using {:s} for the FRB catalog".format(self.frbcat_file))
         # Muck with RA/DEC
-        coord_list = []
-        cname = []
-        for row in self.frbcat:
-            cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
-        try:
+        if 'RAJ' in self.frbcat.keys(): # ORIGINAL
+            orig=True
+            cname = []
+            for row in self.frbcat:
+                cname.append('{:s} {:s}'.format(row['RAJ'], row['DECJ']))
             self.coords = SkyCoord(cname, unit=(u.hourangle, u.deg))
-        except:
-            pdb.set_trace()
-        self.frbcat['RA'] = self.coords.ra.value
-        self.frbcat['DEC'] = self.coords.dec.value
+        elif 'rop_gl' in self.frbcat.keys(): # 2018
+            orig=False
+            self.coords = SkyCoord(l=self.frbcat['rop_gl'], b=self.frbcat['rop_gb'], unit='deg', frame='galactic')
+        # Set
+        self.frbcat['RA'] = self.coords.icrs.ra.value
+        self.frbcat['DEC'] = self.coords.icrs.dec.value
+
         # Restrict to unique sources
-        uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
+        if orig:
+            uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
+        else:
+            # Hack for CVS problem
+            keys = list(self.frbcat.keys())
+            if 'frb_name' in keys[0]:
+                self.frbcat.rename_column(keys[0], 'frb_name')
+            uni, uidx = np.unique(self.frbcat['frb_name'], return_index=True)
+            # Fix UTC
+            for row in self.frbcat:
+                row['utc'] = row['utc'].replace('/','-')
         self.unidx = uidx
         self.uniq_frb = self.frbcat[uidx]
         self.nfrb = len(self.uniq_frb)

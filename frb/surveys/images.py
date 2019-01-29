@@ -1,11 +1,15 @@
 """ Module for image routines"""
 
-import requests
 from io import BytesIO
 try:
     from PIL import Image
 except ImportError:
     print("Warning: You need to install PIL to write SDSS cutout images")
+
+try:
+    import requests
+except ImportError:
+    print("Warning: You need to install requests to handle SDSS images")
 
 from matplotlib import pyplot as plt
 
@@ -14,10 +18,10 @@ def grab_from_url(url):
     Grab a PIL Image from a URL
 
     Args:
-        url: str
+        url (str): URL
 
     Returns:
-        img: PIL.Image
+        PIL.Image: Image retrieved from the URL
 
     """
     # Simple calls
@@ -32,14 +36,14 @@ def gen_snapshot_plt(img, imsize, show=False):
     Generate a simple figure from an input PIL.Image
 
     Args:
-        img: PIL.Image
+        img (PIL.Image): Image to plot
         imsize: Angle
           Angular dimension of the image
-        show: bool, optional
-          Show to the screen?  If done, will need to regenerate to then save to disk
+        show (bool, optional): Show to the screen?  
+           If done, will need to regenerate to then save to disk
 
     Returns:
-        plt: matplotlib.pyplot object
+        matplotlib.pyplot:  Allows one to further modify the plot
 
     """
     # Convert to arcsec and float
