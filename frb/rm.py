@@ -20,9 +20,9 @@ def galactic_rm(coord):
     sig_sky = hp.read_map(galactic_rm_file, hdu=6)
     nside = 128
 
-    #
-    pix = hp.ang2pix(nside, coord.galactic.l.to('rad').value,
-                     coord.galactic.b.to('rad').value)
+    # Find the pixel
+    pix = hp.ang2pix(nside, coord.galactic.l.value, coord.galactic.b.value, lonlat=True)
+
     # Return
     return rm_sky[pix], sig_sky[pix]
 
