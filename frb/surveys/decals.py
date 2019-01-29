@@ -63,7 +63,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         # Query
-        main_cat = super().get_catalog(query_fields=query_fields, print_query=print_query)
+        main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
         # Clean
         self.catalog = catalog_utils.clean_cat(main_cat, photom['DECaL'])
         self.validate_catalog()
