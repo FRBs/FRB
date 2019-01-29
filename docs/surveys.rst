@@ -62,10 +62,11 @@ The DECaL survey imaged the majority of the Northern,
 extragalactic sky in the g,r, and z bands for the
 DESI survey.
 
-HEASARC
+HEASARC and SkyView
 -------
 
-Any of the catalogs maintained by HEASARC are
+Any of the catalogs maintained by HEASARC and
+images maintained by SkyView are
 in principle available.  These are the ones
 that have been integrated thus far:
 
@@ -74,12 +75,21 @@ NVSS
 
 The  `NVSS <https://www.cv.nrao.edu/nvss/>`_ survey
 imaged the entire Northern sky north of -40 deg with the VLA.
+Catalogs and cutouts are available.
 
 FIRST
 +++++
 
 The `FIRST <http://sundog.stsci.edu/>`_
 survey imaged the Northern sky at 1.4 GHz with the VLA.
+Catalogs and cutouts are available.
+
+WENSS
++++++
+
+The `WENSS <https://heasarc.gsfc.nasa.gov/w3browse/all/wenss.html/>`_
+survey imaged the sky north of +30 deg at 325 MHz with the WSRT.
+Catalogs and cutouts are available.
 
 PSRCAT
 ------
