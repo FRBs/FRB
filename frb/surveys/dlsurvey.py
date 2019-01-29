@@ -33,8 +33,8 @@ class DL_Survey(surveycoord.SurveyCoord):
         self.qc_profile = None
     
     def _parse_cat_band(self,band):
-        pass
-    
+        return None, None, None
+
     def _gen_cat_query(self,query_fields=None):
         pass
     
@@ -89,7 +89,6 @@ class DL_Survey(surveycoord.SurveyCoord):
             img_hdu: HDU
 
         """
-
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
@@ -97,7 +96,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         if band.lower() not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
 
-        table_cols,col_vals,bandstr = self._parse_cat_band(band)
+        table_cols, col_vals, bandstr = self._parse_cat_band(band)
         
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -114,7 +113,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         imgTable = imgTable[selection]
 
         if(len(imgTable)>0):
-            imagedat = self._select_best_img(imgTable,verbose,timeout)
+            imagedat = self._select_best_img(imgTable,verbose=True,timeout=timeout)
             img_hdu = imagedat[0]
         else:
             print('No image available')
