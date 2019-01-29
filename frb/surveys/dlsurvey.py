@@ -129,7 +129,7 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         Returns:
             self.cutout: data
-              Header is held in self.cutout_hdr
+            self.cut_hdr: Header
 
         """
         self.cutout_size = imsize
@@ -147,7 +147,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         else:
             self.cutout = img_hdu.data
             self.cutout_hdr = img_hdu.header
-        return self.cutout
+        return self.cutout, self.cutout_hdr
 
 def _default_query_str(query_fields,database,coord,radius):
     """
