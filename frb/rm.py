@@ -13,6 +13,17 @@ from astropy import units
 import healpy as hp
 
 def galactic_rm(coord):
+    """
+    Provide the Oppermann et al. 2014 -- https://arxiv.org/abs/1404.3701
+    estimate for Galactic Farady RM and its uncertainty towards the input coordinate
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for the RM esimation
+
+    Returns:
+        Quantity, Quantity: RM and RM_err with units of rad/m^2
+
+    """
     galactic_rm_file = resource_filename('frb', 'data/RM/opp14_foreground.fits')
 
     # Load
@@ -24,5 +35,5 @@ def galactic_rm(coord):
     pix = hp.ang2pix(nside, coord.galactic.l.value, coord.galactic.b.value, lonlat=True)
 
     # Return
-    return rm_sky[pix], sig_sky[pix]
+    return rm_sky[pix]*units.rad/units.m**2, sig_sky[pix]*units.rad/units.m**2
 
