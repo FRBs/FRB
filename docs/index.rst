@@ -36,6 +36,15 @@ Scattering
 
    tscatt
 
+Surveys
+-------
+
+.. toctree::
+   :maxdepth: 2
+
+   surveys
+
+
 FRB Scripts
 -----------
 
