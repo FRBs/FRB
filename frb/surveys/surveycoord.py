@@ -8,6 +8,13 @@ from frb.surveys import survey_io
 
 class SurveyCoord(object):
     """
+    Parent class of surveying around an input coordinate
+
+    See the children for specific methods
+
+    Args:
+        coord (SkyCoord): Coordiante for surveying around
+        radius (Angle): Search radius around the coordinate
 
     """
 

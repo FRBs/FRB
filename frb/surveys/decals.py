@@ -54,7 +54,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         Grab a catalog of sources around the input coordinate to the search radius
         
         Args:
-            query: Not used
+            query: SQL query
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated 
 
