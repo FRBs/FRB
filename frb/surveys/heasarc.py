@@ -16,9 +16,8 @@ from frb.surveys import catalog_utils
     
 class HEASARC_Survey(surveycoord.SurveyCoord):
     """
-        Class to handle queries on the DECaL survey
-    
-    Child of DL_Survey which uses datalab to access NOAO
+        Class to handle queries on the HEASARC survey.
+        Uses `astroquery` for searching the Heasarc SQL database.
     
     Args:
         coord (SkyCoord): Coordiante for surveying around
