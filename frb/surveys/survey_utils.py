@@ -10,6 +10,19 @@ allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'DECaL', 'PSRCAT']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
+    """
+    Load up a Survey class object for the named survey
+    
+    Args:
+        name (str): Name of the survey 
+        coord (astropy.coordiantes.SkyCoord): Coordinate to define survey around 
+        radius (astropy.units.Quanity): Outer radius of the survey
+        **kwargs: Passed the Survey object
+
+    Returns:
+        frb.surveys.SurveyCoord: Child of this parent given by input survey name
+
+    """
 
     if name not in allowed_surveys:
         raise IOError("Not ready for input survey.\n These are allowed: {}".format(allowed_surveys))

@@ -33,8 +33,8 @@ class DL_Survey(surveycoord.SurveyCoord):
         self.qc_profile = None
     
     def _parse_cat_band(self,band):
-        pass
-    
+        return None, None, None
+
     def _gen_cat_query(self,query_fields=None):
         pass
     
@@ -44,12 +44,15 @@ class DL_Survey(surveycoord.SurveyCoord):
     def get_catalog(self, query=None, query_fields=None, print_query=False):
         """
         Get catalog sources around the given coordinates
-        within a radius.
-        Returns
-        -------
-        cat: astropy Table
-            Table of objects obtained from the 
-            SQL query.
+        within self.radius.
+        
+        Args:
+            query (str, optional): SQL query to generate the catalog
+            query_fields (list, optional): Over-ride list of items to query
+            print_query (bool): Print the SQL query generated 
+        
+        Returns:
+            astropy.table.Table:  Catalog of sources obtained from the SQL query.
         """
         qc.set_profile(self.qc_profile)
         # Generate the query
@@ -79,17 +82,15 @@ class DL_Survey(surveycoord.SurveyCoord):
             for a given fov and band.
 
         Args:
-            imsize: Quantity
-            band: str
-            timeout: int
-              Time to wait in seconds before timing out
-            verbose:
+            imsize (Quantity): FOV for the desired image
+            band (str): Band for the image (e.g. 'r')
+            timeout (int, optional): Time to wait in seconds before timing out
+            verbose (bool, optional):
 
         Returns:
-            img_hdu: HDU
+            HDU: Image header data unit
 
         """
-
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
@@ -97,7 +98,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         if band.lower() not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
 
-        table_cols,col_vals,bandstr = self._parse_cat_band(band)
+        table_cols, col_vals, bandstr = self._parse_cat_band(band)
         
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
@@ -114,7 +115,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         imgTable = imgTable[selection]
 
         if(len(imgTable)>0):
-            imagedat = self._select_best_img(imgTable,verbose,timeout)
+            imagedat = self._select_best_img(imgTable,verbose=True,timeout=timeout)
             img_hdu = imagedat[0]
         else:
             print('No image available')
@@ -126,14 +127,11 @@ class DL_Survey(surveycoord.SurveyCoord):
         Get cutout (and header)
 
         Args:
-            imsize: Quantity
-              e.g 10*units.arcsec
-            band:
-              e.g. 'r'
+            imsize (Quantity): e.g 10*units.arcsec
+            band (str): e.g. 'r'
 
         Returns:
-            self.cutout: data
-              Header is held in self.cutout_hdr
+            ndarray, Header: cutout image, cutout image header
 
         """
         self.cutout_size = imsize
@@ -151,28 +149,23 @@ class DL_Survey(surveycoord.SurveyCoord):
         else:
             self.cutout = img_hdu.data
             self.cutout_hdr = img_hdu.header
-        return self.cutout
+        return self.cutout, self.cutout_hdr
 
-def _default_query_str(query_fields,database,coord,radius):
+
+def _default_query_str(query_fields, database, coord, radius):
     """
-    Generates default query string for
-    a catalog search.
-    Parameters
-    ----------
-    query_fields: list of str
-        A list of query fields to
-        retrieve from the database
-    database: str
-        Name of the databse
-    coord: astropy SkyCoord
-        Central coordinate of the search
-    radius: astropy Quantity (Angular)
-        Search radius
-    Returns
-    -------
-    default_query: str
-        A query to be fed to datalab's
-        SQL client
+    Generates default query string for a catalog search.
+    
+    Args:
+        query_fields (list of str): A list of query fields to
+            retrieve from the database
+        database (str): Name of the database
+        coord (astropy.coordinates.SkyCoord): Central coordinate of the search
+        radius (astropy.units.Quantity or Angle): Search radius
+        
+    Returns:
+        str: A query to be fed to datalab's SQL client
+        
     """
     query_field_str = ""
     for field in query_fields:

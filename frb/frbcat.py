@@ -14,10 +14,6 @@ from astropy.table import Table
 from astropy.coordinates import SkyCoord
 
 
-try:
-    basestring
-except NameError:  # For Python 3
-    basestring = str
 
 class FRBCat(object):
     """ Class to load up and provide FRB Observations in a simple package
@@ -28,6 +24,7 @@ class FRBCat(object):
 
     Attributes
     ----------
+
     """
 
     def __init__(self, frbcat_file=None, verbose=True, **kwargs):
@@ -39,7 +36,6 @@ class FRBCat(object):
         # Name, Creation date
         if verbose:
             pass
-            #print("Created on {:s}".format(spdbu.hdf_decode(self.qcat.cat_attr['CREATION_DATE'])))
         # Return
         return
 
@@ -84,6 +80,7 @@ class FRBCat(object):
         # Set
         self.frbcat['RA'] = self.coords.icrs.ra.value
         self.frbcat['DEC'] = self.coords.icrs.dec.value
+
         # Restrict to unique sources
         if orig:
             uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
