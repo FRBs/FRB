@@ -9,14 +9,9 @@ import warnings
 
 from pkg_resources import resource_filename
 
-from scipy.interpolate import InterpolatedUnivariateSpline as IUS
-from scipy.special import hyp2f1
-from scipy.interpolate import interp1d
-
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
-from astropy.cosmology import z_at_value
 from astropy import constants
 from astropy.table import Table
 
@@ -148,6 +143,35 @@ class FRBGalaxy(object):
         for key, item in cigale.items():
             if (key not in self.derived.keys()) or (overwrite):
                 self.derived[key] = item
+
+    def parse_galfit(self, galfit_file, plate_scale, overwrite=True):
+        # Will only allow for 1 sersic component for now
+        lines = [line.rstrip('\n') for line in open(galfit_file)]
+
+        galfit = {}
+        # Search for Sersic
+        for kk,line in enumerate(lines):
+            if ('sersic' in line) and ('Component type' in line):
+                for newline in lines[kk:]:
+                    if 'R_e' in newline:
+                        galfit['reff_ang'] = float(newline[4:11])*plate_scale
+                    elif 'Sersic index' in newline:
+                        galfit['n'] = float(newline[4:11])
+                    elif 'Axis ratio' in newline:
+                        galfit['b/a'] = float(newline[4:11])
+                    elif 'Position angle' in newline:
+                        galfit['PA'] = float(newline[4:11])
+                    elif 'Component number' in newline:
+                        break
+        # Fill morphology
+        for key, item in galfit.items():
+            if (key not in self.morphology.keys()) or (overwrite):
+                self.morphology[key] = item
+        # reff kpc?
+        if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
+            self.morphology['reff_kpc'] = \
+                (self.morphology['reff_ang']*units.arcsec * self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+
 
     def parse_ppxf(self, ppxf_line_file, overwrite=True, format='ascii.ecsv'):
 
