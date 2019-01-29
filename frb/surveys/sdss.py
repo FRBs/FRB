@@ -20,7 +20,7 @@ from frb.surveys import images
 
 class SDSS_Survey(surveycoord.SurveyCoord):
     """
-    Class to handle queries on the DECaL survey
+    Class to handle queries on the SDSS database
 
     Args:
         coord (SkyCoord): Coordiante for surveying around
