@@ -42,6 +42,15 @@ valid_neb_lines = [
     '[OIII] 5007',  # [OII] 5007 flux erg/s/cm^2; pPXF
 ]
 
+##############################################################
+# Morphology
+
+valid_morphology = [
+    'reff_ang',   # Effective radius in arcsec; Galfit
+    'reff_kpc',   # Effective radius in kpc; Galfit
+    'n',          # Sersic index; Galfit
+    'b/a',        # Ellipticity; Galfit
+]
 
 ##############################################################
 # Derived quantities
@@ -61,3 +70,5 @@ valid_derived_nebular = [
     'AV_nebular',      # AV from nebular line analysis (e.g. Ha/Hb)
     'SFR_nebular',     # SFR in Msun/yr from nebular emission (e.g. Halpha); pPXF+
     ]
+
+valid_derived = valid_derived_photom + valid_derived_nebular

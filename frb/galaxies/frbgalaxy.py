@@ -205,10 +205,14 @@ class FRBGalaxy(object):
     def vette_dict(self, dict, valid_defs):
         pass
 
+    def make_outfile(self):
+        jname = ltu.name_from_coord(self.coord)
+        outfile = jname+'_FRB{}.json'.format(self.frb)
+        return outfile
+
     def write_to_json(self, outfile=None):
         if outfile is None:
-            jname = ltu.name_from_coord(self.coord)
-            outfile = jname+'_FRB{}.json'.format(self.frb)
+            outfile = self.make_outfile()
         # Build the dict
         frbgal_dict = {}
 
@@ -250,3 +254,7 @@ class FRBHost(FRBGalaxy):
         # Optional
         if z_frb is not None:
             self.redshift['z_FRB'] = z_frb
+
+    def make_outfile(self):
+        outfile = 'FRB{}_host.json'.format(self.frb)
+        return outfile
