@@ -3,6 +3,7 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
+import os
 import pdb
 
 import warnings
@@ -234,7 +235,7 @@ class FRBGalaxy(object):
         outfile = jname+'_FRB{}.json'.format(self.frb)
         return outfile
 
-    def write_to_json(self, outfile=None):
+    def write_to_json(self, outfile=None, path='./'):
         if outfile is None:
             outfile = self.make_outfile()
         # Build the dict
@@ -255,8 +256,8 @@ class FRBGalaxy(object):
         jdict = ltu.jsonify(frbgal_dict)
 
         # Write
-        ltu.savejson(outfile, jdict, easy_to_read=True, overwrite=True)
-        print("Wrote data to {}".format(outfile))
+        ltu.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=True)
+        print("Wrote data to {}".format(os.path.join(path,outfile)))
 
     def __repr__(self):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
