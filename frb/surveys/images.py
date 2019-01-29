@@ -1,11 +1,15 @@
 """ Module for image routines"""
 
-import requests
 from io import BytesIO
 try:
     from PIL import Image
 except ImportError:
     print("Warning: You need to install PIL to write SDSS cutout images")
+
+try:
+    import requests
+except ImportError:
+    print("Warning: You need to install requests to handle SDSS images")
 
 from matplotlib import pyplot as plt
 
