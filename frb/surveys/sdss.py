@@ -19,6 +19,14 @@ from frb.surveys import images
 
 
 class SDSS_Survey(surveycoord.SurveyCoord):
+    """
+    Class to handle queries on the SDSS database
+
+    Args:
+        coord (SkyCoord): Coordiante for surveying around
+        radius (Angle): Search radius around the coordinate
+
+    """
     def __init__(self, coord, radius, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
@@ -117,10 +125,11 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         Grab a cutout from SDSS
 
         Args:
-            imsize: Quantity
+            imsize (Quantity):  Size of image desired
 
         Returns:
-            self.cutout -- PNG of the field
+            PNG image, None: self.cutout and a None to match the image header (not provided by SDSS)
+
 
         """
         # URL
@@ -129,22 +138,25 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         self.cutout = images.grab_from_url(sdss_url)
         self.cutout_size = imsize
         # Return
-        return self.cutout
+        return self.cutout, _
 
 
-
-
-def get_url(coord, imsize=30., scale=0.39612, grid=None, label=None, invert=None):
+def get_url(coord, imsize=30., scale=0.39612, grid=False, label=False, invert=False):
     """
     Generate the SDSS URL for an image retrieval
 
-    Parameters:
-    ----------
-    coord : SkyCoord
-      astropy.coordiantes.SkyCoord object
-      Typically held in frb_cand['coord']
-    imsize: float, optional
-      Image size (rectangular) in arcsec and without units
+    Args:
+        coord (astropy.coordiantes.SkyCoord): Center of image
+        imsize: float, optional
+          Image size (rectangular) in arcsec and without units
+        scale (float, optional):
+        grid (bool, optional):
+        label (bool, optional):
+        invert (bool, optional):
+
+    Returns:
+        str:  URL for the image
+
     """
 
     # Pixels
@@ -168,11 +180,11 @@ def get_url(coord, imsize=30., scale=0.39612, grid=None, label=None, invert=None
 
     #------ Options
     options = ''
-    if grid != None:
+    if grid is True:
         options+='G'
-    if label != None:
+    if label is True:
         options+='L'
-    if invert != None:
+    if invert is True:
         options+='I'
     if len(options) > 0:
         name+='&opt='+options
@@ -183,16 +195,16 @@ def get_url(coord, imsize=30., scale=0.39612, grid=None, label=None, invert=None
     return url
 
 
-
 def trim_down_catalog(catalog, keep_photoz=False, cut_within=1.5*units.arcsec):
     """
 
     Args:
-        catalog:
-        keep_photoz:
-        cut_within:
+        catalog (astropy.table.Table):  Input source catalog
+        keep_photoz (bool, optional):
+        cut_within (Angle or Quantity):  Cut radius
 
     Returns:
+        astropy.table.Table:  Catalog trimmed down
 
     """
     # All good

@@ -29,7 +29,7 @@ We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
 to install and/or update these packages.
 
 * `python <http://www.python.org/>`_ versions 3.6 or later
-* `numpy <http://www.numpy.org/>`_ version 1.13 or later
+* `numpy <http://www.numpy.org/>`_ version 1.14 or later
 * `astropy <http://www.astropy.org/>`_ version 3.0 or later
 * `scipy <http://www.scipy.org/>`_ version 0.19 or later
 
@@ -44,9 +44,10 @@ The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v3.8 or later
-* `datalab <https://pypi.org/project/datalab/>`_  PIP install only!  version 1.1.4 or later
+* datalab-client  :: pip install datalab-client
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
+* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
 Installing frb
 ==============
