@@ -1013,4 +1013,13 @@ class ICM(ModifiedNFW):
         return ne
 
     def nH(self, xyz):
+        """
+        Scale by He
+
+        Args:
+            xyz:
+
+        Returns:
+
+        """
         return self.ne(xyz) / 1.1667
