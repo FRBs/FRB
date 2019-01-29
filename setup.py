@@ -28,6 +28,7 @@ setup_keywords['author'] = 'FRB Community'
 setup_keywords['author_email'] = 'xavier@ucolick.org'
 setup_keywords['license'] = 'BSD'
 setup_keywords['url'] = 'https://github.com/FRBs/FRB'
+
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
