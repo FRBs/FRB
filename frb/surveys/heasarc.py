@@ -15,6 +15,16 @@ from frb.surveys import catalog_utils
 
     
 class HEASARC_Survey(surveycoord.SurveyCoord):
+    """
+        Class to handle queries on the HEASARC survey.
+        Uses `astroquery` for searching the Heasarc SQL database.
+    
+    Args:
+        coord (SkyCoord): Coordiante for surveying around
+        radius (Angle): Search radius around the coordinate
+        mission (str): Mission served by HEASAR for the data searches
+    
+    """
     def __init__(self, coord, radius, mission, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
@@ -24,6 +34,12 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         self.heasarc = Heasarc()
     
     def get_catalog(self):
+        """
+        Grab a catalog of sources around the input coordinate to the search radius
+        
+        Returns:
+            astropy.table.Table:  Catalog of sources returned
+        """
         try:
             catalog = self.heasarc.query_region(self.coord, mission=self.mission, radius=self.radius)
         except (ValueError, TypeError):  # No table found
@@ -47,11 +63,19 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         
         
 class NVSS_Survey(HEASARC_Survey):
+    """
+    Child to slurp NVSS data
+    
+    """
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
         self.survey = 'NVSS'
         
 class FIRST_Survey(HEASARC_Survey):
+    """
+    Child to slurp FIRST data
+    
+    """
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'first', **kwargs)
         self.survey = 'FIRST'
