@@ -10,3 +10,6 @@ if __name__ == '__main__':
 
     # Fiducial model
     build_grid(outfile='z1_mNFW_10000_rmax1', ntrial=10000, r_max=1., f_hot=0.75)
+
+    # rmax=2
+    build_grid(outfile='z1_mNFW_10000_rmax2', ntrial=10000, r_max=2.)
