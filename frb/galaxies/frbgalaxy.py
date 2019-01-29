@@ -6,8 +6,6 @@ import numpy as np
 import os
 import pdb
 
-import warnings
-
 from pkg_resources import resource_filename
 
 from astropy.coordinates import SkyCoord
