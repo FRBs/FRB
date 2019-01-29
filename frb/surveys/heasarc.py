@@ -67,6 +67,15 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
 
 
 class SkyView_Survey(surveycoord.SurveyCoord):
+    """
+        Class to handle queries to the SkyView service of `astroquery`.
+    
+    Args:
+        coord (SkyCoord): Coordiante for surveying around
+        radius (Angle): Search radius around the coordinate
+        mission (str): Mission served by HEASAR for the data searches
+    
+    """
     def __init__(self, coord, radius, mission, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
@@ -127,6 +136,9 @@ class SkyView_Survey(surveycoord.SurveyCoord):
 
 
 class NVSS_Survey(HEASARC_Survey, SkyView_Survey):
+    """ Uses SkyView an HEASARC to get both images and catalogs for the VLA NVSS survey at 1.4 GHz.
+    """
+
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
@@ -134,6 +146,8 @@ class NVSS_Survey(HEASARC_Survey, SkyView_Survey):
 
 
 class FIRST_Survey(HEASARC_Survey, SkyView_Survey):
+    """ Uses SkyView an HEASARC to get both images and catalogs for the VLA FIRST survey at 1.4 GHz.
+    """
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'first', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'first', **kwargs)
@@ -141,6 +155,8 @@ class FIRST_Survey(HEASARC_Survey, SkyView_Survey):
 
 
 class WENSS_Survey(HEASARC_Survey, SkyView_Survey):
+    """ Uses SkyView an HEASARC to get both images and catalogs for the WSRT northern sky survey at 325 MHz.
+    """
     def __init__(self, coord, radius, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'wenss', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'wenss', **kwargs)
