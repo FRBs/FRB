@@ -44,7 +44,7 @@ The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v3.8 or later
-* `datalab <https://pypi.org/project/datalab/>`_  PIP install only!  version 1.1.4 or later
+* datalab-client  :: pip install datalab-client
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 
