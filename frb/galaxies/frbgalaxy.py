@@ -22,13 +22,44 @@ from frb.galaxies import nebular
 
 class FRBGalaxy(object):
     """
+    Parent class for galaxies in FRB fields
+
+    Simple object to hold key observable and derived quantities
+
+    Warning:  Generating hundreds of these objects will likely be slow.
+    Especially SkyCoord generation.  A new class will be warranted for that
+
+    Args:
+        ra (float): RA in deg
+        dec (float): DEC in deg
+        FRB (str): Nomiker of the FRB, e.g. 121102
+        cosmo (astropy.cosmology): Cosmology, e.g. Planck15
+
+    Attributes:
+        redshift (dict):
+        photom (dict):
+        morphology (dict):
+        neb_lines (dict):
+        kinematics (dict):
+        derived (dict):
 
     """
     @classmethod
     def from_dict(cls, idict, **kwargs):
-        # Instantiate
+        """
+        Instantiate from a dict
+
+        Args:
+            idict (dict):
+            **kwargs: Passed to the __init__ call
+
+        Returns:
+
+        """
+        # Init
         slf = cls(idict['ra'], idict['dec'], idict['FRB'], **kwargs)
 
+        # Check cosmology
         if slf.cosmo.name != idict['cosmo']:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
 
@@ -36,7 +67,7 @@ class FRBGalaxy(object):
         for attr in slf.main_attr:
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
-        #
+        # Return
         return slf
 
     def __init__(self, ra, dec, frb, cosmo=None):
@@ -62,12 +93,33 @@ class FRBGalaxy(object):
 
     @property
     def z(self):
+        """
+        Return the redshift of the galaxy
+
+        Returns:
+            float or None: redshift or nadda
+
+        """
         if len(self.redshift) == 0:
             return None
         else:
             return self.redshift['z']
 
     def calc_nebular_AV(self, method='Ha/Hb', **kwargs):
+        """
+        Calculate an A_V extinction from a pair of Nebular lines
+
+        Mainly a wrapper to nebular.calc_dust_extinct
+
+        self.derived['AV_nebular'] is filled
+
+        Args:
+            method (str): Method to use
+            **kwargs: Passed to nebular.calc_dust_extinct
+
+        Returns:
+
+        """
         # Checks
         assert len(self.neb_lines) > 0
         # Do it
@@ -75,6 +127,20 @@ class FRBGalaxy(object):
         self.derived['AV_nebular'] = AV
 
     def calc_nebular_SFR(self, method='Ha', **kwargs):
+        """
+        Calculate a SFR from a nebular line
+
+        Mainly a wrapper to nebular.calc_SFR
+
+        self.derived['AV_nebular'] is filled with units SFR/yr
+
+        Args:
+            method (str):  Method to use, e.g. 'Ha' for Halpha
+            **kwargs: passed to nebular.calc_SFR
+
+        Returns:
+
+        """
         # Checks
         assert len(self.neb_lines) > 0
         assert len(self.redshift) > 0
@@ -90,6 +156,19 @@ class FRBGalaxy(object):
         self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
 
     def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True):
+        """
+        Parse photometry from an input table
+
+        Fills the self.photom dict
+
+        Args:
+            phot_tbl (astropy.table.Table):
+            max_off (Angle, optional):
+            overwrite (bool, optional):
+
+        Returns:
+
+        """
         phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
         sep = self.coord.separation(phot_coord)
         row = np.argmin(sep)
@@ -114,19 +193,16 @@ class FRBGalaxy(object):
         Generates the input data file for CIGALE
         given the photometric points and redshift
         of a galaxy
-        Parameters
-        ----------
-        self: FRBGalaxy or FRBHost object
-            A Galaxy object having redshift estimates
-            and photometric data available.
-        ID: str, optional
-            An ID for the galaxy. If none, "GalaxyA" is assigned.
-        filename: str, optional
-            Name of fits file (with path if needed) to store data in.
-            Default value is 'data.fits'
-        overwrite = bool, optional
-            If true, previously written fits files will be
-            overwritten
+
+        Args:
+            ID: str, optional
+                An ID for the galaxy. If none, "GalaxyA" is assigned.
+            filename: str, optional
+                Name of fits file (with path if needed) to store data in.
+                Default value is 'data.fits'
+            overwrite = bool, optional
+                If true, previously written fits files will be
+                overwritten
         """
         assert (self.photom != {}),"No photometry found. CIGALE cannot be run."
         assert (self.redshift != {}),"No redshift found. CIGALE cannot be run"
@@ -156,6 +232,18 @@ class FRBGalaxy(object):
         new_photom.write(filename,format="fits",overwrite=overwrite)
 
     def parse_cigale(self, cigale_file, overwrite=True):
+        """
+        Parse the output file from CIGALE
+
+        Read into self.derived
+
+        Args:
+            cigale_file (str): Name of the CIGALE file
+            overwrite (bool, optional):  Over-write any previous values
+
+        Returns:
+
+        """
         # Read
         cigale_tbl = Table.read(cigale_file)
 
@@ -190,6 +278,19 @@ class FRBGalaxy(object):
                 self.derived[key] = item
 
     def parse_galfit(self, galfit_file, plate_scale, overwrite=True):
+        """
+        Parse an output GALFIT file
+
+        Loaded into self.morphology
+
+        Args:
+            galfit_file (str):
+            plate_scale (float):  Plate scale in arcsec/pixel
+            overwrite (bool, optional):
+
+        Returns:
+
+        """
         # Will only allow for 1 sersic component for now
         lines = [line.rstrip('\n') for line in open(galfit_file)]
 
@@ -219,6 +320,19 @@ class FRBGalaxy(object):
 
 
     def parse_ppxf(self, ppxf_line_file, overwrite=True, format='ascii.ecsv'):
+        """
+        Parse an output pPXF file generated by our custom run
+
+        Loaded into self.lines
+
+        Args:
+            ppxf_line_file (str): pPXF line file
+            overwrite (bool, optional):
+            format (str, optional):  Format of the table
+
+        Returns:
+
+        """
 
         ppxf_tbl = Table.read(ppxf_line_file, format=format)
         names = ppxf_tbl['name'].data
@@ -256,11 +370,24 @@ class FRBGalaxy(object):
                         self.neb_lines[line+'_err'] = ppxf[line+'_err']
 
     def set_z(self, z, origin, err=None):
+        """
+        Set the redshift value(s) in self.redshift
+
+        Args:
+            z (float): Redshift value
+            origin (str):  Origin, e.g. 'spec' for spectroscopic and 'phot' for photometric
+            err (float, optional): Error in the redshift
+
+        Returns:
+
+        """
         # Set internal
         if origin == 'spec':
             key = 'z_spec'
         elif origin == 'phot':
             key = 'z_phot'
+        elif origin == 'FRB':
+            key = 'z_FRB'
         self.redshift[key] = z
         if err is not None:
             self.redshift[key+'_err'] = err
@@ -275,11 +402,29 @@ class FRBGalaxy(object):
         pass
 
     def make_outfile(self):
+        """
+        Auto-generate an output name for the class
+
+        Returns:
+            str: Output filename
+
+        """
         jname = ltu.name_from_coord(self.coord)
         outfile = jname+'_FRB{}.json'.format(self.frb)
         return outfile
 
     def write_to_json(self, outfile=None, path='./'):
+        """
+        Write key aspects of the class to disk in a JSON file
+
+        Args:
+            outfile (str, optional): Output filename
+              If not provided, one will be generated with make_outfile()
+            path (str, optional): Path for the output file
+
+        Returns:
+
+        """
         if outfile is None:
             outfile = self.make_outfile()
         # Build the dict
@@ -313,6 +458,17 @@ class FRBGalaxy(object):
 
 
 class FRBHost(FRBGalaxy):
+    """
+    Child of FRBGalaxy specific for an FRB host
+
+    Args:
+        ra (float): RA in deg
+        dec (float): DEC in deg
+        FRB (str): Nomiker of the FRB, e.g. 121102
+        z_frb (float, optional):  Redshift of the host, expected to be provided
+
+
+    """
 
     def __init__(self, ra, dec, frb, z_frb=None, **kwargs):
         # Instantiate
