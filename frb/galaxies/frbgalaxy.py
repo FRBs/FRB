@@ -297,18 +297,21 @@ class FRBGalaxy(object):
         galfit = {}
         # Search for Sersic
         for kk,line in enumerate(lines):
-            if ('sersic' in line) and ('Component type' in line):
-                for newline in lines[kk:]:
-                    if 'R_e' in newline:
-                        galfit['reff_ang'] = float(newline[4:11])*plate_scale
-                    elif 'Sersic index' in newline:
-                        galfit['n'] = float(newline[4:11])
-                    elif 'Axis ratio' in newline:
-                        galfit['b/a'] = float(newline[4:11])
-                    elif 'Position angle' in newline:
-                        galfit['PA'] = float(newline[4:11])
-                    elif 'Component number' in newline:
-                        break
+            if line[1:7] == 'sersic':
+                # Values
+                prss = line.split(' ')
+                keepp = [obj for obj in prss if obj != '']  # Remove white spaces
+                galfit['PA'] = float(keepp[-1])
+                galfit['b/a'] = float(keepp[-2])
+                galfit['n'] = float(keepp[-3])
+                galfit['reff_ang'] = float(keepp[-4])*plate_scale
+                # Error
+                prss = lines[kk+1].split(' ')
+                keepp = [obj for obj in prss if obj != '']  # Remove white spaces
+                galfit['PA_err'] = float(keepp[-1])
+                galfit['b/a_err'] = float(keepp[-2])
+                galfit['n_err'] = float(keepp[-3])
+                galfit['reff_ang_err'] = float(keepp[-4])*plate_scale
         # Fill morphology
         for key, item in galfit.items():
             if (key not in self.morphology.keys()) or (overwrite):
@@ -317,6 +320,8 @@ class FRBGalaxy(object):
         if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
                 (self.morphology['reff_ang']*units.arcsec * self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+            self.morphology['reff_kpc_err'] = \
+                (self.morphology['reff_ang_err']*units.arcsec * self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
 
 
     def parse_ppxf(self, ppxf_line_file, overwrite=True, format='ascii.ecsv'):
