@@ -70,6 +70,12 @@ class FRBGalaxy(object):
         # Return
         return slf
 
+    @classmethod
+    def from_json(cls, json_file, **kwargs):
+        idict = ltu.loadjson(json_file)
+        slf = cls.from_dict(idict, **kwargs)
+        return slf
+
     def __init__(self, ra, dec, frb, cosmo=None):
 
         # Init

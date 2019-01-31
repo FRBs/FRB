@@ -11,8 +11,6 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units
 
-from linetools import utils as ltu
-
 from frb.galaxies import frbgalaxy, defs
 
 def data_path(filename):
@@ -68,9 +66,8 @@ def test_frbhost():
 
 
 def test_read_frbhost():
-    jdict = ltu.loadjson(data_path('test_frbhost.json'))
     # This test will fail if the previous failed
-    host121102 = frbgalaxy.FRBHost.from_dict(jdict)
+    host121102 = frbgalaxy.FRBHost.from_json(data_path('test_frbhost.json'))
     # Test
     assert host121102.frb == '121102'
     assert np.isclose(host121102.morphology['b/a'], 0.13)
