@@ -14,10 +14,9 @@ from astropy.cosmology import Planck15
 from astropy import constants
 from astropy.table import Table
 
-from linetools import utils as ltu
-
 from frb.galaxies import defs
 from frb.galaxies import nebular
+from frb import utils
 
 
 class FRBGalaxy(object):
@@ -72,7 +71,7 @@ class FRBGalaxy(object):
 
     @classmethod
     def from_json(cls, json_file, **kwargs):
-        idict = ltu.loadjson(json_file)
+        idict = utils.loadjson(json_file)
         slf = cls.from_dict(idict, **kwargs)
         return slf
 
@@ -423,7 +422,7 @@ class FRBGalaxy(object):
             str: Output filename
 
         """
-        jname = ltu.name_from_coord(self.coord)
+        jname = utils.name_from_coord(self.coord)
         outfile = jname+'_FRB{}.json'.format(self.frb)
         return outfile
 
@@ -457,10 +456,10 @@ class FRBGalaxy(object):
                 frbgal_dict[attr] = getattr(self,attr)
 
         # JSONify
-        jdict = ltu.jsonify(frbgal_dict)
+        jdict = utils.jsonify(frbgal_dict)
 
         # Write
-        ltu.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=overwrite)
+        utils.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=overwrite)
         print("Wrote data to {}".format(os.path.join(path,outfile)))
 
     def __repr__(self):
