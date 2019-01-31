@@ -10,7 +10,7 @@ from frb.galaxies import frbgalaxy, defs
 
 def frb_121102():
     FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
-    # Eyeball Tengulkar+17 PA
+    # Eyeball Tendulkar+17 PA
     gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
 
     # Instantiate
@@ -67,10 +67,10 @@ def frb_121102():
         assert key in defs.valid_morphology
 
     # Derived quantities
-    host121102.derived['M_r'] = -17.0  # AB; Tengulkar+17
-    host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tengulkar+17
-    host121102.derived['Mstar'] = 5.5e7  # Msun; Tengulkar+17
-    host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tengulkar+17
+    host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
+    host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
+    host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
+    host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     # Vette
     for key in host121102.derived.keys():
         if '_err' in key:

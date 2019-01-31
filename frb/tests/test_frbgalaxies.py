@@ -22,7 +22,7 @@ def test_frbhost():
     repeater_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')  # Use as host here
     # Instantiate
     host121102 = frbgalaxy.FRBHost(repeater_coord.ra.value, repeater_coord.dec.value, '121102')
-    # Add a few nebular lines  (Tengulkar+17)
+    # Add a few nebular lines  (Tendulkar+17)
     neb_lines = {}
     neb_lines['Ha'] = 0.652e-16
     neb_lines['Ha_err'] = 0.009e-16
