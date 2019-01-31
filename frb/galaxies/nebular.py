@@ -41,11 +41,13 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     Estimate the Visual extinction A_V based on input nebular emission lines
 
     Args:
-        neb_lines:
-        method:
-        curve:
+        neb_lines (dict):  Line fluxes
+        method (str): Name of the method
+          Ha/Hb -- Use the Halpha/Hbeta ratio and standard intrinsic flux
+        curve (str): Extinction curve to use
 
     Returns:
+        float: A_V in magnitudes
 
     """
 
@@ -70,17 +72,37 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     if not pair:
         raise IOError("Not ready for this mode")
 
-    #
+    # Extinction
     a1AV = alAV(wave1)
     a2AV = alAV(wave2)
 
+    # Observed ratio
     fratio_obs = F1_obs/F2_obs
 
+    # Calculate using intrinsic ratio
     AV = 2.5 * np.log10(Ha_Hb_intrin/fratio_obs) / (a1AV - a2AV)
 
+    # Return
     return AV
 
+
 def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
+    """
+    Calculate the SFR from input nebular line emission
+
+    Args:
+        neb_lines (dict):  Observed line fluxes
+        method (str): Method for deriving the SFR
+          Ha -- Use the Halpha line flux
+        z (float):  Emission redshift -- for Luminosity distance
+        cosmo (astropy.cosmology.FLRW): Cosmology
+        AV (float, optional):  Visual extinction, if supplied will apply
+        curve (str):  Name of the extinction curve.  Only used if A_V is supplied
+
+    Returns:
+        float:  SFR
+
+    """
 
     if method == 'Ha':
         wave = 6564.6  # redder
