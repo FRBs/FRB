@@ -193,7 +193,7 @@ class FRBGalaxy(object):
                     if filter+'_err' in phot_tbl.keys():
                         self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
     
-    def gen_cigale_data_in(self, ID=None,filename='data.fits',overwrite=False):
+    def gen_cigale_data_in(self, ID=None, filename='data.fits', overwrite=False):
         """
         Generates the input data file for CIGALE
         given the photometric points and redshift
@@ -209,21 +209,21 @@ class FRBGalaxy(object):
                 If true, previously written fits files will be
                 overwritten
         """
-        assert (self.photom != {}),"No photometry found. CIGALE cannot be run."
-        assert (self.redshift != {}),"No redshift found. CIGALE cannot be run"
+        assert (len(self.photom) > 0 ),"No photometry found. CIGALE cannot be run."
+        assert (len(self.redshift) > 0),"No redshift found. CIGALE cannot be run"
         new_photom = Table([self.photom])
         if ID is None:
             ID = "GalaxyA"
         new_photom['id'] = ID
         new_photom['redshift'] = self.z
         
-        #Convert DES fluxes to mJy
+        # Convert DES fluxes to mJy
         for band in defs.DES_bands:
             colname = "DES_"+band
             new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
             new_photom[colname+"_err"] = new_photom[colname+"_err"]/1.087*new_photom[colname]
         
-        #Convert WISE fluxes to mJy
+        # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             new_photom[band] = zpt*10**(-new_photom[band]/2.5)
@@ -233,8 +233,8 @@ class FRBGalaxy(object):
             else:
                 new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
         
-        #Write to file
-        new_photom.write(filename,format="fits",overwrite=overwrite)
+        # Write to file
+        new_photom.write(filename, format="fits", overwrite=overwrite)
 
     def parse_cigale(self, cigale_file, overwrite=True):
         """
@@ -549,3 +549,13 @@ class FRBHost(FRBGalaxy):
         self.redshift['z_FRB'] = z
         if err is not None:
             self.redshift['z_FRB_err'] = err
+
+
+class FGGalaxy(FRBGalaxy):
+
+    def __init__(self, ra, dec, frb, **kwargs):
+        # Instantiate
+        super(FGGalaxy, self).__init__(ra, dec, frb, **kwargs)
+
+        # Load up FRB info from name
+
