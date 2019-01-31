@@ -12,14 +12,16 @@ from astropy import units
 
 def load_extinction(curve):
     """
+    Load an extinction curve
+
     This method may move elsewhere..
 
-    Parameters
-    ----------
-    curve
+    Args:
+        curve (str): Name of the extinction curve
+          MW = Standard Cardelli
 
-    Returns
-    -------
+    Returns:
+        scipy.interpolate.interp1d: Interpolation function for alambda/AV
 
     """
     # Load the extinction curve
@@ -30,11 +32,23 @@ def load_extinction(curve):
         raise IOError("Not ready for this extinction curve!")
     # Generate function for interpolating
     alAV = interp1d(MW_dust['wave'], MW_dust['Al_AV'])
-
+    # Return
     return alAV
 
 
 def calc_dust_extinct(neb_lines, method, curve='MW'):
+    """
+    Estimate the Visual extinction A_V based on input nebular emission lines
+
+    Args:
+        neb_lines:
+        method:
+        curve:
+
+    Returns:
+
+    """
+
 
     # Dust extinction curve
     alAV = load_extinction(curve)
