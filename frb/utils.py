@@ -154,7 +154,7 @@ def name_from_coord(coord, precision=(2,1)):
     name : str
       In JXX format
     """
-    name = 'J{:s}{:s}'.format(coord.ra.to_string(unit=u.hour,sep='',pad=True,precision=precision[0]),
+    name = 'J{:s}{:s}'.format(coord.ra.to_string(unit=units.hour,sep='',pad=True,precision=precision[0]),
             coord.dec.to_string(sep='',pad=True,alwayssign=True,precision=precision[1]))
     # Return
     return name
