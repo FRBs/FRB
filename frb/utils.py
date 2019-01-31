@@ -140,6 +140,24 @@ def savejson(filename, obj, overwrite=False, indent=None, easy_to_read=False,
             with open(filename, 'wt') as fh:
                 json.dump(obj, fh, indent=indent, **kwargs)
 
+def name_from_coord(coord, precision=(2,1)):
+    """ Generate a standard JXXXXXX.XX+XXXXXX.X name from a SkyCoord object
+
+    Parameters
+    ----------
+    coord : SkyCoord
+    precision : tuple, optional
+      Number of decimal places to include in name
+
+    Returns
+    -------
+    name : str
+      In JXX format
+    """
+    name = 'J{:s}{:s}'.format(coord.ra.to_string(unit=u.hour,sep='',pad=True,precision=precision[0]),
+            coord.dec.to_string(sep='',pad=True,alwayssign=True,precision=precision[1]))
+    # Return
+    return name
 
 def radec_to_coord(radec):
     """ Converts one of many of Celestial Coordinates
