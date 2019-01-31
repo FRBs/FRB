@@ -71,3 +71,8 @@ def test_read_frbhost():
     # Test
     assert host121102.frb == '121102'
     assert np.isclose(host121102.morphology['b/a'], 0.13)
+    
+def test_by_name():
+    host121102 = frbgalaxy.FRBHost.by_name('121102')
+    assert host121102.frb == '121102'
+    assert np.isclose(host121102.morphology['b/a'], 0.13)

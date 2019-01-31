@@ -386,7 +386,9 @@ class FRBGalaxy(object):
 
         Args:
             z (float): Redshift value
-            origin (str):  Origin, e.g. 'spec' for spectroscopic and 'phot' for photometric
+            origin (str):  Origin
+               'spec' for spectroscopic
+               'phot' for photometric
             err (float, optional): Error in the redshift
 
         Returns:
@@ -397,8 +399,9 @@ class FRBGalaxy(object):
             key = 'z_spec'
         elif origin == 'phot':
             key = 'z_phot'
-        elif origin == 'FRB':
-            key = 'z_FRB'
+        else:
+            raise IOError("Bad option for origin")
+        #
         self.redshift[key] = z
         if err is not None:
             self.redshift[key+'_err'] = err
@@ -480,6 +483,12 @@ class FRBHost(FRBGalaxy):
         z_frb (float, optional):  Redshift of the host, expected to be provided
 
     """
+    @classmethod
+    def by_name(cls, frb, **kwargs):
+        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), frb)
+        json_file = os.path.join(path, FRBHost._make_outfile(frb))
+        slf = cls.from_json(json_file, **kwargs)
+        return slf
 
     def __init__(self, ra, dec, frb, z_frb=None, **kwargs):
         # Instantiate
@@ -491,6 +500,21 @@ class FRBHost(FRBGalaxy):
         if z_frb is not None:
             self.redshift['z_FRB'] = z_frb
 
+    @staticmethod
+    def _make_outfile(frbname):
+        """
+        Static method to generate outfile based on frbname
+
+        Args:
+            frbname (str):  FRB name, e.g. 121102
+
+        Returns:
+            str: outfile
+
+        """
+        outfile = 'FRB{}_host.json'.format(frbname)
+        return outfile
+
     def make_outfile(self):
         """
         Overloads the parent method for Host specific naming
@@ -501,5 +525,28 @@ class FRBHost(FRBGalaxy):
             str:  Name of the default outfile
 
         """
-        outfile = 'FRB{}_host.json'.format(self.frb)
+        outfile = self._make_outfile(self.frb)
         return outfile
+
+    def set_z(self, z, origin, err=None):
+        """
+        Partially overload the main method
+
+        The main change is that the input z also sets z_FRB
+
+        self.redshift is modified in place
+
+        Args:
+            z (float): Redshift value
+            origin (str):  Origin
+               'spec' for spectroscopic
+               'phot' for photometric
+            err (float, optional): Error in the redshift
+
+        Returns:
+
+        """
+        super(FRBHost,self).set_z(z, origin, err=err)
+        self.redshift['z_FRB'] = z
+        if err is not None:
+            self.redshift['z_FRB_err'] = err

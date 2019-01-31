@@ -93,6 +93,7 @@ If successful, the 'SFR_nebular' key of the frbgalaxy.derived *dict*
 will be filled with the value (using units of Msun/yr).
 By default, an extinction correction will be applied to the measurement
 if the 'AV_nebular' was filled previously.
+This method also requires that the redshift have been set previously.
 
 I/O
 ---
