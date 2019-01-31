@@ -418,7 +418,7 @@ class FRBGalaxy(object):
         outfile = jname+'_FRB{}.json'.format(self.frb)
         return outfile
 
-    def write_to_json(self, outfile=None, path='./'):
+    def write_to_json(self, outfile=None, path='./', overwrite=True):
         """
         Write key aspects of the class to disk in a JSON file
 
@@ -426,6 +426,7 @@ class FRBGalaxy(object):
             outfile (str, optional): Output filename
               If not provided, one will be generated with make_outfile()
             path (str, optional): Path for the output file
+            overwrite (bool, optional): Overwrite?
 
         Returns:
 
@@ -450,7 +451,7 @@ class FRBGalaxy(object):
         jdict = ltu.jsonify(frbgal_dict)
 
         # Write
-        ltu.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=True)
+        ltu.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=overwrite)
         print("Wrote data to {}".format(os.path.join(path,outfile)))
 
     def __repr__(self):
@@ -472,7 +473,6 @@ class FRBHost(FRBGalaxy):
         FRB (str): Nomiker of the FRB, e.g. 121102
         z_frb (float, optional):  Redshift of the host, expected to be provided
 
-
     """
 
     def __init__(self, ra, dec, frb, z_frb=None, **kwargs):
@@ -486,5 +486,14 @@ class FRBHost(FRBGalaxy):
             self.redshift['z_FRB'] = z_frb
 
     def make_outfile(self):
+        """
+        Overloads the parent method for Host specific naming
+
+        Naming is FRBXXXXXX_host.json with XXXXXXX supplied by self.frb
+
+        Returns:
+            str:  Name of the default outfile
+
+        """
         outfile = 'FRB{}_host.json'.format(self.frb)
         return outfile
