@@ -9,7 +9,8 @@
         "SFR_nebular": 0.23
     },
     "morphology": {
-        "b/a": 0.13,
+        "b/a": 0.25,
+        "b/a_err": 0.13,
         "n": 2.2,
         "n_err": 1.5,
         "reff_ang": 0.41,
