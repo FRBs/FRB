@@ -29,7 +29,7 @@ def galactic_rm(coord):
     # Load
     rm_sky = hp.read_map(galactic_rm_file, hdu=4)
     sig_sky = hp.read_map(galactic_rm_file, hdu=6)
-    nside = 128
+    nside = hp.get_nside(rm_sky)
 
     # Find the pixel
     pix = hp.ang2pix(nside, coord.galactic.l.value, coord.galactic.b.value, lonlat=True)
