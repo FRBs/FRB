@@ -54,7 +54,7 @@ def test_frbhost():
     host121102.morphology['n_err'] = 1.5
     #
     host121102.morphology['b/a'] = 0.25
-    host121102.morphology['b/a'] = 0.13
+    host121102.morphology['b/a_err'] = 0.13
     # Vette
     for key in host121102.morphology.keys():
         if '_err' in key:
@@ -70,9 +70,9 @@ def test_read_frbhost():
     host121102 = frbgalaxy.FRBHost.from_json(data_path('test_frbhost.json'))
     # Test
     assert host121102.frb == '121102'
-    assert np.isclose(host121102.morphology['b/a'], 0.13)
+    assert np.isclose(host121102.morphology['b/a'], 0.25)
     
 def test_by_name():
     host121102 = frbgalaxy.FRBHost.by_name('121102')
     assert host121102.frb == '121102'
-    assert np.isclose(host121102.morphology['b/a'], 0.13)
+    assert np.isclose(host121102.morphology['b/a'], 0.25)

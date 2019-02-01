@@ -32,8 +32,8 @@ def test_frac_in_halos():
     zvals = np.array([0., 0.1, 0.5, 1.])
     ratios = halos.frac_in_halos(zvals, 1e11, 1e15)
     # Test
-    np.testing.assert_allclose(ratios, np.array([0.44904045, 0.32118474,
-                                                 0.10273056, 0.03266604]))
+    np.testing.assert_allclose(ratios, np.array([0.44904045, 0.427497,
+                                                 0.346716, 0.261328]), rtol=1e-4)
 
 def test_halo_incidence():
     # Imported (unlikely)?
