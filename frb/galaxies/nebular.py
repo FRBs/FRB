@@ -10,6 +10,7 @@ from scipy.interpolate import interp1d
 from astropy.table import Table
 from astropy import units
 
+
 def load_extinction(curve):
     """
     Load an extinction curve
@@ -86,6 +87,49 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     return AV
 
 
+def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
+    """
+    Calculate the line luminosity (and error) from input nebular line emission
+
+    Args:
+        neb_lines (dict):  Observed line fluxes
+        line (str): Line to analyze
+        z (float):  Emission redshift -- for Luminosity distance
+        cosmo (astropy.cosmology.FLRW): Cosmology
+        AV (float, optional):  Visual extinction, if supplied will apply
+        curve (str):  Name of the extinction curve.  Only used if A_V is supplied
+
+    Returns:
+        float, float:  Luminosity, sig(Luminosity)  each with units of erg/s
+    """
+
+    if method == 'Ha':
+        wave = 6564.6  # redder
+        flux = neb_lines['Ha']
+        #
+        conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+    else:
+        raise IOError("Not prepared for method: {}".format(method))
+
+    # Dust correct?
+    if AV is not None:
+        alAV = load_extinction(curve)
+        al = AV * alAV(wave)
+    else:
+        al = 0.
+
+    # Cosmology
+    DL = cosmo.luminosity_distance(z)
+
+    # Luminosity
+    Lum = flux * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
+
+    # SFR
+    SFR = Lum.to('erg/s').value * conversion
+
+    return SFR
+
+
 def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
     """
     Calculate the SFR from input nebular line emission
@@ -103,7 +147,6 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
         float:  SFR
 
     """
-
     if method == 'Ha':
         wave = 6564.6  # redder
         flux = neb_lines['Ha']

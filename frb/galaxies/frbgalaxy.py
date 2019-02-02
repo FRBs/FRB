@@ -114,6 +114,17 @@ class FRBGalaxy(object):
         else:
             return self.redshift['z']
 
+    def calc_nebular_lum(self, line):
+        """
+        Calculate the line luminosity
+        Applies dust extinction if self.derived['AV_nebular'] is filled
+
+        Mainly a wrapper to nebular.calc_lum()
+
+        Args:
+            line (str):  Name of the line
+        """
+
     def calc_nebular_AV(self, method='Ha/Hb', **kwargs):
         """
         Calculate an A_V extinction from a pair of Nebular lines
