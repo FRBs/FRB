@@ -32,6 +32,10 @@ def frb_121102():
     neb_lines['[OIII] 5007'] = 0.575e-16
     neb_lines['[OIII] 5007_err'] = 0.011e-16
     neb_lines['[OIII] 5007_Al'] = 0.911
+    #
+    neb_lines['[NII] 6583'] = 0.030e-16  # * units.erg/units.cm**2/units.s      # Upper limit
+    neb_lines['[NII] 6583_err'] = -999.  # * units.erg/units.cm**2/units.s      # Upper limit
+    neb_lines['[NII] 6583_Al'] = 0.619
 
     AV = 2.42
 
@@ -43,7 +47,10 @@ def frb_121102():
             continue
         # Ingest
         host121102.neb_lines[key] = neb_lines[key] * 10 ** (neb_lines[key + '_Al'] * AV / 2.5)
-        host121102.neb_lines[key + '_err'] = neb_lines[key + '_err'] * 10 ** (neb_lines[key + '_Al'] * AV / 2.5)
+        if neb_lines[key + '_err'] > 0:
+            host121102.neb_lines[key + '_err'] = neb_lines[key + '_err'] * 10 ** (neb_lines[key + '_Al'] * AV / 2.5)
+        else:
+            host121102.neb_lines[key + '_err'] = neb_lines[key + '_err']
 
     # Vette
     for key in host121102.neb_lines.keys():
@@ -60,22 +67,15 @@ def frb_121102():
     #
     host121102.morphology['b/a'] = 0.25
     host121102.morphology['b/a_err'] = 0.13
-    # Vette
-    for key in host121102.morphology.keys():
-        if '_err' in key:
-            continue
-        assert key in defs.valid_morphology
 
     # Derived quantities
     host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
     host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
     host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
     host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
-    # Vette
-    for key in host121102.derived.keys():
-        if '_err' in key:
-            continue
-        assert key in defs.valid_derived
+    
+    # Vet
+    assert host121102.vet_all()
 
     # Write
     path = resource_filename('frb', 'data/Galaxies/121102')
