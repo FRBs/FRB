@@ -67,22 +67,15 @@ def frb_121102():
     #
     host121102.morphology['b/a'] = 0.25
     host121102.morphology['b/a_err'] = 0.13
-    # Vette
-    for key in host121102.morphology.keys():
-        if '_err' in key:
-            continue
-        assert key in defs.valid_morphology
 
     # Derived quantities
     host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
     host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
     host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
     host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
-    # Vette
-    for key in host121102.derived.keys():
-        if '_err' in key:
-            continue
-        assert key in defs.valid_derived
+    
+    # Vet
+    assert host121102.vet_all()
 
     # Write
     path = resource_filename('frb', 'data/Galaxies/121102')

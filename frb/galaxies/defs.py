@@ -11,6 +11,7 @@ valid_z = [
     'z',       # Preferred redshift, may derived from one of several ways
     'z_phot',  # Photometric redshift
     'z_spec',  # Spectroscopic redshift
+    'z_FRB',   # FRB redshift
 ]
 
 ##############################################################
@@ -28,6 +29,8 @@ for band in DES_bands:
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in WISE_bands:
     valid_filters.append('{:s}'.format(band))
+    
+valid_photom = valid_filters
 
 ##############################################################
 # Line measurements
