@@ -124,6 +124,19 @@ class FRBGalaxy(object):
         Args:
             line (str):  Name of the line
         """
+        # Checks
+        assert len(self.neb_lines) > 0
+        assert len(self.redshift) > 0
+        # Dust?
+        if 'AV_nebular' in self.derived.keys():
+            AV = self.derived['AV_nebular']
+            print("Using AV={} for a dust correction of the SFR".format(AV))
+        else:
+            print("Not making a dust correction of the SFR.  Set AV_nebular to do so or input AV to this method")
+            AV = None
+
+        Lum, Lum_err = nebular.calc_lum(self.neb_lines, line, self.z, self.cosmo, AV=AV)
+        return Lum, Lum_err
 
     def calc_nebular_AV(self, method='Ha/Hb', **kwargs):
         """
@@ -375,7 +388,7 @@ class FRBGalaxy(object):
             ('[NII] 6584',  '[NII]6583_d'),  # [NII] 6583 flux erg/s/cm^2; pPXF
             ('[OII] 3726',  '[OII]3726'),    # [OII] flux erg/s/cm^2; pPXF
             ('[OII] 3729',  '[OII]3729'),    # [OII] flux erg/s/cm^2; pPXF
-            ('[OIII] 5007',  '[OII]5007_d')  # [OII] 5007 flux erg/s/cm^2; pPXF
+            ('[OIII] 5007',  '[OIII]5007_d')  # [OII] 5007 flux erg/s/cm^2; pPXF
         ]
 
         # Fluxes first

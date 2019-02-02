@@ -76,3 +76,10 @@ def test_by_name():
     host121102 = frbgalaxy.FRBHost.by_name('121102')
     assert host121102.frb == '121102'
     assert np.isclose(host121102.morphology['b/a'], 0.25)
+
+def test_luminosity():
+    host121102 = frbgalaxy.FRBHost.by_name('121102')
+    Lum_Ha, Lum_Ha_err = host121102.calc_nebular_lum('Halpha')
+    # Test
+    assert Lum_Ha.unit == units.erg/units.s
+    assert np.isclose(Lum_Ha.value, 2.93961853e+40)
