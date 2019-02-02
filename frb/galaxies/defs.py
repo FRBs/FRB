@@ -33,15 +33,17 @@ for band in WISE_bands:
 valid_photom = valid_filters
 
 ##############################################################
-# Line measurements
+# Line measurements -- Use linetools naming only!!!
 
 valid_neb_lines = [
-    'Ha',  # Halpha flux erg/s/cm^2; pPXF
-    'Hb',  # Hbeta flux erg/s/cm^2; pPXF
-    'Hg',  # Hgamma flux erg/s/cm^2; pPXF
-    '[NII] 6583',  # [NII] 6583 flux erg/s/cm^2; pPXF
+    'Halpha',  # Halpha flux erg/s/cm^2; pPXF
+    'Hbeta',  # Hbeta flux erg/s/cm^2; pPXF
+    'Hgamma',  # Hgamma flux erg/s/cm^2; pPXF
+    '[NII] 6548',  # [NII] 6584 flux erg/s/cm^2; 
+    '[NII] 6584',  # [NII] 6584 flux erg/s/cm^2; pPXF
     '[OII] 3726',  # [OII] flux erg/s/cm^2; pPXF
     '[OII] 3729',  # [OII] flux erg/s/cm^2; pPXF
+    '[OIII] 4959',  # [OII] 4959 flux erg/s/cm^2; 
     '[OIII] 5007',  # [OII] 5007 flux erg/s/cm^2; pPXF
 ]
 

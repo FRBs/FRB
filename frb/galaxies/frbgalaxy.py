@@ -348,10 +348,10 @@ class FRBGalaxy(object):
         ppxf_tbl = Table.read(ppxf_line_file, format=format)
         names = ppxf_tbl['name'].data
         ppxf_translate = [  # Internal key,  CIGALE key
-            ('Ha', 'Halpha'),
-            ('Hb', 'Hbeta'),
-            ('Hg', 'Hgamma'),
-            ('[NII] 6583',  '[NII]6583_d'),  # [NII] 6583 flux erg/s/cm^2; pPXF
+            ('Halpha', 'Halpha'),
+            ('Hbeta', 'Hbeta'),
+            ('Hgamma', 'Hgamma'),
+            ('[NII] 6584',  '[NII]6583_d'),  # [NII] 6583 flux erg/s/cm^2; pPXF
             ('[OII] 3726',  '[OII]3726'),    # [OII] flux erg/s/cm^2; pPXF
             ('[OII] 3729',  '[OII]3729'),    # [OII] flux erg/s/cm^2; pPXF
             ('[OIII] 5007',  '[OII]5007_d')  # [OII] 5007 flux erg/s/cm^2; pPXF

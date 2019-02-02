@@ -21,21 +21,21 @@ def frb_121102():
 
     # Nebular lines
     neb_lines = {}
-    neb_lines['Ha'] = 0.652e-16
-    neb_lines['Ha_err'] = 0.009e-16
-    neb_lines['Ha_Al'] = 0.622
+    neb_lines['Halpha'] = 0.652e-16
+    neb_lines['Halpha_err'] = 0.009e-16
+    neb_lines['Halpha_Al'] = 0.622
     #
-    neb_lines['Hb'] = 0.118e-16
-    neb_lines['Hb_err'] = 0.011e-16
-    neb_lines['Hb_Al'] = 0.941
+    neb_lines['Hbeta'] = 0.118e-16
+    neb_lines['Hbeta_err'] = 0.011e-16
+    neb_lines['Hbeta_Al'] = 0.941
     #
     neb_lines['[OIII] 5007'] = 0.575e-16
     neb_lines['[OIII] 5007_err'] = 0.011e-16
     neb_lines['[OIII] 5007_Al'] = 0.911
     #
-    neb_lines['[NII] 6583'] = 0.030e-16  # * units.erg/units.cm**2/units.s      # Upper limit
-    neb_lines['[NII] 6583_err'] = -999.  # * units.erg/units.cm**2/units.s      # Upper limit
-    neb_lines['[NII] 6583_Al'] = 0.619
+    neb_lines['[NII] 6584'] = 0.030e-16  # * units.erg/units.cm**2/units.s      # Upper limit
+    neb_lines['[NII] 6584_err'] = -999.  # * units.erg/units.cm**2/units.s      # Upper limit
+    neb_lines['[NII] 6584_Al'] = 0.619
 
     AV = 2.42
 
