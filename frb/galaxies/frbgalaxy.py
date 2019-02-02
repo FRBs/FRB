@@ -32,7 +32,7 @@ class FRBGalaxy(object):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str): Nomiker of the FRB, e.g. 121102
+        frb (str): Nomiker of the FRB, e.g. 121102
         cosmo (astropy.cosmology): Cosmology, e.g. Planck15
 
     Attributes:
@@ -81,6 +81,9 @@ class FRBGalaxy(object):
         # Init
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
         self.frb = frb
+
+        #
+        self.name = ''
 
         # Cosmology
         if cosmo is None:
@@ -227,15 +230,22 @@ class FRBGalaxy(object):
         # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
+            # Data exists??
+            if band not in self.photom.keys():
+                continue
+            #
             new_photom[band] = zpt*10**(-new_photom[band]/2.5)
             errname = band+"_err"
-            if new_photom[errname]!=-999.0:
-                new_photom[errname] =-99.0
+            if new_photom[errname] != -999.0:
+                new_photom[errname] = -99.0
             else:
                 new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
         
         # Write to file
-        new_photom.write(filename, format="fits", overwrite=overwrite)
+        try:
+            new_photom.write(filename, format="fits", overwrite=overwrite)
+        except OSError:
+            warnings.warn("File exists;  use overwrite=True if you wish")
 
     def parse_cigale(self, cigale_file, overwrite=True):
         """
@@ -549,6 +559,8 @@ class FRBHost(FRBGalaxy):
 
         # Load up FRB info from name
 
+        self.name = 'FRB{}'.format(self.frb)
+
         # Optional
         if z_frb is not None:
             self.redshift['z_FRB'] = z_frb
@@ -612,4 +624,7 @@ class FGGalaxy(FRBGalaxy):
         super(FGGalaxy, self).__init__(ra, dec, frb, **kwargs)
 
         # Load up FRB info from name
+        self.name = 'FG{}_{}'.format(self.frb, utils.name_from_coord(self.coord))
+
+
 
