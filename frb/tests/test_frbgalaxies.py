@@ -24,13 +24,13 @@ def test_frbhost():
     host121102 = frbgalaxy.FRBHost(repeater_coord.ra.value, repeater_coord.dec.value, '121102')
     # Add a few nebular lines  (Tendulkar+17)
     neb_lines = {}
-    neb_lines['Ha'] = 0.652e-16
-    neb_lines['Ha_err'] = 0.009e-16
-    neb_lines['Ha_Al'] = 0.622
+    neb_lines['Halpha'] = 0.652e-16
+    neb_lines['Halpha_err'] = 0.009e-16
+    neb_lines['Halpha_Al'] = 0.622
     #
-    neb_lines['Hb'] = 0.118e-16
-    neb_lines['Hb_err'] = 0.011e-16
-    neb_lines['Hb_Al'] = 0.941
+    neb_lines['Hbeta'] = 0.118e-16
+    neb_lines['Hbeta_err'] = 0.011e-16
+    neb_lines['Hbeta_Al'] = 0.941
     AV = 2.42
     # Deal with Galactic extinction
     for key in neb_lines.keys():
