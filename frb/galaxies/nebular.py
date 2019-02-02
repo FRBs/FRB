@@ -61,8 +61,8 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
         wave1 = 6564.6  # redder
         wave2 = 4862.7
         #
-        F1_obs = neb_lines['Ha']
-        F2_obs = neb_lines['Hb']
+        F1_obs = neb_lines['Halpha']
+        F2_obs = neb_lines['Hbeta']
         #
         pair = True
     else:
@@ -106,7 +106,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
 
     if method == 'Ha':
         wave = 6564.6  # redder
-        flux = neb_lines['Ha']
+        flux = neb_lines['Halpha']
         #
         conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
     else:
