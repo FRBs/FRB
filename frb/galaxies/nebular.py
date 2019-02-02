@@ -111,12 +111,12 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
     """
     # Grab rest wavelength (vacuum)
     llist = linelist.LineList('Galaxy')
-    wave = llist[line]
+    wave = llist[line]['wrest']
 
     # Dust correct?
     if AV is not None:
         alAV = load_extinction(curve)
-        al = AV * alAV(wave.to('Ang').value)
+        al = AV * alAV(wave.to('Angstrom').value)
     else:
         al = 0.
 
@@ -161,7 +161,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
         raise IOError("Not prepared for method: {}".format(method))
 
     # Luminosity
-    Lum = calc_lum(neb_lines, line, z, cosmo, AV=AV, curve=curve)
+    Lum, Lum_err = calc_lum(neb_lines, line, z, cosmo, AV=AV, curve=curve)
 
     # SFR
     SFR = Lum.to('erg/s').value * conversion
