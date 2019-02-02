@@ -5,6 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import os
 import pdb
+import warnings
 
 from pkg_resources import resource_filename
 
@@ -411,8 +412,61 @@ class FRBGalaxy(object):
             if err is not None:
                 self.redshift['z_err'] = err
 
-    def vette_dict(self, dict, valid_defs):
-        pass
+    def vet_one(self, attr):
+        """
+        Vette one of the main_attr
+
+        Returns:
+            bool: True = passed
+
+        """
+        vet = True
+        # Check
+        assert attr in self.main_attr
+
+        # Setup
+        if attr == 'neb_lines':
+            defs_list = defs.valid_neb_lines
+        elif attr == 'morphology':
+            defs_list = defs.valid_morphology
+        elif attr == 'photom':
+            defs_list = defs.valid_photom
+        elif attr == 'derived':
+            defs_list = defs.valid_derived
+        elif attr == 'redshift':
+            defs_list = defs.valid_z
+        else:
+            return True
+        # Vet
+        for key in getattr(self, attr).keys():
+            # Skip error
+            if '_err' in key:
+                continue
+            if key not in defs_list:
+                vet = False
+                warnings.warn("{} in {} is not valid!".format(key,attr))
+        # Return
+        return vet
+
+
+    def vet_all(self):
+        """
+        Vette all of the main dicts
+
+        Args:
+            dict:
+            valid_defs:
+
+        Returns:
+            bool: True = passed
+
+        """
+        vet = True
+        # Loop me
+        for attr in self.main_attr:
+            vet &= self.vet_one(attr)
+        # Return
+        return vet
 
     def make_outfile(self):
         """
