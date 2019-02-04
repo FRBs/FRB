@@ -138,7 +138,7 @@ class FRBGalaxy(object):
         Lum, Lum_err = nebular.calc_lum(self.neb_lines, line, self.z, self.cosmo, AV=AV)
         return Lum, Lum_err
 
-    def calc_nebular_AV(self, method='Ha/Hb', **kwargs):
+    def calc_nebular_AV(self, method='Ha/Hb', min_AV=None, **kwargs):
         """
         Calculate an A_V extinction from a pair of Nebular lines
 
@@ -148,6 +148,7 @@ class FRBGalaxy(object):
 
         Args:
             method (str): Method to use
+            min_AV (float): Minimum A_V value allowed;  might set 0. someday
             **kwargs: Passed to nebular.calc_dust_extinct
 
         Returns:
@@ -157,6 +158,9 @@ class FRBGalaxy(object):
         assert len(self.neb_lines) > 0
         # Do it
         AV = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
+        if min_AV is not None:
+            AV = max(AV, min_AV)
+        # Set
         self.derived['AV_nebular'] = AV
 
     def calc_nebular_SFR(self, method='Ha', **kwargs):
