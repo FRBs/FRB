@@ -28,6 +28,24 @@ Dispersion Measure
 
    dm
 
+Galaxies
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   galaxies
+
+
+Rotation Measure
+----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   rm
+
+
 Scattering
 ----------
 

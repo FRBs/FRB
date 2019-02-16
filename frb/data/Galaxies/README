@@ -1,0 +1,8 @@
+This folder contains data related to galaxies
+associated with FRB science.  Both hosts and
+foreground galaxies.
+
+
+The script build_hosts.py is used to generate
+or re-generate JSON files for FRB host galaxies.
+Best run by developers only.
