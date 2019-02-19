@@ -419,7 +419,9 @@ class FRBGalaxy(object):
                         self.neb_lines[line+'_err'] = ppxf[line+'_err']
         
         # Fitted quantities
-        pdb.set_trace()
+        self.derived['EBV_spec'] = ppxf_tbl.meta['EBV']
+        self.derived['Z_spec'] = ppxf_tbl.meta['METALS']
+        self.derived['Mstar_spec'] = 10.**ppxf_tbl.meta['LOGMSTAR']
 
     def set_z(self, z, origin, err=None):
         """
