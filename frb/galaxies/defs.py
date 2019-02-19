@@ -70,6 +70,7 @@ valid_derived_photom = [
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'Z_photom',        # Metallicity from photometry; CIGALE
+    'Z_spec',          # Metallicity from spectra; pPXF
     ]
 
 valid_derived_nebular = [
