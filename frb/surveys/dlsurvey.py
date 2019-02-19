@@ -63,12 +63,11 @@ class DL_Survey(surveycoord.SurveyCoord):
             print(query)
         # Do it
         result = qc.query(self.token, sql=query)
-        cat = helpers.convert(result)
+        self.catalog = helpers.utils.convert(result, outfmt='table')
         # TODO:: Suppress the print output from convert
         # TODO:: Dig into why the heck it doesn't want to natively
         #        output to a table when it was clearly intended to with 'outfmt=table'
         # Finish
-        self.catalog = Table.from_pandas(cat)
         self.catalog.meta['radius'] = self.radius
         self.catalog.meta['survey'] = self.survey
         # Validate
