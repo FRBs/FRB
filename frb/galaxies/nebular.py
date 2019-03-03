@@ -129,7 +129,8 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
 
     # Error
     if neb_lines[line+'_err'] > 0.:
-        Lum_err = flux * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
+        flux_err = neb_lines[line+'_err']
+        Lum_err = flux_err * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
     else:
         Lum_err = -999 * units.erg/units.s
     # Return
