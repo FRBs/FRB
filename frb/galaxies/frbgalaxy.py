@@ -82,6 +82,7 @@ class FRBGalaxy(object):
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
         self.frb = frb
 
+
         #
         self.name = ''
 
@@ -92,13 +93,14 @@ class FRBGalaxy(object):
             self.cosmo = cosmo
 
         # Main attributes
+        self.eellipse = {}  # Error ellipse
         self.redshift = {}
         self.photom = {}
         self.morphology = {}
         self.neb_lines = {}
         self.kinematics = {}
         self.derived = {}
-        self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines', 'kinematics', 'derived')
+        self.main_attr = ('eellipse', 'photom', 'redshift', 'morphology', 'neb_lines', 'kinematics', 'derived')
 
     @property
     def z(self):
@@ -423,6 +425,26 @@ class FRBGalaxy(object):
         self.derived['Z_spec'] = ppxf_tbl.meta['METALS']
         self.derived['Mstar_spec'] = 10.**ppxf_tbl.meta['LOGMSTAR']
 
+    def set_ee(self, a, b, theta, cl):
+        """
+        Set an error ellipse
+
+        Args:
+            a (float): major axis; Arcsec
+            b (float):  minor axis; Arcsec
+            theta (float): rotation of the major axis E from N (deg)
+            cl (float): confidence level
+        """
+        self.eellipse['a'] = a
+        self.eellipse['b'] = b
+        self.eellipse['theta'] = theta
+        self.eellipse['cl'] = cl
+
+        # Vet
+        self.vet_one('eellipse')
+        #
+        return
+
     def set_z(self, z, origin, err=None):
         """
         Set the redshift value(s) in self.redshift
@@ -478,6 +500,8 @@ class FRBGalaxy(object):
             defs_list = defs.valid_derived
         elif attr == 'redshift':
             defs_list = defs.valid_z
+        elif attr == 'eellipse':
+            defs_list = defs.valid_e
         else:
             return True
         # Vet
