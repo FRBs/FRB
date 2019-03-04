@@ -6,13 +6,21 @@
 
 ##############################################################
 # Redshift
-
 valid_z = [
     'z',       # Preferred redshift, may derived from one of several ways
     'z_phot',  # Photometric redshift
     'z_spec',  # Spectroscopic redshift
     'z_FRB',   # FRB redshift
 ]
+
+##############################################################
+# Error Ellipse
+valid_e = [
+    'a',       # Major axis
+    'b',       # Minor axis
+    'theta',   # Rotation of the major axis E from N (deg)
+    'cl',      # Confidence level of the ellipse
+    ]
 
 ##############################################################
 # Photometry
