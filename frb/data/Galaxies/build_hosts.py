@@ -8,7 +8,7 @@ from astropy import units
 
 from frb.galaxies import frbgalaxy, defs
 
-def frb_121102():
+def host_121102():
     FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
     # Eyeball Tendulkar+17 PA
     gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
@@ -88,7 +88,7 @@ def frb_121102():
 # Command line execution
 if __name__ == '__main__':
     # FRB 121102
-    frb_121102()
+    host_121102()
 
 
 
