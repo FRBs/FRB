@@ -160,28 +160,28 @@ class generic_FRB(object):
         if outfile is None:
             outfile = self.make_outfile()
         # Build the dict
-        frbgal_dict = {}
+        frb_dict = {}
 
         # Basics
         if self.coord is not None:
-            frbgal_dict['ra'] = self.coord.ra.value
-            frbgal_dict['dec'] = self.coord.dec.value
+            frb_dict['ra'] = self.coord.ra.value
+            frb_dict['dec'] = self.coord.dec.value
         if self.frb_name is not None:
-            frbgal_dict['FRB'] = self.frb_name
-        frbgal_dict['cosmo'] = self.cosmo.name
+            frb_dict['FRB'] = self.frb_name
+        frb_dict['cosmo'] = self.cosmo.name
 
         # Measured properties
         for attr in ['S', 'nu_c', 'DM', 'z']:
             if getattr(self,attr) is not None:
-                frbgal_dict[attr] = getattr(self, attr)
+                frb_dict[attr] = getattr(self, attr)
 
         # Main dicts
         for idict in self.main_dict:
             if getattr(self,idict) is not None and len(getattr(self,idict)) > 0:
-                frbgal_dict[idict] = getattr(self,idict)
+                frb_dict[idict] = getattr(self,idict)
 
         # JSONify
-        jdict = utils.jsonify(frbgal_dict)
+        jdict = utils.jsonify(frb_dict)
 
         # Write
         utils.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=overwrite)
