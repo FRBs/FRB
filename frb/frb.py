@@ -234,6 +234,13 @@ class FRB(generic_FRB):
         # Return
         return slf
 
+    @classmethod
+    def by_name(cls, frb, **kwargs):
+        path = os.path.join(resource_filename('frb', 'data/FRBs/'), frb)
+        json_file = path + '.json'
+        slf = cls.from_json(json_file, **kwargs)
+        return slf
+
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
         # Instantiate
         super(FRB, self).__init__(S, nu_c, DM, coord=coord, **kwargs)
