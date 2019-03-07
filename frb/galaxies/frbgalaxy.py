@@ -500,7 +500,6 @@ class FRBGalaxy(object):
         # Return
         return vet
 
-
     def vet_all(self):
         """
         Vette all of the main dicts
