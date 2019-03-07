@@ -429,25 +429,6 @@ class FRBGalaxy(object):
         self.derived['Z_spec'] = ppxf_tbl.meta['METALS']
         self.derived['Mstar_spec'] = 10.**ppxf_tbl.meta['LOGMSTAR']
 
-    def set_ee(self, a, b, theta, cl):
-        """
-        Set an error ellipse
-
-        Args:
-            a (float): major axis; Arcsec
-            b (float):  minor axis; Arcsec
-            theta (float): rotation of the major axis E from N (deg)
-            cl (float): confidence level
-        """
-        self.eellipse['a'] = a
-        self.eellipse['b'] = b
-        self.eellipse['theta'] = theta
-        self.eellipse['cl'] = cl
-
-        # Vet
-        self.vet_one('eellipse')
-        #
-        return
 
     def set_z(self, z, origin, err=None):
         """
