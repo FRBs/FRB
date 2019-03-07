@@ -59,6 +59,10 @@ class FRBGalaxy(object):
         # Init
         slf = cls(idict['ra'], idict['dec'], idict['FRB'], **kwargs)
 
+        # FRB coord
+        if 'ra_FRB' in idict.keys():
+            slf.frb_coord = SkyCoord(ra=idict['ra_FRB'], dec=idict['dec_FRB'], unit='deg')
+
         # Check cosmology
         if slf.cosmo.name != idict['cosmo']:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
@@ -80,9 +84,9 @@ class FRBGalaxy(object):
 
         # Init
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
-        self.frb = frb
+        self.frb = frb # Name, not coord
 
-
+        self.frb_coord = None
         #
         self.name = ''
 
@@ -569,6 +573,9 @@ class FRBGalaxy(object):
         frbgal_dict['ra'] = self.coord.ra.value
         frbgal_dict['dec'] = self.coord.dec.value
         frbgal_dict['FRB'] = self.frb
+        if self.frb_coord is not None:
+            frbgal_dict['ra_FRB'] = self.frb_coord.ra.value
+            frbgal_dict['dec_FRB'] = self.frb_coord.dec.value
         frbgal_dict['cosmo'] = self.cosmo.name
 
         # Main attributes
