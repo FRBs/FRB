@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-import pdb
+import pdb, warnings
 
 from pkg_resources import resource_filename
 
@@ -136,21 +136,32 @@ class FRBGalaxy(object):
         new_photom['id'] = ID
         new_photom['redshift'] = self.z
         
-        #Convert DES fluxes to mJy
-        for band in defs.DES_bands:
-            colname = "DES_"+band
-            new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
-            new_photom[colname+"_err"] = new_photom[colname+"_err"]/1.087*new_photom[colname]
+        #Check if DES photometry was found:
+        if "DES_g" in list(self.photom.keys()):
+            #Convert DES fluxes to mJy
+            for band in defs.DES_bands:
+                colname = "DES_"+band
+                new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
+                new_photom[colname+"_err"] = new_photom[colname+"_err"]/1.087*new_photom[colname]
+        else:
+            warnings.warn("DES photometry wasn't found.")
         
-        #Convert WISE fluxes to mJy
-        wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-        for band,zpt in zip(defs.WISE_bands,wise_fnu0):
-            new_photom[band] = zpt*10**(-new_photom[band]/2.5)
-            errname = band+"_err"
-            if new_photom[errname]!=-999.0:
-                new_photom[errname] =-99.0
-            else:
-                new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
+        #Check if WISE photometry was found:
+        if "W1" in list(self.photom.keys()):
+            #Convert WISE fluxes to mJy
+            wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
+            for band,zpt in zip(defs.WISE_bands,wise_fnu0):
+                new_photom[band] = zpt*1000*10**(-new_photom[band]/2.5)
+                errname = band+"_err"
+                if new_photom[errname] ==-999.0:
+                    new_photom[errname] =-99.0
+                else:
+                    new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
+                # Rename columns to match default definitions of WISE band names in CIGALE
+                new_photom.rename_column(band,'WISE'+band[1])
+                new_photom.rename_column(errname,'WISE'+band[1]+'_err')
+        else:
+            warnings.warn("WISE photometry wasn't found")
         
         #Write to file
         new_photom.write(filename,format="fits",overwrite=overwrite)
