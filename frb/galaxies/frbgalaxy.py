@@ -602,8 +602,7 @@ class FRBHost(FRBGalaxy):
         super(FRBHost, self).__init__(ra, dec, frb, **kwargs)
 
         # Load up FRB info from name
-
-        self.name = 'FRB{}'.format(self.frb)
+        self.name = 'HG{}'.format(self.frb)
 
         # Optional
         if z_frb is not None:

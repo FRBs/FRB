@@ -99,7 +99,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
     Error is -999.*erg/s if input line flux has negative error
 
     Args:
-        neb_lines (dict):  Observed line fluxes
+        neb_lines (dict):  Observed line fluxes and errors
         line (str): Line to analyze
         z (float):  Emission redshift -- for Luminosity distance
         cosmo (astropy.cosmology.FLRW): Cosmology
