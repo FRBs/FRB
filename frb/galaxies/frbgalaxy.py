@@ -119,6 +119,19 @@ class FRBGalaxy(object):
             return None
         else:
             return self.redshift['z']
+    @property
+    def z_err(self):
+        """
+        Return the redshift error of the galaxy
+
+        Returns:
+            float or None: redshift or nadda
+
+        """
+        if len(self.redshift) == 0:
+            return None
+        else:
+            return self.redshift['z_err']
 
     def calc_nebular_lum(self, line):
         """
