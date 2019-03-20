@@ -24,6 +24,7 @@ def galactic_rm(coord):
         Quantity, Quantity: RM and RM_err with units of rad/m^2
 
     """
+    print("Loading RM information map from Oppermann et al. 2014")
     galactic_rm_file = resource_filename('frb', 'data/RM/opp14_foreground.fits')
 
     # Load
