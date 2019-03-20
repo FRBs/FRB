@@ -16,6 +16,10 @@ try:
 except ImportError:
     warnings.warn("Galaxy nebular line analysis requires linetools.  Install it if you want to use them")
 
+# GLOBALS
+Ha_Hb_intrin = 2.8  # Osterbrock
+Ha_conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+
 def load_extinction(curve):
     """
     Load an extinction curve
@@ -63,7 +67,6 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
 
     # Which ratio?
     if method == 'Ha/Hb':
-        Ha_Hb_intrin = 2.8 # Osterbrock
         wave1 = 6564.6  # redder
         wave2 = 4862.7
         #
@@ -156,8 +159,10 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
     """
     if method == 'Ha':
         line = 'Halpha'
-        #
-        conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+        conversion = Ha_conversion
+    elif method == 'Hb':
+        line = 'Hbeta'
+        conversion = Ha_conversion * Ha_Hb_intrin
     else:
         raise IOError("Not prepared for method: {}".format(method))
 

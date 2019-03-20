@@ -77,6 +77,7 @@ class generic_FRB(object):
         self.S = S
         self.nu_c = nu_c
         self.DM = DM
+        self.DM_err = None
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -171,7 +172,7 @@ class generic_FRB(object):
         frb_dict['cosmo'] = self.cosmo.name
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'z']:
+        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z']:
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
 
@@ -216,6 +217,9 @@ class FRB(generic_FRB):
         slf = cls(idict['FRB'], coord, DM, **kwargs)
         for key in ['ra','dec','DM']:
             idict.pop(key)
+        if 'DM_err' in idict.keys():
+            slf.DM_err = idict['DM_err']['value'] * units.pc / units.cm**3
+            idict.pop('DM_err')
 
         if slf.cosmo.name != idict['cosmo']:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
