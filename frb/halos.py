@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import pdb
+from IPython import embed
 
 import warnings
 
@@ -34,18 +35,23 @@ def init_hmf():
 
     """
     # Hidden here to avoid it becoming a dependency
-    import aemHMF
+    import hmf
     # Setup HMF
     # https://github.com/astropy/astropy/blob/master/astropy/cosmology/parameters.py
-    sigma8 = 0.8159
+    #sigma8 = 0.8159
     ns = 0.9667
     Neff = 3.046
-    cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
-                  "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
-    hmf = aemHMF.Aemulus_HMF()
-    hmf.set_cosmology(cosmo_dict)
+    #cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
+    #              "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
+    cosmo_dict = {"omega_cdm":(cosmo.Om0-cosmo.Ob0)*cosmo.h**2,
+                  "omega_b":cosmo.Ob0*cosmo.h**2,"ok":0.0,
+                  "ln10As": 3.098, # THIS REPLACES sigma8
+                  "H0":cosmo.H0.to('km/s/Mpc').value,
+                  "n_s":ns,"w0":-1.0,"N_eff":Neff} # "wa":0.0 is assumed internally
+    hmfe = hmf.hmf_emulator()
+    hmfe.set_cosmology(cosmo_dict)
     # Return
-    return hmf
+    return hmfe
 
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
@@ -103,7 +109,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     return np.array(ratios)
 
 
-def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
+def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
                    cumul=False):
     """
     Calculate the (approximate) average number of intersections to halos of a
@@ -120,8 +126,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
         radius: Quantity, optional
           The calculation will specify this radius as rvir derived from
            Mlow unless this is specified. And this rvir *will* vary with redshift
-        hmf: HMF class, optional
-          Halo mass function from Aeumulus
+        hmfe (hmf.hmf_emulator, optional): Halo mass function emulator from Aeumulus
         Mhigh: float, optional
           Mass of maximum halo in Solar masses
         nsammple: int, optional
@@ -139,14 +144,14 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
         Ncumul: ndarray
     """
     # HMF
-    if hmf is None:
-        hmf = init_hmf()
+    if hmfe is None:
+        hmfe = init_hmf()
     #
     zs = np.linspace(0., zFRB, nsample)
     # Mean density
     ns = []
     for iz in zs:
-        ns.append(hmf.n_bin(Mlow * cosmo.h, Mhigh * cosmo.h, 1 / (1 + iz)) * cosmo.h ** 3)  # * units.Mpc**-3
+        ns.append(hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) * cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii
@@ -219,7 +224,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     rstate = np.random.RandomState(seed)
 
     # Init HMF
-    hmf = init_hmf()
+    hmfe = init_hmf()
 
     # Boxes
     nbox = int(z_FRB / dz_box)
