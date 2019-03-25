@@ -108,7 +108,7 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         # Match em up
         if len(wise_cat) > 0:
-            idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'])
+            idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
             # Fill me
             for band in DES_WISE_bands:
                 main_cat['{:s}'.format(band)] = -999.
