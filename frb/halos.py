@@ -77,7 +77,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         ratios: ndarray
           rho_halo / rho_m
     """
-    hmf = init_hmf()
+    hmfe = init_hmf()
 
     M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
@@ -87,7 +87,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         a = 1./(1.0 + z) # scale factor
 
         # Setup
-        dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
+        #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
+        dndlM = hmfe.dndlnM(M, a)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
