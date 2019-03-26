@@ -8,6 +8,8 @@ import numpy as np
 import warnings
 from astropy.table import Table
 from astropy import units, io, utils
+
+import sys, os
 try:
     from dl import queryClient as qc, authClient as ac, helpers
 except ImportError:
@@ -61,9 +63,12 @@ class DL_Survey(surveycoord.SurveyCoord):
             query = self.query
         if print_query:
             print(query)
-        # Do it
+        # Do it while silencing print statements
         result = qc.query(self.token, sql=query)
-        self.catalog = helpers.utils.convert(result, outfmt='table')
+        sys.stdout = open(os.devnull,"w")
+        temp = helpers.convert(result)
+        sys.stdout = sys.__stdout__
+        self.catalog = Table.from_pandas(temp)
         # TODO:: Suppress the print output from convert
         # TODO:: Dig into why the heck it doesn't want to natively
         #        output to a table when it was clearly intended to with 'outfmt=table'
