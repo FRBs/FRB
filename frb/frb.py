@@ -78,6 +78,8 @@ class generic_FRB(object):
         self.nu_c = nu_c
         self.DM = DM
         self.DM_err = None
+        self.RM = DM
+        self.RM_err = None
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -222,8 +224,9 @@ class FRB(generic_FRB):
             idict.pop('DM_err')
         if 'RM' in idict.keys():
             slf.RM = units.Quantity(idict['RM']['value'], unit=idict['RM']['unit'])
-            slf.RM_err = units.Quantity(idict['RM_err']['value'], unit=idict['RM_err']['unit'])
             idict.pop('RM')
+        if 'RM_err' in idict.keys():
+            slf.RM_err = units.Quantity(idict['RM_err']['value'], unit=idict['RM_err']['unit'])
             idict.pop('RM_err')
 
 
