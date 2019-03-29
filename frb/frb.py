@@ -11,6 +11,7 @@ from astropy import units
 from astropy.cosmology import Planck15
 
 from frb import utils
+from frb import mw
 
 
 class generic_FRB(object):
@@ -80,6 +81,9 @@ class generic_FRB(object):
         self.DM_err = None
         self.RM = DM
         self.RM_err = None
+        # NE2001 (for speed)
+        self.DMISM = None
+        self.DMISM_err = None
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -98,6 +102,11 @@ class generic_FRB(object):
 
         # dicts of attributes to be read/written
         self.main_dict = ['eellipse']
+
+    def set_DMISM(self):
+        if self.coord is None:
+            print("Need to set coord first!")
+        self.DMISM = mw.ismDM(self.coord)
 
     def set_ee(self, a, b, theta, cl):
         """
@@ -174,7 +183,7 @@ class generic_FRB(object):
         frb_dict['cosmo'] = self.cosmo.name
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z', 'RM', 'RM_err']:
+        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z', 'RM', 'RM_err', 'DMISM', 'DMISM_err']:
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
 
@@ -219,17 +228,11 @@ class FRB(generic_FRB):
         slf = cls(idict['FRB'], coord, DM, **kwargs)
         for key in ['ra','dec','DM']:
             idict.pop(key)
-        if 'DM_err' in idict.keys():
-            slf.DM_err = idict['DM_err']['value'] * units.pc / units.cm**3
-            idict.pop('DM_err')
-        if 'RM' in idict.keys():
-            slf.RM = units.Quantity(idict['RM']['value'], unit=idict['RM']['unit'])
-            idict.pop('RM')
-        if 'RM_err' in idict.keys():
-            slf.RM_err = units.Quantity(idict['RM_err']['value'], unit=idict['RM_err']['unit'])
-            idict.pop('RM_err')
-
-
+        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err']:
+            if key in idict.keys():
+                setattr(slf,key,units.Quantity(idict[key]['value'], unit=idict[key]['unit']))
+                idict.pop(key)
+        # Cosmology
         if slf.cosmo.name != idict['cosmo']:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
         idict.pop('cosmo')
