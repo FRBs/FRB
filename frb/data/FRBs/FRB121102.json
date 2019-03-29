@@ -3,7 +3,15 @@
         "unit": "pc / cm3",
         "value": 558.1
     },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 158.23786594943675
+    },
     "FRB": "FRB121102",
+    "RM": {
+        "unit": "pc / cm3",
+        "value": 558.1
+    },
     "cosmo": "Planck15",
     "dec": 33.14791666666667,
     "eellipse": {
