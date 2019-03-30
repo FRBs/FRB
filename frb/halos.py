@@ -624,6 +624,69 @@ class ModifiedNFW(object):
         else:
             return Ne
 
+    def RM_Rperp(self, Rperp, Bparallel, step_size=0.1*units.kpc, rmax=1., add_units=True, cumul=False):
+        """ Calculate RM at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+        Assumes a constant Magnetic field
+
+        Parameters
+        ----------
+        Rperp : Quantity
+          Impact parameter, typically in kpc
+        Bparallel (Quantity):
+          Magnetic field
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+        add_units : bool, optional
+          Speed up calculations by avoiding units
+        cumul: bool, optional
+
+        Returns
+        -------
+        if cumul:
+          zval: ndarray (kpc)
+             z-values where z=0 is the midplane
+          Ne_cumul: ndarray
+             Cumulative Ne values (pc cm**-3)
+        else:
+          RM: Quantity
+             Column density of total electrons
+        """
+        dz = step_size.to('kpc').value
+
+        # Cut at rmax*rvir
+        if Rperp > rmax*self.r200:
+            if add_units:
+                return 0. / units.cm**2
+            else:
+                return 0.
+        # Generate a sightline to rvir
+        zmax = np.sqrt((rmax*self.r200) ** 2 - Rperp ** 2).to('kpc')
+        zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,zval.size))
+        xyz[0, :] = Rperp.to('kpc').value
+        xyz[2, :] = zval
+
+        # Integrate
+        ne = self.ne(xyz) # cm**-3
+        # Using Akahori & Ryu 2011
+        RM = 8.12e5 * Bparallel.to('microGauss').value * \
+             np.sum(ne) * dz / 1000  # rad m**-2
+
+        if cumul:
+            RM_cumul = 8.12e5 * Bparallel.to('microGauss') * np.cumsum(
+                ne) * dz / 1000  # rad m**-2
+            return zval, RM_cumul
+
+        # Return
+        if add_units:
+            return RM * units.rad / units.m**2
+        else:
+            return RM
+
     def mass_r(self, r, step_size=0.1*units.kpc):
         """ Calculate baryonic halo mass (not total) to a given radius
         Just a simple sum in steps of step_size
