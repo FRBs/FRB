@@ -624,7 +624,8 @@ class ModifiedNFW(object):
         else:
             return Ne
 
-    def RM_Rperp(self, Rperp, Bparallel, step_size=0.1*units.kpc, rmax=1., add_units=True, cumul=False):
+    def RM_Rperp(self, Rperp, Bparallel, step_size=0.1*units.kpc, rmax=1.,
+                 add_units=True, cumul=False, zmax=None):
         """ Calculate RM at an input impact parameter Rperp
         Just a simple sum in steps of step_size
         Assumes a constant Magnetic field
@@ -642,6 +643,9 @@ class ModifiedNFW(object):
         add_units : bool, optional
           Speed up calculations by avoiding units
         cumul: bool, optional
+        zmax: float, optional
+          Maximum distance along the sightline to integrate.
+          Default is rmax*rvir
 
         Returns
         -------
@@ -663,7 +667,8 @@ class ModifiedNFW(object):
             else:
                 return 0.
         # Generate a sightline to rvir
-        zmax = np.sqrt((rmax*self.r200) ** 2 - Rperp ** 2).to('kpc')
+        if zmax is None:
+            zmax = np.sqrt((rmax*self.r200) ** 2 - Rperp ** 2).to('kpc')
         zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
         # Set xyz
         xyz = np.zeros((3,zval.size))
