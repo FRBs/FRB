@@ -11,7 +11,8 @@ from astropy import units, io, utils
 
 import sys, os
 try:
-    from dl import queryClient as qc, authClient as ac, helpers
+    from dl import queryClient as qc, authClient as ac
+    from dl.helpers.utils import convert
 except ImportError:
     print("Warning:  You need to install dl")
 
@@ -66,7 +67,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         # Do it while silencing print statements
         result = qc.query(self.token, sql=query)
         sys.stdout = open(os.devnull,"w")
-        temp = helpers.convert(result)
+        temp = convert(result)
         sys.stdout = sys.__stdout__
         self.catalog = Table.from_pandas(temp)
         # TODO:: Suppress the print output from convert
