@@ -432,7 +432,7 @@ class ModifiedNFW(object):
 
 
     """
-    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., **kwargs):
+    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., cosmo=None, **kwargs):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo
@@ -443,9 +443,10 @@ class ModifiedNFW(object):
         self.z = z
         self.f_hot = f_hot
         self.zero_inner_ne = 0. # kpc
+        self.cosmo = cosmo
 
         # Init more
-        self.setup_param()
+        self.setup_param(cosmo=self.cosmo)
 
     def setup_param(self, cosmo=None):
         """ Setup key parameters of the model
