@@ -272,7 +272,7 @@ class FRBGalaxy(object):
         for band in defs.DES_bands:
             colname = "DES_"+band
             new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
-            new_photom[colname+"_err"] = new_photom[colname+"_err"]/1.087*new_photom[colname]
+            new_photom[colname+"_err"] = new_photom[colname]*(10**(new_photom[colname+"_err"]/2.5)-1)
         
         # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
