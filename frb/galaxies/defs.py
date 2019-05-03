@@ -33,6 +33,11 @@ DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
 
+# VLT
+VLT_bands = ['g', 'I']
+for band in VLT_bands:
+    valid_filters.append('VLT_{:s}'.format(band))
+
 # WISE
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in WISE_bands:
