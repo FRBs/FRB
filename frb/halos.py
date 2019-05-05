@@ -727,6 +727,18 @@ class ModifiedNFW(object):
         # Return
         return Mr.to('M_sun')
 
+    def __repr__(self):
+        txt = '<{:s}: {:s} {:s}, logM={:f}, r200={:g}'.format(
+                self.__class__.__name__,
+                self.coord.icrs.ra.to_string(unit=units.hour,sep=':',pad=True),
+                self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True),
+                np.log10(self.M_halo.to('Msun').value),
+            self.r200)
+        # Finish
+        txt = txt + '>'
+        return (txt)
+
+
 
 class MB04(ModifiedNFW):
     """
@@ -1098,3 +1110,32 @@ class ICM(ModifiedNFW):
 
         """
         return self.ne(xyz) / 1.1667
+
+
+class Virgo(ICM):
+    """
+    Parameterization of Virgo following the Planck Collaboration
+    paper:  A&A 596 A101 (2016)
+    """
+    def __init__(self, log_Mhalo=np.log10(1.2e14*(cosmo.Om0/cosmo.Ob0)), **kwargs):
+        ICM.__init__(self, log_Mhalo=log_Mhalo, **kwargs)
+
+        # Position from Sun
+        self.distance = 18 * units.Mpc
+        self.coord = SkyCoord('J123049+122328',  # Using M87
+                              unit=(units.hourangle, units.deg),
+                              distance=self.distance)
+
+    def setup_param(self, cosmo=None):
+        """ Setup key parameters of the model
+        """
+        self.r200 = 1.2 * units.Mpc
+
+    def ne(self, xyz):
+        radius = np.sqrt(rad3d2(xyz))
+
+        # Equation 8
+        ne = 8.5e-5 / (radius/1e3)**1.2
+
+        # Return
+        return ne
