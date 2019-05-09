@@ -6,3 +6,7 @@ foreground galaxies.
 The script build_hosts.py is used to generate
 or re-generate JSON files for FRB host galaxies.
 Best run by developers only.
+
+-------
+SDSS
+
