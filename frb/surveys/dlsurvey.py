@@ -7,7 +7,7 @@ import pdb
 import numpy as np
 import warnings
 from astropy.table import Table
-from astropy import units, io, utils
+from astropy import units
 try:
     from dl import queryClient as qc, authClient as ac, helpers
 except ImportError:
