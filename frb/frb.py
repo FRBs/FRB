@@ -13,7 +13,7 @@ from astropy.cosmology import Planck15
 from frb import utils
 
 
-class generic_FRB(object):
+class GenericFRB(object):
     """
     """
     @classmethod
@@ -215,7 +215,7 @@ class generic_FRB(object):
         return (txt)
 
 
-class FRB(generic_FRB):
+class FRB(GenericFRB):
     """
     FRB class used for actual, observed FRBs
 
