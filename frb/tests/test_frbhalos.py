@@ -30,6 +30,7 @@ def test_frac_in_halos():
     halos.init_hmf()
     # Run an example
     zvals = np.array([0., 0.1, 0.5, 1.])
+    pytest.set_trace()
     ratios = halos.frac_in_halos(zvals, 1e11, 1e15)
     # Test
     np.testing.assert_allclose(ratios, np.array([0.44904045, 0.427497,
