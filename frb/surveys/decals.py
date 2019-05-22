@@ -23,7 +23,7 @@ photom['DECaL'] = {}
 DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
 for band in DECaL_bands:
     photom['DECaL']['DECaL_{:s}'.format(band)] = 'mag_{:s}'.format(band.lower())
-    #photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
+    photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'snr_{:s}'.format(band.lower())
 photom['DECaL']['DECaL_ID'] = 'decals_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
@@ -66,13 +66,17 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         """
         # Query
         main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
-        # Clean
-        main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'])
+        #Convert SNR to mag error values.
+        snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
+        for col in snr_cols:
+            main_cat[col] = 2.5*np.log10(1+1/main_cat[col])
         #Remove gaia objects if necessary
         if exclude_gaia:
             self.catalog = main_cat[main_cat['gaia_pointsource']==0]
         else:
             self.catalog = main_cat
+        # Clean
+        main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'])
         self.validate_catalog()
         # Return
         return self.catalog
