@@ -14,7 +14,7 @@ from frb import utils
 from frb import mw
 
 
-class generic_FRB(object):
+class GenericFRB(object):
     """
     """
     @classmethod
@@ -57,6 +57,18 @@ class generic_FRB(object):
 
     @classmethod
     def from_json(cls, json_file, **kwargs):
+        """
+        Instantiate from a JSON file
+          A simple wrapper to the from_dict method
+
+        Args:
+            json_file (str):
+            **kwargs: Passed to from_dict()
+
+        Returns:
+            slf
+
+        """
         idict = utils.loadjson(json_file)
         slf = cls.from_dict(idict, **kwargs)
         return slf
@@ -110,7 +122,7 @@ class generic_FRB(object):
 
     def set_ee(self, a, b, theta, cl):
         """
-        Set an error ellipse
+        Set an error ellipse for the FRB position
 
         Args:
             a (float): major axis; Arcsec
@@ -127,6 +139,7 @@ class generic_FRB(object):
 
     def set_width(self, wtype, value, overwrite=False):
         """ Set a Width value
+
         Parameters
         ----------
         wtype : str
@@ -148,6 +161,13 @@ class generic_FRB(object):
         setattr(self, wtype, value)
 
     def make_outfile(self):
+        """
+        Simple method for naming the output file
+
+        Returns:
+            str
+
+        """
         if self.frb_name is None:
             outfile = 'Generic_FRB.json'
         else:
@@ -207,7 +227,11 @@ class generic_FRB(object):
         return (txt)
 
 
-class FRB(generic_FRB):
+class FRB(GenericFRB):
+    """
+    FRB class used for actual, observed FRBs
+
+    """
 
     @classmethod
     def from_dict(cls, idict, **kwargs):
@@ -252,13 +276,34 @@ class FRB(generic_FRB):
 
     @classmethod
     def by_name(cls, frb, **kwargs):
+        """
+        Method to instantiate an FRB by its name
+
+        Args:
+            frb (str):
+              Name of the FRB,
+            **kwargs:
+
+        Returns:
+
+        """
         path = os.path.join(resource_filename('frb', 'data/FRBs/'), frb)
         json_file = path + '.json'
         slf = cls.from_json(json_file, **kwargs)
         return slf
 
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
-        # Instantiate
+        """
+
+        Args:
+            frb_name (str):
+            coord (astropy.coordinates.SkyCoord):
+            DM (Quantity):
+            S:
+            nu_c:
+            z_frb:
+            **kwargs:
+        """
         super(FRB, self).__init__(S, nu_c, DM, coord=coord, **kwargs)
 
         self.frb_name = frb_name
