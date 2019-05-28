@@ -54,6 +54,12 @@ The following are required to run spectral line analysis (e.g. frb.galaxies.nebu
 
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 
+The following are required to run some of the halo codes:
+
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  Not sure they version their code
+* george :: Use pip
+* `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
+
 Installing frb
 ==============
 

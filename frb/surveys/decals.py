@@ -23,7 +23,7 @@ photom['DECaL'] = {}
 DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
 for band in DECaL_bands:
     photom['DECaL']['DECaL_{:s}'.format(band)] = 'mag_{:s}'.format(band.lower())
-    #photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'magerr_auto_{:s}'.format(band.lower())
+    photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'snr_{:s}'.format(band.lower())
 photom['DECaL']['DECaL_ID'] = 'decals_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
@@ -49,13 +49,15 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False):
         """
         Grab a catalog of sources around the input coordinate to the search radius
         
         Args:
             query: SQL query
             query_fields (list, optional): Over-ride list of items to query
+            exclude_gaia (bool,optional): If the field 'gaia_pointsource' is present and is 1,
+                                         remove those objects from the output catalog.
             print_query (bool): Print the SQL query generated 
 
         Returns:
@@ -64,8 +66,17 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         """
         # Query
         main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
+        #Convert SNR to mag error values.
+        snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
+        for col in snr_cols:
+            main_cat[col] = 2.5*np.log10(1+1/main_cat[col])
+        #Remove gaia objects if necessary
+        if exclude_gaia:
+            self.catalog = main_cat[main_cat['gaia_pointsource']==0]
+        else:
+            self.catalog = main_cat
         # Clean
-        self.catalog = catalog_utils.clean_cat(main_cat, photom['DECaL'])
+        main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'])
         self.validate_catalog()
         # Return
         return self.catalog
@@ -103,7 +114,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         if query_fields is None:
-            object_id_fields = ['decals_id','brick_primary','brickid','ra','dec']
+            object_id_fields = ['decals_id','brick_primary','brickid','ra','dec','gaia_pointsource']
             mag_fields = ['mag_g','mag_r','mag_z','mag_w1','mag_w2','mag_w3','mag_w4']
             snr_fields = ['snr_g','snr_r','snr_z','snr_w1','snr_w2','snr_w3','snr_w4']
             query_fields = object_id_fields+mag_fields+snr_fields
