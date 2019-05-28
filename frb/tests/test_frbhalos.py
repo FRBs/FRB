@@ -8,7 +8,7 @@ import pytest
 from numpy.random import rand
 
 try:
-    import aemHMF
+    import hmf_emulator
 except ImportError:
     flg_aemHMF = False
 else:
