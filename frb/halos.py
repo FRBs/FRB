@@ -35,7 +35,7 @@ def init_hmf():
 
     """
     # Hidden here to avoid it becoming a dependency
-    import hmf
+    import hmf_emulator
     # Setup HMF
     # https://github.com/astropy/astropy/blob/master/astropy/cosmology/parameters.py
     #sigma8 = 0.8159
@@ -48,7 +48,7 @@ def init_hmf():
                   "ln10As": 3.098, # THIS REPLACES sigma8
                   "H0":cosmo.H0.to('km/s/Mpc').value,
                   "n_s":ns,"w0":-1.0,"N_eff":Neff} # "wa":0.0 is assumed internally
-    hmfe = hmf.hmf_emulator()
+    hmfe = hmf_emulator.hmf_emulator()
     hmfe.set_cosmology(cosmo_dict)
     # Return
     return hmfe
