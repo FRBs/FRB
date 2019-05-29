@@ -88,7 +88,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
-        dndlM = hmfe.dndlnM(M, a)
+        dndlM = hmfe.dndlnM(M, z)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
