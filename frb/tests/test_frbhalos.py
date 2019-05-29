@@ -30,11 +30,9 @@ def test_frac_in_halos():
     halos.init_hmf()
     # Run an example
     zvals = np.array([0., 0.1, 0.5, 1.])
-    pytest.set_trace()
     ratios = halos.frac_in_halos(zvals, 1e11, 1e15)
     # Test
-    np.testing.assert_allclose(ratios, np.array([0.44904045, 0.427497,
-                                                 0.346716, 0.261328]), rtol=1e-4)
+    np.testing.assert_allclose(ratios, np.array([0.4625856 , 0.44314829, 0.36691686, 0.28180253]))
 
 def test_halo_incidence():
     # Imported (unlikely)?
@@ -43,11 +41,11 @@ def test_halo_incidence():
         return
     # Run
     Navg = halos.halo_incidence(1e12, 1., Mhigh=3e12)
-    assert np.isclose(Navg, 0.82386002)
+    assert np.isclose(Navg, 0.8540985206)
     # Cumulative now
     zeval, Ncumul = halos.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
     assert zeval.size == 20
-    assert np.isclose(Ncumul[-1], 0.40375103886404834)
+    assert np.isclose(Ncumul[-1], 0.42638425981)
 
 def test_YF17():
     yf17 = halos.YF17()
