@@ -20,6 +20,7 @@ from frb import igm as frb_igm
 from ne2001 import density
 
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=0., ymax=None,
+                IGM_only=True,
                 M31=False, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
@@ -115,12 +116,18 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=0., ymax=None,
     #
     DM_interp = IUS(zeval, dDM_cosmic)
     dDM_IGM = DM_interp(zvals) * fIGM * dz_vals / dzeval
+    dDM_cosm = DM_interp(zvals) * dz_vals / dzeval
     sub_DM_IGM = np.cumsum(dDM_IGM)
+    sub_DM_cosm = np.cumsum(dDM_cosm)
     f_IGM = IUS(zvals, sub_DM_IGM)
+    f_cosm = IUS(zvals, sub_DM_cosm)
     zvals2 = np.linspace(z0, zFRB, 1000)
     DM_IGM = f_IGM(zvals2)
+    DM_cosmic = f_cosm(zvals2)
 
-    DM_cosmic = DM_IGM.copy()
+    # Ignore halos?
+    if IGM_only:
+        DM_cosmic = DM_IGM.copy()
 
     # Halos at last
     if fg_halos is not None:
