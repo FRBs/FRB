@@ -210,6 +210,7 @@ def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
         logMmin: float, optional
           Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
+          The code deals with h^-1 factors, i.e. do not impose it yourself
         f_diffuse: float, optional
           Fraction of the cosmic baryon fraction in diffuse gas
         cumul: bool, optional
