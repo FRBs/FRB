@@ -1,7 +1,7 @@
 """ Methods related to SDSS/BOSS queries """
 
 import numpy as np
-import pdb
+from IPython import embed
 
 from astropy import units
 from astropy.coordinates import SkyCoord
@@ -106,6 +106,23 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         # Trim down catalog
         trim_catalog = trim_down_catalog(photom_catalog, keep_photoz=True)
 
+        # Spectral info
+        spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
+        spec_catalog = SDSS.query_region(self.coord,spectro=True, radius=self.radius,
+                                         timeout=timeout, specobj_fields=spec_fields) # Duplicates may exist
+        trim_spec_catalog = trim_down_catalog(spec_catalog)
+        # Match
+        spec_coords = SkyCoord(ra=trim_spec_catalog['ra'], dec=trim_spec_catalog['dec'], unit='deg')
+        phot_coords = SkyCoord(ra=trim_catalog['ra'], dec=trim_catalog['dec'], unit='deg')
+        idx, d2d, d3d = match_coordinates_sky(spec_coords, phot_coords, nthneighbor=1)
+        # Check
+        if np.max(d2d).to('arcsec').value > 1.5:
+            embed(header='119 of sdss')
+        # Fill me
+        zs = -1 * np.ones_like(trim_catalog['ra'].data)
+        zs[idx] = spec_catalog['z']
+        trim_catalog['z_spec'] = zs
+
         # Sort by offset
         catalog = trim_catalog.copy()
         self.catalog = catalog_utils.sort_by_separation(catalog, self.coord, radec=('ra','dec'), add_sep=True)
@@ -197,6 +214,7 @@ def get_url(coord, imsize=30., scale=0.39612, grid=False, label=False, invert=Fa
 
 def trim_down_catalog(catalog, keep_photoz=False, cut_within=1.5*units.arcsec):
     """
+    Cut down a catalog to keep only 1 source within cut_within
 
     Args:
         catalog (astropy.table.Table):  Input source catalog
