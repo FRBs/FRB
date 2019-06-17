@@ -70,7 +70,6 @@ class DL_Survey(surveycoord.SurveyCoord):
         temp = convert(result)
         sys.stdout = sys.__stdout__
         self.catalog = Table.from_pandas(temp)
-        # TODO:: Suppress the print output from convert
         # TODO:: Dig into why the heck it doesn't want to natively
         #        output to a table when it was clearly intended to with 'outfmt=table'
         # Finish
