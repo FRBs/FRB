@@ -4,6 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import pdb
+from IPython import embed
 
 import warnings
 
@@ -34,18 +35,23 @@ def init_hmf():
 
     """
     # Hidden here to avoid it becoming a dependency
-    import aemHMF
+    import hmf_emulator
     # Setup HMF
     # https://github.com/astropy/astropy/blob/master/astropy/cosmology/parameters.py
-    sigma8 = 0.8159
+    #sigma8 = 0.8159
     ns = 0.9667
     Neff = 3.046
-    cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
-                  "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
-    hmf = aemHMF.Aemulus_HMF()
-    hmf.set_cosmology(cosmo_dict)
+    #cosmo_dict = {"om":cosmo.Om0,"ob":cosmo.Ob0,"ol":1.-cosmo.Om0,"ok":0.0,
+    #              "h":cosmo.h,"s8":sigma8,"ns":ns,"w0":-1.0,"Neff":Neff} # "wa":0.0 is assumed internally
+    cosmo_dict = {"omega_cdm":(cosmo.Om0-cosmo.Ob0)*cosmo.h**2,
+                  "omega_b":cosmo.Ob0*cosmo.h**2,"ok":0.0,
+                  "ln10As": 3.098, # THIS REPLACES sigma8
+                  "H0":cosmo.H0.to('km/s/Mpc').value,
+                  "n_s":ns,"w0":-1.0,"N_eff":Neff} # "wa":0.0 is assumed internally
+    hmfe = hmf_emulator.hmf_emulator()
+    hmfe.set_cosmology(cosmo_dict)
     # Return
-    return hmf
+    return hmfe
 
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
@@ -71,7 +77,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         ratios: ndarray
           rho_halo / rho_m
     """
-    hmf = init_hmf()
+    hmfe = init_hmf()
 
     M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
@@ -81,7 +87,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         a = 1./(1.0 + z) # scale factor
 
         # Setup
-        dndlM = np.array([hmf.dndlM(Mi, a) for Mi in M])
+        #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
+        dndlM = hmfe.dndlnM(M, z)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
@@ -103,7 +110,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     return np.array(ratios)
 
 
-def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
+def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
                    cumul=False):
     """
     Calculate the (approximate) average number of intersections to halos of a
@@ -120,8 +127,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
         radius: Quantity, optional
           The calculation will specify this radius as rvir derived from
            Mlow unless this is specified. And this rvir *will* vary with redshift
-        hmf: HMF class, optional
-          Halo mass function from Aeumulus
+        hmfe (hmf.hmf_emulator, optional): Halo mass function emulator from Aeumulus
         Mhigh: float, optional
           Mass of maximum halo in Solar masses
         nsammple: int, optional
@@ -139,14 +145,14 @@ def halo_incidence(Mlow, zFRB, radius=None, hmf=None, Mhigh=1e16, nsample=20,
         Ncumul: ndarray
     """
     # HMF
-    if hmf is None:
-        hmf = init_hmf()
+    if hmfe is None:
+        hmfe = init_hmf()
     #
     zs = np.linspace(0., zFRB, nsample)
     # Mean density
     ns = []
     for iz in zs:
-        ns.append(hmf.n_bin(Mlow * cosmo.h, Mhigh * cosmo.h, 1 / (1 + iz)) * cosmo.h ** 3)  # * units.Mpc**-3
+        ns.append(hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) * cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii
@@ -219,7 +225,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     rstate = np.random.RandomState(seed)
 
     # Init HMF
-    hmf = init_hmf()
+    hmfe = init_hmf()
 
     # Boxes
     nbox = int(z_FRB / dz_box)
@@ -426,7 +432,7 @@ class ModifiedNFW(object):
 
 
     """
-    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., **kwargs):
+    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., cosmo=None, **kwargs):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo
@@ -437,9 +443,10 @@ class ModifiedNFW(object):
         self.z = z
         self.f_hot = f_hot
         self.zero_inner_ne = 0. # kpc
+        self.cosmo = cosmo
 
         # Init more
-        self.setup_param()
+        self.setup_param(cosmo=self.cosmo)
 
     def setup_param(self, cosmo=None):
         """ Setup key parameters of the model
@@ -618,6 +625,74 @@ class ModifiedNFW(object):
         else:
             return Ne
 
+    def RM_Rperp(self, Rperp, Bparallel, step_size=0.1*units.kpc, rmax=1.,
+                 add_units=True, cumul=False, zmax=None):
+        """ Calculate RM at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+        Assumes a constant Magnetic field
+
+        Parameters
+        ----------
+        Rperp : Quantity
+          Impact parameter, typically in kpc
+        Bparallel (Quantity):
+          Magnetic field
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+        add_units : bool, optional
+          Speed up calculations by avoiding units
+        cumul: bool, optional
+        zmax: float, optional
+          Maximum distance along the sightline to integrate.
+          Default is rmax*rvir
+
+        Returns
+        -------
+        if cumul:
+          zval: ndarray (kpc)
+             z-values where z=0 is the midplane
+          Ne_cumul: ndarray
+             Cumulative Ne values (pc cm**-3)
+        else:
+          RM: Quantity
+             Column density of total electrons
+        """
+        dz = step_size.to('kpc').value
+
+        # Cut at rmax*rvir
+        if Rperp > rmax*self.r200:
+            if add_units:
+                return 0. / units.cm**2
+            else:
+                return 0.
+        # Generate a sightline to rvir
+        if zmax is None:
+            zmax = np.sqrt((rmax*self.r200) ** 2 - Rperp ** 2).to('kpc')
+        zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,zval.size))
+        xyz[0, :] = Rperp.to('kpc').value
+        xyz[2, :] = zval
+
+        # Integrate
+        ne = self.ne(xyz) # cm**-3
+        # Using Akahori & Ryu 2011
+        RM = 8.12e5 * Bparallel.to('microGauss').value * \
+             np.sum(ne) * dz / 1000  # rad m**-2
+
+        if cumul:
+            RM_cumul = 8.12e5 * Bparallel.to('microGauss') * np.cumsum(
+                ne) * dz / 1000  # rad m**-2
+            return zval, RM_cumul
+
+        # Return
+        if add_units:
+            return RM * units.rad / units.m**2
+        else:
+            return RM
+
     def mass_r(self, r, step_size=0.1*units.kpc):
         """ Calculate baryonic halo mass (not total) to a given radius
         Just a simple sum in steps of step_size
@@ -651,6 +726,18 @@ class ModifiedNFW(object):
 
         # Return
         return Mr.to('M_sun')
+
+    def __repr__(self):
+        txt = '<{:s}: {:s} {:s}, logM={:f}, r200={:g}'.format(
+                self.__class__.__name__,
+                self.coord.icrs.ra.to_string(unit=units.hour,sep=':',pad=True),
+                self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True),
+                np.log10(self.M_halo.to('Msun').value),
+            self.r200)
+        # Finish
+        txt = txt + '>'
+        return (txt)
+
 
 
 class MB04(ModifiedNFW):
@@ -1023,3 +1110,32 @@ class ICM(ModifiedNFW):
 
         """
         return self.ne(xyz) / 1.1667
+
+
+class Virgo(ICM):
+    """
+    Parameterization of Virgo following the Planck Collaboration
+    paper:  A&A 596 A101 (2016)
+    """
+    def __init__(self, log_Mhalo=np.log10(1.2e14*(cosmo.Om0/cosmo.Ob0)), **kwargs):
+        ICM.__init__(self, log_Mhalo=log_Mhalo, **kwargs)
+
+        # Position from Sun
+        self.distance = 18 * units.Mpc
+        self.coord = SkyCoord('J123049+122328',  # Using M87
+                              unit=(units.hourangle, units.deg),
+                              distance=self.distance)
+
+    def setup_param(self, cosmo=None):
+        """ Setup key parameters of the model
+        """
+        self.r200 = 1.2 * units.Mpc
+
+    def ne(self, xyz):
+        radius = np.sqrt(rad3d2(xyz))
+
+        # Equation 8
+        ne = 8.5e-5 / (radius/1e3)**1.2
+
+        # Return
+        return ne

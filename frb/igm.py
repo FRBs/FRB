@@ -200,7 +200,7 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
         return DM_cum[-1]
 
 
-def avg_DMhalos(z, logMmin=10., f_diffuse=0.75, cumul=False):
+def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
@@ -209,6 +209,8 @@ def avg_DMhalos(z, logMmin=10., f_diffuse=0.75, cumul=False):
           Redshift of the FRB
         logMmin: float, optional
           Lowest mass halos to consider
+          Cannot be much below 10.3 or the Halo code barfs
+          The code deals with h^-1 factors, i.e. do not impose it yourself
         f_diffuse: float, optional
           Fraction of the cosmic baryon fraction in diffuse gas
         cumul: bool, optional
