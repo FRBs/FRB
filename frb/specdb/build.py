@@ -59,7 +59,7 @@ def generate_by_refs(input_refs, outfile):
     # Loop on Instruments
     for instr in all_instruments:
         fits_files = grab_files(all_spec_files, instr)
-        if len(ifiles) == 0:
+        if len(fits_files) == 0:
             continue
         # Option dicts
         mwargs = {}
