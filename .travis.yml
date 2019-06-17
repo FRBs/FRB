@@ -21,8 +21,8 @@ env:
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - CONDA_DEPENDENCIES='scipy h5py pyyaml matplotlib astroquery pillow requests healpy'
-        - PIP_DEPENDENCIES='datalab-client pyvo'
+        - CONDA_DEPENDENCIES='scipy h5py pyyaml matplotlib astroquery pillow requests healpy IPython'
+        - PIP_DEPENDENCIES='datalab-client pyvo linetools'
         - EVENT_TYPE='pull_request push'
         - TASK='test'
 
@@ -118,6 +118,7 @@ install:
 
     - git clone git://github.com/astropy/ci-helpers.git
     - source ci-helpers/travis/setup_conda_$TRAVIS_OS_NAME.sh
+    - if [[ $SETUP_CMD != egg_info ]]; then $PIP_INSTALL git+https://github.com/FRBs/ne2001.git; fi
 
 
 script:

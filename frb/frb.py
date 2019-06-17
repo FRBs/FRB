@@ -11,6 +11,7 @@ from astropy import units
 from astropy.cosmology import Planck15
 
 from frb import utils
+from frb import mw
 
 
 class GenericFRB(object):
@@ -89,6 +90,12 @@ class GenericFRB(object):
         self.S = S
         self.nu_c = nu_c
         self.DM = DM
+        self.DM_err = None
+        self.RM = DM
+        self.RM_err = None
+        # NE2001 (for speed)
+        self.DMISM = None
+        self.DMISM_err = None
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -107,6 +114,11 @@ class GenericFRB(object):
 
         # dicts of attributes to be read/written
         self.main_dict = ['eellipse']
+
+    def set_DMISM(self):
+        if self.coord is None:
+            print("Need to set coord first!")
+        self.DMISM = mw.ismDM(self.coord)
 
     def set_ee(self, a, b, theta, cl):
         """
@@ -191,7 +203,7 @@ class GenericFRB(object):
         frb_dict['cosmo'] = self.cosmo.name
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'z']:
+        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z', 'RM', 'RM_err', 'DMISM', 'DMISM_err']:
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
 
@@ -240,7 +252,11 @@ class FRB(GenericFRB):
         slf = cls(idict['FRB'], coord, DM, **kwargs)
         for key in ['ra','dec','DM']:
             idict.pop(key)
-
+        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err']:
+            if key in idict.keys():
+                setattr(slf,key,units.Quantity(idict[key]['value'], unit=idict[key]['unit']))
+                idict.pop(key)
+        # Cosmology
         if slf.cosmo.name != idict['cosmo']:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
         idict.pop('cosmo')

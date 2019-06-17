@@ -111,6 +111,21 @@ class Turbulence(object):
         if self.verbose:
             print("Set SM={}".format(self.SM.decompose()))
 
+    def set_cloudlet_rdiff(self, lobs, fa):
+        """
+        Taken from JP notes
+
+        Args:
+            lobs:
+            fa (int): Number of clouds intersected
+
+        Returns:
+
+        """
+        # ASSUMING rdiff > l0 for now
+        self.rdiff = self.L0**(-1/5) * (
+                2*const_re**2 * (lobs/(1+self.zL))**2 * self.ne**2 * fa)**(-3/5)
+
     def set_rdiff(self, lobs):
         """ Calculate rdiff in the two regimes and adopt the right one
         Requires that SM was set first
@@ -184,7 +199,7 @@ class Turbulence(object):
         D_LS_D_S = D_LS/D_S
 
         # Evaluate
-        k = 2*np.pi / lobs
+        k = 2*np.pi / (lobs / (1+self.zL))  # Are we sure about this (1+z) factor?!
         self.theta = f * D_LS_D_S / (k * self.rdiff) * u.radian
 
         return self.theta.to('arcsec')

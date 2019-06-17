@@ -43,7 +43,7 @@ def test_temp_smearing():
     tau = turb.temporal_smearing(lobs, zsource)
     # Test
     assert tau.unit == u.ms
-    assert np.isclose(tau.to('ms').value, 1.956703740723121)
+    assert np.isclose(tau.to('ms').value, 0.4891759052455614)
 
 
 def test_ang_broadening():
@@ -58,6 +58,6 @@ def test_ang_broadening():
     zsource = 2.
     theta = turb.angular_broadening(lobs, zsource)
     assert theta.unit == u.arcsec
-    assert np.isclose(theta.to('arcsec').value, 1.8536211226506955e-05)
+    assert np.isclose(theta.to('arcsec').value, 9.26810535e-06)
 
 

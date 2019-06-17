@@ -6,13 +6,21 @@
 
 ##############################################################
 # Redshift
-
 valid_z = [
     'z',       # Preferred redshift, may derived from one of several ways
     'z_phot',  # Photometric redshift
     'z_spec',  # Spectroscopic redshift
     'z_FRB',   # FRB redshift
 ]
+
+##############################################################
+# Error Ellipse
+valid_e = [
+    'a',       # Major axis
+    'b',       # Minor axis
+    'theta',   # Rotation of the major axis E from N (deg)
+    'cl',      # Confidence level of the ellipse
+    ]
 
 ##############################################################
 # Photometry
@@ -24,6 +32,11 @@ valid_filters = []
 DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
+
+# VLT
+VLT_bands = ['g', 'I']
+for band in VLT_bands:
+    valid_filters.append('VLT_{:s}'.format(band))
 
 # WISE
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
@@ -63,13 +76,16 @@ valid_morphology = [
 
 valid_derived_photom = [
     'Mstar',           # Stellar mass; linear in Msun CIGALE
+    'Mstar_spec',      # Stellar mass from pPXF; linear in Msun
     'f_AGN',           # Fraction of AGN contribution to light; CIGALE
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE
+    'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE
+    'Z_spec',          # Metallicity from spectra; pPXF
     ]
 
 valid_derived_nebular = [

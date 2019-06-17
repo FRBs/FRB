@@ -8,8 +8,11 @@ import numpy as np
 import warnings
 from astropy.table import Table
 from astropy import units
+
+import sys, os
 try:
-    from dl import queryClient as qc, authClient as ac, helpers
+    from dl import queryClient as qc, authClient as ac
+    from dl.helpers.utils import convert
 except ImportError:
     print("Warning:  You need to install dl")
 
@@ -61,14 +64,15 @@ class DL_Survey(surveycoord.SurveyCoord):
             query = self.query
         if print_query:
             print(query)
-        # Do it
+        # Do it while silencing print statements
         result = qc.query(self.token, sql=query)
-        cat = helpers.convert(result)
-        # TODO:: Suppress the print output from convert
+        sys.stdout = open(os.devnull,"w")
+        temp = convert(result)
+        sys.stdout = sys.__stdout__
+        self.catalog = Table.from_pandas(temp)
         # TODO:: Dig into why the heck it doesn't want to natively
         #        output to a table when it was clearly intended to with 'outfmt=table'
         # Finish
-        self.catalog = Table.from_pandas(cat)
         self.catalog.meta['radius'] = self.radius
         self.catalog.meta['survey'] = self.survey
         # Validate

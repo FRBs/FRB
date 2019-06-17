@@ -4,9 +4,12 @@
     "dec": 33.14799784235409,
     "derived": {
         "M_r": -17.0,
+        "M_r_err": 0.2,
         "Mstar": 55000000.0,
         "Mstar_err": 15000000.0,
-        "SFR_nebular": 0.23
+        "SFR_nebular": 0.23,
+        "Z_spec": -0.2,
+        "Z_spec_err": -999.0
     },
     "morphology": {
         "b/a": 0.25,
