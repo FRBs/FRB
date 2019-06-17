@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Spectra
+Spectra/
+
 # Distribution / packaging
 .Python
 env/
