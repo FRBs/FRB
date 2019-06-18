@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS']
+all_instruments = ['SDSS', 'GMOS']
 spectra_path = resource_filename('frb', '../Spectra')
 
 def grab_files(all_files, instrument):
