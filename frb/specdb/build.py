@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2', 'MUSE']
+all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI']
 spectra_path = resource_filename('frb', '../Spectra')
 
 def grab_files(all_files, instrument):
@@ -170,6 +170,10 @@ def generate_by_refs(input_refs, outfile, version):
             mdict = dict(TELESCOPE='VLT', R=2000.)
             parse_head = {'DATE-OBS': 'MJD-OBS', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
             maxpix = 4000
+        elif instr == 'KCWI':
+            mdict = dict(TELESCOPE='Keck-2')
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME', 'R': True}
+            maxpix = 4000
         else:
             embed(header='172')
 
@@ -178,7 +182,7 @@ def generate_by_refs(input_refs, outfile, version):
                                    verbose=True, parse_head=parse_head, skip_badz=skipz,
                                    stype='GAL',
                                    chkz=True, **mwargs)
-        if instr == 'MUSE':
+        if instr == 'KCWI':
             embed(header='182')
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
