@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2']
+all_instruments = ['SDSS', 'FORS2', 'MUSE']
 spectra_path = resource_filename('frb', '../Spectra')
 
 def grab_files(all_files, instrument):
@@ -166,6 +166,10 @@ def generate_by_refs(input_refs, outfile, version):
             mdict = dict(TELESCOPE='VLT', INSTR='FORS2')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'R': True}
             maxpix = 2050
+        elif instr == 'MUSE':
+            mdict = dict(TELESCOPE='VLT', R=2000.)
+            parse_head = {'DATE-OBS': 'MJD-OBS', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
+            maxpix = 4000
         else:
             embed(header='172')
 
@@ -174,6 +178,8 @@ def generate_by_refs(input_refs, outfile, version):
                                    verbose=True, parse_head=parse_head, skip_badz=skipz,
                                    stype='GAL',
                                    chkz=True, **mwargs)
+        if instr == 'MUSE':
+            embed(header='182')
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
@@ -191,5 +197,5 @@ def generate_by_refs(input_refs, outfile, version):
 if __name__ == '__main__':
 
     # Test
-    generate_by_refs(['DR7', 'Prochaska2019'], 'tst_specdb.hdf5', 'v0.1')
+    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019'], 'tst_specdb.hdf5', 'v0.1')
     #sdss_redshifts()
