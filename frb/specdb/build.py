@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'GMOS']
+all_instruments = ['SDSS', 'FORS2']
 spectra_path = resource_filename('frb', '../Spectra')
 
 def grab_files(all_files, instrument):
@@ -53,7 +53,6 @@ def load_z_tables(path):
             pass
         elif 'JCOORD' in itbl.keys():
             coords = SkyCoord(itbl['JCOORD'], unit=(units.hourangle, units.deg))
-            embed(header='56')
             itbl['RA'] = coords.ra.value
             itbl['DEC'] = coords.dec.value
         # Append
@@ -159,12 +158,16 @@ def generate_by_refs(input_refs, outfile, version):
         swargs = {}
         # Meta
         parse_head, mdict, fname = None, None, True
-        if instr == 'SDSS':  # Spectra with Continua only
+        if instr == 'SDSS':
             mdict = dict(DISPERSER='BOTH', R=2000., TELESCOPE='SDSS 2.5-M', INSTR='SDSS')
             parse_head = {'DATE-OBS': 'MJD'}
             maxpix = 4000
+        elif instr == 'FORS2':
+            mdict = dict(TELESCOPE='VLT', INSTR='FORS2')
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'R': True}
+            maxpix = 2050
         else:
-            embed(header='167')
+            embed(header='172')
 
         # Meta
         full_meta = pbuild.mk_meta(fits_files, allz_tbl, mdict=mdict, fname=fname,
@@ -188,5 +191,5 @@ def generate_by_refs(input_refs, outfile, version):
 if __name__ == '__main__':
 
     # Test
-    generate_by_refs(['DR7'], 'tst_specdb.hdf5', 'v0.1')
+    generate_by_refs(['DR7', 'Prochaska2019'], 'tst_specdb.hdf5', 'v0.1')
     #sdss_redshifts()
