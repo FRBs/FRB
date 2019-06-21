@@ -2,13 +2,26 @@
 FRB host galaxies"""
 
 from pkg_resources import resource_filename
+import os
 
 from astropy.coordinates import SkyCoord
 from astropy import units
 
 from frb.galaxies import frbgalaxy, defs
+from frb.surveys import des
+
+photom_path = resource_filename('frb', '../DB/Photom')
+spectra_path = resource_filename('frb', '../DB/Spectra')
 
 def host_121102():
+    """
+    Generate the JSON file for FRB 121102
+
+    Writes to 121102/FRB121102_host.json
+
+    Returns:
+
+    """
     FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
     # Eyeball Tendulkar+17 PA
     gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
@@ -83,6 +96,63 @@ def host_121102():
     # Write
     path = resource_filename('frb', 'data/Galaxies/121102')
     host121102.write_to_json(path=path, overwrite=True)
+
+
+def host_180924():
+    """
+    Generate the JSON file for FRB 180924
+
+    Writes to 180924/FRB180924_host.json
+
+    Returns:
+
+    """
+    gal_coord = SkyCoord('J214425.25-405400.81', unit=(units.hourangle, units.deg))
+
+    # Instantiate
+    host = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, '180924')
+
+    # Redshift
+    host.set_z(0.3212, 'spec')
+
+    # Morphology
+    host.parse_galfit(os.path.join(photom_path, 'Bannister2019',
+                                   'HG180924_galfit_DES.log'), 0.263)
+
+    # Photometry
+
+    # DES
+    # Grab the table (requires internet)
+    search_r = 2*units.arcsec
+    des_srvy = des.DES_Survey(gal_coord, search_r)
+    des_tbl = des_srvy.get_catalog(print_query=True)
+
+    # Parse
+    host.parse_photom(des_tbl)
+
+    # PPXF
+    host.parse_ppxf('../MUSE_ppxf_results.ecsv')
+    host.parse_ppxf(os.path.join(spectra_path, 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
+
+    # Derived quantities
+
+    # AV
+    host.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    host.calc_nebular_SFR('Ha')
+    host.derived['SFR_nebular_err'] = -999.
+
+    # CIGALE
+    host.parse_cigale(os.path.join(photom_path, 'Bannister2019',
+                                   'HG180924_CIGALE.fits'), 0.263)
+
+    # Vet all
+    host.vet_all()
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/180924')
+    host.write_to_json(path=path)
 
 
 # Command line execution
