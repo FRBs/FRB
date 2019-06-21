@@ -182,8 +182,6 @@ def generate_by_refs(input_refs, outfile, version):
                                    verbose=True, parse_head=parse_head, skip_badz=skipz,
                                    stype='GAL',
                                    chkz=True, **mwargs)
-        if instr == 'KCWI':
-            embed(header='182')
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
@@ -201,5 +199,5 @@ def generate_by_refs(input_refs, outfile, version):
 if __name__ == '__main__':
 
     # Test
-    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019'], 'tst_specdb.hdf5', 'v0.1')
+    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019'], 'CRAFT_specdb.hdf5', 'v0.1')
     #sdss_redshifts()
