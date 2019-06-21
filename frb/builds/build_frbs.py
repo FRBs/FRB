@@ -23,6 +23,10 @@ def frb_121102():
 
 
 def frb_180924():
+    """
+    FRB 180924
+        All of the data currently comes from Bannister et al. 2019
+    """
     frb180924 = frb.FRB('FRB180924', 'J214425.26-405400.1',
                         361.4*units.pc / units.cm**3,
                         z_frb=0.3212)
@@ -40,14 +44,14 @@ def frb_180924():
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
     # Error ellipse
-    #frb190102.set_ee(a=558.40/1e3, b=154.11/1e3, theta=119.987, cl=68.)
+    frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.)
 
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb180924.write_to_json(path=path)
 
-def main(inflg):
+def main(inflg='all'):
 
     if inflg == 'all':
         flg = np.sum(np.array( [2**ii for ii in range(25)]))
@@ -57,6 +61,11 @@ def main(inflg):
     # 121102
     if flg & (2**0):
         frb_121102()
+
+    # 180924
+    if flg & (2**1):
+        frb_180924()
+
 
 
 # Command line execution
