@@ -4,6 +4,8 @@ FRB host galaxies"""
 from pkg_resources import resource_filename
 import os
 
+import numpy as np
+
 from astropy.coordinates import SkyCoord
 from astropy import units
 
@@ -101,6 +103,8 @@ def host_121102():
 def host_180924():
     """
     Generate the JSON file for FRB 180924
+    
+    All data are from Bannister et al. 2019
 
     Writes to 180924/FRB180924_host.json
 
@@ -116,7 +120,7 @@ def host_180924():
     host.set_z(0.3212, 'spec')
 
     # Morphology
-    host.parse_galfit(os.path.join(photom_path, 'Bannister2019',
+    host.parse_galfit(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
                                    'HG180924_galfit_DES.log'), 0.263)
 
     # Photometry
@@ -131,8 +135,7 @@ def host_180924():
     host.parse_photom(des_tbl)
 
     # PPXF
-    host.parse_ppxf('../MUSE_ppxf_results.ecsv')
-    host.parse_ppxf(os.path.join(spectra_path, 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
+    host.parse_ppxf(os.path.join(spectra_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
 
     # Derived quantities
 
@@ -144,7 +147,7 @@ def host_180924():
     host.derived['SFR_nebular_err'] = -999.
 
     # CIGALE
-    host.parse_cigale(os.path.join(photom_path, 'Bannister2019',
+    host.parse_cigale(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
                                    'HG180924_CIGALE.fits'), 0.263)
 
     # Vet all
@@ -153,6 +156,30 @@ def host_180924():
     # Write -- BUT DO NOT ADD TO REPO (YET)
     path = resource_filename('frb', 'data/Galaxies/180924')
     host.write_to_json(path=path)
+    
+    
+def main(inflg='all'):
+
+    if inflg == 'all':
+        flg = np.sum(np.array( [2**ii for ii in range(25)]))
+    else:
+        flg = int(inflg)
+
+    # 121102
+    if flg & (2**0):
+        host_121102()
+
+    # 180924
+    if flg & (2**1):
+        host_180924()
+
+
+# Command line execution
+if __name__ == '__main__':
+    # FRB 121102
+    host_121102()
+
+
 
 
 # Command line execution

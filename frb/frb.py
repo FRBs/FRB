@@ -197,7 +197,6 @@ class GenericFRB(object):
         #
         return outfile
 
-
     def write_to_json(self, outfile=None, path='./', overwrite=True):
         """
         Write key aspects of the class to disk in a JSON file
@@ -225,9 +224,14 @@ class GenericFRB(object):
         frb_dict['cosmo'] = self.cosmo.name
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z', 'RM', 'RM_err', 'DMISM', 'DMISM_err']:
+        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
+            # Value
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
+            # Error
+            if hasattr(self, attr+'_err'):
+                if getattr(self, attr+'_err') is not None:
+                    frb_dict[attr] = getattr(self, attr+'_err')
 
         # Main dicts
         for idict in self.main_dict:
