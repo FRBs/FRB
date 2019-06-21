@@ -12,10 +12,38 @@ from astropy.cosmology import Planck15
 
 from frb import utils
 from frb import mw
+from frb.galaxies import frbgalaxy
 
 
 class GenericFRB(object):
     """
+    Parent object for FRBs
+
+
+    Args:
+        S : Quantity
+          Source density of the burst
+        nu_c : Quantity
+          Centre frequency
+        DM : Quantity
+        coord : multi-format, optional
+          RA/DEC in one of many formats (see utils.radec_to_coord)
+        cosmo:
+
+    Attributes:
+        fluence (Quantity):
+            Fluence
+        fluence_err (Quantity):
+        DM (Quantity):
+            Dispersion Measure
+        DM_err (Quantity):
+        RM (Quantity):
+            Rotation Measure
+        RM_err (Quantity):
+        lpol (float):
+            Linear Polarization (%)
+        lpol_err (Quantity):
+
     """
     @classmethod
     def from_dict(cls, idict, **kwargs):
@@ -75,24 +103,9 @@ class GenericFRB(object):
 
     def __init__(self, S, nu_c, DM, coord=None, cosmo=None):
         """
-        Parameters
-        ----------
-        S : Quantity
-          Source density of the burst
-        width : Quantity
-          Width
-        nu_c : Quantity
-          Centre frequency
-        DM : Quantity
-        coord : multi-format, optional
-          RA/DEC in one of many formats (see utils.radec_to_coord)
         """
         self.S = S
         self.nu_c = nu_c
-        self.DM = DM
-        self.DM_err = None
-        self.RM = DM
-        self.RM_err = None
         # NE2001 (for speed)
         self.DMISM = None
         self.DMISM_err = None
@@ -111,6 +124,15 @@ class GenericFRB(object):
         self.eellipse = {}
         self.z = None
         self.frb_name = None
+
+        self.fluence = None
+        self.fluence_err = None
+        self.DM = DM
+        self.DM_err = None
+        self.RM = None
+        self.RM_err = None
+        self.lpol = None
+        self.lpol_err = None
 
         # dicts of attributes to be read/written
         self.main_dict = ['eellipse']
@@ -308,6 +330,16 @@ class FRB(GenericFRB):
 
         self.frb_name = frb_name
         self.z = z_frb
+
+    def grab_host(self):
+        """
+        Returns the FRBHost object for this FRB
+
+        Returns:
+            frb.galaxies.frbgalaxy.FRBHost
+
+        """
+        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
 
     def __repr__(self):
         txt = '<{:s}: {} J{}{} DM={}'.format(

@@ -604,6 +604,15 @@ class FRBHost(FRBGalaxy):
     """
     @classmethod
     def by_name(cls, frb, **kwargs):
+        """
+        
+        Args:
+            frb (str):  FRB name *without* FRB, e.g. 180924, not FRB180924
+            **kwargs: 
+
+        Returns:
+
+        """
         path = os.path.join(resource_filename('frb', 'data/Galaxies/'), frb)
         json_file = os.path.join(path, FRBHost._make_outfile(frb))
         slf = cls.from_json(json_file, **kwargs)
@@ -632,7 +641,12 @@ class FRBHost(FRBGalaxy):
             str: outfile
 
         """
-        outfile = 'FRB{}_host.json'.format(frbname)
+        if frbname[0:3] != 'FRB':
+            prefix = 'FRB'
+        else:
+            prefix = ''
+        #
+        outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
 
     def make_outfile(self):
