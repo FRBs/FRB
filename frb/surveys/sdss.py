@@ -17,6 +17,17 @@ from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from frb.surveys import images
 
+# Define the data model for DES data
+photom = {}
+photom['SDSS'] = {}
+DES_bands = ['u', 'g', 'r', 'i', 'z']
+for band in DES_bands:
+    photom['SDSS']['SDSS_{:s}'.format(band)] = 'petroMag_{:s}'.format(band.lower())
+    photom['SDSS']['SDSS_{:s}_err'.format(band)] = 'petroMagErr_{:s}'.format(band.lower())
+photom['SDSS']['SDSS_ID'] = 'objid'
+photom['SDSS']['ra'] = 'ra'
+photom['SDSS']['dec'] = 'dec'
+photom['SDSS']['SDSS_field'] = 'field'
 
 class SDSS_Survey(surveycoord.SurveyCoord):
     """
@@ -105,6 +116,9 @@ class SDSS_Survey(surveycoord.SurveyCoord):
 
         # Trim down catalog
         trim_catalog = trim_down_catalog(photom_catalog, keep_photoz=True)
+
+        # Clean up
+        trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'])
 
         # Spectral info
         spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
@@ -225,6 +239,9 @@ def trim_down_catalog(catalog, keep_photoz=False, cut_within=1.5*units.arcsec):
         astropy.table.Table:  Catalog trimmed down
 
     """
+    if len(catalog) == 1:
+        return catalog
+
     # All good
     keep = np.ones_like(catalog, dtype=bool)
 

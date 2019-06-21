@@ -556,6 +556,9 @@ class FRBGalaxy(object):
         Returns:
 
         """
+        # Generate path as needed
+        if not os.path.isdir(path):
+            os.mkdir(path)
         if outfile is None:
             outfile = self.make_outfile()
         # Build the dict
