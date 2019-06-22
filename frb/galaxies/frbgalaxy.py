@@ -294,6 +294,11 @@ class FRBGalaxy(object):
         except OSError:
             warnings.warn("File exists;  use overwrite=True if you wish")
 
+    def get_spectrum(self, instr=None, specdb_file=None):
+        if specdb_file is None:
+            specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specdb.hdf5')
+        Load it up
+
     def parse_cigale(self, cigale_file, overwrite=True):
         """
         Parse the output file from CIGALE
