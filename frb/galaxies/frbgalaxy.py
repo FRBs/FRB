@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-import pdb
+from IPython import embed
 import warnings
 
 from pkg_resources import resource_filename
@@ -301,7 +301,7 @@ class FRBGalaxy(object):
         except OSError:
             warnings.warn("File exists;  use overwrite=True if you wish")
 
-    def get_spectrum(self, instr=None, specdb_file=None):
+    def get_spectrum(self, instr=None, return_all=False, specdb_file=None):
         if not flg_specdb:
             warnings.warn("You must install the specdb package first!")
             return
@@ -312,11 +312,26 @@ class FRBGalaxy(object):
         # Grab the spectra
         xspec, meta = specDB.spectra_from_coord(self.coord)
 
+        # Return all?
+        if return_all:
+            return xspec
+
         # Cut down
         if instr is None:
             if len(meta) > 1:
                 warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
-                return xspec[0]
+                xspec = xspec[0]
+        else:
+            idx = meta['GROUP'] == instr
+            if np.sum(idx) == 0:
+                warnings.warn("No spectrum with instrument = {}".format(instr))
+                return
+            elif np.sum(idx) > 1:
+                warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
+            xspec = xspec[np.where(idx)[0][0]]
+        # Return
+        return xspec
+
 
     def parse_cigale(self, cigale_file, overwrite=True):
         """
