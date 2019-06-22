@@ -19,6 +19,13 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb import utils
 
+try:
+    from specdb.specdb import SpecDB
+except ImportError:
+    flg_specdb = False
+else:
+    flg_specdb = True
+
 
 class FRBGalaxy(object):
     """
@@ -295,9 +302,21 @@ class FRBGalaxy(object):
             warnings.warn("File exists;  use overwrite=True if you wish")
 
     def get_spectrum(self, instr=None, specdb_file=None):
+        if not flg_specdb:
+            warnings.warn("You must install the specdb package first!")
+            return
         if specdb_file is None:
             specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specdb.hdf5')
-        Load it up
+        # Load it up
+        specDB = SpecDB(db_file=specdb_file)
+        # Grab the spectra
+        xspec, meta = specDB.spectra_from_coord(self.coord)
+
+        # Cut down
+        if instr is None:
+            if len(meta) > 1:
+                warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
+                return xspec[0]
 
     def parse_cigale(self, cigale_file, overwrite=True):
         """
