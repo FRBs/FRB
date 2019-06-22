@@ -11,6 +11,8 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units
 
+from linetools.spectra import xspectrum1d
+
 from frb.galaxies import frbgalaxy, defs
 
 def data_path(filename):
@@ -83,3 +85,24 @@ def test_luminosity():
     # Test
     assert Lum_Ha.unit == units.erg/units.s
     assert np.isclose(Lum_Ha.value, 2.93961853e+40)
+
+
+def test_get_spectra():
+    """
+    Check grabbing spectra from the specDB
+
+    Note:  This requires that specdb be installed..
+    """
+    host180924 = frbgalaxy.FRBHost.by_name('180924')
+    xspec = host180924.get_spectrum()
+    # Test
+    assert isinstance(xspec, xspectrum1d.XSpectrum1D)
+    assert xspec.nspec == 1
+    #
+    xspec = host180924.get_spectrum(instr='MUSE')
+    # Test
+    assert isinstance(xspec, xspectrum1d.XSpectrum1D)
+    assert xspec.nspec == 1
+    #
+    xspecs = host180924.get_spectrum(return_all=True)
+    assert xspecs.nspec == 2
