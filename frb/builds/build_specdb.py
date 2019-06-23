@@ -164,18 +164,22 @@ def generate_by_refs(input_refs, outfile, version):
             mdict = dict(DISPERSER='BOTH', R=2000., TELESCOPE='SDSS 2.5-M', INSTR='SDSS')
             parse_head = {'DATE-OBS': 'MJD'}
             maxpix = 4000
+            scale = 1e-17
         elif instr == 'FORS2':
             mdict = dict(TELESCOPE='VLT', INSTR='FORS2')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'R': True}
             maxpix = 2050
+            scale = 1e-17
         elif instr == 'MUSE':
             mdict = dict(TELESCOPE='VLT', R=2000.)
             parse_head = {'DATE-OBS': 'MJD-OBS', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
             maxpix = 4000
+            scale = 1e-20
         elif instr == 'KCWI':
             mdict = dict(TELESCOPE='Keck-2')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME', 'R': True}
             maxpix = 4000
+            scale = 1e-17
         else:
             embed(header='172')
 
@@ -192,7 +196,7 @@ def generate_by_refs(input_refs, outfile, version):
 
         # Ingest --
         pbuild.ingest_spectra(hdf, instr, full_meta, max_npix=maxpix, verbose=False,
-                              badf=badf, grab_conti=False, **swargs)
+                              badf=badf, grab_conti=False, scale=scale, **swargs)
 
     # Write
     spbu.write_hdf(hdf, str('FRB'), maindb, zpri, gdict, version, Publisher=str('JXP'))
