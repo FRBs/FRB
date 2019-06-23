@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI']
+all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE']
 spectra_path = resource_filename('frb', '../DB/Spectra')
 
 def grab_files(all_files, instrument):
@@ -180,6 +180,11 @@ def generate_by_refs(input_refs, outfile, version):
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME', 'R': True}
             maxpix = 4000
             scale = 1e-17
+        elif instr == 'MagE':
+            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 'TELESCOPE':'TELESCOP',
+                          'INSTR':'INSTRUME', 'DISPERSER': 'DISPNAME'}
+            maxpix = 18000
+            scale = 1e-17
         else:
             embed(header='172')
 
@@ -205,5 +210,5 @@ def generate_by_refs(input_refs, outfile, version):
 if __name__ == '__main__':
 
     # Test
-    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019'], 'CRAFT_specdb.hdf5', 'v0.1')
+    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'CRAFT_specdb.hdf5', 'v0.1')
     #sdss_redshifts()
