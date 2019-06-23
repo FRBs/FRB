@@ -1,5 +1,7 @@
 """ Module for running pPXF analyses"""
 
+from pkg_resources import resource_filename
+
 import numpy as np
 import pdb
 
@@ -8,10 +10,17 @@ from matplotlib import pyplot as plt
 from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy import units
+from astropy.table import Table
+
+c = constants.c.to(units.km / units.s).value
 
 from linetools.spectra.xspectrum1d import XSpectrum1D
 from linetools.spectra.io import readspec
 
+from ppxf import ppxf
+from ppxf import ppxf_util as util
+from ppxf import miles_util as lib
+from time import clock
 
 def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         flux_scale=1., atmos=[], gaps=[], wvmnx=(0.,1e9)):
@@ -96,10 +105,11 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     if results_file is not None:
         dump_ppxf_results(ppfit, miles, zgal, results_file)
     if spec_fit is not None:
-        bestfit = dump_bestfit(ppfit, spec_fit, z=zgal)
+        bestfit = dump_bestfit(ppfit, outfile=spec_fit, z=zgal)
 
     # Final check
     if chk:
+        bestfit = dump_bestfit(ppfit, z=zgal)
         plt.clf()
         plt.plot(newspec.wavelength, newspec.flux)
         plt.plot(bestfit.wavelength, bestfit.flux)
@@ -167,10 +177,10 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     if rebin:
         meddiff = np.median(spec.wavelength.value[1:] - spec.wavelength.value[0:-1])
         newwave = np.arange(spec.wavelength.value[0], spec.wavelength.value[-1], meddiff)
-        spec = spec.rebin(newwave * u.AA, do_sig=True, grow_bad_sig=True)
+        spec = spec.rebin(newwave * units.AA, do_sig=True, grow_bad_sig=True)
 
     # get data and transform wavelength to rest frame for template fitting
-    wave = spec.wavelength.to(u.Angstrom).value
+    wave = spec.wavelength.to(units.Angstrom).value
     flux = spec.flux.value
     flux = flux * (1. + zgal)
     noise = spec.sig.value
@@ -379,7 +389,7 @@ def total_mass(miles, weights, quiet=False):
 
     return mass_no_gas
 
-def dump_bestfit(ppfit, outfile,  z=0.):
+def dump_bestfit(ppfit, outfile=None,  z=0.):
     """
     Create the bestfit in the observer frame and with vacuum wavelengths
 
@@ -399,7 +409,8 @@ def dump_bestfit(ppfit, outfile,  z=0.):
     # Convert to vacuum
     bestfit.airtovac()
     # Write
-    bestfit.write(outfile)
+    if outfile is not None:
+        bestfit.write(outfile)
     # Return
     return bestfit
 
@@ -436,11 +447,11 @@ def dump_ppxf_results(ppfit, miles, z, outfile):
 
     # Mass -- Approximate
     # Mass -- This is a bit approximate as Dwv is a guess for now
-    actualflux = ppfit.bestfit * const.L_sun.cgs / u.angstrom / (
-            4 * np.pi * (cosmo.luminosity_distance(z).to(u.cm)) ** 2 / (1 + z))
+    actualflux = ppfit.bestfit * constants.L_sun.cgs / units.angstrom / (
+            4 * np.pi * (cosmo.luminosity_distance(z).to(units.cm)) ** 2 / (1 + z))
     # When fitting, the routine thought our data and model spectra had same units...
     Dwv = 1700.  # Ang, width of the band pass
-    scfactor = np.median(ppfit.bestfit * (u.erg / u.s / u.cm ** 2 / u.angstrom) / actualflux) * Dwv
+    scfactor = np.median(ppfit.bestfit * (units.erg / units.s / units.cm ** 2 / units.angstrom) / actualflux) * Dwv
     # To get the actual model mass required to fit spectrum, scale by this ratio
     massmodels = scfactor * miles.total_mass(star_weights)
     meta['LOGMSTAR'] = np.log10(massmodels.value)

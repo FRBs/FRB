@@ -24,7 +24,7 @@ from frb.surveys import sdss
 
 # Globals
 all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI']
-spectra_path = resource_filename('frb', '../Spectra')
+spectra_path = resource_filename('frb', '../DB/Spectra')
 
 def grab_files(all_files, instrument):
     # Setup
@@ -109,6 +109,7 @@ def sdss_redshifts():
         tbl['DEC'] = coords.dec.value
         tbl['ZEM'] = zs
         tbl['ZEM_SOURCE'] = 'SDSS'
+        tbl['ZQ'] = 4
         tbl.write(os.path.join(folder, 'z_SDSS.ascii'), overwrite=True, format='ascii.fixed_width')
 
     
@@ -142,6 +143,7 @@ def generate_by_refs(input_refs, outfile, version):
     # Main DB Table
     id_key = 'FRB_ID'
     maindb, tkeys = spbu.start_maindb(id_key)
+    tkeys += ['ZQ']
     gdict = {}
 
     # Loop on Instruments
