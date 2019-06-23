@@ -1,6 +1,7 @@
 """ Module for basic plots related to FRB host and foreground galaxies"""
 import os
 import numpy as np
+from IPython import embed
 
 from pkg_resources import resource_filename
 
@@ -78,7 +79,13 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
 
         logx, xerr = utils.log_me(x0, x0_err)
         logy, yerr = utils.log_me(y0, y0_err)
-        #
+        # Upper limit on [NII]/Ha
+        if NII_err.value < 0.:
+            xerr = None
+            # Left arrow
+            plt.arrow(logx, logy, -0.05, 0., fc=clrs[kk], ec=clrs[kk],
+                      head_width=0.02, head_length=0.05)
+        # Plot
         ax_BPT.errorbar([logx], [logy], xerr=xerr, yerr=yerr,
                         color=clrs[kk], marker=markers[kk], markersize="8",
                         capsize=3, label=galaxy.name)
