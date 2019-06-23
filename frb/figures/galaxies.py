@@ -172,19 +172,34 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
 
     # Galaxies
     for kk,galaxy in enumerate(galaxies):
-        logM, sig_logM = utils.log_me(galaxy.derived['Mstar'], galaxy.derived['Mstar_err'])
-        logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], 0.3*galaxy.derived['SFR_nebular'])
+        # M*
+        if 'Mstar' in galaxy.derived.keys():
+            logM, sig_logM = utils.log_me(galaxy.derived['Mstar'], galaxy.derived['Mstar_err'])
+        elif 'Mstar_spec' in galaxy.derived.keys():
+            logM, sig_logM = np.log10(galaxy.derived['Mstar_spec']), 0.3
+        else:
+            continue
+        # SFR
+        if 'SFR_nebular_err' in galaxy.derived.keys():
+            logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], galaxy.derived['SFR_nebular_err'])
+        else:
+            logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], 0.3*galaxy.derived['SFR_nebular'])
+        # Plot
         ax_M.errorbar([logM], [logS], xerr=sig_logM, yerr=sig_logS,
                       color=clrs[kk], marker=markers[kk],
                      markersize="12", capsize=3, label=galaxy.name)
+        if sig_logS is None:
+            # Down arrow
+            plt.arrow(logM, logS, 0., -0.2, fc=clrs[kk], ec=clrs[kk],
+                  head_width=0.02*4, head_length=0.05*2)
 
     ax_M.annotate(r"\textbf{Star forming}", (8.5, 0.8), fontsize=13.)
     ax_M.annotate(r"\textbf{Quiescent}", (11, -0.9), fontsize=13.)
     ax_M.set_xlabel("$\log \, (M_*/M_\odot)$")
     ax_M.set_ylabel("$\log \, SFR (M_\odot$/yr)")
-    ax_M.legend(loc='lower right')
+    ax_M.legend(loc='lower left')
     ax_M.set_xlim(7.5, 11.8)
-    ax_M.set_ylim(-3.4, 2.)
+    ax_M.set_ylim(-2.5, 1.2)
 
 
 def sub_color_mag(ax, galaxies, clrs, markers):
@@ -224,7 +239,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
     plt.xlabel(r"$r \textbf{(Rest-frame)}$")
     ax.legend(loc='lower right')
     #plt.xlim(8, 12)
-    ax.set_ylim(-0.5, 3.5)
+    ax.set_ylim(0.0, 3.3)
     ax.set_xlim(-15.5, -23)
 
     utils.set_fontsize(ax,11.)

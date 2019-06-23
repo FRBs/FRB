@@ -13,10 +13,14 @@ def log_me(val, err):
         err (float): 
 
     Returns:
-        float, float
+        float, (float/None):
+            Returns none if the err is negative
 
     """
-    xerr = np.array([[np.log10(val) - np.log10(val - err)],
+    if err < 0.:
+        xerr = None
+    else:
+        xerr = np.array([[np.log10(val) - np.log10(val - err)],
                      [-np.log10(val) + np.log10(val + err)]])
     return np.log10(val), xerr
 
