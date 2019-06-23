@@ -83,8 +83,8 @@ def main(pargs):
     if specDB is None:
         return
 
-    if pargs.coord[0:3] == 'FRB':
-        frb = frb.FRB.by_name(pargs.coord)
+    if pargs.coord[0:3].upper() == 'FRB':
+        frb = frb.FRB.by_name(pargs.coord.upper())
         icoord = frb.coord.ra.value, frb.coord.dec.value
     else:
         icoord = coord_arg_to_coord(pargs.coord)
@@ -105,7 +105,7 @@ def main(pargs):
             meta = specDB.meta_from_position(icoord, pargs.rho*units.kpc)
 
         # Keys
-        mkeys = ['GROUP', 'RA_GROUP', 'DEC_GROUP', 'zem_GROUP', 'ZQ']
+        mkeys = ['GROUP', 'RA_GROUP', 'DEC_GROUP', 'zem_GROUP', 'ZQ', 'Ref']
         # Show
         if meta is None:
             print("No source found, try another location or a larger tolerance.")

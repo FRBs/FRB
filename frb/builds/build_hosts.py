@@ -3,19 +3,29 @@ FRB host galaxies"""
 
 from pkg_resources import resource_filename
 import os
+import sys
+
+from IPython import embed
 
 import numpy as np
 
 from astropy.coordinates import SkyCoord
 from astropy import units
+from astropy.table import Table
 
 from frb.galaxies import frbgalaxy, defs
 from frb.surveys import des
 
-photom_path = resource_filename('frb', '../DB/Photom')
-spectra_path = resource_filename('frb', '../DB/Spectra')
+#photom_path = resource_filename('frb', '../DB/Photom')
+#spectra_path = resource_filename('frb', '../DB/Spectra')
+db_path = os.getenv('FRB_GDB')
+if db_path is None:
+    embed(header='You need to set $FRB_GDB')
 
-def host_121102():
+# Photometry globals
+photom_format = 'ascii.fixed_width'
+
+def build_host_121102(build_photom=False):
     """
     Generate the JSON file for FRB 121102
 
@@ -33,6 +43,22 @@ def host_121102():
 
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
+
+    # Photometry -- Tendulkar 2017
+    photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
+    if build_photom:
+        photom = Table()
+        photom['Name'] = ['HG121102']
+        photom['ra'] = host121102.coord.ra.value
+        photom['dec'] = host121102.coord.dec.value
+        #
+        photom['GMOS_r'] = 25.1
+        photom['GMOS_r_err'] = 0.1
+        photom['GMOS_i'] = 23.9
+        photom['GMOS_i_err'] = 0.1
+        # Write
+        photom.write(photom_file, format=photom_format, overwrite=True)
+    host121102.parse_photom(Table.read(photom_file, format=photom_format))
 
     # Nebular lines
     neb_lines = {}
@@ -100,7 +126,7 @@ def host_121102():
     host121102.write_to_json(path=path, overwrite=True)
 
 
-def host_180924():
+def build_host_180924(build_photom=True):
     """
     Generate the JSON file for FRB 180924
     
@@ -127,9 +153,15 @@ def host_180924():
 
     # DES
     # Grab the table (requires internet)
-    search_r = 2*units.arcsec
-    des_srvy = des.DES_Survey(gal_coord, search_r)
-    des_tbl = des_srvy.get_catalog(print_query=True)
+    photom_file = os.path.join(spectra_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
+    if build_photom:
+        search_r = 2*units.arcsec
+        des_srvy = des.DES_Survey(gal_coord, search_r)
+        des_tbl = des_srvy.get_catalog(print_query=True)
+        # Write
+        des_tbl.write(photom_file, format='ascii.fixed_width')
+    else:
+        des_tbl = Table.read(photom_file, format='ascii.fixed_width')
 
     # Parse
     host.parse_photom(des_tbl)
@@ -153,7 +185,7 @@ def host_180924():
     # Vet all
     host.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write
     path = resource_filename('frb', 'data/Galaxies/180924')
     host.write_to_json(path=path)
     
@@ -167,26 +199,14 @@ def main(inflg='all'):
 
     # 121102
     if flg & (2**0):
-        host_121102()
+        build_host_121102()#build_photom=True)
 
     # 180924
     if flg & (2**1):
-        host_180924()
+        build_host_180924()#build_photom=True)
 
 
 # Command line execution
 if __name__ == '__main__':
-    # FRB 121102
-    host_121102()
-
-
-
-
-# Command line execution
-if __name__ == '__main__':
-    # FRB 121102
-    host_121102()
-
-
-
+    pass
 

@@ -24,18 +24,20 @@ from frb.surveys import sdss
 
 # Globals
 all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE']
-spectra_path = resource_filename('frb', '../DB/Spectra')
+db_path = os.getenv('FRB_GDB')
 
-def grab_files(all_files, instrument):
+def grab_files(all_files, refs_list, instrument):
     # Setup
     base_files = [os.path.basename(ifile) for ifile in all_files]
     file_subset = []
-    # Simple loop 
+    ref_subset = []
+    # Simple loop
     for kk, ifile in enumerate(base_files):
         if instrument in ifile:
             file_subset.append(all_files[kk])
+            ref_subset.append(refs_list[kk])
     # Return
-    return file_subset
+    return file_subset, ref_subset
 
 
 def load_z_tables(path):
@@ -70,11 +72,11 @@ def sdss_redshifts():
 
     """
     #
-    all_folders = glob.glob(spectra_path+'/SDSS/*')
+    all_folders = glob.glob(db_path+'/SDSS/*')
     for folder in all_folders:
         Jnames = []
         # Grab the list of spectra files
-        spec_files = glob.glob(os.path.join(folder, 'J*.fits'))
+        spec_files = glob.glob(os.path.join(folder, 'J*_spec.fits'))
         # Generate the name list
         Jnames += [os.path.basename(ifile).split('_')[0] for ifile in spec_files]
         # Coords
@@ -115,7 +117,7 @@ def sdss_redshifts():
     
 def generate_by_refs(input_refs, outfile, version):
     # Not elegant but it works
-    all_folders = glob.glob(spectra_path+'/*/*')
+    all_folders = glob.glob(db_path+'/*/*')
     all_refs = [os.path.basename(ifolder) for ifolder in all_folders]
 
     # z_tbl
@@ -123,16 +125,20 @@ def generate_by_refs(input_refs, outfile, version):
     
     # Loop in input refs
     all_spec_files = []
+    refs_list = []
     for ref in input_refs:
         idx = all_refs.index(ref)
-        # Grab the list of spectra
-        specs = glob.glob(os.path.join(all_folders[idx], '*.fits'))
-        # Save
-        all_spec_files += specs
         # Redshift tables
         z_tbl = load_z_tables(all_folders[idx])
         allz_tbl = vstack([allz_tbl, z_tbl])
-    
+        # Grab the list of spectra
+        specs = glob.glob(os.path.join(all_folders[idx], 'J*_spec.fits'))
+        if len(specs) == 0:
+            continue
+        # Save
+        all_spec_files += specs
+        refs_list += [ref]*len(specs)
+
     # Get it started
     # HDF5 file
     hdf = h5py.File(outfile, 'w')
@@ -150,7 +156,7 @@ def generate_by_refs(input_refs, outfile, version):
     pair_groups = []
     badf = None
     for instr in all_instruments:
-        fits_files = grab_files(all_spec_files, instr)
+        fits_files, irefs = grab_files(all_spec_files, refs_list, instr)
         if len(fits_files) == 0:
             continue
         # Option dicts
@@ -193,6 +199,7 @@ def generate_by_refs(input_refs, outfile, version):
                                    verbose=True, parse_head=parse_head, skip_badz=skipz,
                                    stype='GAL',
                                    chkz=True, **mwargs)
+        full_meta['Ref'] = irefs
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
@@ -207,8 +214,17 @@ def generate_by_refs(input_refs, outfile, version):
     spbu.write_hdf(hdf, str('FRB'), maindb, zpri, gdict, version, Publisher=str('JXP'))
     print("Wrote {:s} DB file".format(outfile))
 
-if __name__ == '__main__':
+def main(inflg='all'):
 
-    # Test
-    generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'CRAFT_specdb.hdf5', 'v0.1')
-    #sdss_redshifts()
+    if inflg == 'all':
+        flg = np.sum(np.array( [2**ii for ii in range(25)]))
+    else:
+        flg = int(inflg)
+
+    # CRAFT
+    if flg & (2**0):
+        generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
+
+# Command line execution
+if __name__ == '__main__':
+    pass

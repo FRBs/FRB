@@ -47,7 +47,12 @@ for band in VLT_bands:
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in WISE_bands:
     valid_filters.append('{:s}'.format(band))
-    
+
+# GMOS
+GMOS_bands = ['g', 'r', 'i', 'z']
+for band in GMOS_bands:
+    valid_filters.append('GMOS_{:s}'.format(band))
+
 valid_photom = valid_filters
 
 ##############################################################

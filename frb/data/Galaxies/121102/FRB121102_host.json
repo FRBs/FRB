@@ -8,7 +8,7 @@
         "Mstar": 55000000.0,
         "Mstar_err": 15000000.0,
         "SFR_nebular": 0.23,
-        "Z_spec": -0.2,
+        "Z_spec": -0.16,
         "Z_spec_err": -999.0
     },
     "morphology": {
@@ -28,6 +28,12 @@
         "[NII] 6584_err": -999.0,
         "[OIII] 5007": 4.3804209229532963e-16,
         "[OIII] 5007_err": 8.379935678693262e-18
+    },
+    "photom": {
+        "GMOS_i": 23.9,
+        "GMOS_i_err": 0.1,
+        "GMOS_r": 25.1,
+        "GMOS_r_err": 0.1
     },
     "ra": 82.99450790537921,
     "redshift": {
