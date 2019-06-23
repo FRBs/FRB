@@ -35,7 +35,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         spec_fit:
         chk:
         flux_scale:
-        atmos:
+        atmos (list of tuple):
+            List of (wvmin,wvmax) regions to mask during the analysis
         gaps:
         wvmnx:
     """

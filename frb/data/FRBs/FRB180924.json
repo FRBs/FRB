@@ -1,14 +1,22 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 0.06
+        "value": 361.4
     },
     "DMISM": {
         "unit": "pc / cm3",
         "value": 41.89418251930518
     },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.06
+    },
     "FRB": "FRB180924",
     "RM": {
+        "unit": "rad / m2",
+        "value": 14.0
+    },
+    "RM_err": {
         "unit": "rad / m2",
         "value": 1.0
     },
@@ -22,9 +30,17 @@
     },
     "fluence": {
         "unit": "Jy / ms",
+        "value": 16.0
+    },
+    "fluence_err": {
+        "unit": "Jy / ms",
         "value": 1.0
     },
-    "lpol": 10.0,
+    "lpol": 80.0,
+    "lpol_err": 10.0,
     "ra": 326.10524999999996,
+    "refs": [
+        "Bannister2019"
+    ],
     "z": 0.3212
 }

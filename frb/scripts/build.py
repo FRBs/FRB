@@ -8,7 +8,7 @@ def parser(options=None):
     import argparse
     # Parse
     parser = argparse.ArgumentParser(description='Build parts of the CASBAH database; Output_dir = $CASBAH_GALAXIES [v1.1]')
-    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specdb']")
+    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB']")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
 
     if options is None:
@@ -32,6 +32,8 @@ def main(pargs):
         build_frbs.main(inflg=pargs.flag)
     elif item == 'Hosts':
         build_hosts.main(inflg=pargs.flag)
+    elif item == 'specDB':
+        build_specdb.main(inflg=pargs.flag)
     else:
         raise IOError("Bad build item {:s}".format(item))
 

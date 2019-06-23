@@ -43,6 +43,8 @@ class GenericFRB(object):
         lpol (float):
             Linear Polarization (%)
         lpol_err (Quantity):
+        refs (list):
+            List of str, reference names
 
     """
     @classmethod
@@ -134,6 +136,8 @@ class GenericFRB(object):
         self.lpol = None
         self.lpol_err = None
 
+        self.refs = []
+
         # dicts of attributes to be read/written
         self.main_dict = ['eellipse']
 
@@ -222,6 +226,7 @@ class GenericFRB(object):
         if self.frb_name is not None:
             frb_dict['FRB'] = self.frb_name
         frb_dict['cosmo'] = self.cosmo.name
+        frb_dict['refs'] = self.refs
 
         # Measured properties
         for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
@@ -231,7 +236,7 @@ class GenericFRB(object):
             # Error
             if hasattr(self, attr+'_err'):
                 if getattr(self, attr+'_err') is not None:
-                    frb_dict[attr] = getattr(self, attr+'_err')
+                    frb_dict[attr+'_err'] = getattr(self, attr+'_err')
 
         # Main dicts
         for idict in self.main_dict:
@@ -256,6 +261,7 @@ class GenericFRB(object):
 class FRB(GenericFRB):
     """
     FRB class used for actual, observed FRBs
+
 
     """
 

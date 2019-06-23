@@ -296,7 +296,7 @@ class FRBGalaxy(object):
         except OSError:
             warnings.warn("File exists;  use overwrite=True if you wish")
 
-    def get_spectrum(self, instr=None, return_all=False, specdb_file=None):
+    def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
 
         specDB = gutils.load_specdb(specdb_file=specdb_file)
         if specDB is None:
@@ -307,7 +307,7 @@ class FRBGalaxy(object):
 
         # Return all?
         if return_all:
-            return xspec
+            return meta, xspec
 
         # Cut down
         if instr is None:
@@ -322,8 +322,9 @@ class FRBGalaxy(object):
             elif np.sum(idx) > 1:
                 warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
             xspec = xspec[np.where(idx)[0][0]]
+            meta = meta[np.where(idx)[0][0]]
         # Return
-        return xspec
+        return meta, xspec
 
 
     def parse_cigale(self, cigale_file, overwrite=True):
