@@ -17,14 +17,9 @@ from astropy.table import Table
 
 from frb.galaxies import defs
 from frb.galaxies import nebular
+from frb.galaxies import utils as gutils
 from frb import utils
 
-try:
-    from specdb.specdb import SpecDB
-except ImportError:
-    flg_specdb = False
-else:
-    flg_specdb = True
 
 
 class FRBGalaxy(object):
@@ -302,13 +297,11 @@ class FRBGalaxy(object):
             warnings.warn("File exists;  use overwrite=True if you wish")
 
     def get_spectrum(self, instr=None, return_all=False, specdb_file=None):
-        if not flg_specdb:
-            warnings.warn("You must install the specdb package first!")
+
+        specDB = gutils.load_specdb(specdb_file=specdb_file)
+        if specDB is None:
             return
-        if specdb_file is None:
-            specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specdb.hdf5')
-        # Load it up
-        specDB = SpecDB(db_file=specdb_file)
+
         # Grab the spectra
         xspec, meta = specDB.spectra_from_coord(self.coord)
 
