@@ -12,6 +12,7 @@ from astropy.table import Table
 
 from frb.figures import utils
 
+primus_path = os.path.join(resource_filename('frb', 'data'), 'Galaxies')
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     """
@@ -129,7 +130,6 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
         markers (list): List of matplotlib marker types
 
     """
-    primus_path = os.path.join(resource_filename('frb', 'data'), 'Galaxies')
     utils.set_mplrc()
 
     # Load up
@@ -185,3 +185,48 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
     ax_M.legend(loc='lower right')
     ax_M.set_xlim(7.5, 11.8)
     ax_M.set_ylim(-3.4, 2.)
+
+
+def sub_color_mag(ax, galaxies, clrs, markers):
+    """ """
+
+    # Load up
+    primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))
+    primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits'))
+
+    gdz = (primus_zcat['Z'] > 0.2) & (primus_zcat['Z'] < 0.4)
+    gd_mag = primus_zcat['SDSS_ABSMAG'][:,0] != 0.
+
+    # PRIMUS
+    # Photometry
+    gd_color = gdz & gd_mag
+    u_r = primus_zcat['SDSS_ABSMAG'][gd_color,0] - primus_zcat['SDSS_ABSMAG'][gd_color,2]
+    rmag = primus_zcat['SDSS_ABSMAG'][gd_color,2]
+
+    xbins = 100
+    ybins = 100
+    counts, xedges, yedges = np.histogram2d(rmag, u_r, bins=(xbins, ybins))
+    cm = plt.get_cmap('Greys')
+    mplt = ax.pcolormesh(xedges, yedges, counts.transpose(), cmap=cm)
+    '''
+    cb = plt.colorbar(mplt, fraction=0.030, pad=0.04)
+    cb.set_label('PRIMUS survey')
+    '''
+    for kk,galaxy in enumerate(galaxies):
+        ax.errorbar([galaxy.derived['M_r']], [galaxy.derived['u-r']],
+                    xerr=[galaxy.derived['M_r_err']],
+                    yerr=[galaxy.derived['u-r_err']],
+                    color=clrs[kk], marker=markers[kk],
+                    markersize="5", capsize=3,
+                    label=galaxy.name)
+    # Label
+    plt.ylabel(r"$u-r \textbf{(Rest-frame)}$")
+    plt.xlabel(r"$r \textbf{(Rest-frame)}$")
+    ax.legend(loc='lower right')
+    #plt.xlim(8, 12)
+    ax.set_ylim(-0.5, 3.5)
+    ax.set_xlim(-15.5, -23)
+
+    utils.set_fontsize(ax,11.)
+
+
