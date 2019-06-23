@@ -5,7 +5,7 @@ Requres the specDB
 """
 from __future__ import (print_function, absolute_import, division, unicode_literals)
 
-import pdb
+from IPython import embed
 
 def parser(options=None):
     import argparse
@@ -52,7 +52,7 @@ def plot_spec(casbah_gspec, meta, frb=None):
                                                    int(pa.value), int(sep.value))
     spec.labels = lbls
     # Add object type
-    spec.stypes = meta['STYPE']
+    spec.stypes = ['Galaxy']*len(lbls)
     # Add redshift
     spec.z = meta['zem_GROUP']
     # Plot
