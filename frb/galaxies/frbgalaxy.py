@@ -227,7 +227,10 @@ class FRBGalaxy(object):
         Returns:
 
         """
-        phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
+        try:
+            phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
+        except:
+            embed(header='233 of frbgalaxy')
         sep = self.coord.separation(phot_coord)
         row = np.argmin(sep)
         # Satisfy minimum offset?

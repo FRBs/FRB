@@ -223,7 +223,7 @@ def main(inflg='all'):
 
     # CRAFT
     if flg & (2**0):
-        generate_by_refs(['DR7', 'Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
+        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
 
 # Command line execution
 if __name__ == '__main__':
