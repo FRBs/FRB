@@ -14,6 +14,7 @@ from astropy import units
 from astropy.table import Table
 
 from frb.galaxies import frbgalaxy, defs
+from frb.galaxies import photom as frbphotom
 from frb.surveys import des
 
 #photom_path = resource_filename('frb', '../DB/Photom')
@@ -22,8 +23,6 @@ db_path = os.getenv('FRB_GDB')
 if db_path is None:
     embed(header='You need to set $FRB_GDB')
 
-# Photometry globals
-photom_format = 'ascii.fixed_width'
 
 def build_host_121102(build_photom=False):
     """
@@ -48,8 +47,8 @@ def build_host_121102(build_photom=False):
     photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
     if build_photom:
         photom = Table()
-        photom['Name'] = ['HG121102']
-        photom['ra'] = host121102.coord.ra.value
+        #photom['Name'] = ['HG121102']  DO NOT USE str columns!
+        photom['ra'] = [host121102.coord.ra.value]
         photom['dec'] = host121102.coord.dec.value
         #
         photom['GMOS_r'] = 25.1
@@ -57,8 +56,10 @@ def build_host_121102(build_photom=False):
         photom['GMOS_i'] = 23.9
         photom['GMOS_i_err'] = 0.1
         # Write
-        photom.write(photom_file, format=photom_format, overwrite=True)
-    host121102.parse_photom(Table.read(photom_file, format=photom_format))
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        embed(header='60')
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    host121102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
     # Nebular lines
     neb_lines = {}
@@ -159,9 +160,9 @@ def build_host_180924(build_photom=True):
         des_srvy = des.DES_Survey(gal_coord, search_r)
         des_tbl = des_srvy.get_catalog(print_query=True)
         # Write
-        des_tbl.write(photom_file, format='ascii.fixed_width')
+        des_tbl.write(photom_file, format=photom_format)
     else:
-        des_tbl = Table.read(photom_file, format='ascii.fixed_width')
+        des_tbl = Table.read(photom_file, format=photom_format)
 
     # Parse
     host.parse_photom(des_tbl)
@@ -199,11 +200,12 @@ def main(inflg='all'):
 
     # 121102
     if flg & (2**0):
-        build_host_121102()#build_photom=True)
+        build_host_121102(build_photom=True)
 
     # 180924
     if flg & (2**1):
-        build_host_180924()#build_photom=True)
+        pass
+        #build_host_180924(build_photom=True)
 
 
 # Command line execution
