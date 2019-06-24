@@ -36,13 +36,14 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
     idx, d2d, _ = match_coordinates_sky(new_coords, old_coords, nthneighbor=1)
     match = d2d < tol
 
-    embed(header='39 of photom')
     # Match?
     if np.sum(match) == len(new_coords):
-        merge_tbl = join(old_tbl, new_tbl)
+        merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left')
     elif np.sum(match) == 0:
+        embed(header='39 of photom')
         merge_tbl = vstack([old_tbl, new_tbl])
     else:
+        embed(header='39 of photom')
         merge_tbl = hstack([old_tbl, new_tbl[match]])
         merge_tbl = hstack([merge_tbl, new_tbl[~match]])
     # Return
