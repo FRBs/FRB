@@ -12,7 +12,7 @@ from astropy.table import Table
 
 from frb.figures import utils
 
-primus_path = os.path.join(resource_filename('frb', 'data'), 'Galaxies')
+primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     """
@@ -37,7 +37,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     """
 
     # Read in data
-    sdss_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'SDSS', 'SDSS_DR14_PM.fits')
+    sdss_file = os.path.join(resource_filename('frb', 'data'), 'Public', 'SDSS', 'SDSS_DR14_PM.fits')
     hdulist = fits.open(sdss_file)
     bptdat = hdulist[1].data
 
