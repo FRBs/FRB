@@ -27,8 +27,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
           List of FRBGalaxy objects
         clrs (list):
         markers (list):
-        show_kewley (bool):
-        SDSS_clr (str):
+        show_kewley (bool, optional):
+        SDSS_clr (str, optional):
           Set the color map
 
     Returns:
@@ -203,7 +203,18 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
 
 
 def sub_color_mag(ax, galaxies, clrs, markers):
-    """ """
+    """
+    Color-magnitude diagram
+
+    Args:
+        ax (matplotlib.Axis):
+        galaxies (list):
+        clrs (list):
+        markers (list):
+
+    Returns:
+
+    """
 
     # Load up
     primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))

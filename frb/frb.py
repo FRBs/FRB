@@ -284,7 +284,7 @@ class FRB(GenericFRB):
         slf = cls(idict['FRB'], coord, DM, **kwargs)
         for key in ['ra','dec','DM']:
             idict.pop(key)
-        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err']:
+        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err', 'fluence', 'fluence_err']:
             if key in idict.keys():
                 setattr(slf,key,units.Quantity(idict[key]['value'], unit=idict[key]['unit']))
                 idict.pop(key)
@@ -350,6 +350,7 @@ class FRB(GenericFRB):
 
         """
         frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        return frbHost
 
     def __repr__(self):
         txt = '<{:s}: {} J{}{} DM={}'.format(
