@@ -39,8 +39,8 @@ def frb_180924():
     frb180924.set_DMISM()
 
     # Bannister 2019
-    frb180924.fluence = 16 * units.Jy / units.ms
-    frb180924.fluence_err = 1 * units.Jy / units.ms
+    frb180924.fluence = 16 * units.Jy * units.ms
+    frb180924.fluence_err = 1 * units.Jy * units.ms
     frb180924.RM = 14 * units.rad / units.m**2
     frb180924.RM_err = 1 * units.rad / units.m**2
     frb180924.lpol = 80.  # %

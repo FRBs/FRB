@@ -29,11 +29,11 @@
         "theta": 0.0
     },
     "fluence": {
-        "unit": "Jy / ms",
+        "unit": "Jy ms",
         "value": 16.0
     },
     "fluence_err": {
-        "unit": "Jy / ms",
+        "unit": "Jy ms",
         "value": 1.0
     },
     "lpol": 80.0,
