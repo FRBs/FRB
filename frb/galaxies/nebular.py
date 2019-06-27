@@ -191,7 +191,8 @@ def get_ebv(coords,definition="SFD",region=5*units.deg):
             or Schlafly and Finkbeiner 2011 (ApJ 737, 103) respectively
         region: Astropy Angle (Quantity), optional
             Angular radius around the input coordinate where
-            the query is run to obtain statistics
+            the query is run to obtain statistics. Must be between
+            2 deg and 37.5 deg. Default value: 5 deg.
         get_stats: bool, optional
             If true, also returns a dict with the statistics of E(B-V)
             within the query region.
