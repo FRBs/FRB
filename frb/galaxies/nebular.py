@@ -4,7 +4,10 @@ import pdb
 from pkg_resources import resource_filename
 
 import numpy as np
+import requests
 import warnings
+
+from xml.etree import ElementTree as ET
 
 from scipy.interpolate import interp1d
 
@@ -173,3 +176,51 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
     SFR = Lum.to('erg/s').value * conversion
 
     return SFR
+
+def get_ebv(coords,definition="SFD",region=5*units.deg):
+    """
+    Get the E(B-V) value and statistic from the Milky way dust extinction
+    within the query region around the input coordinate
+    
+    Args:
+        coords: Astropy SkyCoord
+            Input celestial coordinates
+        definition: str, optional
+            Can be either "SFD" or "SandF". They stand for the 
+            definitions of E(B-V) according to either Schlegel et al. 1998 (ApJ 500, 525)
+            or Schlafly and Finkbeiner 2011 (ApJ 737, 103) respectively
+        region: Astropy Angle (Quantity), optional
+            Angular radius around the input coordinate where
+            the query is run to obtain statistics
+        get_stats: bool, optional
+            If true, also returns a dict with the statistics of E(B-V)
+            within the query region.
+    Returns:
+        ebvdict: dict
+            Dict with E(B-V) at pixel, mean, std, min and max values in
+            the query region. All values are in mags.
+    """
+    import pdb
+    assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
+    assert (region>2*units.deg) & (region<37.5*units.deg), "Search radius must be between 3 and 37.5 degrees"
+
+    ra,dec = str(coords.ra.value),str(coords.dec.value)
+    radius = str(region.to(units.deg).value)
+    query_url = \
+        "https://irsa.ipac.caltech.edu/cgi-bin/DUST/nph-dust?locstr={:s}+{:s}+equ+J2000&regSize={:s}".format(ra,dec,radius)
+    result = requests.get(query_url)
+    #pdb.set_trace()
+    tree = ET.ElementTree(ET.fromstring(result.content.decode("ascii")))
+    root = tree.getroot()
+
+    #By default it looks at the first entry with the name "results"
+    #This corresponds to the reddening data.
+    #TODO: make this smarter. It should look for the reddening results
+    #by name.
+    statchild = root.find('result/statistics')
+
+    ebvdict = {}
+    for elem in statchild.findall('*'):
+        if definition in elem.tag:
+            ebvdict[elem.tag.replace(definition,'')] = elem.text.split()[0]
+    return ebvdict
