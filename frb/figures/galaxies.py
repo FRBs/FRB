@@ -12,7 +12,7 @@ from astropy.table import Table
 
 from frb.figures import utils
 
-primus_path = os.path.join(resource_filename('frb', 'data'), 'Galaxies')
+primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     """
@@ -27,8 +27,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
           List of FRBGalaxy objects
         clrs (list):
         markers (list):
-        show_kewley (bool):
-        SDSS_clr (str):
+        show_kewley (bool, optional):
+        SDSS_clr (str, optional):
           Set the color map
 
     Returns:
@@ -37,7 +37,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     """
 
     # Read in data
-    sdss_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'SDSS', 'SDSS_DR14_PM.fits')
+    sdss_file = os.path.join(resource_filename('frb', 'data'), 'Public', 'SDSS', 'SDSS_DR14_PM.fits')
     hdulist = fits.open(sdss_file)
     bptdat = hdulist[1].data
 
@@ -203,7 +203,18 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
 
 
 def sub_color_mag(ax, galaxies, clrs, markers):
-    """ """
+    """
+    Color-magnitude diagram
+
+    Args:
+        ax (matplotlib.Axis):
+        galaxies (list):
+        clrs (list):
+        markers (list):
+
+    Returns:
+
+    """
 
     # Load up
     primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))
