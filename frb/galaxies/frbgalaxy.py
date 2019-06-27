@@ -268,22 +268,29 @@ class FRBGalaxy(object):
         assert (len(self.photom) > 0 ),"No photometry found. CIGALE cannot be run."
         assert (len(self.redshift) > 0),"No redshift found. CIGALE cannot be run"
         new_photom = Table([self.photom])
-        if ID is None:
-            ID = "GalaxyA"
+        if ID is None and self.name !='':
+            ID = self.name
+        elif self.name=='':
+            ID = 'GalaxyA'
         new_photom['id'] = ID
         new_photom['redshift'] = self.z
         
-        # Convert DES fluxes to mJy
-        for band in defs.DES_bands:
-            colname = "DES_"+band
-            new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
-            new_photom[colname+"_err"] = new_photom[colname]*(10**(new_photom[colname+"_err"]/2.5)-1)
+        # Convert DES and SDSS fluxes to mJy
+        ABmagbands = ["DES_"+band for band in defs.DES_bands]
+        ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
+        for band in ABmagbands:
+            if band not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(band))
+                continue
+            new_photom[band] = 3630780.5*10**(new_photom[band]/-2.5)
+            new_photom[band+"_err"] = new_photom[band]*(10**(new_photom[band+"_err"]/2.5)-1)
         
         # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             # Data exists??
             if band not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(band))
                 continue
             #
             new_photom[band] = zpt*10**(-new_photom[band]/2.5)
