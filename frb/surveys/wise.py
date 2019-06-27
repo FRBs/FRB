@@ -121,8 +121,7 @@ class WISE_Survey(dlsurvey.DL_Survey):
                           'w1sigmpro', 'w2sigmpro', 'w3sigmpro', 'w4sigmpro']
             query_fields = object_id_fields+mag_fields
 
-        database = "ls_dr7.tractor"
-        self.query = dlsurvey._default_query_str(query_fields, database, self.coord, self.radius)
+        self.query = dlsurvey._default_query_str(query_fields, self.database, self.coord, self.radius)
 
     def _select_best_img(self,imgTable,verbose,timeout=120):
         """
