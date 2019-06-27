@@ -63,6 +63,22 @@ def test_decals():
     assert len(decal_tbl) == 2
 
 
+def test_wise():
+    try:
+        from dl import queryClient as qc, authClient as ac, helpers
+    except ImportError:
+        assert True
+        return
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    decal_srvy = survey_utils.load_survey_by_name('WISE', coord, search_r)
+    decal_tbl = decal_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(decal_tbl, Table)
+    assert len(decal_tbl) == 2
+
+
 def test_first():
     try:
         from dl import queryClient as qc, authClient as ac, helpers
