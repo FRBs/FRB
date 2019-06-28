@@ -11,7 +11,19 @@ except ImportError:
 else:
     flg_specdb = True
 
+
 def load_specdb(specdb_file=None):
+    """
+    Automatically load the specDB file from $SPECDB/FRB_specDB.hdf5
+
+    Args:
+        specdb_file (str, optional):
+            Over-ride the default file
+
+    Returns:
+        specdb.specdb.SpecDB:
+
+    """
     if not flg_specdb:
         warnings.warn("You must install the specdb package first!")
         return
