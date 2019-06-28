@@ -13,6 +13,21 @@ from astropy import units
 
 from frb.surveys import survey_utils
 
+def test_wise():
+    try:
+        from dl import queryClient as qc, authClient as ac, helpers
+    except ImportError:
+        assert True
+        return
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    wise_srvy = survey_utils.load_survey_by_name('WISE', coord, search_r)
+    wise_tbl = wise_srvy.get_catalog()
+    #
+    assert isinstance(wise_tbl, Table)
+    assert len(wise_tbl) == 1
+
 def test_psrcat():
     try:
         import pulsars
@@ -63,20 +78,6 @@ def test_decals():
     assert len(decal_tbl) == 2
 
 
-def test_wise():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
-    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
-    search_r = 10 * units.arcsec
-
-    decal_srvy = survey_utils.load_survey_by_name('WISE', coord, search_r)
-    decal_tbl = decal_srvy.get_catalog(print_query=True)
-    #
-    assert isinstance(decal_tbl, Table)
-    assert len(decal_tbl) == 2
 
 
 def test_first():
