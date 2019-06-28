@@ -26,7 +26,23 @@ from frb.surveys import sdss
 all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE']
 db_path = os.getenv('FRB_GDB')
 
+
 def grab_files(all_files, refs_list, instrument):
+    """
+    Simple method to parse a set of files for a given an instrument
+
+    Args:
+        all_files (list):
+            Complete list of files
+        refs_list (list):
+            List of references of these files
+        instrument (str):
+            Instrument name to parse on
+
+    Returns:
+        list, list: List of files and their references matching the input instrument
+
+    """
     # Setup
     base_files = [os.path.basename(ifile) for ifile in all_files]
     file_subset = []
@@ -41,6 +57,19 @@ def grab_files(all_files, refs_list, instrument):
 
 
 def load_z_tables(path):
+    """
+    Load up a redshift table from the Galaxy_DB
+
+    Redshift tables are those that begin with 'z'
+
+    Args:
+        path (str):
+            Path to the folder holding one or more redshift tables.
+
+    Returns:
+        astropy.table.Table: Redshift table with RA, DEC, ZEM, ..
+
+    """
     z_files = glob.glob(os.path.join(path, 'z*'))
 
     z_tbl = Table()
@@ -65,12 +94,13 @@ def load_z_tables(path):
 
 def sdss_redshifts():
     """
-    Enter the SDSS directory and build a redshift table
+    Enter the directory and build a redshift table
     based on the spectra present
 
     Returns:
 
     """
+    embed(header='THIS NEEDS HELP')
     #
     all_folders = glob.glob(db_path+'/SDSS/*')
     for folder in all_folders:
@@ -116,6 +146,17 @@ def sdss_redshifts():
 
     
 def generate_by_refs(input_refs, outfile, version):
+    """
+    Build a specDB file according to the input references
+
+    Args:
+        input_refs (list):
+            List of references from which to build the specDB
+        outfile (str):
+            Output filename
+        version (str):
+            Version number
+    """
     # Not elegant but it works
     all_folders = glob.glob(db_path+'/*/*')
     all_refs = [os.path.basename(ifolder) for ifolder in all_folders]
@@ -156,6 +197,7 @@ def generate_by_refs(input_refs, outfile, version):
     pair_groups = []
     badf = None
     for instr in all_instruments:
+        print("Working on {}".format(instr))
         fits_files, irefs = grab_files(all_spec_files, refs_list, instr)
         if len(fits_files) == 0:
             continue
@@ -203,8 +245,11 @@ def generate_by_refs(input_refs, outfile, version):
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
-        maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key,
+        try:
+            maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key,
                               first=(flag_g==1), close_pairs=(instr in pair_groups))
+        except:
+            embed(header='251')
 
         # Ingest --
         pbuild.ingest_spectra(hdf, instr, full_meta, max_npix=maxpix, verbose=False,
@@ -213,6 +258,7 @@ def generate_by_refs(input_refs, outfile, version):
     # Write
     spbu.write_hdf(hdf, str('FRB'), maindb, zpri, gdict, version, Publisher=str('JXP'))
     print("Wrote {:s} DB file".format(outfile))
+
 
 def main(inflg='all'):
 
@@ -224,6 +270,7 @@ def main(inflg='all'):
     # CRAFT
     if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
+
 
 # Command line execution
 if __name__ == '__main__':

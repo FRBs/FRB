@@ -12,7 +12,6 @@ from pkg_resources import resource_filename
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
-from astropy import constants
 from astropy.table import Table
 
 from frb.galaxies import defs
@@ -227,10 +226,7 @@ class FRBGalaxy(object):
         Returns:
 
         """
-        try:
-            phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
-        except:
-            embed(header='233 of frbgalaxy')
+        phot_coord = SkyCoord(ra=phot_tbl['ra'], dec=phot_tbl['dec'], unit='deg')
         sep = self.coord.separation(phot_coord)
         row = np.argmin(sep)
         # Satisfy minimum offset?
@@ -307,6 +303,25 @@ class FRBGalaxy(object):
             warnings.warn("File exists;  use overwrite=True if you wish")
 
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
+        """
+        Return the meta data and spectra for this FRBGalaxy
+        from the specDB
+
+        If there is more than one spectrum, the code returns the first
+        unless return_all=True
+
+        Args:
+            instr (str, optional):
+                Restrict to the input Instrument
+            return_all (bool, optional):
+                Return all of the meta, spectra
+            specdb_file (str, optional):
+                Path+name of the specDB file to use (over-ride the default)
+
+        Returns:
+            astropy.table.Table, linetools.spectra.XSpectrum1D: meta data, spectra
+
+        """
 
         specDB = gutils.load_specdb(specdb_file=specdb_file)
         if specDB is None:
@@ -645,8 +660,10 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str): Nomiker of the FRB, e.g. 121102
-        z_frb (float, optional):  Redshift of the host, expected to be provided
+        FRB (str):
+            Nomiker of the FRB, e.g. 121102
+        z_frb (float, optional):
+            Redshift of the host, expected to be provided
 
     """
     @classmethod
@@ -654,12 +671,17 @@ class FRBHost(FRBGalaxy):
         """
         
         Args:
-            frb (str):  FRB name *without* FRB, e.g. 180924, not FRB180924
+            frb (str):  FRB name with or without FRB, e.g. 180924 or FRB180924
             **kwargs: 
 
         Returns:
+            FRBHost:
 
         """
+        # Strip off FRB
+        if frb[0:3] == 'FRB':
+            frb = frb[3:]
+        #
         path = os.path.join(resource_filename('frb', 'data/Galaxies/'), frb)
         json_file = os.path.join(path, FRBHost._make_outfile(frb))
         slf = cls.from_json(json_file, **kwargs)
@@ -682,7 +704,7 @@ class FRBHost(FRBGalaxy):
         Static method to generate outfile based on frbname
 
         Args:
-            frbname (str):  FRB name, e.g. 121102
+            frbname (str):  FRB name, e.g. 121102 or FRB121102
 
         Returns:
             str: outfile
@@ -734,6 +756,9 @@ class FRBHost(FRBGalaxy):
 
 
 class FGGalaxy(FRBGalaxy):
+    """
+    Foreground galaxy class (child of FRBGalaxy)
+    """
 
     def __init__(self, ra, dec, frb, **kwargs):
         # Instantiate

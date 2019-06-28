@@ -183,13 +183,13 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     within the query region around the input coordinate
     
     Args:
-        coords: Astropy SkyCoord
+        coords (Astropy SkyCoord):
             Input celestial coordinates
-        definition: str, optional
+        definition (str, optional):
             Can be either "SFD" or "SandF". They stand for the 
             definitions of E(B-V) according to either Schlegel et al. 1998 (ApJ 500, 525)
             or Schlafly and Finkbeiner 2011 (ApJ 737, 103) respectively
-        region: Astropy Angle (Quantity), optional
+        region (Astropy Angle (Quantity), optional):
             Angular radius around the input coordinate where
             the query is run to obtain statistics. Must be between
             2 deg and 37.5 deg. Default value: 5 deg.
@@ -200,13 +200,14 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
             If true, also returns the table with A/E(B-V) ratios
             for multiple filters.
     Returns:
-        ebvdict: dict
+        dict:
             Dict with E(B-V) at pixel, mean, std, min and max values in
             the query region. All values are in mags.
     """
     assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
     assert (region>2*units.deg) & (region<37.5*units.deg), "Search radius must be between 3 and 37.5 degrees"
 
+    # Coords
     ra,dec = str(coords.ra.value),str(coords.dec.value)
     radius = str(region.to(units.deg).value)
     query_url = \
