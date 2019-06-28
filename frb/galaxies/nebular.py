@@ -177,7 +177,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
 
     return SFR
 
-def get_ebv(coords, definition="SFD", region=5*units.deg):
+def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     """
     Get the E(B-V) value and statistic from the Milky way dust extinction
     within the query region around the input coordinate
@@ -193,13 +193,17 @@ def get_ebv(coords, definition="SFD", region=5*units.deg):
             Angular radius around the input coordinate where
             the query is run to obtain statistics. Must be between
             2 deg and 37.5 deg. Default value: 5 deg.
-
+        get_stats: bool, optional
+            If true, also returns a dict with the statistics of E(B-V)
+            within the query region.
+        get_ext_table: bool, optional
+            If true, also returns the table with A/E(B-V) ratios
+            for multiple filters.
     Returns:
         dict:
             Dict with E(B-V) at pixel, mean, std, min and max values in
             the query region. All values are in mags.
     """
-    # Input checking
     assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
     assert (region>2*units.deg) & (region<37.5*units.deg), "Search radius must be between 3 and 37.5 degrees"
 
@@ -223,4 +227,7 @@ def get_ebv(coords, definition="SFD", region=5*units.deg):
     for elem in statchild.findall('*'):
         if definition in elem.tag:
             ebvdict[elem.tag.replace(definition,'')] = elem.text.split()[0]
+    
+    if get_ext_table:
+        table_url = root.find('result/data/table').text.split()[0] 
     return ebvdict
