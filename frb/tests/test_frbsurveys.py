@@ -13,6 +13,7 @@ from astropy import units
 
 from frb.surveys import survey_utils
 
+
 def test_wise():
     try:
         from dl import queryClient as qc, authClient as ac, helpers
@@ -27,6 +28,7 @@ def test_wise():
     #
     assert isinstance(wise_tbl, Table)
     assert len(wise_tbl) == 1
+
 
 def test_psrcat():
     try:
