@@ -14,14 +14,14 @@ from astropy import units
 # Photometry globals
 table_format = 'ascii.fixed_width'
 
-def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
+def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
     Merge photometry tables
 
     Args:
         new_tbl (astropy.table.Table):
             New table of photometry
-        old_file (str):
+        old_file (str or Table):
             Path to the old table
 
     Returns:
@@ -29,11 +29,17 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
             Merged tables
 
     """
-    # New file?
-    if not os.path.isfile(old_file):
-        return new_tbl
-    # Load me
-    old_tbl = Table.read(old_file, format=table_format)
+    # File or tbl?
+    if isinstance(old_file, str):
+        # New file?
+        if not os.path.isfile(old_file):
+            return new_tbl
+        # Load me
+        old_tbl = Table.read(old_file, format=table_format)
+    elif isinstance(old_file, Table):
+        old_tbl = old_file
+    else:
+        embed(header='42 of photom')
     # Coords
     new_coords = SkyCoord(ra=new_tbl['ra'], dec=new_tbl['dec'], unit='deg')
     old_coords = SkyCoord(ra=old_tbl['ra'], dec=new_tbl['dec'], unit='deg')
@@ -42,15 +48,19 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
 
     # Match?
     if np.sum(match) == len(new_coords):
-        merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left')
+        # Insist on the same RA, DEC
+        new_tbl['ra'] = old_tbl['ra'][idx[0]]
+        new_tbl['dec'] = old_tbl['dec'][idx[0]]
+        # Join
+        merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
     elif np.sum(match) == 0:
-        embed(header='47 of photom')  # Needs testing
-        merge_tbl = vstack([old_tbl, new_tbl])
+        merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
     else:
         embed(header='50 of photom')  # Needs testing
         merge_tbl = hstack([old_tbl, new_tbl[match]])
         merge_tbl = hstack([merge_tbl, new_tbl[~match]])
     # Return
     return merge_tbl
+
 
 
