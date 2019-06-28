@@ -10,10 +10,11 @@ import numpy as np
 
 from astropy.coordinates import SkyCoord
 from astropy import units
+from astropy.table import Table
 
 from linetools.spectra import xspectrum1d
 
-from frb.galaxies import frbgalaxy, defs
+from frb.galaxies import frbgalaxy, defs, utils
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -78,6 +79,8 @@ def test_by_name():
     host121102 = frbgalaxy.FRBHost.by_name('121102')
     assert host121102.frb == '121102'
     assert np.isclose(host121102.morphology['b/a'], 0.25)
+    # with FRB
+    host121102 = frbgalaxy.FRBHost.by_name('FRB121102')
 
 def test_luminosity():
     host121102 = frbgalaxy.FRBHost.by_name('121102')
@@ -93,16 +96,27 @@ def test_get_spectra():
 
     Note:  This requires that specdb be installed..
     """
+    try:
+        import specdb
+    except ImportError:
+        assert True
+        return
+    # Check for specDB file
+    if utils.load_specdb() is None:
+        assert True
+        return
+    # Do it!
     host180924 = frbgalaxy.FRBHost.by_name('180924')
-    xspec = host180924.get_spectrum()
+    meta, xspec = host180924.get_metaspec()
+    # Test
+    assert isinstance(meta, Table)
+    assert isinstance(xspec, xspectrum1d.XSpectrum1D)
+    assert xspec.nspec == 1
+    #
+    meta, xspec = host180924.get_metaspec(instr='MUSE')
     # Test
     assert isinstance(xspec, xspectrum1d.XSpectrum1D)
     assert xspec.nspec == 1
     #
-    xspec = host180924.get_spectrum(instr='MUSE')
-    # Test
-    assert isinstance(xspec, xspectrum1d.XSpectrum1D)
-    assert xspec.nspec == 1
-    #
-    xspecs = host180924.get_spectrum(return_all=True)
+    meta, xspecs = host180924.get_metaspec(return_all=True)
     assert xspecs.nspec == 2
