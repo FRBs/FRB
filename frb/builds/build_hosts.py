@@ -17,8 +17,6 @@ from frb.galaxies import frbgalaxy, defs
 from frb.galaxies import photom as frbphotom
 from frb.surveys import des
 
-#photom_path = resource_filename('frb', '../DB/Photom')
-#spectra_path = resource_filename('frb', '../DB/Spectra')
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
     embed(header='You need to set $FRB_GDB')
@@ -30,7 +28,10 @@ def build_host_121102(build_photom=False):
 
     Writes to 121102/FRB121102_host.json
 
-    Returns:
+    All of the data currently comes from Tendulkar et al. 2017
+
+    Args:
+        build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
 
     """
     FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
@@ -135,8 +136,8 @@ def build_host_180924(build_photom=True):
 
     Writes to 180924/FRB180924_host.json
 
-    Returns:
-
+    Args:
+        build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
     """
     gal_coord = SkyCoord('J214425.25-405400.81', unit=(units.hourangle, units.deg))
 
@@ -147,28 +148,28 @@ def build_host_180924(build_photom=True):
     host.set_z(0.3212, 'spec')
 
     # Morphology
-    host.parse_galfit(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
-                                   'HG180924_galfit_DES.log'), 0.263)
+    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Bannister2019',
+                                   'HG180924_DES_galfit.log'), 0.263)
 
     # Photometry
 
     # DES
     # Grab the table (requires internet)
-    photom_file = os.path.join(spectra_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
+    photom_file = os.path.join(db_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
     if build_photom:
         search_r = 2*units.arcsec
         des_srvy = des.DES_Survey(gal_coord, search_r)
         des_tbl = des_srvy.get_catalog(print_query=True)
         # Write
-        des_tbl.write(photom_file, format=photom_format)
+        des_tbl.write(photom_file, format=frbphotom.table_format)
     else:
-        des_tbl = Table.read(photom_file, format=photom_format)
+        des_tbl = Table.read(photom_file, format=frbphotom.table_format)
 
     # Parse
     host.parse_photom(des_tbl)
 
     # PPXF
-    host.parse_ppxf(os.path.join(spectra_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
+    host.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
 
     # Derived quantities
 
@@ -180,7 +181,7 @@ def build_host_180924(build_photom=True):
     host.derived['SFR_nebular_err'] = -999.
 
     # CIGALE
-    host.parse_cigale(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
+    host.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bannister2019',
                                    'HG180924_CIGALE.fits'), 0.263)
 
     # Vet all
@@ -204,8 +205,7 @@ def main(inflg='all'):
 
     # 180924
     if flg & (2**1):
-        pass
-        #build_host_180924(build_photom=True)
+        build_host_180924(build_photom=True)
 
 
 # Command line execution

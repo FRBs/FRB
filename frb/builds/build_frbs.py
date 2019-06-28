@@ -9,6 +9,10 @@ from frb import frb
 
 
 def frb_121102():
+    """
+    FRB 180924
+        All of the data currently comes from Tendulkar et al. 2017
+    """
     frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
                         558.1*units.pc/units.cm**3,
                         z_frb=0.19273)
