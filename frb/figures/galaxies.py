@@ -42,6 +42,9 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
 
     # Read in data
     sdss_file = os.path.join(resource_filename('frb', 'data'), 'Public', 'SDSS', 'SDSS_DR14_PM.fits')
+    if not os.path.isfile(sdss_file):
+        print("See the method notes to download the SDSS data!")
+        return
     hdulist = fits.open(sdss_file)
     bptdat = hdulist[1].data
 
@@ -141,8 +144,8 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
     utils.set_mplrc()
 
     # Load up
-    primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))
-    primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits'))
+    primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits.gz'))
+    primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits.gz'))
 
     gdz = (primus_zcat['Z'] > 0.2) & (primus_zcat['Z'] < 0.4)
     gd_mag = primus_zcat['SDSS_ABSMAG'][:,0] != 0.
@@ -229,7 +232,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
     """
 
     # Load up
-    primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))
+    primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits.gz'))
     #primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits'))
 
     gdz = (primus_zcat['Z'] > 0.2) & (primus_zcat['Z'] < 0.4)
