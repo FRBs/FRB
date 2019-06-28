@@ -28,7 +28,7 @@ valid_e = [
 # Filters
 valid_filters = []
 
-# DES
+# SDSS
 SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
     valid_filters.append('SDSS_{:s}'.format(band))
