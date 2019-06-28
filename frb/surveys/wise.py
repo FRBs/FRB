@@ -76,35 +76,6 @@ class WISE_Survey(dlsurvey.DL_Survey):
         self.validate_catalog()
         return self.catalog
 
-    '''
-    def _gen_cat_query(self,query_fields=None, qtype='main'):
-        """
-        Generate SQL Query for catalog search
-
-        self.query is modified in place
-
-        Args:
-            query_fields (list):  Override the default list for the SQL query
-
-        """
-        if query_fields is None:
-            query_fields = []
-            # Main query
-            if qtype == 'main':
-                for key,value in photom['SIE'].items():
-                    query_fields += [value]
-                database = self.database
-            elif qtype == 'wise':
-                for key,value in photom['DES-WISE'].items():
-                    query_fields += [value]
-                database = "des_dr1.des_allwise"
-            else:
-                raise IOError("Bad qtype")
-
-        self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
-        # Return
-        return self.query
-    '''
     def _gen_cat_query(self,query_fields=None):
         """
         Generate SQL query for catalog search
