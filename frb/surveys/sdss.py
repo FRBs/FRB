@@ -72,9 +72,10 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         """
         if photoobj_fields is None:
             photoobj_fs = ['ra', 'dec', 'objid', 'run', 'rerun', 'camcol', 'field']
-            mags = ['petroMag_u', 'petroMag_g', 'petroMag_r', 'petroMag_i', 'petroMag_z']
-            magsErr = ['petroMagErr_u', 'petroMagErr_g', 'petroMagErr_r', 'petroMagErr_i', 'petroMagErr_z']
-            photoobj_fields = photoobj_fs+mags+magsErr
+            mags = ['petroMag_'+band for band in DES_bands]
+            magsErr = ['petroMagErr_'+band for band in DES_bands]
+            extinct = ["extinction_"+band for band in DES_bands]
+            photoobj_fields = photoobj_fs+mags+magsErr+extinct
 
         # Call
         photom_catalog = SDSS.query_region(self.coord, radius=self.radius, timeout=timeout,
