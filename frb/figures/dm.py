@@ -7,8 +7,6 @@ from IPython import embed
 
 from pkg_resources import resource_filename
 
-from matplotlib import pyplot as plt
-
 from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import units
@@ -19,29 +17,40 @@ from frb import igm as frb_igm
 
 from ne2001 import density
 
-def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=0., ymax=None,
+def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
                 IGM_only=True,
                 M31=False, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
 
+    Plot of increasing DM from Earth to the FRB
+
     Args:
-        ax1:
-        ax2:
-        coord:
-        zFRB:
-        halos:
-        host_DM:
-        ymax:
-        M31:
-        fg_halos:
+        ax1 (matplotlib.Axis):
+            First axis.  Used for Milky Way and local group
+        ax2 (matplotlib.Axis):
+            Second axis.  Used for Cosmic and Host
+        coord (astropy.coord.SkyCoord):
+            Coordinate of the FRB used with ne2001
+        zFRB (float):
+            Redshift of the FRB
+        halos (?, optional):
+            Not implemented!
+        host_DM (float):
+            DM to use for the Host
+        ymax (tuple or list):
+            ymin, ymax values for the y-axis
+        IGM_only (bool, optional):
+            Use only the IGM for DM_Cosmic, i.e. ignore the presumed average halo contribution
+        M31 (bool, optional):
+            Include M31 in the calculation?
+            NOT IMPLEMENTED RIGHT NOW
+        fg_halos (dict or Table):
+            Used to add to DM_IGM
+            Keys must include 'z' 'DM' 'lbl'
         dsmx (float): Padding on the x-axis;  Gpc
         FRB_DM (float): Observed value;  sets ymax = FRB_DM+50
-
-    Returns:
-
     """
-
     if halos:
         embed()
 

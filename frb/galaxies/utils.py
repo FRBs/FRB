@@ -16,7 +16,7 @@ def load_specdb(specdb_file=None):
         warnings.warn("You must install the specdb package first!")
         return
     if specdb_file is None:
-        specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specdb.hdf5')
+        specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specDB.hdf5')
     # Load it up
     specDB = SpecDB(db_file=specdb_file)
     # Return

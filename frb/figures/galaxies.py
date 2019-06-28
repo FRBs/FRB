@@ -20,16 +20,20 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
 
     To use this code, you must download the SDSS_DR14_PM.fits file from
     https://drive.google.com/file/d/17r9kLh_mWGRX7Zx3DNmQEhoCGNUmzcCY/view?usp=sharing
+    and put it in data/Public/SDSS
 
     Args:
-        ax_BPT: matplotlib.axis
+        ax_BPT (matplotlib.Axis):
         galaxies (list):
           List of FRBGalaxy objects
         clrs (list):
+            List of colors
         markers (list):
+            List of markers
         show_kewley (bool, optional):
+            Show the BPT lines?
         SDSS_clr (str, optional):
-          Set the color map
+          Set the color map for SDSS
 
     Returns:
         ax_BPT is modified in place
@@ -55,11 +59,14 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
 
     xbins = 100
     ybins = 100
+    # Plot
     counts, xedges, yedges = np.histogram2d(np.log10(x), np.log10(y), bins=(xbins, ybins))
     cm = plt.get_cmap(SDSS_clr)
     mplt = ax_BPT.pcolormesh(xedges, yedges, np.log10(counts.transpose()), cmap=cm)
 
+    # Loop on the Galaxies
     for kk,galaxy in enumerate(galaxies):
+        # Parse the emission lines
         NII, NII_err = galaxy.calc_nebular_lum('[NII] 6584')
         Ha, Ha_err = galaxy.calc_nebular_lum('Halpha')
         Hb, Hb_err = galaxy.calc_nebular_lum('Hbeta')
@@ -80,7 +87,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
 
         logx, xerr = utils.log_me(x0, x0_err)
         logy, yerr = utils.log_me(y0, y0_err)
-        # Upper limit on [NII]/Ha
+        # Upper limit on [NII]/Ha?
         if NII_err.value < 0.:
             xerr = None
             # Left arrow
@@ -117,17 +124,18 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     utils.set_fontsize(ax_BPT, 13.)
 
 
-
-
 def sub_sfms(ax_M, galaxies, clrs, markers):
     """
     Generate a SF vs. M* plot on top of PRIMUS galaxies
 
     Args:
         ax_M (matplotlib.axis):
-        galaxies (list):  List of FRB.galaxies.frbgalaxy.FRBGalaxy objects
-        clrs (list): List of matplotlib colors
-        markers (list): List of matplotlib marker types
+        galaxies (list):
+            List of FRB.galaxies.frbgalaxy.FRBGalaxy objects
+        clrs (list):
+            List of matplotlib colors
+        markers (list):
+            List of matplotlib marker types
 
     """
     utils.set_mplrc()
@@ -204,13 +212,17 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
 
 def sub_color_mag(ax, galaxies, clrs, markers):
     """
-    Color-magnitude diagram
+    Generate a color-magnitude diagram using PRIMUS data
+    and FRB galaxies
 
     Args:
         ax (matplotlib.Axis):
         galaxies (list):
+            List of FRB.galaxies.frbgalaxy.FRBGalaxy objects
         clrs (list):
+            List of matplotlib colors
         markers (list):
+            List of matplotlib marker types
 
     Returns:
 
@@ -218,7 +230,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
 
     # Load up
     primus_zcat = Table.read(os.path.join(primus_path, 'PRIMUS_2013_zcat_v1.fits'))
-    primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits'))
+    #primus_mass = Table.read(os.path.join(primus_path, 'PRIMUS_2014_mass_v1.fits'))
 
     gdz = (primus_zcat['Z'] > 0.2) & (primus_zcat['Z'] < 0.4)
     gd_mag = primus_zcat['SDSS_ABSMAG'][:,0] != 0.
@@ -249,7 +261,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
     plt.ylabel(r"$u-r \textbf{(Rest-frame)}$")
     plt.xlabel(r"$r \textbf{(Rest-frame)}$")
     ax.legend(loc='lower right')
-    #plt.xlim(8, 12)
+
     ax.set_ylim(0.0, 3.3)
     ax.set_xlim(-15.5, -23)
 
