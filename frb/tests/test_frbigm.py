@@ -32,7 +32,7 @@ def test_igmDM():
     assert DM == DM_cum[-1]
     # Cross through HeII reionization
     DM4 = igm.average_DM(4.)
-    assert np.isclose(DM4.value, 3866.9971167)
+    assert np.isclose(DM4.value, 3866.9971167, rtol=0.001)
 
 
 def test_z_from_DM():
