@@ -68,8 +68,7 @@ class WISE_Survey(dlsurvey.DL_Survey):
         main_cat = super(WISE_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
         if len(main_cat) == 0:
             return main_cat
-        embed(header='71')
-        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'])
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
 
         # Finish
         self.catalog = main_cat
