@@ -9,4 +9,4 @@
 - Update halo mass calculations for the new Aemulus HMF
 - Add Virgo halo
 - Simple Milky Way methods for DM
-
+- Add WISE to surveys
