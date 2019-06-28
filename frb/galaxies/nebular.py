@@ -177,34 +177,33 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
 
     return SFR
 
-def get_ebv(coords,definition="SFD",region=5*units.deg):
+def get_ebv(coords, definition="SFD", region=5*units.deg):
     """
     Get the E(B-V) value and statistic from the Milky way dust extinction
     within the query region around the input coordinate
     
     Args:
-        coords: Astropy SkyCoord
+        coords (Astropy SkyCoord):
             Input celestial coordinates
-        definition: str, optional
+        definition (str, optional):
             Can be either "SFD" or "SandF". They stand for the 
             definitions of E(B-V) according to either Schlegel et al. 1998 (ApJ 500, 525)
             or Schlafly and Finkbeiner 2011 (ApJ 737, 103) respectively
-        region: Astropy Angle (Quantity), optional
+        region (Astropy Angle (Quantity), optional):
             Angular radius around the input coordinate where
             the query is run to obtain statistics. Must be between
             2 deg and 37.5 deg. Default value: 5 deg.
-        get_stats: bool, optional
-            If true, also returns a dict with the statistics of E(B-V)
-            within the query region.
+
     Returns:
-        ebvdict: dict
+        dict:
             Dict with E(B-V) at pixel, mean, std, min and max values in
             the query region. All values are in mags.
     """
-    import pdb
+    # Input checking
     assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
     assert (region>2*units.deg) & (region<37.5*units.deg), "Search radius must be between 3 and 37.5 degrees"
 
+    # Coords
     ra,dec = str(coords.ra.value),str(coords.dec.value)
     radius = str(region.to(units.deg).value)
     query_url = \

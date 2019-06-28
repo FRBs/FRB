@@ -16,13 +16,17 @@ table_format = 'ascii.fixed_width'
 
 def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
     """
+    Merge photometry tables
 
     Args:
         new_tbl (astropy.table.Table):
+            New table of photometry
         old_file (str):
+            Path to the old table
 
     Returns:
         astropy.table.Table:
+            Merged tables
 
     """
     # New file?
@@ -40,10 +44,10 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec):
     if np.sum(match) == len(new_coords):
         merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left')
     elif np.sum(match) == 0:
-        embed(header='39 of photom')
+        embed(header='47 of photom')  # Needs testing
         merge_tbl = vstack([old_tbl, new_tbl])
     else:
-        embed(header='39 of photom')
+        embed(header='50 of photom')  # Needs testing
         merge_tbl = hstack([old_tbl, new_tbl[match]])
         merge_tbl = hstack([merge_tbl, new_tbl[~match]])
     # Return
