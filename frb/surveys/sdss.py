@@ -43,7 +43,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         #
         self.survey = 'SDSS'
 
-    def get_catalog(self, photoobj_fields=None, timeout=None, print_query=False):
+    def get_catalog(self, photoobj_fields=None, timeout=120, print_query=False):
         """
         Query SDSS for all objects within a given
         radius of the input coordinates.
@@ -60,6 +60,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
             photoobj_fields: list
               Fields for querying
             timeout: float, optional
+              Default value - 120 s.
             print_query: bool, optional
               Print the SQL query for the photo-z values
 
