@@ -82,7 +82,7 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
@@ -96,14 +96,14 @@ class DES_Survey(dlsurvey.DL_Survey):
             photometry for matched sources.
         """
         # Main DES query
-        main_cat = super(DES_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
+        main_cat = super(DES_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
         if len(main_cat) == 0:
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'])
 
         # WISE
         wise_query = self._gen_cat_query(qtype='wise')
-        wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query)
+        wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query,**kwargs)
         wise_cat = catalog_utils.clean_cat(wise_cat, photom['DES-WISE'], fill_mask=-999.)
 
         # Match em up

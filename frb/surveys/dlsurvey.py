@@ -45,7 +45,7 @@ class DL_Survey(surveycoord.SurveyCoord):
     def _select_best_img(self,imgTable,verbose,timeout=120):
         pass
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,timeout=120):
         """
         Get catalog sources around the given coordinates
         within self.radius.
@@ -66,7 +66,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         if print_query:
             print(query)
         # Do it while silencing print statements
-        result = qc.query(self.token, sql=query)
+        result = qc.query(self.token, sql=query,timeout=timeout)
         sys.stdout = open(os.devnull,"w")
         temp = convert(result)
         sys.stdout = sys.__stdout__
