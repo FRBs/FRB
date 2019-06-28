@@ -2,11 +2,12 @@
 
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
+from frb.surveys.wise import WISE_Survey
 from frb.surveys.decals import DECaL_Survey
 from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -40,6 +41,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = heasarc.FIRST_Survey(coord, radius, **kwargs)
     elif name == 'DECaL':
         survey = DECaL_Survey(coord, radius, **kwargs)
+    elif name == 'WISE':
+        survey = WISE_Survey(coord, radius, **kwargs)
     elif name == 'PSRCAT':
         survey = PSRCAT_Survey(coord, radius, **kwargs)
 

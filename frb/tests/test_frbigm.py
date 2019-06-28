@@ -26,16 +26,16 @@ def test_igmDM():
     DM = igm.average_DM(1.)
     # Value and unit
     assert DM.unit == u.pc/u.cm**3
-    assert np.isclose(DM.value, 1053.0827)
+    assert np.isclose(DM.value, 1053.0827, rtol=0.001)
     # Cumulative
     DM_cum, zeval = igm.average_DM(1., cumul=True)
     assert DM == DM_cum[-1]
     # Cross through HeII reionization
     DM4 = igm.average_DM(4.)
-    assert np.isclose(DM4.value, 3866.9971167)
+    assert np.isclose(DM4.value, 3866.9971167, rtol=0.001)
 
 
 def test_z_from_DM():
     z = igm.z_from_DM(1000.*u.pc/u.cm**3)
     # Test
-    assert np.isclose(z, 0.95200554)
+    assert np.isclose(z, 0.95200554, rtol=0.001)
