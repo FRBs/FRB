@@ -339,7 +339,7 @@ class FRBGalaxy(object):
             if len(meta) > 1:
                 warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
                 xspec = xspec[0]
-                meta = meta[0]
+                meta = meta[0:1]
         else:
             idx = meta['GROUP'] == instr
             if np.sum(idx) == 0:
