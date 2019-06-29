@@ -13,3 +13,4 @@
 - Scripts to build FRB, Hosts, and specDB
 - Brings 180924 files into the public light
 - Add SDSS to surveys
+- Figure methods for basic plots
