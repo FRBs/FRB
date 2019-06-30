@@ -232,8 +232,7 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     
     if get_ext_table:
         table_url = root.find('result/data/table').text.split()[0]
-        ext_tab_str = requests.get(table_url).content.decode('ascii')
-        ext_table = Table.read(ext_tab_str,format="ascii")
+        ext_table = Table.read(table_url,format="ascii")
         return ebvdict,ext_table
     
     return ebvdict
