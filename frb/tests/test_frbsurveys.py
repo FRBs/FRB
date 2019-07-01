@@ -132,7 +132,7 @@ def test_panstarrs():
     #Test get_cutout
     cutout, = ps_survey.get_cutout()
     assert isinstance(cutout,Image.Image)
-    assert img.size == (120,120)
+    assert cutout.size == (120,120)
 
     #Test get_image
     imghdu = ps_survey.get_image()
