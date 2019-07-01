@@ -10,8 +10,6 @@ import warnings
 from xml.etree import ElementTree as ET
 
 from scipy.interpolate import interp1d
-import pandas as pd
-from io import StringIO
 
 from astropy.table import Table
 from astropy import units
