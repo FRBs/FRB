@@ -73,9 +73,10 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         """
         if photoobj_fields is None:
             photoobj_fs = ['ra', 'dec', 'objid', 'run', 'rerun', 'camcol', 'field']
-            mags = ['petroMag_u', 'petroMag_g', 'petroMag_r', 'petroMag_i', 'petroMag_z']
-            magsErr = ['petroMagErr_u', 'petroMagErr_g', 'petroMagErr_r', 'petroMagErr_i', 'petroMagErr_z']
-            photoobj_fields = photoobj_fs+mags+magsErr
+            mags = ['petroMag_'+band for band in DES_bands]
+            magsErr = ['petroMagErr_'+band for band in DES_bands]
+            extinct = ["extinction_"+band for band in DES_bands]
+            photoobj_fields = photoobj_fs+mags+magsErr+extinct
 
         # Call
         photom_catalog = SDSS.query_region(self.coord, radius=self.radius, timeout=timeout,
@@ -106,14 +107,18 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         photz_cat = SDSS.query_sql(query,timeout=timeout)
 
         # Match em up
-        matches = catalog_utils.match_ids(photz_cat['objid'], photom_catalog['objid'], require_in_match=False)
+        if photz_cat is not None:
+            matches = catalog_utils.match_ids(photz_cat['objid'], photom_catalog['objid'], require_in_match=False)
+        else:
+            matches = -1 * np.ones(len(photom_catalog), dtype=int)
         gdz = matches > 0
         # Init
         photom_catalog['photo_z'] = -9999.
         photom_catalog['photo_zerr'] = -9999.
         # Fill
-        photom_catalog['photo_z'][matches[gdz]] = photz_cat['redshift'][np.where(gdz)]
-        photom_catalog['photo_zerr'][matches[gdz]] = photz_cat['redshift_error'][np.where(gdz)]
+        if np.any(gdz):
+            photom_catalog['photo_z'][matches[gdz]] = photz_cat['redshift'][np.where(gdz)]
+            photom_catalog['photo_zerr'][matches[gdz]] = photz_cat['redshift_error'][np.where(gdz)]
 
         # Trim down catalog
         trim_catalog = trim_down_catalog(photom_catalog, keep_photoz=True)
@@ -135,7 +140,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
             embed(header='119 of sdss')
         # Fill me
         zs = -1 * np.ones_like(trim_catalog['ra'].data)
-        zs[idx] = spec_catalog['z']
+        zs[idx] = trim_spec_catalog['z']
         trim_catalog['z_spec'] = zs
 
         # Sort by offset
