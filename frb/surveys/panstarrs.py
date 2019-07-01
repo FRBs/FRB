@@ -30,10 +30,10 @@ photom = {}
 photom['Pan-STARRS'] = {}
 for band in PanSTARRS_bands:
     photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
-    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = 'e_{:s}mag'.format(band.lower())
+    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = 'e_{:s}mag'.format(band.lower())
     photom["Pan-STARRS"]["Pan-STARRS_ID"] = 'objID'
-photom["Pan-STARRS"]['ra'] = 'ra'
-photom["Pan-STARRS"]['dec'] = 'dec'
+photom["Pan-STARRS"]['ra'] = 'RAJ2000'
+photom["Pan-STARRS"]['dec'] = 'DEJ2000'
 photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
@@ -74,9 +74,8 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             query_fields = ['objID','RAJ2000','DEJ2000','f_objID','Qual']
             query_fields +=['{:s}mag'.format(band) for band in PanSTARRS_bands]
             query_fields +=['e_{:s}mag'.format(band) for band in PanSTARRS_bands]
-        vclient = Vizier(columns=query_fields)
-        tablelist = vclient.query_region(self.coord,radius=self.radius,
-                                            timeout=timeout,catalog="Pan-STARRS")
+        vclient = Vizier(columns=query_fields,timeout=timeout,row_limit=-1)
+        tablelist = vclient.query_region(self.coord,radius=self.radius,catalog="Pan-STARRS")
         if len(tablelist)==0:
             self.catalog = Table()
             self.catalog.meta['radius'] = self.radius
@@ -85,8 +84,9 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             self.validate_catalog()
             return self.catalog.copy()
         photom_catalog = tablelist[0]
-        pdict = photom
+        pdict = photom['Pan-STARRS']
         photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
+        #
         self.catalog = catalog_utils.sort_by_separation(photom_catalog, self.coord,
                                                         radec=('ra','dec'), add_sep=True)
         # Meta
