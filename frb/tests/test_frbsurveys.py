@@ -10,8 +10,10 @@ import os
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy import units
+from astropy.io.fits.hdu.image import PrimaryHDU
 
 from frb.surveys import survey_utils
+from PIL import Image
 
 
 def test_wise():
@@ -97,3 +99,29 @@ def test_first():
     assert isinstance(first_tbl, Table)
     assert len(first_tbl) == 1
 
+def test_panstarrs():
+    #Test dependency
+    try:
+        from astroquery.vizier import Vizier
+    except ImportError:
+        assert True
+        return
+
+    #Test get_catalog
+    coord = SkyCoord(0, 0,unit="deg")
+    search_r = 30*units.arcsec
+    ps_survey = survey_utils.load_survey_by_name('Pan-STARRS',coord,search_r)
+    ps_table = ps_survey.get_catalog()
+
+    assert isinstance(ps_table, Table)
+    assert len(ps_table) == 1
+
+    #Test get_cutout
+    cutout, = ps_survey.get_cutout()
+    assert isinstance(cutout,Image.Image)
+    assert img.size == (120,120)
+
+    #Test get_image
+    imghdu = ps_survey.get_image()
+    assert isinstance(imghdu,PrimaryHDU)
+    assert imghdu.data.shape == (120,120)
