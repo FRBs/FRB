@@ -6,8 +6,9 @@ from frb.surveys.wise import WISE_Survey
 from frb.surveys.decals import DECaL_Survey
 from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
+from frb.surveys.panstarrs import Pan_STARRS_Survey
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -45,6 +46,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = WISE_Survey(coord, radius, **kwargs)
     elif name == 'PSRCAT':
         survey = PSRCAT_Survey(coord, radius, **kwargs)
+    elif name == 'Pan-STARRS':
+        survey = Pan_STARRS_Survey(coord,radius,**kwargs)
 
     # Return
     return survey
