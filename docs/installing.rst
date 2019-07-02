@@ -60,6 +60,15 @@ The following are required to run some of the halo codes:
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 
+The following are required to build host galaxy objects:
+
+* `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
+
+For pPXF, you will also likely need to modify the standard install
+to use the Chabrier libraries.  See the InstallNotes in this
+`Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
+
+
 Installing frb
 ==============
 

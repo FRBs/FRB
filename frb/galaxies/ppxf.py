@@ -43,7 +43,10 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     # Init
 
     # Load spectrum
-    spec = readspec(spec_file)
+    if isinstance(spec_file, XSpectrum1D):
+        spec = spec_file
+    else:
+        spec = readspec(spec_file)
 
     if chk:
         spec.plot()
