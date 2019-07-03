@@ -10,8 +10,6 @@ import warnings
 from xml.etree import ElementTree as ET
 
 from scipy.interpolate import interp1d
-import pandas as pd
-from io import StringIO
 
 from astropy.table import Table
 from astropy import units
@@ -204,7 +202,7 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     Returns:
         dict:
             Dict with E(B-V) at pixel, mean, std, min and max values in
-            the query region. All values are in mags.
+            the query region. All values are in mags and are strings!
     """
     assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
     assert (region>2*units.deg) & (region<37.5*units.deg), "Search radius must be between 3 and 37.5 degrees"
@@ -232,11 +230,7 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     
     if get_ext_table:
         table_url = root.find('result/data/table').text.split()[0]
-        ext_tab_str = requests.get(table_url).content.decode('ascii')
-        names = ["Filter_name","LamEff","A_over_E_B_V_SandF","A_SandF","A_over_E_B_V_SFD","A_SFD"]
-        df = pd.read_fwf(StringIO(ext_tab_str),comment="\\",skiprows=range(19),
-            header=None,names=names)
-        ext_table = Table.from_pandas(df)
+        ext_table = Table.read(table_url,format="ascii")
         return ebvdict,ext_table
     
     return ebvdict
