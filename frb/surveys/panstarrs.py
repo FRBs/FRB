@@ -1,5 +1,7 @@
 """
-Slurp data from Pan-STARRS catalog
+Slurp data from Pan-STARRS catalog using the MAST API.
+A lot of this code has been directly taken from
+http://ps1images.stsci.edu/ps1_dr2_api.html
 """
 
 import numpy as np
@@ -13,6 +15,7 @@ from ..galaxies.defs import PanSTARRS_bands
 from .images import grab_from_url
 
 import warnings
+import requests
 
 try:
     from astroquery.vizier import Vizier
@@ -29,11 +32,11 @@ from frb.surveys import surveycoord,catalog_utils,images
 photom = {}
 photom['Pan-STARRS'] = {}
 for band in PanSTARRS_bands:
-    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
-    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = 'e_{:s}mag'.format(band.lower())
+    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
+    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
     photom["Pan-STARRS"]["Pan-STARRS_ID"] = 'objID'
-photom["Pan-STARRS"]['ra'] = 'RAJ2000'
-photom["Pan-STARRS"]['dec'] = 'DEJ2000'
+photom["Pan-STARRS"]['ra'] = 'raStack'
+photom["Pan-STARRS"]['dec'] = 'decStack'
 photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
@@ -49,7 +52,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "Pan_STARRS"
     
-    def get_catalog(self,query_fields=None,timeout=120,print_query=False):
+    def get_catalog(self,query_fields=None,release="dr2",table="stack",print_query=False):
         """
         Query a catalog in the VizieR database for
         photometry.
@@ -58,10 +61,13 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             query_fields: list, optional
                 A list of query fields to
                 get.
-            timeout: float, optional
-                Query timeout in sec. Exits with an error
-                if the query time exceeds this value.
-                Default value of 120 s.
+            release: str, optional
+                "dr1" or "dr2" (default: "dr2").
+                Data release version.
+            table: str, optional
+                "mean","stack" or "detection"
+                (default: "stack"). The data table to
+                search within.
             print_query: bool, optional
                 If true, prints the SQL query used
                 on screen.
@@ -70,20 +76,31 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             catalog: astropy.table.Table
                 Contains all query results
         """
+        assert self.radius <= 0.5*u.deg, "Cone serches have a maximum radius"
+        #Validate table and release input
+        _check_legal(table,release)
+        url = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/{:s}/{:s}.csv".format(release,table)
         if query_fields is None:
-            query_fields = ['objID','RAJ2000','DEJ2000','f_objID','Qual']
-            query_fields +=['{:s}mag'.format(band) for band in PanSTARRS_bands]
-            query_fields +=['e_{:s}mag'.format(band) for band in PanSTARRS_bands]
-        vclient = Vizier(columns=query_fields,timeout=timeout,row_limit=-1)
-        tablelist = vclient.query_region(self.coord,radius=self.radius,catalog="Pan-STARRS")
-        if len(tablelist)==0:
+            query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag']
+            query_fields +=['{:s}PSFmag'.format(band) for band in PanSTARRS_bands]
+            query_fields +=['{:s}PSFmagErr'.format(band) for band in PanSTARRS_bands]
+        #Validate columns
+        _check_columns(query_fields,table,release)
+        data = {}
+        data['ra'] = self.coord.ra.value
+        data['dec'] = self.coord.dec.value
+        data['radius'] = self.radius.to(u.deg).value
+        data['columns'] = query_fields
+        ret = requests.get(url,params=data)
+        ret.raise_for_status()
+        if len(ret.text)==0:
             self.catalog = Table()
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             # Validate
             self.validate_catalog()
             return self.catalog.copy()
-        photom_catalog = tablelist[0]
+        photom_catalog = Table.read(ret.text,format="ascii.csv")
         pdict = photom['Pan-STARRS']
         photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
         #
@@ -107,7 +124,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             imsize (Quantity):  Angular size of image desired
             filt (str): A string with the three filters to be used
             output_size (int): Output image size in pixels. Defaults
-                                to the oiginal cutout size.
+                                to the original cutout size.
         Returns:
             PNG image, None (None for the header).
         """
@@ -120,7 +137,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         for i in idx:
             newfilt += filt[i]
         #Get image url
-        url = get_url(self.coord,imsize=imsize,filt=newfilt,output_size=output_size,color=True,imgformat='png')
+        url = _get_url(self.coord,imsize=imsize,filt=newfilt,output_size=output_size,color=True,imgformat='png')
         self.cutout = images.grab_from_url(url)
         self.cutout_size = imsize
         return  self.cutout.copy(), 
@@ -138,13 +155,13 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             hdu: fits header data unit for the downloaded image
         """
         assert len(filt)==1 and filt in "grizy", "Filter name must be one of 'g','r','i','z','y'"
-        url = get_url(self.coord,imsize=imsize,filt=filt,imgformat='fits')[0]
+        url = _get_url(self.coord,imsize=imsize,filt=filt,imgformat='fits')[0]
         imagedat = fits.open(astroutils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))[0]
         return imagedat
 
 
 
-def get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
+def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
 
     assert imgformat in ['jpg','png','fits'], "Image file can be only in the formats 'jpg', 'png' and 'fits'."
     if color:
@@ -172,9 +189,54 @@ def get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",
         for extensions in file_extensions:
             url.append(urlbase+extensions)
     return url
+ 
+def _check_columns(columns,table,release):
+    dcols = {}
+    for col in _ps1metadata(table,release)['name']:
+        dcols[col.lower()] = 1
+    badcols = []
+    for col in columns:
+        if col.lower().strip() not in dcols:
+            badcols.append(col)
+    if badcols:
+        raise ValueError('Some columns not found in table: {}'.format(', '.join(badcols)))
 
+def _check_legal(table,release):
+    """
+    Checks if this combination of table and release is acceptable
+    Raises a VelueError exception if there is problem.
+    Taken from http://ps1images.stsci.edu/ps1_dr2_api.html
+    """
+    
+    releaselist = ("dr1", "dr2")
+    if release not in releaselist:
+        raise ValueError("Bad value for release (must be one of {})".format(', '.join(releaselist)))
+    if release=="dr1":
+        tablelist = ("mean", "stack")
+    else:
+        tablelist = ("mean", "stack", "detection")
+    if table not in tablelist:
+        raise ValueError("Bad value for table (for {} must be one of {})".format(release, ", ".join(tablelist)))
 
-
-
-        
-        
+def _ps1metadata(table="stack",release="dr2",
+           baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
+    """Return metadata for the specified catalog and table
+    
+    Parameters
+    ----------
+    table (string): mean, stack, or detection
+    release (string): dr1 or dr2
+    baseurl: base URL for the request
+    
+    Returns an astropy table with columns name, type, description
+    """
+    
+    _check_legal(table,release)
+    url = "{baseurl}/{release}/{table}/metadata".format(**locals())
+    r = requests.get(url)
+    r.raise_for_status()
+    v = r.json()
+    # convert to astropy table
+    tab = Table(rows=[(x['name'],x['type'],x['description']) for x in v],
+               names=('name','type','description'))
+    return tab
