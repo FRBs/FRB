@@ -52,7 +52,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "Pan_STARRS"
     
-    def get_catalog(self,query_fields=None,release="dr2",table="stack",print_query=False):
+    def get_catalog(self,query_fields=None,release="dr2",table="stack"):
         """
         Query a catalog in the VizieR database for
         photometry.
@@ -68,9 +68,6 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 "mean","stack" or "detection"
                 (default: "stack"). The data table to
                 search within.
-            print_query: bool, optional
-                If true, prints the SQL query used
-                on screen.
         
         Returns:
             catalog: astropy.table.Table
