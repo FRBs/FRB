@@ -127,7 +127,7 @@ def test_panstarrs():
     ps_table = ps_survey.get_catalog()
 
     assert isinstance(ps_table, Table)
-    assert len(ps_table) == 1
+    assert len(ps_table) == 25
 
     #Test get_cutout
     cutout, = ps_survey.get_cutout()
