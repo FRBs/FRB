@@ -86,9 +86,10 @@ class WISE_Survey(dlsurvey.DL_Survey):
 
         """
         if query_fields is None:
-            object_id_fields = ['source_id','ra','dec']
+            object_id_fields = ['source_id','ra','dec','tmass_key']
             mag_fields = ['w1mpro', 'w2mpro', 'w3mpro', 'w4mpro',
-                          'w1sigmpro', 'w2sigmpro', 'w3sigmpro', 'w4sigmpro']
+                          'w1sigmpro', 'w2sigmpro', 'w3sigmpro', 'w4sigmpro', 'ph_qual',
+                          'moon_lev']
             query_fields = object_id_fields+mag_fields
 
         self.query = dlsurvey._default_query_str(query_fields, self.database, self.coord, self.radius)

@@ -15,6 +15,20 @@ from astropy.io.fits.hdu.image import PrimaryHDU
 from frb.surveys import survey_utils
 from PIL import Image
 
+def test_sdss():
+    try:
+        from dl import queryClient as qc, authClient as ac, helpers
+    except ImportError:
+        assert True
+        return
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+    #
+    sdss_srvy = survey_utils.load_survey_by_name('SDSS', coord, search_r)
+    sdss_tbl = sdss_srvy.get_catalog()
+    #
+    assert isinstance(sdss_tbl, Table)
+    assert len(sdss_tbl) == 2
 
 def test_wise():
     try:
@@ -83,7 +97,6 @@ def test_decals():
 
 
 
-
 def test_first():
     try:
         from dl import queryClient as qc, authClient as ac, helpers
@@ -119,7 +132,7 @@ def test_panstarrs():
     #Test get_cutout
     cutout, = ps_survey.get_cutout()
     assert isinstance(cutout,Image.Image)
-    assert img.size == (120,120)
+    assert cutout.size == (120,120)
 
     #Test get_image
     imghdu = ps_survey.get_image()
