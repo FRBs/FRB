@@ -274,13 +274,28 @@ class FRBGalaxy(object):
         # Convert DES and SDSS fluxes to mJy
         ABmagbands = ["DES_"+band for band in defs.DES_bands]
         ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
+        ABmagbands += ['VLT_'+band for band in defs.VLT_bands]
         for band in ABmagbands:
             if band not in self.photom.keys():
                 print("{:s} not found in the data; skipping".format(band))
                 continue
+            elif new_photom[band]<0:
+                print("{:s} doesn't have a measurement; skipping".format(band))
+                new_photom.remove_columns([band,band+'_err'])
+                continue
             new_photom[band] = 3630780.5*10**(new_photom[band]/-2.5)
-            new_photom[band+"_err"] = new_photom[band]*(10**(new_photom[band+"_err"]/2.5)-1)
+            if new_photom[band+'_err']<0:
+                new_photom[band+'_err']=-99
+            else:
+                new_photom[band+"_err"] = new_photom[band]*(10**(new_photom[band+"_err"]/2.5)-1)
         
+        #REname VLT to FORS2
+        for band in defs.VLT_bands:
+            try:
+                new_photom.rename_column('VLT_'+band,'FORS2_'+band.lower())
+                new_photom.rename_column('VLT_'+band+"_err","FORS2_"+band.lower()+'_err')
+            except KeyError:
+                continue
         # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
@@ -289,13 +304,14 @@ class FRBGalaxy(object):
                 print("{:s} not found in the data; skipping".format(band))
                 continue
             #
-            new_photom[band] = zpt*10**(-new_photom[band]/2.5)
+            new_photom[band] = zpt*10**(-new_photom[band]/2.5)*1000 #mJy
             errname = band+"_err"
-            if new_photom[errname] != -999.0:
+            if new_photom[errname] < 0:
                 new_photom[errname] = -99.0
             else:
                 new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
-        
+            new_photom.rename_column(band,band.replace("W","WISE"))
+            new_photom.rename_column(band+'_err',band.replace("W","WISE")+"_err")
         # Write to file
         try:
             new_photom.write(filename, format="fits", overwrite=overwrite)
