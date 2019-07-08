@@ -309,7 +309,7 @@ class FRBGalaxy(object):
             if new_photom[errname] < 0:
                 new_photom[errname] = -99.0
             else:
-                new_photom[errname] = new_photom[errname]/1.087*new_photom[band]
+                new_photom[errname] = new_photom[band]*(10**(new_photom[errname]/2.5)-1)
             new_photom.rename_column(band,band.replace("W","WISE"))
             new_photom.rename_column(band+'_err',band.replace("W","WISE")+"_err")
         # Write to file
