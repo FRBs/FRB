@@ -11,6 +11,7 @@ from pkg_resources import resource_filename
 from astropy import units
 from astropy import constants
 
+
 def em_from_halpha(sb_obs, z, T=1e4*units.K):
     """
     Estimate EM from the observed Halpha surface brightness
@@ -39,3 +40,23 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
     # Return
     return EM_Ha
 
+def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
+    """
+    This follows the formalism presented in Tendulkar+2017
+    which follows Reynolds 1977 and Cordes+2016
+
+    Args:
+        EM:
+        L:
+        ff:
+        eps:
+        cloudcloud:
+
+    Returns:
+        Quantity: DM at the source;  correct for (1+z)^-1 at your liking
+    """
+    # DM at the source
+    DM_s = 387 * units.pc / units.cm**2 * np.sqrt(L.to('kpc').value) * np.sqrt(
+        ff/(cloudcloud * (1+eps**2)/4)) * np.sqrt(EM.to('pc/cm**6').value/600)
+    # Return
+    return DM_s
