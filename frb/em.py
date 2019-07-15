@@ -40,6 +40,7 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
     # Return
     return EM_Ha
 
+
 def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
     """
     This follows the formalism presented in Tendulkar+2017
