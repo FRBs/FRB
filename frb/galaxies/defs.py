@@ -49,7 +49,7 @@ for band in WISE_bands:
     valid_filters.append('{:s}'.format(band))
 
 # GMOS
-GMOS_bands = ['g', 'r', 'i', 'z']
+GMOS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in GMOS_bands:
     valid_filters.append('GMOS_{:s}'.format(band))
 
