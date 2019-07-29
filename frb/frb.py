@@ -12,10 +12,40 @@ from astropy.cosmology import Planck15
 
 from frb import utils
 from frb import mw
+from frb.galaxies import frbgalaxy
 
 
 class GenericFRB(object):
     """
+    Parent object for FRBs
+
+
+    Args:
+        S : Quantity
+          Source density of the burst
+        nu_c : Quantity
+          Centre frequency
+        DM : Quantity
+        coord : multi-format, optional
+          RA/DEC in one of many formats (see utils.radec_to_coord)
+        cosmo:
+
+    Attributes:
+        fluence (Quantity):
+            Fluence
+        fluence_err (Quantity):
+        DM (Quantity):
+            Dispersion Measure
+        DM_err (Quantity):
+        RM (Quantity):
+            Rotation Measure
+        RM_err (Quantity):
+        lpol (float):
+            Linear Polarization (%)
+        lpol_err (Quantity):
+        refs (list):
+            List of str, reference names
+
     """
     @classmethod
     def from_dict(cls, idict, **kwargs):
@@ -75,24 +105,9 @@ class GenericFRB(object):
 
     def __init__(self, S, nu_c, DM, coord=None, cosmo=None):
         """
-        Parameters
-        ----------
-        S : Quantity
-          Source density of the burst
-        width : Quantity
-          Width
-        nu_c : Quantity
-          Centre frequency
-        DM : Quantity
-        coord : multi-format, optional
-          RA/DEC in one of many formats (see utils.radec_to_coord)
         """
         self.S = S
         self.nu_c = nu_c
-        self.DM = DM
-        self.DM_err = None
-        self.RM = DM
-        self.RM_err = None
         # NE2001 (for speed)
         self.DMISM = None
         self.DMISM_err = None
@@ -111,6 +126,17 @@ class GenericFRB(object):
         self.eellipse = {}
         self.z = None
         self.frb_name = None
+
+        self.fluence = None
+        self.fluence_err = None
+        self.DM = DM
+        self.DM_err = None
+        self.RM = None
+        self.RM_err = None
+        self.lpol = None
+        self.lpol_err = None
+
+        self.refs = []
 
         # dicts of attributes to be read/written
         self.main_dict = ['eellipse']
@@ -175,7 +201,6 @@ class GenericFRB(object):
         #
         return outfile
 
-
     def write_to_json(self, outfile=None, path='./', overwrite=True):
         """
         Write key aspects of the class to disk in a JSON file
@@ -201,11 +226,17 @@ class GenericFRB(object):
         if self.frb_name is not None:
             frb_dict['FRB'] = self.frb_name
         frb_dict['cosmo'] = self.cosmo.name
+        frb_dict['refs'] = self.refs
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'DM_err', 'z', 'RM', 'RM_err', 'DMISM', 'DMISM_err']:
+        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
+            # Value
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
+            # Error
+            if hasattr(self, attr+'_err'):
+                if getattr(self, attr+'_err') is not None:
+                    frb_dict[attr+'_err'] = getattr(self, attr+'_err')
 
         # Main dicts
         for idict in self.main_dict:
@@ -231,6 +262,7 @@ class FRB(GenericFRB):
     """
     FRB class used for actual, observed FRBs
 
+
     """
 
     @classmethod
@@ -252,7 +284,7 @@ class FRB(GenericFRB):
         slf = cls(idict['FRB'], coord, DM, **kwargs)
         for key in ['ra','dec','DM']:
             idict.pop(key)
-        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err']:
+        for key in ['DM_err', 'DMISM', 'DMISM_err', 'RM', 'RM_err', 'fluence', 'fluence_err']:
             if key in idict.keys():
                 setattr(slf,key,units.Quantity(idict[key]['value'], unit=idict[key]['unit']))
                 idict.pop(key)
@@ -308,6 +340,17 @@ class FRB(GenericFRB):
 
         self.frb_name = frb_name
         self.z = z_frb
+
+    def grab_host(self):
+        """
+        Returns the FRBHost object for this FRB
+
+        Returns:
+            frb.galaxies.frbgalaxy.FRBHost
+
+        """
+        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        return frbHost
 
     def __repr__(self):
         txt = '<{:s}: {} J{}{} DM={}'.format(

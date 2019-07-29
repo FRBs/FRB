@@ -36,6 +36,7 @@ def test_igmDM():
 
 
 def test_z_from_DM():
+    # Note this removes 100 DM units of 'nuisance'
     z = igm.z_from_DM(1000.*u.pc/u.cm**3)
     # Test
-    assert np.isclose(z, 0.95200554, rtol=0.001)
+    assert np.isclose(z, 0.86206876, rtol=0.001)

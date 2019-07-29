@@ -8,6 +8,7 @@ import numpy as np
 import warnings
 from astropy.table import Table
 from astropy import units
+import warnings
 
 import sys, os
 try:
@@ -144,7 +145,7 @@ class DL_Survey(surveycoord.SurveyCoord):
             band = "r"
         elif band is None:
             band = self.bands[-1]
-            raise UserWarning("Retrieving cutout in {:s} band".format(band))
+            warnings.warn("Retrieving cutout in {:s} band".format(band))
 
         img_hdu = self.get_image(imsize, band)
         if img_hdu is not None:

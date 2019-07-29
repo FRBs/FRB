@@ -44,7 +44,7 @@ out all the packages and their version numbers.
 The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v3.8 (v3.9 currently fails)
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.3.8 (v0.3.9 currently fails)
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
@@ -56,7 +56,7 @@ The following are required to run spectral line analysis (e.g. frb.galaxies.nebu
 
 The following are required to run some of the halo codes:
 
-* `hmf_emulator <https://github.com//hmf_emulator>`_  WARNING: This is JXP's fork.
+* `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 

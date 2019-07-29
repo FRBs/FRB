@@ -13,6 +13,20 @@ from astropy import units
 
 from frb.surveys import survey_utils
 
+def test_sdss():
+    try:
+        from dl import queryClient as qc, authClient as ac, helpers
+    except ImportError:
+        assert True
+        return
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+    #
+    sdss_srvy = survey_utils.load_survey_by_name('SDSS', coord, search_r)
+    sdss_tbl = sdss_srvy.get_catalog()
+    #
+    assert isinstance(sdss_tbl, Table)
+    assert len(sdss_tbl) == 2
 
 def test_wise():
     try:
@@ -78,7 +92,6 @@ def test_decals():
     #
     assert isinstance(decal_tbl, Table)
     assert len(decal_tbl) == 2
-
 
 
 
