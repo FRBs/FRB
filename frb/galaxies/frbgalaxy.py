@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-import pdb
+from IPython import embed
 import warnings
 
 from pkg_resources import resource_filename
@@ -12,12 +12,13 @@ from pkg_resources import resource_filename
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
-from astropy import constants
 from astropy.table import Table
 
 from frb.galaxies import defs
 from frb.galaxies import nebular
+from frb.galaxies import utils as gutils
 from frb import utils
+
 
 
 class FRBGalaxy(object):
@@ -263,22 +264,29 @@ class FRBGalaxy(object):
         assert (len(self.photom) > 0 ),"No photometry found. CIGALE cannot be run."
         assert (len(self.redshift) > 0),"No redshift found. CIGALE cannot be run"
         new_photom = Table([self.photom])
-        if ID is None:
-            ID = "GalaxyA"
+        if ID is None and self.name !='':
+            ID = self.name
+        elif self.name=='':
+            ID = 'GalaxyA'
         new_photom['id'] = ID
         new_photom['redshift'] = self.z
         
-        # Convert DES fluxes to mJy
-        for band in defs.DES_bands:
-            colname = "DES_"+band
-            new_photom[colname] = 3630780.5*10**(new_photom[colname]/-2.5)
-            new_photom[colname+"_err"] = new_photom[colname]*(10**(new_photom[colname+"_err"]/2.5)-1)
+        # Convert DES and SDSS fluxes to mJy
+        ABmagbands = ["DES_"+band for band in defs.DES_bands]
+        ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
+        for band in ABmagbands:
+            if band not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(band))
+                continue
+            new_photom[band] = 3630780.5*10**(new_photom[band]/-2.5)
+            new_photom[band+"_err"] = new_photom[band]*(10**(new_photom[band+"_err"]/2.5)-1)
         
         # Convert WISE fluxes to mJy
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             # Data exists??
             if band not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(band))
                 continue
             #
             new_photom[band] = zpt*10**(-new_photom[band]/2.5)
@@ -293,6 +301,57 @@ class FRBGalaxy(object):
             new_photom.write(filename, format="fits", overwrite=overwrite)
         except OSError:
             warnings.warn("File exists;  use overwrite=True if you wish")
+
+    def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
+        """
+        Return the meta data and spectra for this FRBGalaxy
+        from the specDB
+
+        If there is more than one spectrum, the code returns the first
+        unless return_all=True
+
+        Args:
+            instr (str, optional):
+                Restrict to the input Instrument
+            return_all (bool, optional):
+                Return all of the meta, spectra
+            specdb_file (str, optional):
+                Path+name of the specDB file to use (over-ride the default)
+
+        Returns:
+            astropy.table.Table, linetools.spectra.XSpectrum1D: meta data, spectra
+
+        """
+
+        specDB = gutils.load_specdb(specdb_file=specdb_file)
+        if specDB is None:
+            return
+
+        # Grab the spectra
+        xspec, meta = specDB.spectra_from_coord(self.coord)
+
+        # Return all?
+        if return_all:
+            return meta, xspec
+
+        # Cut down
+        if instr is None:
+            if len(meta) > 1:
+                warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
+                xspec = xspec[0]
+                meta = meta[0:1]
+        else:
+            idx = meta['GROUP'] == instr
+            if np.sum(idx) == 0:
+                warnings.warn("No spectrum with instrument = {}".format(instr))
+                return
+            elif np.sum(idx) > 1:
+                warnings.warn("Multiple spectra returned for this galaxy.  Taking the first, but you may wish to specify your instrument")
+            xspec = xspec[np.where(idx)[0][0]]
+            meta = meta[np.where(idx)[0][0]]
+        # Return
+        return meta, xspec
+
 
     def parse_cigale(self, cigale_file, overwrite=True):
         """
@@ -556,6 +615,9 @@ class FRBGalaxy(object):
         Returns:
 
         """
+        # Generate path as needed
+        if not os.path.isdir(path):
+            os.mkdir(path)
         if outfile is None:
             outfile = self.make_outfile()
         # Build the dict
@@ -598,12 +660,28 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str): Nomiker of the FRB, e.g. 121102
-        z_frb (float, optional):  Redshift of the host, expected to be provided
+        FRB (str):
+            Nomiker of the FRB, e.g. 121102
+        z_frb (float, optional):
+            Redshift of the host, expected to be provided
 
     """
     @classmethod
     def by_name(cls, frb, **kwargs):
+        """
+        
+        Args:
+            frb (str):  FRB name with or without FRB, e.g. 180924 or FRB180924
+            **kwargs: 
+
+        Returns:
+            FRBHost:
+
+        """
+        # Strip off FRB
+        if frb[0:3] == 'FRB':
+            frb = frb[3:]
+        #
         path = os.path.join(resource_filename('frb', 'data/Galaxies/'), frb)
         json_file = os.path.join(path, FRBHost._make_outfile(frb))
         slf = cls.from_json(json_file, **kwargs)
@@ -626,13 +704,18 @@ class FRBHost(FRBGalaxy):
         Static method to generate outfile based on frbname
 
         Args:
-            frbname (str):  FRB name, e.g. 121102
+            frbname (str):  FRB name, e.g. 121102 or FRB121102
 
         Returns:
             str: outfile
 
         """
-        outfile = 'FRB{}_host.json'.format(frbname)
+        if frbname[0:3] != 'FRB':
+            prefix = 'FRB'
+        else:
+            prefix = ''
+        #
+        outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
 
     def make_outfile(self):
@@ -673,6 +756,9 @@ class FRBHost(FRBGalaxy):
 
 
 class FGGalaxy(FRBGalaxy):
+    """
+    Foreground galaxy class (child of FRBGalaxy)
+    """
 
     def __init__(self, ra, dec, frb, **kwargs):
         # Instantiate

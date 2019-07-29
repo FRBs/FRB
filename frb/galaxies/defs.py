@@ -29,6 +29,11 @@ valid_e = [
 valid_filters = []
 
 # DES
+SDSS_bands = ['u', 'g', 'r', 'i', 'z']
+for band in SDSS_bands:
+    valid_filters.append('SDSS_{:s}'.format(band))
+    
+# DES
 DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
@@ -42,7 +47,12 @@ for band in VLT_bands:
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in WISE_bands:
     valid_filters.append('{:s}'.format(band))
-    
+
+# GMOS
+GMOS_bands = ['u', 'g', 'r', 'i', 'z']
+for band in GMOS_bands:
+    valid_filters.append('GMOS_{:s}'.format(band))
+
 valid_photom = valid_filters
 
 ##############################################################
