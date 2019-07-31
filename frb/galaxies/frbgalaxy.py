@@ -275,6 +275,8 @@ class FRBGalaxy(object):
         ABmagbands = ["DES_"+band for band in defs.DES_bands]
         ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
         ABmagbands += ['VLT_'+band for band in defs.VLT_bands]
+        #ABmagbands += ['VISTA_'+band for band in defs.VISTA_bands]
+        ABmagbands += ['Pan-STARRS_'+band for band in defs.PanSTARRS_bands]
         for band in ABmagbands:
             if band not in self.photom.keys():
                 print("{:s} not found in the data; skipping".format(band))
@@ -296,7 +298,16 @@ class FRBGalaxy(object):
                 new_photom.rename_column('VLT_'+band+"_err","FORS2_"+band.lower()+'_err')
             except KeyError:
                 continue
+        
+        #Rename Pan-STARRS to PAN-STARRS
+        for band in defs.PanSTARRS_bands:
+            try:
+                new_photom.rename_column("Pan-STARRS_"+band,'PAN-STARRS_'+band)
+                new_photom.rename_column("Pan-STARRS_"+band+"_err","PAN-STARRS_"+band+"_err")
+            except KeyError:
+                continue
         # Convert WISE fluxes to mJy
+        #TODO: Make this a function.
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             # Data exists??
@@ -312,6 +323,21 @@ class FRBGalaxy(object):
                 new_photom[errname] = new_photom[band]*(10**(new_photom[errname]/2.5)-1)
             new_photom.rename_column(band,band.replace("W","WISE"))
             new_photom.rename_column(band+'_err',band.replace("W","WISE")+"_err")
+        #Convert VISTA fluxes to mJy
+        vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+        for band, zpt in zip(defs.VISTA_bands,vista_fnu0):
+            # Data exists??
+            if 'VISTA_'+band not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(band))
+                continue
+            #
+            new_photom['VISTA_'+band] = zpt*10**(-new_photom['VISTA_'+band]/2.5)*1000 #mJy
+            errname = 'VISTA_'+band+"_err"
+            if new_photom[errname] < 0:
+                new_photom[errname] = -99.0
+            else:
+                new_photom[errname] = new_photom['VISTA_'+band]*(10**(new_photom[errname]/2.5)-1)
+        
         # Write to file
         try:
             new_photom.write(filename, format="fits", overwrite=overwrite)

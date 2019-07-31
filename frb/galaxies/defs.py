@@ -58,6 +58,11 @@ GMOS_bands = ['g', 'r', 'i', 'z']
 for band in GMOS_bands:
     valid_filters.append('GMOS_{:s}'.format(band))
 
+# VISTA (VIRCAM)
+VISTA_bands = ['Y','J','H','Ks']
+for band in VISTA_bands:
+    valid_filters.append('VISTA_{:s}'.format(band))
+
 valid_photom = valid_filters
 
 ##############################################################
