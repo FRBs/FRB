@@ -275,7 +275,6 @@ class FRBGalaxy(object):
         ABmagbands = ["DES_"+band for band in defs.DES_bands]
         ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
         ABmagbands += ['VLT_'+band for band in defs.VLT_bands]
-        #ABmagbands += ['VISTA_'+band for band in defs.VISTA_bands]
         ABmagbands += ['Pan-STARRS_'+band for band in defs.PanSTARRS_bands]
         for band in ABmagbands:
             if band not in self.photom.keys():
