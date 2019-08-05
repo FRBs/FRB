@@ -159,7 +159,15 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
 
 def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
-
+    """
+    Returns the url corresponding to the requested image cutout
+    Args:
+        coord (astropy SkyCoord): Center of the search area.
+        imsize (astropy Angle): Length and breadth of the search area.
+        filt (str): 'g','r','i','z','y'
+        output_size (int): display image size (length) in pixels
+        imgformat (str): "fits","png" or "jpg"
+    """
     assert imgformat in ['jpg','png','fits'], "Image file can be only in the formats 'jpg', 'png' and 'fits'."
     if color:
         assert len(filt)==3,"Three filters are necessary for a color image"
@@ -188,6 +196,15 @@ def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits"
     return url
  
 def _check_columns(columns,table,release):
+    """
+    Checks if the requested columns are present in the
+    table from which data is to be pulled. Raises an error
+    if those columns aren't found.
+    Args:
+        columns (list of str): column names to retrieve
+        table (str): "mean","stack" or "detection"
+        release (str): "dr1" or "dr2"
+    """
     dcols = {}
     for col in _ps1metadata(table,release)['name']:
         dcols[col.lower()] = 1
@@ -203,6 +220,9 @@ def _check_legal(table,release):
     Checks if this combination of table and release is acceptable
     Raises a VelueError exception if there is problem.
     Taken from http://ps1images.stsci.edu/ps1_dr2_api.html
+    Args:
+        table (str): "mean","stack" or "detection"
+        release (str): "dr1" or "dr2"
     """
     
     releaselist = ("dr1", "dr2")
@@ -219,11 +239,10 @@ def _ps1metadata(table="stack",release="dr2",
            baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
     """Return metadata for the specified catalog and table
     
-    Parameters
-    ----------
-    table (string): mean, stack, or detection
-    release (string): dr1 or dr2
-    baseurl: base URL for the request
+    Args:
+        table (string): mean, stack, or detection
+        release (string): dr1 or dr2
+        baseurl: base URL for the request
     
     Returns an astropy table with columns name, type, description
     """
