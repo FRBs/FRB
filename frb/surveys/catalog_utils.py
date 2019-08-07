@@ -8,6 +8,7 @@ from astropy import units
 # Import check
 try:
     from astroquery.heasarc import Heasarc
+    #from astroquery.xmatch import XMatch
 except ImportError:
     print("Warning: You need to install astroquery to use the survey tools...")
 else:
@@ -164,4 +165,17 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     # Return
     return summary_list
 
-
+    '''
+    TODO: Write this function once CDS starts working again (through astroquery) 
+    def xmatch_gaia(catalog,max_sep = 5*u.arcsec,racol='ra',deccol='dec'):
+        """
+        Cross match against Gaia DR2
+        and return the cross matched table.
+        Args:
+            max_sep (Angle): maximum separation to be
+                            considered a valid match.
+        Returns:
+            xmatch_tab (Table): a table with corss matched
+                                entries.
+        """
+    ''' 

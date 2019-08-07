@@ -226,7 +226,7 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
     ebvdict = {}
     for elem in statchild.findall('*'):
         if definition in elem.tag:
-            ebvdict[elem.tag.replace(definition,'')] = elem.text.split()[0]
+            ebvdict[elem.tag.replace(definition,'')] = float(elem.text.split()[0])
     
     if get_ext_table:
         table_url = root.find('result/data/table').text.split()[0]
