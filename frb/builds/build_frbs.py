@@ -59,6 +59,35 @@ def frb_180924():
     path = resource_filename('frb', 'data/FRBs')
     frb180924.write_to_json(path=path)
 
+def frb_181112():
+    """
+    Generate the JSON file for FRB 181112
+    All of the data comes from Prochaska+2019
+
+    Returns:
+
+    """
+    frb181112 = frb.FRB('FRB181112', 'J214923.63-525815.33',
+                        589.27 * units.pc / units.cm**3,
+                        z_frb=0.4755)
+    # Error in DM
+    frb181112.DM_err = 0.03 * units.pc / units.cm**3
+    # Error ellipse
+    frb181112.set_ee(a=555.30/1e3, b=152.93/1e3, theta=120.15, cl=68.)
+    # RM
+    frb181112.RM = 10.9 * units.rad / units.m**2
+    frb181112.RM_err = 0.9 * units.rad / units.m**2
+
+    # NE2001
+    frb181112.set_DMISM()
+
+    # References
+    frb181112.refs = ['Prochaska2019']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb181112.write_to_json(path=path)
+
 def main(inflg='all'):
 
     if inflg == 'all':
@@ -74,9 +103,14 @@ def main(inflg='all'):
     if flg & (2**1):
         frb_180924()
 
+    # 181112
+    if flg & (2**2):
+        frb_181112()
 
 
 # Command line execution
+#  Only for testing
+#  Use the Build script to build
 if __name__ == '__main__':
     # FRB 121102
     frb_121102()
