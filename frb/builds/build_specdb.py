@@ -271,6 +271,10 @@ def main(inflg='all'):
     if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
 
+    # Public
+    if flg & (2**1):
+        generate_by_refs(['Prochaska2019', 'Bannister2019'], 'specDB_Public.hdf5', 'v0.1')
+
 
 # Command line execution
 if __name__ == '__main__':
