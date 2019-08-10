@@ -1,0 +1,36 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 589.27
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 42.395814203084775
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.03
+    },
+    "FRB": "FRB181112",
+    "RM": {
+        "unit": "rad / m2",
+        "value": 10.9
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 0.9
+    },
+    "cosmo": "Planck15",
+    "dec": -52.970925,
+    "eellipse": {
+        "a": 0.5552999999999999,
+        "b": 0.15293,
+        "cl": 68.0,
+        "theta": 120.15
+    },
+    "ra": 327.34845833333327,
+    "refs": [
+        "Prochaska2019"
+    ],
+    "z": 0.4755
+}
