@@ -1,33 +1,51 @@
 """ Module for generating a finder chart """
 import os
 import numpy as np
-from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from IPython import embed
 
-from pkg_resources import resource_filename
-
 from matplotlib import pyplot as plt
-from matplotlib.patches import Rectangle
 
 from astropy import units
-from astropy.coordinates import SkyCoord
-from astropy import units
-from astropy.wcs import WCS
 from astropy.visualization.wcsaxes import SphericalCircle
 
 from linetools import utils as ltu
 
 from frb.figures import utils
 
+
 def generate(image, wcs, title,
              primary_coord=None, secondary_coord=None, vmnx=None,
-             slit=None, outfile=None):
+             outfile=None):
+    """
+    Basic method to generate a Finder chart figure
+
+    Args:
+        image (np.ndarray):
+          Image for the finder
+        wcs (astropy.coordinates.wcs):
+          WCS solution
+        title (str):
+          TItle; typically the name of the primry source
+        primary_coord (astropy.coordinates.SkyCoord, optional):
+          If provided, place a mark in red at this coordinate
+        secondary_coord (astropy.coordinates.SkyCoord, optional):
+          If provided, place a mark in yellow at this coordinate
+        vmnx (tuple, optional):
+          Used for scaling the image
+        outfile (str, optional):
+          Filename for the figure.  File type will be according
+          to the extension
+
+    Returns:
+        matplotlib.pyplot.figure, matplotlib.pyplot.Axis
+
+    """
 
     utils.set_mplrc()
 
     plt.clf()
-    fig = plt.figure(dpi=1200)
+    fig = plt.figure(dpi=600)
     fig.set_size_inches(7.5,10.5)
 
     ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
@@ -56,7 +74,7 @@ def generate(image, wcs, title,
     if primary_coord is not None:
         c = SphericalCircle((primary_coord.ra, primary_coord.dec),
                         2*units.arcsec, transform=ax.get_transform('icrs'),
-                        edgecolor='yellow', facecolor='none')
+                        edgecolor='red', facecolor='none')
         ax.add_patch(c)
         # Text
         jname = ltu.name_from_coord(primary_coord)
@@ -105,3 +123,6 @@ def generate(image, wcs, title,
         plt.close()
     else:
         plt.show()
+
+    # Return
+    return fig, ax

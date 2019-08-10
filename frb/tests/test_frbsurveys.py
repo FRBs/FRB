@@ -1,7 +1,5 @@
 # Module to run tests on surveys
 #  Most of these are *not* done with Travis yet
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 # TEST_UNICODE_LITERALS
 
 import pytest
