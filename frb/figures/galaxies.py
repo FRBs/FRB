@@ -120,8 +120,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     # Legend
     ax_BPT.legend(loc="lower left")
     # Axes
-    ax_BPT.set_xlabel(r"$\log \, ({\rm [NII]/H_\alpha)}$")
-    ax_BPT.set_ylabel(r"$\log \, ({\rm [OIII]/H_\beta)}$")
+    ax_BPT.set_xlabel(r"$\log \, ({\rm [N\textsc{ii}]/H\,\alpha)}$")
+    ax_BPT.set_ylabel(r"$\log \, ({\rm [O\textsc{iii}]/H\,\beta)}$")
     ax_BPT.set_xlim(-1.5, 0.5)
     ax_BPT.set_ylim(-1, 1.2)
     utils.set_fontsize(ax_BPT, 13.)
