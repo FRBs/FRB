@@ -1,7 +1,7 @@
 """ Utilities related to FRB galaxies"""
 
 import os
-import warnings
+import glob
 from IPython import embed
 
 try:
@@ -25,10 +25,17 @@ def load_specdb(specdb_file=None):
 
     """
     if not flg_specdb:
-        warnings.warn("You must install the specdb package first!")
+        raise IOError("You must install the specdb package first!")
         return
     if specdb_file is None:
-        specdb_file = os.path.join(os.getenv('SPECDB'), 'FRB_specDB.hdf5')
+        if os.getenv('SPECDB') is None:
+            raise IOError("You must set the SPECDB environmental variable")
+        specdb_files = glob.glob(os.path.join(os.getenv('SPECDB'), 'FRB_specDB_*.hdf5'))
+        if len(specdb_files) > 0:
+            specdb_file = specdb_files[0]
+            print("Loading spectra from {:s}".format(specdb_file))
+        else:
+            raise IOError("There are no FRB_specdb.hdf5 files in your SPECDB folder")
     # Load it up
     specDB = SpecDB(db_file=specdb_file)
     # Return
