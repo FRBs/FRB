@@ -38,4 +38,4 @@ You will need to:
 Accessing a spectrum
 --------------------
 
-You can load up 
+You can load up
