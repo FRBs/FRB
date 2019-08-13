@@ -20,6 +20,14 @@ Getting Started
 
    installing
 
+Data
+----
+
+.. toctree::
+   :maxdepth: 2
+
+   data
+
 Dispersion Measure
 ------------------
 
