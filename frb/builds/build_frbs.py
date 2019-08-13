@@ -88,6 +88,36 @@ def frb_181112():
     path = resource_filename('frb', 'data/FRBs')
     frb181112.write_to_json(path=path)
 
+
+def frb_190523():
+    """Ravi+19"""
+    fname = 'FRB190523'
+    frb190523 = frb.FRB(fname, 'J134815.6+722811',
+                        760.8 * units.pc / units.cm**3,
+                        z_frb=0.660)
+    # Error ellipse [REQUIRED]
+    frb190523.set_ee(5, 2, 0., 340) # JXP eyeball
+    # Error in DM
+    frb190523.DM_err = 0.6 * units.pc / units.cm**3
+
+    # Fluence
+    frb190523.fluence = 280 * units.Jy * units.ms
+    #frb180924.fluence_err = 1 * units.Jy * units.ms
+
+    # NE2001
+    frb190523.set_DMISM()
+
+    # RM
+    #frb190102.RM = 10 * units.rad / units.m**2
+    #frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb190523.refs = ['Ravi2019']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190523.write_to_json(path=path)
+
 def main(inflg='all'):
 
     if inflg == 'all':
@@ -106,6 +136,11 @@ def main(inflg='all'):
     # 181112
     if flg & (2**2):
         frb_181112()
+
+    # 195023
+    if flg & (2**3):
+        frb_190523()
+
 
 
 # Command line execution
