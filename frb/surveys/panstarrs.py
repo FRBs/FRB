@@ -173,8 +173,3 @@ def get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",
             url.append(urlbase+extensions)
     return url
 
-
-
-
-        
-        
