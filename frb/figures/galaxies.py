@@ -14,7 +14,8 @@ from frb.figures import utils
 
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
-def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
+def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
+            show_legend=True):
     """
     Generate a BPT diagram
 
@@ -34,6 +35,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
             Show the BPT lines?
         SDSS_clr (str, optional):
           Set the color map for SDSS
+        show_legend (bool, optional):
+          Show a legend
 
     Returns:
         ax_BPT is modified in place
@@ -118,7 +121,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn'):
     ax_BPT.annotate(r"\textbf{Seyfert}", (-0.5, 1), fontsize=lsz)
 
     # Legend
-    ax_BPT.legend(loc="lower left")
+    if show_legend:
+        ax_BPT.legend(loc="lower left")
     # Axes
     ax_BPT.set_xlabel(r"$\log \, ({\rm [N\textsc{ii}]/H\,\alpha)}$")
     ax_BPT.set_ylabel(r"$\log \, ({\rm [O\textsc{iii}]/H\,\beta)}$")
