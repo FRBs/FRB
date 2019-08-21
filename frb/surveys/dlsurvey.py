@@ -99,7 +99,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
-        
+
         if band.lower() not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
 
@@ -114,6 +114,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         #Select band
         selection = imgTable['obs_bandpass'].astype(str)==bandstr
 
+        #from IPython import embed; embed(header='117')
         #Select images in that band
         for column, value in zip(table_cols,col_vals):
             selection = selection & ((imgTable[column].astype(str)==value))
@@ -141,19 +142,20 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         self.cutout_size = imsize
 
-        if "r" in self.bands:
-            band = "r"
-        elif band is None:
-            band = self.bands[-1]
-            warnings.warn("Retrieving cutout in {:s} band".format(band))
+        if band is None:
+            if "r" in self.bands:
+                band = "r"
+            elif band is None:
+                band = self.bands[-1]
+                warnings.warn("Retrieving cutout in {:s} band".format(band))
 
         img_hdu = self.get_image(imsize, band)
         if img_hdu is not None:
             self.cutout = img_hdu.data
             self.cutout_hdr = img_hdu.header
         else:
-            self.cutout = img_hdu.data
-            self.cutout_hdr = img_hdu.header
+            self.cutout = None
+            self.cutout_hdr = None
         return self.cutout, self.cutout_hdr
 
 
