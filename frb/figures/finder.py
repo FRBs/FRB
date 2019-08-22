@@ -15,8 +15,9 @@ from frb.figures import utils
 
 
 def generate(image, wcs, title,
-             primary_coord=None, secondary_coord=None, vmnx=None,
-             outfile=None):
+             primary_coord=None, secondary_coord=None,
+             third_coord=None,
+             vmnx=None, outfile=None):
     """
     Basic method to generate a Finder chart figure
 
@@ -30,6 +31,9 @@ def generate(image, wcs, title,
         primary_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in red at this coordinate
         secondary_coord (astropy.coordinates.SkyCoord, optional):
+          If provided, place a mark in cyan at this coordinate
+          Assume it is an offset star (i.e. calculate offsets)
+        third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         vmnx (tuple, optional):
           Used for scaling the image
@@ -51,9 +55,6 @@ def generate(image, wcs, title,
     ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
     cimg = ax.imshow(image, cmap='Greys')#, vmin=-1006, vmax=1702)
 
-    # Turn off
-    lon = ax.coords[0]
-    lat = ax.coords[1]
 
     # N/E
     overlay = ax.get_coords_overlay('icrs')
@@ -101,6 +102,12 @@ def generate(image, wcs, title,
             ax.text(0.5, 1.14, 'RA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
                 -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
                      fontsize=18, horizontalalignment='center',transform=ax.transAxes)
+    # Add tertiary
+    if third_coord is not None:
+        c = SphericalCircle((third_coord.ra, third_coord.dec),
+                            2*units.arcsec, transform=ax.get_transform('icrs'),
+                            edgecolor='yellow', facecolor='none')
+        ax.add_patch(c)
     # Slit?
     '''
     if slit is not None:

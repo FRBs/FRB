@@ -11,6 +11,49 @@ foreground to them.  This includes measurements
 (e.g. photometry), derived quantities (e.g. star formation
 rate), and observational data (e.g. spectra).
 
+FRBs
+====
+
+For FRBs included in this repository, currently those that
+are well localized and published, we have archived a set
+of basic measaurements, e.g. coordinates.  These are
+saved as a set of JSON files in the data/FRBs/ folder
+of the repository.
+
+One can load these data into an FRB object as follows::
+
+    frb121102 = ffrb.FRB.by_name('FRB121102')
+    # Coordinate
+    frb121102.coord
+    # Error ellipse
+    frb121101.eelipse
+    # DM
+    frb121101.DM
+
+RM and other measurements are also included
+when available.  See the FRB_Event.ipynb notebook
+for a bit more.
+
+Host Galaxies
+=============
+
+When a high probability association has been made for an
+FRB to its host galaxy, we also include data on the latter.
+
+Here is an example for 180924::
+
+    # Instantiate the FRB
+    frb180924 = frb.FRB.by_name('FRB180924')
+    # Grab its host
+    hg180924 = frb180924.grab_host()
+    # Derived properties
+    hg180924.derived
+    # Grab the spectrum (see data access below)
+    meta, spec = hg180924.get_metaspec()
+
+Future code will generate tables of the key quantities
+for the galaxies.
+
 Spectra
 =======
 

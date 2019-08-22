@@ -14,12 +14,15 @@ from astropy.io import fits
 
 from frb.figures import finder
 
+remote_data = pytest.mark.remote_data
+
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
     return os.path.join(data_dir, filename)
 
-
+@remote_data
 def test_basic():
+    # Requires a local latex installation which travis doesn't have..
     # Load up an image
     hdul = fits.open(data_path('DES_r.fits'))
     header = hdul[0].header
