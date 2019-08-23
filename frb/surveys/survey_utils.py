@@ -14,7 +14,8 @@ allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', '
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
-    
+    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
+
     Args:
         name (str): Name of the survey 
         coord (astropy.coordiantes.SkyCoord): Coordinate to define survey around 
