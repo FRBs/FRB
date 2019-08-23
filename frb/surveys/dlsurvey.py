@@ -99,8 +99,8 @@ class DL_Survey(surveycoord.SurveyCoord):
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
-
-        if band.lower() not in self.bands:
+        
+        if band.lower() not in self.bands and band not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
 
         table_cols, col_vals, bandstr = self._parse_cat_band(band)
