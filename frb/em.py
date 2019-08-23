@@ -3,10 +3,6 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
-import pdb
-import os
-
-from pkg_resources import resource_filename
 
 from astropy import units
 from astropy import constants
@@ -19,6 +15,12 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
     Follows the Reynolds 1977 formalism
 
     Args:
+        sb_obs (Quantity):
+            Observed surface brightness
+        z (float):
+            Redshift of the galaxy
+        T (Quantity, optional):
+            Temperature for the analysis
 
     Returns:
         Quantity: EM
@@ -47,11 +49,14 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
     which follows Reynolds 1977 and Cordes+2016
 
     Args:
-        EM:
-        L:
-        ff:
-        eps:
-        cloudcloud:
+        EM (Quantity):
+          Emission measure
+        L (Quantity):
+          Size of the source
+        ff (float, optional):
+          Filling factor
+        eps (float, optional):
+        cloudcloud (float, optional):
 
     Returns:
         Quantity: DM at the source;  correct for (1+z)^-1 at your liking
