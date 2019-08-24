@@ -28,7 +28,7 @@ valid_e = [
 # Filters
 valid_filters = []
 
-# DES
+# SDSS
 SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
     valid_filters.append('SDSS_{:s}'.format(band))
@@ -37,6 +37,11 @@ for band in SDSS_bands:
 DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
+
+#PanSTARRS
+PanSTARRS_bands = ['g','r','i','z','y']
+for band in PanSTARRS_bands:
+    valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
 # VLT
 VLT_bands = ['g', 'I']
@@ -49,9 +54,14 @@ for band in WISE_bands:
     valid_filters.append('{:s}'.format(band))
 
 # GMOS
-GMOS_bands = ['g', 'r', 'i', 'z']
+GMOS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in GMOS_bands:
     valid_filters.append('GMOS_{:s}'.format(band))
+
+# VISTA (VIRCAM)
+VISTA_bands = ['Y','J','H','Ks']
+for band in VISTA_bands:
+    valid_filters.append('VISTA_{:s}'.format(band))
 
 valid_photom = valid_filters
 
