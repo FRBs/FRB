@@ -24,14 +24,14 @@ def parser(options=None):
         pargs = parser.parse_args(options)
     return pargs
 
-def plot_spec(casbah_gspec, meta, frb=None):
+def plot_spec(specDB, meta, frb=None):
     import numpy as np
     from astropy.coordinates import SkyCoord
     from linetools import utils as ltu
 
     """ Plot galaxy spectra """
     # Grab spectra
-    spec = casbah_gspec.spectra_from_meta(meta)
+    spec = specDB.spectra_from_meta(meta)
     # Add labels
     lbls = ['None']*len(meta)
     ugroups = np.unique(meta['GROUP'])

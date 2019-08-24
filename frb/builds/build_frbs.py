@@ -10,7 +10,7 @@ from frb import frb
 
 def frb_121102():
     """
-    FRB 180924
+    FRB 121102
         All of the data currently comes from Tendulkar et al. 2017
     """
     frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',

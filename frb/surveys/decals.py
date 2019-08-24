@@ -49,7 +49,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
         
@@ -65,7 +65,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         # Query
-        main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query)
+        main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:

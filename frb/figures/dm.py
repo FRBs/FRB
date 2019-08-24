@@ -92,22 +92,22 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
     DM_ISM_Halo = DM_cumul[-1]
 
-    '''
-    # M31
-    m31 = M31()
-    a,c =1,0
-    x0, y0 = m31.distance.to('kpc').value, 0. # kpc (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
-    sep = m31.coord.separation(coord)
-    atan = np.arctan(sep.radian)
-    b = -1 * a / atan
-    M31_Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a ** 2 + b ** 2)  # kpc
-    zval, M31_DM_cumul = m31.Ne_Rperp(M31_Rperp * u.kpc, rmax=1., cumul=True)
-    # Add em in
-    ds += (zval+x0).tolist()
-    DM_cumul += (M31_DM_cumul+DM_ISM_Halo).tolist()
+    if M31 is not None:
+        raise NotImplemented
+        # M31
+        m31 = M31()
+        a,c =1,0
+        x0, y0 = m31.distance.to('kpc').value, 0. # kpc (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
+        sep = m31.coord.separation(coord)
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+        M31_Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a ** 2 + b ** 2)  # kpc
+        zval, M31_DM_cumul = m31.Ne_Rperp(M31_Rperp * u.kpc, rmax=1., cumul=True)
+        # Add em in
+        ds += (zval+x0).tolist()
+        DM_cumul += (M31_DM_cumul+DM_ISM_Halo).tolist()
 
     #DM_LG = 0.
-    '''
     DM_LG = DM_cumul[-1]
 
     # IGM
