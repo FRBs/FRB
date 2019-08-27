@@ -54,6 +54,7 @@ def generate(image, wcs, title,
 
     ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
     cimg = ax.imshow(image, cmap='Greys')#, vmin=-1006, vmax=1702)
+    ax.invert_xaxis()
 
 
     # N/E
