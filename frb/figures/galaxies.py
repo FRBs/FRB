@@ -15,12 +15,12 @@ from frb.figures import utils
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
-            show_legend=True):
+            show_legend=True, bptdat=None):
     """
     Generate a BPT diagram
 
-    To use this code, you must download the SDSS_DR14_PM.fits file from
-    https://drive.google.com/file/d/17r9kLh_mWGRX7Zx3DNmQEhoCGNUmzcCY/view?usp=sharing
+    To use this code, you must download the SDSS_BPT_stellar_mass.fits file from
+    https://drive.google.com/open?id=1yHlfsvcRPXK73F6hboT1nM4bRF59ESab
     and put it in data/Public/SDSS
 
     Args:
@@ -37,6 +37,8 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
           Set the color map for SDSS
         show_legend (bool, optional):
           Show a legend
+        bptdat (Table like):
+            SDSS BPT data
 
     Returns:
         ax_BPT is modified in place
@@ -44,12 +46,13 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
     """
 
     # Read in data
-    sdss_file = os.path.join(resource_filename('frb', 'data'), 'Public', 'SDSS', 'SDSS_DR14_PM.fits')
-    if not os.path.isfile(sdss_file):
-        print("See the method notes to download the SDSS data!")
-        return
-    hdulist = fits.open(sdss_file)
-    bptdat = hdulist[1].data
+    if bptdat is None:
+        sdss_file = os.path.join(resource_filename('frb', 'data'), 'Public', 'SDSS', 'SDSS_BPT_stellar_mass.fits')
+        if not os.path.isfile(sdss_file):
+            print("See the method notes to download the SDSS data!")
+            return
+        hdulist = fits.open(sdss_file)
+        bptdat = hdulist[1].data
 
     # Select only non zero entries and SNR over 5
     lines = np.array(bptdat.names)[[("flux" in name) & ("err" not in name) for name in bptdat.names]]
