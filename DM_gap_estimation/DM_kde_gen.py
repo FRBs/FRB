@@ -47,8 +47,6 @@ DM_kde_rand_distribution  = DM_kde_rand[1]
 # np.save('DM_outputs/Final_kernel/DM_grid.npy', DM_grid)
 # np.save('DM_outputs/Final_kernel/DM_kde_rand_draws.npy',DM_kde_draws_rand)
 
-
-
 "PLOTS"
 
 "Plot for multiple kernels"
@@ -96,7 +94,6 @@ DM_kde_rand_distribution  = DM_kde_rand[1]
 # plt.savefig('DM_outputs/DM_kde'+str(num_frb_draws)+'.png')
 # plt.show()
 
-
 "Plot DM_FRB rand draws"
 # plt.plot(DM_grid, DM_kde_rand_distribution/np.sum(DM_kde_rand_distribution), linewidth=1, alpha=1, label=r'DM KDE', color='purple')
 # # plt.hist(DM_kde_draws_rand, density=True, bins=100, histtype='stepfilled', alpha=0.5, label=r'DM draws from KDE',color='purple')
@@ -108,55 +105,4 @@ DM_kde_rand_distribution  = DM_kde_rand[1]
 # plt.legend(fontsize=14)
 # plt.xlim(0,2500)
 # plt.savefig('DM_outputs/DM_kde_choice.png')
-# plt.show()
-
-# count_obs = 0
-# for i in DM_kde_draws: 
-#     if i < 100: 
-#         count_obs = count_obs + 1
-# print(count_obs)
-
-# count_rand = 0
-# for i in DM_kde_draws_rand: 
-#     if i < 100: 
-#         count_rand = count_rand + 1
-# print(count_rand)
-
-"Seaborn plot"
-sns.distplot(DM_frb, hist = True, kde = False, rug = False, bins=500,
-             color = 'darkblue', 
-             kde_kws={'linewidth': 2, 'bw':99},
-             rug_kws={'color': 'red'})
-# sns.distplot(DM_kde_draws, hist = False, kde = False, rug = True, bins=100,
-#              color = 'darkblue', 
-#              kde_kws={'linewidth': 2, 'bw':99},
-#              rug_kws={'color': 'red'})
-plt.axvline(x=100,linewidth=2,linestyle='dashed',label='Simulated gap value',color='k')
-# plt.title('{}/1000 draws fall below true gap'.format(count_obs),fontsize=40)
-plt.xlabel('$DM_{Simulated}$', fontsize=28)
-plt.ylabel('PDF', fontsize=28)
-plt.legend(fontsize=28)
-plt.xlim(0,1500)
-plt.tight_layout()
-plt.savefig('DM_outputs/KDE_FRB.png')
-plt.show()
-
-"Seaborn plot"
-# sns.distplot(DM_rand_draws, hist = True, kde = False, rug = False, bins=100,
-#              color = 'darkblue', 
-#              kde_kws={'linewidth': 2, 'bw':25},
-#              rug_kws={'color': 'black'})
-# sns.distplot(DM_kde_draws_rand, hist = False, kde = False, rug = True, bins=100,
-#              color = 'darkblue', 
-#              kde_kws={'linewidth': 2, 'bw':99},
-#              rug_kws={'color': 'red'})
-# plt.axvline(x=100,linewidth=2,linestyle='dashed',label='Simulated gap value',color='k')
-# plt.title('{}/1000 draws fall below simulated gap'.format(count_rand),fontsize=40)
-# plt.xlabel('$DM_{Simulated}$', fontsize=28)
-# plt.ylabel('PDF', fontsize=28)
-# plt.legend(fontsize=28)
-# plt.xlim(0,1500)
-# # plt.ylim(0,0.01)
-# plt.tight_layout()
-# plt.savefig('DM_outputs/KDE_rand_counts.png')
 # plt.show()

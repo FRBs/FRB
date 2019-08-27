@@ -91,17 +91,17 @@ np.save('DM_outputs/DM_frb.npy', DM_frb)
 
 "z_KDE"
 # fig = plt.figure()
-plt.hist(z_SFR_draws, density=True, bins=500, histtype='stepfilled', alpha=0.5, label=r'$z_{SFR}$')
-plt.hist(z_known_draws, density=True, bins=len(z_known_draws)+1, histtype='stepfilled', alpha=0.5, label=r'$z_{FRB, observed}$',color='r')
-plt.plot(z_grid[1:], z_kde[1], linewidth=1, alpha=1, label=r'KDE $z_{FRB, observed}$', color='r')
-plt.plot(z_grid[1:], z_SFR_distribution, linewidth=1, alpha=1, label=r'KDE $z_{FRB, SFR}$', color='blue')
-for xc in z_known_draws:
-    plt.axvline(x=xc,linewidth=1,color='k',linestyle='--')
-plt.xlabel('$z$', fontsize=14)
-plt.ylabel('PDF', fontsize=14)
-plt.legend(fontsize=14)
-plt.show()
-plt.savefig('DM_outputs/z_PDF')
+# plt.hist(z_SFR_draws, density=True, bins=500, histtype='stepfilled', alpha=0.5, label=r'$z_{SFR}$')
+# plt.hist(z_known_draws, density=True, bins=len(z_known_draws)+1, histtype='stepfilled', alpha=0.5, label=r'$z_{FRB, observed}$',color='r')
+# plt.plot(z_grid[1:], z_kde[1], linewidth=1, alpha=1, label=r'KDE $z_{FRB, observed}$', color='r')
+# plt.plot(z_grid[1:], z_SFR_distribution, linewidth=1, alpha=1, label=r'KDE $z_{FRB, SFR}$', color='blue')
+# for xc in z_known_draws:
+#     plt.axvline(x=xc,linewidth=1,color='k',linestyle='--')
+# plt.xlabel('$z$', fontsize=14)
+# plt.ylabel('PDF', fontsize=14)
+# plt.legend(fontsize=14)
+# plt.show()
+# plt.savefig('DM_outputs/z_PDF')
 
 "Plot DM_ave"
 # plt.plot(z_ave,DM_int_ave(z_ave),lw=2,label='Average DM Spline')

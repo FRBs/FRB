@@ -78,8 +78,3 @@ plt.show(block=True)
 
 "SAVE OUTPUT GAPS"
 np.save('DM_gap_outputs/DM_many_gaps_output.npy',DM_sim_draw_runs)
-
-
-"NOTES"
-#CV not a good way to optimize our kde bandwidth - always leads to underfitting/over smoothing
-#Pulsars and RRats provide gap from other side
