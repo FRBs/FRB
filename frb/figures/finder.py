@@ -8,13 +8,17 @@ from matplotlib import pyplot as plt
 
 from astropy import units
 from astropy.visualization.wcsaxes import SphericalCircle
+from astropy.stats import sigma_clipped_stats
+from astropy.visualization import LogStretch, mpl_normalize as mplnorm
+from astropy.nddata import Cutout2D
 
 from linetools import utils as ltu
 
 from frb.figures import utils
 
 
-def generate(image, wcs, title,
+def generate(image, wcs, title, log_stretch=False,
+             cutout=None,
              primary_coord=None, secondary_coord=None,
              third_coord=None,
              vmnx=None, outfile=None):
@@ -28,6 +32,11 @@ def generate(image, wcs, title,
           WCS solution
         title (str):
           TItle; typically the name of the primry source
+        log_stretch (bool, optional):
+            Use a log stretch for the image display
+        cutout (tuple, optional):
+            SkyCoord (center coordinate) and Quantity (image angular size)
+            for a cutout from the input image.
         primary_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in red at this coordinate
         secondary_coord (astropy.coordinates.SkyCoord, optional):
@@ -36,7 +45,8 @@ def generate(image, wcs, title,
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         vmnx (tuple, optional):
-          Used for scaling the image
+          Used for scaling the image.  Otherwise, the image
+          is analyzed for these values.
         outfile (str, optional):
           Filename for the figure.  File type will be according
           to the extension
@@ -52,8 +62,24 @@ def generate(image, wcs, title,
     fig = plt.figure(dpi=600)
     fig.set_size_inches(7.5,10.5)
 
+    # Cutout?
+    if cutout is not None:
+        cutout_img = Cutout2D(image, cutout[0], cutout[1], wcs=wcs)
+        # Overwrite
+        wcs = cutout_img.wcs
+        image = cutout_img.data
+
+    # Axis
     ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
-    cimg = ax.imshow(image, cmap='Greys')#, vmin=-1006, vmax=1702)
+
+    # Show
+    if log_stretch:
+        norm = mplnorm.ImageNormalize(stretch=LogStretch())
+    else:
+        norm = None
+    cimg = ax.imshow(image, cmap='Greys', norm=norm)
+
+    # Flip so RA increases to the left
     ax.invert_xaxis()
 
 
@@ -69,8 +95,12 @@ def generate(image, wcs, title,
     overlay.grid(color='green', linestyle='solid', alpha=0.5)
 
     # Contrast
-    if vmnx is not None:
-        cimg.set_clim(vmnx[0], vmnx[1])
+    if vmnx is None:
+        mean, median, stddev = sigma_clipped_stats(image)  # Also set clipping level and number of iterations here if necessary
+        #
+        vmnx = (median-stddev, median + 2*stddev)  # sky level - 1 sigma and +2 sigma above sky level
+        print("Using vmnx = {} based on the image stats".format(vmnx))
+    cimg.set_clim(vmnx[0], vmnx[1])
 
     # Add Primary
     if primary_coord is not None:
