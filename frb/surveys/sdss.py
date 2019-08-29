@@ -4,6 +4,7 @@ import numpy as np
 from IPython import embed
 
 from astropy import units
+from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy.table import Table
@@ -174,8 +175,12 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         # Image
         self.cutout = images.grab_from_url(sdss_url)
         self.cutout_size = imsize
+
+        # Fake a header for WCS only
+        hdr = fits.Header()
+
         # Return
-        return self.cutout, _
+        return self.cutout, None
 
 
 def get_url(coord, imsize=30., scale=0.39612, grid=False, label=False, invert=False):
