@@ -60,8 +60,8 @@ plt.show()
 all_kde_predictions_100 = np.array(DM_100_bootstrapped)
 kde_std_100 = np.std(all_kde_predictions_100, axis=0).reshape(-1)
 
-np.save('kde_std_data/std_100.npy',kde_std_100)
-np.save('kde_std_data/kde_100.npy',DM_kde_rand_100)
+np.save('kde_and_deft_data/std_100.npy',kde_std_100)
+np.save('kde_and_deft_data/kde_100.npy',DM_kde_rand_100)
 
 print('100 DONE')
 
@@ -93,8 +93,8 @@ plt.show()
 all_kde_predictions_1000 = np.array(DM_1000_bootstrapped)
 kde_std_1000 = np.std(all_kde_predictions_1000, axis=0).reshape(-1)
 
-np.save('kde_std_data/std_1000.npy',kde_std_1000)
-np.save('kde_std_data/kde_1000.npy',kde_1000)
+np.save('kde_and_deft_data/std_1000.npy',kde_std_1000)
+np.save('kde_and_deft_data/kde_1000.npy',kde_1000)
 
 print('1000 DONE')
 
@@ -112,7 +112,7 @@ DM_observed_bootstrapped = []
 for i in range(len(resample_observed)):
     kde_predictions = make_kde_funtion(grid=DM_grid, draws = resample_observed[i], min_bandwidth=25, max_bandwidth=100, bandwidth_stepsize=1, cv=30, kernel='gaussian')
     DM_observed_bootstrapped.append([kde_predictions])
-    plt.plot(DM_grid, kde_predictions,color='dodgerblue', alpha=.2, linewidth=1.5)
+    plt.plot(DM_grid, kde_predictions, color='dodgerblue', alpha=.2, linewidth=1.5)
 "Plot bootstrapped kde"
 plt.plot(DM_grid, DM_kde_known, color='blue')
 plt.xlabel('$DM$', fontsize=30)
@@ -125,8 +125,8 @@ plt.show()
 all_kde_predictions_obs = np.array(DM_observed_bootstrapped)
 kde_std_observed = np.std(all_kde_predictions_obs, axis=0).reshape(-1)
 
-np.save('kde_std_data/std_observed.npy', kde_std_observed)
-np.save('kde_std_data/kde_observed.npy', DM_kde_known)
+np.save('kde_and_deft_data/std_observed.npy', kde_std_observed)
+np.save('kde_and_deft_data/kde_observed.npy', DM_kde_known)
 
 print('OBSERVED DONE')
 

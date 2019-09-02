@@ -40,7 +40,7 @@ for i in DM_kde_draws_rand:
     if i < 100: 
         count_kde = count_kde + 1
 
-plt.plot(DM_grid,DM_kde_rand_distribution/np.sum(DM_kde_rand_distribution))
+plt.plot(DM_grid,DM_kde_rand_distribution*5)
 sns.distplot(DM_kde_draws_rand, hist = True, kde = False, rug = True, bins=300,
              color = 'darkblue', 
              kde_kws={'linewidth': 2, 'bw':25},
@@ -50,9 +50,28 @@ plt.title('{}/1000 draws fall below simulated gap'.format(count_kde),fontsize=40
 plt.xlabel('$DM_{KDE}$ Simulated', fontsize=18)
 plt.ylabel('PDF', fontsize=18)
 plt.legend(fontsize=28)
-plt.xlim(0,1500)
+plt.xlim(0,1800)
 plt.tight_layout()
 plt.savefig('DM_outputs/Counts_below_gap/KDE_counts.png')
 plt.show()
 
+"OBSERVED"
+kde_observed = np.load('kde_and_deft_data/kde_observed.npy')
+kde_observed = kde_observed/np.sum(kde_observed)
+#make kde from function and take draws
+kde_observed_pdf = make_pdf(distribution=kde_observed,num_of_draws=num_draws_from_kde,grid=DM_grid,stepsize=DM_stepsize)
+DM_kde_draws_observed = kde_observed_pdf[0]
+DM_kde_observed_distribution  = kde_observed_pdf[1]
+
+plt.plot(DM_grid,kde_observed*10000)
+sns.distplot(DM_kde_draws_observed, hist = True, kde = False, rug = True, bins=300,
+             color = 'darkblue', 
+             kde_kws={'linewidth': 2, 'bw':25},
+             rug_kws={'color': 'red'})
+plt.xlabel('$DM_{KDE}$ Observed', fontsize=18)
+plt.ylabel('PDF', fontsize=18)
+plt.xlim(0,1800)
+plt.tight_layout()
+plt.savefig('DM_outputs/Counts_below_gap/KDE_observed.png')
+plt.show()
 

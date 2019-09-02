@@ -28,19 +28,19 @@ matplotlib.rc('ytick', labelsize=30)
 random.seed(1919)
 
 "KDE: load datasets"
-kde_100 = np.load('kde_std_data/kde_100.npy')
-kde_1000 = np.load('kde_std_data/kde_1000.npy')
-kde_observed = np.load('kde_std_data/kde_observed.npy')
-kde_std_100 = np.load('kde_std_data/std_100.npy')
-kde_std_1000 = np.load('kde_std_data/std_1000.npy')
-kde_std_observed = np.load('kde_std_data/std_observed.npy')
+kde_100 = np.load('kde_and_deft_data/kde_100.npy')
+kde_1000 = np.load('kde_and_deft_data/kde_1000.npy')
+kde_observed = np.load('kde_and_deft_data/kde_observed.npy')
+kde_std_100 = np.load('kde_and_deft_data/std_100.npy')
+kde_std_1000 = np.load('kde_and_deft_data/std_1000.npy')
+kde_std_observed = np.load('kde_and_deft_data/std_observed.npy')
 
 "DEFT: create small datasets"
 deft_sample_100 = np.asarray(random.sample(list(DM_frb),100))
 deft_sample_1000  = np.asarray(random.sample(list(DM_frb),1000))
-deft_density_100 = sw.DensityEstimator(deft_sample_100, alpha=4)
-deft_density_1000 = sw.DensityEstimator(deft_sample_1000, alpha=4)
-deft_density_observed = sw.DensityEstimator(DM_known_draws, alpha=4)
+deft_density_100 = sw.DensityEstimator(deft_sample_100, alpha=3)
+deft_density_1000 = sw.DensityEstimator(deft_sample_1000, alpha=3)
+deft_density_observed = sw.DensityEstimator(DM_known_draws, alpha=3)
 
 # Evaluate optimal density
 deft_optimal_100 = deft_density_100.evaluate(DM_grid)
@@ -49,8 +49,18 @@ deft_optimal_observed = deft_density_observed.evaluate(DM_grid)
 
 # Evaluate sampled densities
 deft_sampled_100 = deft_density_100.evaluate_samples(DM_grid)
-deft_optimal_1000 = deft_density_1000.evaluate_samples(DM_grid)
+deft_sampled_1000 = deft_density_1000.evaluate_samples(DM_grid)
 deft_sampled_observed = deft_density_observed.evaluate_samples(DM_grid)
+
+# Save DEFT datasets
+np.save('kde_and_deft_data/deft_100_optimal.npy',deft_optimal_100)
+np.save('kde_and_deft_data/deft_1000_optimal.npy',deft_optimal_1000)
+np.save('kde_and_deft_data/deft_observed_optimal.npy',deft_optimal_observed)
+
+np.save('kde_and_deft_data/deft_100_sampled.npy',deft_sampled_100)
+np.save('kde_and_deft_data/deft_1000_sampled.npy',deft_sampled_1000)
+np.save('kde_and_deft_data/deft_observed_sampled.npy',deft_sampled_observed)
+
 
 deft_std_100 = []
 for i in range(len(DM_grid)):
@@ -59,7 +69,7 @@ for i in range(len(DM_grid)):
 
 deft_std_1000 = []
 for i in range(len(DM_grid)):
-    deft_std_1000_ = np.std(deft_optimal_1000[i])
+    deft_std_1000_ = np.std(deft_sampled_1000[i])
     deft_std_1000 = np.append(deft_std_1000,deft_std_1000_)
 
 deft_std_observed = []
@@ -74,12 +84,12 @@ plt.plot(DM_grid, deft_optimal_100, color='blue',linewidth=1,label='DEFT 100 sam
 plt.plot(DM_grid, kde_100, color='purple',linewidth=1,label='KDE 100 samples')
 plt.fill_between(DM_grid, deft_optimal_100-deft_std_100, deft_optimal_100+deft_std_100, alpha=0.2,color='blue')
 plt.fill_between(DM_grid, kde_100-kde_std_100, kde_100+kde_std_100, alpha=0.2,color='purple')
-plt.xlim(0,1500)
+plt.xlim(0,150)
 plt.legend(fontsize=40)
 plt.xlabel('$DM$')
 plt.ylabel('PDF')
 plt.tight_layout()
-plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_100.png')
+plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_100_cropped.png')
 plt.show()
 
 "1000 draws plot"
@@ -89,12 +99,12 @@ plt.plot(DM_grid, deft_optimal_1000, color='blue',linewidth=1,label='DEFT 1000 s
 plt.plot(DM_grid, kde_1000, color='purple',linewidth=1,label='KDE 1000 samples')
 plt.fill_between(DM_grid, deft_optimal_1000-deft_std_1000, deft_optimal_1000+deft_std_1000, alpha=0.2,color='blue')
 plt.fill_between(DM_grid, kde_1000-kde_std_100, kde_1000+kde_std_100, alpha=0.2,color='purple')
-plt.xlim(0,1500)
+plt.xlim(0,150)
 plt.legend(fontsize=40)
 plt.xlabel('$DM$')
 plt.ylabel('PDF')
 plt.tight_layout()
-plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_1000.png')
+plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_1000_cropped.png')
 plt.show()
 
 "Observed plot"
@@ -104,10 +114,10 @@ plt.plot(DM_grid, deft_optimal_observed, color='blue',linewidth=1,label='DEFT Ob
 plt.plot(DM_grid, kde_observed, color='purple',linewidth=1,label='KDE Observed')
 plt.fill_between(DM_grid, deft_optimal_observed-deft_std_observed, deft_optimal_observed+deft_std_observed, alpha=0.2,color='blue')
 plt.fill_between(DM_grid, kde_observed-kde_std_observed, kde_observed+kde_std_observed, alpha=0.2,color='purple')
-plt.xlim(0,1500)
+plt.xlim(0,150)
 plt.legend(fontsize=40)
 plt.xlabel('$DM$')
 plt.ylabel('PDF')
 plt.tight_layout()
-plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_obs.png')
+plt.savefig('bootstrap_outputs/DEFT_vs_KDE/std_obs_cropped.png')
 plt.show()

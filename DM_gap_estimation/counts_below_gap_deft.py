@@ -44,8 +44,8 @@ for i in DM_deft_draws_rand:
     if i < 100: 
         count_deft_rand = count_deft_rand + 1
 
-plt.plot(DM_grid,DM_deft_rand_distribution)
-sns.distplot(DM_deft_draws_rand, hist = True, kde = False, rug = True, bins=100,
+plt.plot(DM_grid,DM_deft_rand_distribution*500)
+sns.distplot(DM_deft_draws_rand, hist = True, kde = False, rug = True, bins=300,
              color = 'darkblue', 
              kde_kws={'linewidth': 2, 'bw':99},
              rug_kws={'color': 'red'})
@@ -54,7 +54,7 @@ plt.title('{}/1000 draws fall below simulated gap'.format(count_deft_rand),fonts
 plt.xlabel('$DM_{DEFT}$ Simulated', fontsize=28)
 plt.ylabel('PDF', fontsize=28)
 plt.legend(fontsize=28)
-plt.xlim(0,1500)
+plt.xlim(0,1800)
 plt.tight_layout()
 plt.savefig('DM_outputs/Counts_below_gap/DEFT_counts.png')
 plt.show()
@@ -62,28 +62,25 @@ plt.show()
 "PDF made from Observed"
 #!! Doesn't mean anything really - don't know true gap value so
 # Write PDF of optimal function, then take draws
-# DM_deft_obs = make_pdf(distribution=deft_optimal_obs/np.sum(deft_optimal_obs),num_of_draws=num_kde_samples,grid=DM_grid,stepsize=DM_stepsize)
-# DM_deft_draws_obs = DM_deft_obs[0]
-# DM_deft_obs_distribution  = DM_deft_obs[1]
+DM_deft_obs = make_pdf(distribution=deft_optimal_obs/np.sum(deft_optimal_obs),num_of_draws=num_kde_samples,grid=DM_grid,stepsize=DM_stepsize)
+DM_deft_draws_obs = DM_deft_obs[0]
+DM_deft_obs_distribution  = DM_deft_obs[1]
 
-# count_deft_obs = 0
-# for i in DM_deft_draws_obs: 
-#     if i < 100: 
-#         count_deft_obs = count_deft_obs+ 1
-# print(count_deft_obs)
+count_deft_obs = 0
+for i in DM_deft_draws_obs: 
+    if i < 100: 
+        count_deft_obs = count_deft_obs+ 1
+print(count_deft_obs)
 
-# plt.plot(DM_grid,DM_deft_rand_distribution)
-# sns.distplot(DM_deft_draws_obs, hist = True, kde = False, rug = True, bins=100,
-#              color = 'darkblue', 
-#              kde_kws={'linewidth': 2, 'bw':99},
-#              rug_kws={'color': 'red'})
-# # plt.axvline(x=100,linewidth=2,linestyle='dashed',label='Simulated gap value',color='k')
-# # plt.title('{}/1000 draws fall below simulated gap'.format(count_deft_obs),fontsize=40)
-# plt.xlabel('$DM_{DEFT}$ Observed', fontsize=28)
-# plt.ylabel('PDF', fontsize=28)
-# plt.legend(fontsize=28)
-# plt.xlim(0,1500)
-# plt.tight_layout()
-# plt.savefig('bootstrap_outputs/DEFT/DEFT_obs_counts.png')
-# plt.show()
+plt.plot(DM_grid,DM_deft_obs_distribution*1000)
+sns.distplot(DM_deft_draws_obs, hist = True, kde = False, rug = True, bins=300,
+             color = 'darkblue', 
+             kde_kws={'linewidth': 2, 'bw':99},
+             rug_kws={'color': 'red'})
+plt.xlabel('$DM_{DEFT}$ Observed', fontsize=28)
+plt.ylabel('PDF', fontsize=28)
+plt.xlim(0,2000)
+plt.tight_layout()
+plt.savefig('DM_outputs/Counts_below_gap/DEFT_observed.png')
+plt.show()
 
