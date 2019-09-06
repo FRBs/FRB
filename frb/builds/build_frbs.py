@@ -12,6 +12,7 @@ def frb_121102():
     """
     FRB 121102
         All of the data currently comes from Tendulkar et al. 2017
+        https://ui.adsabs.harvard.edu/abs/2017ApJ...834L...7T/abstract
     """
     frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
                         558.1*units.pc/units.cm**3,
@@ -32,6 +33,7 @@ def frb_180924():
     """
     FRB 180924
         All of the data currently comes from Bannister et al. 2019
+        https://ui.adsabs.harvard.edu/abs/2019Sci...365..565B/abstract
     """
     frb180924 = frb.FRB('FRB180924', 'J214425.26-405400.1',
                         361.4*units.pc / units.cm**3,
@@ -62,7 +64,7 @@ def frb_180924():
 def frb_181112():
     """
     Generate the JSON file for FRB 181112
-    All of the data comes from Prochaska+2019
+        All of the data comes from Prochaska+2019, Science, in press
 
     Returns:
 
@@ -90,7 +92,10 @@ def frb_181112():
 
 
 def frb_190523():
-    """Ravi+19"""
+    """Ravi+19, Nature --
+        https://ui.adsabs.harvard.edu/abs/2019Natur.572..352R/abstract
+
+    """
     fname = 'FRB190523'
     frb190523 = frb.FRB(fname, 'J134815.6+722811',
                         760.8 * units.pc / units.cm**3,

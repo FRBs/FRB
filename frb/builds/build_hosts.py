@@ -134,6 +134,7 @@ def build_host_180924(build_photom=True):
     Generate the JSON file for FRB 180924
     
     All data are from Bannister et al. 2019
+        https://ui.adsabs.harvard.edu/abs/2019Sci...365..565B/abstract
 
     Writes to 180924/FRB180924_host.json
 
@@ -194,6 +195,14 @@ def build_host_180924(build_photom=True):
 
 
 def build_host_181112(build_photom=False):
+    """ Build the host galaxy data for FRB 181112
+
+    All of the data comes from Prochaska+2019, Science, in press
+
+    Args:
+        build_photom (bool, optional):
+
+    """
     frbname = '181112'
     FRB_coord = SkyCoord('J214923.63-525815.39',
                          unit=(units.hourangle, units.deg))  # Cherie;  2019-04-17 (Slack)
@@ -261,6 +270,22 @@ def build_host_181112(build_photom=False):
 
 
 def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False):
+    """
+    Build the host galaxy data for FRB 190523
+
+    Most of the data is from Ravi+2019
+        https://ui.adsabs.harvard.edu/abs/2019Natur.572..352R/abstract
+
+    The exception is that CRAFT (S. Simha) have run CIGALE on the photometry for
+    a consistent analysis with the ASKAP hosts.
+
+
+    Args:
+        build_photom:
+
+    Returns:
+
+    """
     frbname = '190523'
     gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')
 
@@ -304,11 +329,6 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     host190523.derived['SFR_nebular'] = 1.3
     host190523.derived['SFR_nebular_err'] = -999.
 
-    '''
-    # CIGALE
-    host190608.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019',
-                                         'HG190608_CIGALE.fits'))
-    '''
     # Vet all
     host190523.vet_all()
 
