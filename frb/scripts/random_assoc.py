@@ -14,9 +14,10 @@ def get_catalog(coords,size=1*u.deg):
     Download a catalog objects within
     a square of input `size` centered
     around `coords`.
+
     Args:
         coords (astropy SkyCoord): central coordinates
-        size (astropy Angle): Size of the square FoV around
+        size (astropy Angle, optional): Size of the square FoV around
                               the central coordinates
     Returns:
         catalog (astropy Table): DES DR1 search results
@@ -34,6 +35,13 @@ def _generate_coord_grid(coords,size=1*u.deg,resolution=3600):
     of SkyCoords centered around `coords` within
     an area `size`x`size` with a default `resolution`
     of 1000 points along each axis.
+
+    Args:
+        coords (astropy SkyCoord): central coordinates
+        size (astropy Angle, optional): Size of the square FoV around
+
+    Returns:
+            SkyCoord:
     """
     ra,dec = coords.ra.value,coords.dec.value
     ra_arr = np.linspace(ra-size.value/2,ra+size.value/2,resolution)

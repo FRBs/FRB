@@ -24,6 +24,15 @@ if db_path is None:
 
 
 def build_fg_181112(build_photom=False):
+    """
+    Data taken from Prochaska et al. 2019, Science, in press
+
+    Args:
+        build_photom:
+
+    Returns:
+
+    """
     # Coord from DES
     fg_coord = SkyCoord('J214923.89-525810.43', unit=(units.hourangle, units.deg))  # from DES
     frb181112 = FRB.by_name('FRB181112')
