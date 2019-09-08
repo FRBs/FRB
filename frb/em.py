@@ -37,7 +37,7 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
     I_R = (sb_corr * units.ph / E_Ha_photon).to('rayleigh')
 
     # EM
-    EM_Ha = 2.75 * units.pc / units.cm**6 * (T.value/1e4)**0.9 * I_R.to('rayleigh').value
+    EM_Ha = 2.75 * units.pc / units.cm**6 * (T.to('K').value/1e4)**0.9 * I_R.to('rayleigh').value
 
     # Return
     return EM_Ha
@@ -52,7 +52,7 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
         EM (Quantity):
           Emission measure
         L (Quantity):
-          Size of the source
+          Linear size of the source
         ff (float, optional):
           Filling factor
         eps (float, optional):
