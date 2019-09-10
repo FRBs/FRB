@@ -14,3 +14,7 @@
 - Brings 180924 files into the public light
 - Add SDSS to surveys
 - Figure methods for basic plots
+- Add EM methods (last PR)
+- Add in FRB 181112 and FRB 190523 data
+- Add access to galaxy spectra
+- Add random_assoc script
