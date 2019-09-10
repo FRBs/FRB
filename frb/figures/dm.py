@@ -17,6 +17,7 @@ from frb import igm as frb_igm
 
 from ne2001 import density
 
+
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
                 IGM_only=True,
                 M31=False, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):

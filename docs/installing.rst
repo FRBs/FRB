@@ -77,7 +77,7 @@ Presently, you must download the code from github::
 	#go to the directory where you would like to install specdb.
 	git clone https://github.com/FRBs/FRB.git
 
-From there, you can build and install with
+From there, you can build and install with::
 
 	cd FRB
 	python setup.py install  # or use develop

@@ -98,8 +98,8 @@ This method also requires that the redshift have been set previously.
 I/O
 ---
 
-One can write the main contents of the FRBGalaxy object to disk
-with the write_to_json() method::
+One can write the main contents of the FRBGalaxy object
+to disk with the write_to_json() method::
 
     frbgalaxy.write_to_json()
 

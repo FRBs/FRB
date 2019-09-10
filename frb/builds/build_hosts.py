@@ -16,6 +16,7 @@ from astropy.table import Table
 from frb.galaxies import frbgalaxy, defs
 from frb.galaxies import photom as frbphotom
 from frb.surveys import des
+from frb.surveys import panstarrs
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
@@ -133,6 +134,7 @@ def build_host_180924(build_photom=True):
     Generate the JSON file for FRB 180924
     
     All data are from Bannister et al. 2019
+        https://ui.adsabs.harvard.edu/abs/2019Sci...365..565B/abstract
 
     Writes to 180924/FRB180924_host.json
 
@@ -190,7 +192,150 @@ def build_host_180924(build_photom=True):
     # Write
     path = resource_filename('frb', 'data/Galaxies/180924')
     host.write_to_json(path=path)
-    
+
+
+def build_host_181112(build_photom=False):
+    """ Build the host galaxy data for FRB 181112
+
+    All of the data comes from Prochaska+2019, Science, in press
+
+    Args:
+        build_photom (bool, optional):
+
+    """
+    frbname = '181112'
+    FRB_coord = SkyCoord('J214923.63-525815.39',
+                         unit=(units.hourangle, units.deg))  # Cherie;  2019-04-17 (Slack)
+    # Coord from DES
+    Host_coord = SkyCoord('J214923.66-525815.28',
+                          unit=(units.hourangle, units.deg))  # from DES
+
+    # Instantiate
+    host181112 = frbgalaxy.FRBHost(Host_coord.ra.value, Host_coord.dec.value, frbname)
+    host181112.frb_coord = FRB_coord
+
+    # Redshift
+    host181112.set_z(0.4755, 'spec', err=7e-5)
+
+    # ############
+    # Photometry
+
+    # DES
+    # Grab the table (requires internet)
+    search_r = 2 * units.arcsec
+    des_srvy = des.DES_Survey(Host_coord, search_r)
+    des_tbl = des_srvy.get_catalog(print_query=True)
+
+    host181112.parse_photom(des_tbl)
+
+    # VLT -- Lochlan 2019-05-02
+    # VLT -- Lochlan 2019-06-18
+    photom_file = os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'prochaska2019_photom.ascii')
+    if build_photom:
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host181112.coord.ra.value
+        photom['dec'] = host181112.coord.dec.value
+        photom['VLT_g'] = 22.45
+        photom['VLT_g_err'] = 0.06
+        photom['VLT_I'] = 21.41
+        photom['VLT_I_err'] = 0.04
+        # Add in DES
+        for key in host181112.photom.keys():
+            photom[key] = host181112.photom[key]
+        # Merge/write
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    host181112.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # Nebular lines
+    host181112.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_FORS2_ppxf.ecsv'))
+
+    # Adjust errors on Ha, [NII] because of telluric
+
+    # Derived quantities
+    host181112.calc_nebular_AV('Ha/Hb', min_AV=0.)
+
+    # Ha is tough in telluric
+    host181112.calc_nebular_SFR('Hb', AV=0.15)  # Photometric
+    # This would be an upper limit
+    #host.calc_nebular_SFR('Ha')
+
+    # CIGALE
+    host181112.parse_cigale(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_CIGALE.fits'))
+
+    # Write
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host181112.write_to_json(path=path)
+
+
+def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False):
+    """
+    Build the host galaxy data for FRB 190523
+
+    Most of the data is from Ravi+2019
+        https://ui.adsabs.harvard.edu/abs/2019Natur.572..352R/abstract
+
+    The exception is that CRAFT (S. Simha) have run CIGALE on the photometry for
+    a consistent analysis with the ASKAP hosts.
+
+
+    Args:
+        build_photom:
+
+    Returns:
+
+    """
+    frbname = '190523'
+    gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')
+
+    # Instantiate
+    host190523 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+
+    # Load redshift table
+    host190523.set_z(0.660, 'spec')
+
+    # Morphology
+
+    # Photometry
+
+    # PanStarrs
+    # Grab the table (requires internet)
+    photom_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'ravi2019_photom.ascii')
+    if build_photom:
+        search_r = 1 * units.arcsec
+        ps_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        ps_tbl = ps_srvy.get_catalog(print_query=True)
+        photom = frbphotom.merge_photom_tables(ps_tbl, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Parse
+    host190523.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # PPXF
+    '''
+    if run_ppxf:
+        results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
+        meta, spectrum = host190608.get_metaspec(instr='SDSS')
+        spec_fit = None
+        ppxf.run(spectrum, 2000., host190608.z, results_file=results_file, spec_fit=spec_fit, chk=True)
+    host190608.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv'))
+    '''
+
+    # CIGALE -- PanStarrs photometry but our own CIGALE analysis
+    host190523.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
+                                         'S1_190523_CIGALE.fits'))
+
+    # Derived quantities
+    host190523.derived['SFR_nebular'] = 1.3
+    host190523.derived['SFR_nebular_err'] = -999.
+
+    # Vet all
+    host190523.vet_all()
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host190523.write_to_json(path=path)
+
     
 def main(inflg='all'):
 
@@ -201,11 +346,20 @@ def main(inflg='all'):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=True)
+        build_host_121102(build_photom=False)
 
     # 180924
     if flg & (2**1):
-        build_host_180924(build_photom=True)
+        build_host_180924(build_photom=False)
+
+    # 181112
+    if flg & (2**2):
+        build_host_181112(build_photom=False)
+
+    # 181112
+    if flg & (2**3):
+        build_host_190523(build_photom=False)
+
 
 
 # Command line execution
