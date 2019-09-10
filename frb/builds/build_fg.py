@@ -1,9 +1,9 @@
 """ Top-level module to build or re-build the JSON files for
-FRB host galaxies"""
+FRB host galaxies.  This is only for a few persons with access."""
 
 from pkg_resources import resource_filename
 import os
-import sys
+import warnings
 
 from IPython import embed
 
@@ -28,9 +28,8 @@ def build_fg_181112(build_photom=False):
     Data taken from Prochaska et al. 2019, Science, in press
 
     Args:
-        build_photom:
-
-    Returns:
+        build_photom (bool, optional):
+            Generate the photometry table
 
     """
     # Coord from DES
