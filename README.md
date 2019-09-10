@@ -1,5 +1,6 @@
 # FRB
-Python code related to FRB calculations, estimations, and analysis.
+Python code and data related to FRB calculations, observations,
+estimations, and analysis.
 
 Brought to you by:
 
