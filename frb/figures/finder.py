@@ -11,10 +11,29 @@ from astropy.visualization.wcsaxes import SphericalCircle
 from astropy.stats import sigma_clipped_stats
 from astropy.visualization import LogStretch, mpl_normalize as mplnorm
 from astropy.nddata import Cutout2D
+from astropy.wcs import WCS
 
 from linetools import utils as ltu
 
 from frb.figures import utils
+
+
+def from_hdu(hdu, title, **kwargs):
+    """
+    Convenience function to handle an HDU to generate a finder chart
+
+    Args:
+        hdul (astropy.io.fits.PrimaryHDU):
+        title (str):
+
+    Returns:
+        see generate()
+
+    """
+    image = hdu.data
+    wcs = WCS(hdu.header)
+
+    return generate(image, wcs, title, **kwargs)
 
 
 def generate(image, wcs, title, log_stretch=False,
@@ -28,7 +47,7 @@ def generate(image, wcs, title, log_stretch=False,
     Args:
         image (np.ndarray):
           Image for the finder
-        wcs (astropy.coordinates.wcs):
+        wcs (astropy.wcs.WCS):
           WCS solution
         title (str):
           TItle; typically the name of the primry source
