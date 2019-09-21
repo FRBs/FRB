@@ -57,7 +57,7 @@ def build_fg_181112(build_photom=False):
         # VLT -- Lochlan 2019-05-02
         # VLT -- Lochlan 2019-06-18
         fg_13_5.photom['VLT_g'] = 21.20
-        fg_13_5.photom['VLT_g_err'] = 0.05
+        fg_13_5.photom['VLT_g_err'] = 0.04
         fg_13_5.photom['VLT_I'] = 19.20
         fg_13_5.photom['VLT_I_err'] = 0.02
         # Build a Table
