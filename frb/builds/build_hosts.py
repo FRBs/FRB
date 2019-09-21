@@ -236,9 +236,9 @@ def build_host_181112(build_photom=False):
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host181112.coord.ra.value
         photom['dec'] = host181112.coord.dec.value
-        photom['VLT_g'] = 22.45
-        photom['VLT_g_err'] = 0.06
-        photom['VLT_I'] = 21.41
+        photom['VLT_g'] = 22.57
+        photom['VLT_g_err'] = 0.04
+        photom['VLT_I'] = 21.51
         photom['VLT_I_err'] = 0.04
         # Add in DES
         for key in host181112.photom.keys():
