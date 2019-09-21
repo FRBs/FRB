@@ -131,18 +131,21 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
         spec_catalog = SDSS.query_region(self.coord,spectro=True, radius=self.radius,
                                          timeout=timeout, specobj_fields=spec_fields) # Duplicates may exist
-        trim_spec_catalog = trim_down_catalog(spec_catalog)
-        # Match
-        spec_coords = SkyCoord(ra=trim_spec_catalog['ra'], dec=trim_spec_catalog['dec'], unit='deg')
-        phot_coords = SkyCoord(ra=trim_catalog['ra'], dec=trim_catalog['dec'], unit='deg')
-        idx, d2d, d3d = match_coordinates_sky(spec_coords, phot_coords, nthneighbor=1)
-        # Check
-        if np.max(d2d).to('arcsec').value > 1.5:
-            embed(header='119 of sdss')
-        # Fill me
-        zs = -1 * np.ones_like(trim_catalog['ra'].data)
-        zs[idx] = trim_spec_catalog['z']
-        trim_catalog['z_spec'] = zs
+        if spec_catalog is not None:
+            trim_spec_catalog = trim_down_catalog(spec_catalog)
+            # Match
+            spec_coords = SkyCoord(ra=trim_spec_catalog['ra'], dec=trim_spec_catalog['dec'], unit='deg')
+            phot_coords = SkyCoord(ra=trim_catalog['ra'], dec=trim_catalog['dec'], unit='deg')
+            idx, d2d, d3d = match_coordinates_sky(spec_coords, phot_coords, nthneighbor=1)
+            # Check
+            if np.max(d2d).to('arcsec').value > 1.5:
+                embed(header='119 of sdss')
+            # Fill me
+            zs = -1 * np.ones_like(trim_catalog['ra'].data)
+            zs[idx] = trim_spec_catalog['z']
+            trim_catalog['z_spec'] = zs
+        else:
+            trim_catalog['z_spec'] = -1.
 
         # Sort by offset
         catalog = trim_catalog.copy()
@@ -158,7 +161,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         # Return
         return self.catalog.copy()
 
-    def get_cutout(self, imsize):
+    def get_cutout(self, imsize, scale=0.396127):
         """
         Grab a cutout from SDSS
 
@@ -171,19 +174,17 @@ class SDSS_Survey(surveycoord.SurveyCoord):
 
         """
         # URL
-        sdss_url = get_url(self.coord, imsize=imsize.to('arcsec').value)
+        sdss_url = get_url(self.coord, imsize=imsize.to('arcsec').value,
+                           scale=scale)
         # Image
         self.cutout = images.grab_from_url(sdss_url)
         self.cutout_size = imsize
-
-        # Fake a header for WCS only
-        hdr = fits.Header()
 
         # Return
         return self.cutout, None
 
 
-def get_url(coord, imsize=30., scale=0.39612, grid=False, label=False, invert=False):
+def get_url(coord, imsize=30., scale=0.396127, grid=False, label=False, invert=False):
     """
     Generate the SDSS URL for an image retrieval
 
@@ -207,7 +208,8 @@ def get_url(coord, imsize=30., scale=0.39612, grid=False, label=False, invert=Fa
     ys = npix
 
     # Generate the http call
-    name1='http://skyservice.pha.jhu.edu/DR12/ImgCutout/'
+    #name1='http://skyserver.sdss.org/dr14/SkyServerWS/ImgCutout/'
+    name1 = 'http://skyservice.pha.jhu.edu/DR12/ImgCutout/'
     name='getjpeg.aspx?ra='
 
     name+=str(coord.ra.value) 	#setting the ra (deg)
