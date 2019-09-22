@@ -337,7 +337,7 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     host190523.write_to_json(path=path)
 
     
-def main(inflg='all'):
+def main(inflg='all', build_photom=False):
 
     if inflg == 'all':
         flg = np.sum(np.array( [2**ii for ii in range(25)]))
@@ -346,20 +346,19 @@ def main(inflg='all'):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=False)
+        build_host_121102(build_photom=build_photom)
 
     # 180924
     if flg & (2**1):
-        build_host_180924(build_photom=False)
+        build_host_180924(build_photom=build_photom)
 
     # 181112
     if flg & (2**2):
-        build_host_181112(build_photom=False)
+        build_host_181112(build_photom=build_photom)
 
     # 181112
     if flg & (2**3):
-        build_host_190523(build_photom=False)
-
+        build_host_190523(build_photom=build_photom)
 
 
 # Command line execution
