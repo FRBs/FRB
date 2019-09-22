@@ -194,51 +194,30 @@ def generate(image, wcs, title, log_stretch=False,
 
 
 #### ###############################
-#  Main driver
-#  finder.main(['TST', '10:31:38.87', '+25:59:02.3'])
-#  imsize is in arcmin
-def sdss_dss(coord, title, survey='2r', show_circ=True,
-             EPOCH=None, DSS=None, BW=False, imsize=5.*units.arcmin,
-             outfile=None,
-         show_slit=None, show_another=None, cradius=None,
-         in_img=None):
+def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, outfile=None,
+         show_slit=None, show_another=None, cradius=None, in_img=None):
     """
     Generate a SDSS or DSS finder
 
     Pulled from xastropy
 
     Args:
-        coord:
-        title:
-        survey:
-        radec:
-        deci:
-        fpath:
+        coord (SkyCoord):
+        title (str):
         show_circ (bool, optional):
             Show a yellow circle on the target
-        EPOCH:
-        DSS:
-        BW (bool, optional):
-           B&W image?
-        imsize:
-        show_slit:
-        OUT_TYPE:
-        show_another:
+        EPOCH (float, optional):
+            Defaults to 2000.
+        imsize (Quantity or Angle):
+            Size of the finder
+        show_slit (list, optional):
+            Show a slit with [width, length, PA]
+        show_another (bool, optional):
+            Not yet functional
         cradius (Quantity, optional):
             Circle radius, only shown if show_circ is True.
             Default is imsize/50.
-        in_img:
-
-    show_another : tuple, optional
-       RA,DEC for another target to circle (e.g. offset star)
-    show_slit: Input
-        Whether to overplot a slit
-        None - No show
-        List of values - [width, length, PA], e.g. [1*u.arcsec, 10*u.arcsec, 20*u.deg]
-    imsize: Quantity, optional
-       Image size
-    OUT_TYPE: str, optional
-       File type -- 'PDF', 'PNG'
+        in_img (PIL image, optional):
     """
     # Init
     vimsize = imsize.to('arcmin').value
@@ -307,6 +286,7 @@ def sdss_dss(coord, title, survey='2r', show_circ=True,
 
     # Second Circle
     if show_another is not None:
+        raise NotImplementedError
         # Coordinates
         canother = coord.to_coord(show_another)
         embed(header='338')
@@ -368,19 +348,17 @@ def sdss_dss(coord, title, survey='2r', show_circ=True,
 
 
 # ##########################################
-def getjpg(coord, imsize, BW=False, DSS=None):
+def getjpg(coord, imsize):
     """
     Grab an SDSS or DSS image
 
     Args:
-        ira:
-        idec:
-        imsize:
-        BW:
-        DSS:
+        coord (SkyCoord):
+        imsize (Angle or Quantity):
+            image size
 
     Returns:
-
+        PIL, bool:  Image, flag indicating if the image is B&W
     """
     sdss = survey_utils.load_survey_by_name('SDSS', coord, 0.02*units.deg)
     # Dummy call to see if SDSS covers it
@@ -391,7 +369,9 @@ def getjpg(coord, imsize, BW=False, DSS=None):
         url = dsshttp(coord, imsize)  # DSS
         img = images.grab_from_url(url)
     else:
+        BW = False
         img, _ = sdss.get_cutout(imsize)
+    # Return
     return img, BW
 
 
@@ -400,10 +380,12 @@ def dsshttp(coord, imsize):
     Generate URL for DSS
 
     Args:
-        coord:
-        imsize:
+        coord (SkyCoord):
+        imsize (Angle or Quantity):
+            image size
 
     Returns:
+        str:  URL
 
     """
     # https://archive.stsci.edu/cgi-bin/dss_search?v=poss2ukstu_red&r=00:42:44.35&d=+41:16:08.6&e=J2000&h=15.0&w=15.0&f=gif&c=none&fov=NONE&v3=
