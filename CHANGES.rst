@@ -18,3 +18,5 @@
 - Add in FRB 181112 and FRB 190523 data
 - Add access to galaxy spectra
 - Add random_assoc script
+- Convenience function for a list of hosts
+- SDSS/DSS finder charts
