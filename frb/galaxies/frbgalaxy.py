@@ -6,6 +6,7 @@ import numpy as np
 import os
 from IPython import embed
 import warnings
+import glob
 
 from pkg_resources import resource_filename
 
@@ -18,7 +19,7 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
 from frb import utils
-
+from frb import frb
 
 
 class FRBGalaxy(object):
@@ -77,7 +78,21 @@ class FRBGalaxy(object):
 
     @classmethod
     def from_json(cls, json_file, **kwargs):
-        idict = utils.loadjson(json_file)
+        """
+
+        Args:
+            json_file:
+            **kwargs:
+
+        Returns:
+            FRBGalaxy or None
+
+        """
+        try:
+            idict = utils.loadjson(json_file)
+        except FileNotFoundError:
+            warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
+            return None
         slf = cls.from_dict(idict, **kwargs)
         return slf
 
@@ -808,5 +823,33 @@ class FGGalaxy(FRBGalaxy):
         # Load up FRB info from name
         self.name = 'FG{}_{}'.format(self.frb, utils.name_from_coord(self.coord))
 
+
+def list_of_hosts():
+    """
+    Scan through the Repo and generate a list of FRB Host galaxies
+
+    Also returns a list of the FRBs
+
+    Returns:
+        list, list:
+
+    """
+    # FRB files
+    frb_data = resource_filename('frb', 'data')
+    frb_files = glob.glob(os.path.join(frb_data, 'FRBs', 'FRB*.json'))
+    frb_files.sort()
+
+    hosts = []
+    frbs = []
+    for ifile in frb_files:
+        # Parse
+        name = ifile.split('.')[-2]
+        ifrb = frb.FRB.by_name(name)
+        host = ifrb.grab_host()
+        if host is not None:
+            hosts.append(host)
+            frbs.append(ifrb)
+    # Return
+    return frbs, hosts
 
 
