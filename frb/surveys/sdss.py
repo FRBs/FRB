@@ -139,7 +139,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
             idx, d2d, d3d = match_coordinates_sky(spec_coords, phot_coords, nthneighbor=1)
             # Check
             if np.max(d2d).to('arcsec').value > 1.5:
-                embed(header='119 of sdss')
+                raise ValueError("Bad match in SDSS")
             # Fill me
             zs = -1 * np.ones_like(trim_catalog['ra'].data)
             zs[idx] = trim_spec_catalog['z']
