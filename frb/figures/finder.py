@@ -30,12 +30,14 @@ def from_hdu(hdu, title, **kwargs):
     """
     Convenience function to handle an HDU to generate a finder chart
 
+    see generate() for more details
+
     Args:
         hdul (astropy.io.fits.PrimaryHDU):
         title (str):
 
     Returns:
-        see generate()
+        matplotlib.pyplot.figure, matplotlib.pyplot.Axis: figure generated
 
     """
     image = hdu.data
