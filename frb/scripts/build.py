@@ -10,6 +10,7 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Build parts of the CASBAH database; Output_dir = $CASBAH_GALAXIES [v1.1]')
     parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
+    parser.add_argument("--photom", default=False, action="store_true", help="Build photometry?")
 
     if options is None:
         pargs = parser.parse_args()
@@ -32,11 +33,11 @@ def main(pargs):
     if item == 'frbs':
         build_frbs.main(inflg=pargs.flag)
     elif item == 'hosts':
-        build_hosts.main(inflg=pargs.flag)
+        build_hosts.main(inflg=pargs.flag, build_photom=pargs.photom)
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':
-        build_fg.main(inflg=pargs.flag)
+        build_fg.main(inflg=pargs.flag, build_photom=pargs.photom)
     else:
         raise IOError("Bad build item {:s}".format(item))
 
