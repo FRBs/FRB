@@ -57,7 +57,7 @@ def build_fg_181112(build_photom=False):
         # VLT -- Lochlan 2019-05-02
         # VLT -- Lochlan 2019-06-18
         fg_13_5.photom['VLT_g'] = 21.20
-        fg_13_5.photom['VLT_g_err'] = 0.05
+        fg_13_5.photom['VLT_g_err'] = 0.04
         fg_13_5.photom['VLT_I'] = 19.20
         fg_13_5.photom['VLT_I_err'] = 0.02
         # Build a Table
@@ -93,7 +93,7 @@ def build_fg_181112(build_photom=False):
     fg_13_5.write_to_json(path=path)
     
     
-def main(inflg='all'):
+def main(inflg='all', build_photom=False):
 
     if inflg == 'all':
         flg = np.sum(np.array( [2**ii for ii in range(25)]))
@@ -102,6 +102,6 @@ def main(inflg='all'):
 
     # 121102
     if flg & (2**0):
-        build_fg_181112(build_photom=False)
+        build_fg_181112(build_photom=build_photom)
 
 
