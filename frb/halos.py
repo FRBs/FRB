@@ -88,7 +88,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
-        dndlM = hmfe.dndlnM(M, z)
+        dndlM = M*hmfe.dndM(M, z)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
@@ -399,6 +399,28 @@ def rad3d2(xyz):
     """
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
 
+def SHMR(log_M_star):
+  """
+  Stellar to Halo Mass Ratio from the COSMOS-UltraVISTA
+  field for galaxies in the redshift range of 0.2-0.5.
+  Legrand et al 2019 arXiv:1810.10557
+  Parameters
+  ----------
+      log_mstar: float
+        log10 of the galaxy stellar mass (solar masses)
+  Returns
+  -------
+      log_mhalo: float
+        log10 of the galaxy halo mass (solar masses)
+  """
+  log_M1 = 12.49
+  beta = 0.463
+  log_M_star_0 = 10.84
+  delta = 0.77
+  gamma = 0.802
+  mstar_ratio = 10**(log_M_star-log_M_star_0)
+
+  return log_M1+beta*(log_M_star-log_M_star_0)+mstar_ratio**delta/(1+mstar_ratio**(-gamma))-0.5
 
 class ModifiedNFW(object):
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
