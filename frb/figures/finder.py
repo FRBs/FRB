@@ -19,6 +19,8 @@ from astropy.wcs import WCS
 from astropy.coordinates import ICRS
 from astropy.time import Time
 
+from photutils import SkyRectangularAperture
+
 from linetools import utils as ltu
 
 from frb.figures import utils
@@ -49,7 +51,7 @@ def from_hdu(hdu, title, **kwargs):
 def generate(image, wcs, title, log_stretch=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
-             third_coord=None,
+             third_coord=None, slit=None,
              vmnx=None, outfile=None):
     """
     Basic method to generate a Finder chart figure
@@ -73,6 +75,9 @@ def generate(image, wcs, title, log_stretch=False,
           Assume it is an offset star (i.e. calculate offsets)
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
+        slit (tuple, optional):
+          If provided, places a rectangular slit with specified
+          coordinates, width, length, and position angle on image
         vmnx (tuple, optional):
           Used for scaling the image.  Otherwise, the image
           is analyzed for these values.
@@ -109,8 +114,7 @@ def generate(image, wcs, title, log_stretch=False,
     cimg = ax.imshow(image, cmap='Greys', norm=norm)
 
     # Flip so RA increases to the left
-    ax.invert_xaxis()
-
+    #ax.invert_xaxis()
 
     # N/E
     overlay = ax.get_coords_overlay('icrs')
@@ -168,15 +172,26 @@ def generate(image, wcs, title, log_stretch=False,
                             2*units.arcsec, transform=ax.get_transform('icrs'),
                             edgecolor='yellow', facecolor='none')
         ax.add_patch(c)
-    # Slit?
-    '''
+    
+    # Slit
     if slit is not None:
-        r = Rectangle((primary_coord.ra.value, primary_coord.dec.value),
-                      slit[0]/3600., slit[1]/3600., angle=360-slit[2],
-                      transform=ax.get_transform('icrs'),
-                      facecolor='none', edgecolor='red')
-        ax.add_patch(r)
-    '''
+        # List of values - [coodinates, width, length, PA],
+        # e.g. [SkyCoords('21h44m25.255s',-40d54m00.1s', frame='icrs'), 1*u.arcsec, 10*u.arcsec, 20*u.deg]
+        slit_coords, width, length, pa = slit
+        
+        pa_deg = pa.to('deg').value
+        pa_rad = pa_deg * np.pi / 180.
+        
+        aper = SkyRectangularAperture(positions=slit_coords, w=width, h=length, theta=pa)
+        
+        apermap = aper.to_pixel(wcs)
+        
+        apermap.plot(color='purple', lw=0.5)
+        
+        plt.text(0.5, -0.05, 'Slit PA={} deg'.format(pa_deg), color='purple',
+                 fontsize=15, ha='center', va='top', transform=ax.transAxes)
+        
+    
     # Title
     ax.text(0.5, 1.44, title, fontsize=32, horizontalalignment='center', transform=ax.transAxes)
 
@@ -404,4 +419,3 @@ def dsshttp(coord, imsize):
     url += "&v3="
 
     return url
-
