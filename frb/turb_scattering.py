@@ -5,16 +5,57 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
-import pdb
 
 from scipy.special import gamma
 
 from astropy import constants as const
-from astropy import units as u
+from astropy import units
+from astropy.cosmology import Planck15
 
 # Constants
 const_re = const.alpha**2 * const.a0
 
+def kolmogorov_estimate(tau_scatt, z_FRB, zL, L, L0, nu_obs, alpha=1.,
+                        cosmo=None):
+    """
+    Scaled from Equation 1 of Prochaska et al. 2019
+
+    Args:
+        tau_scatt:
+        z_FRB:
+        zL:
+        L:
+        L0:
+        nu_obs:
+        alpha:
+
+    Returns:
+        Quantity: <n_e>
+
+    """
+    if cosmo is None:
+        cosmo = Planck15
+    n_e_unscaled = 2e-3 * alpha**(-1) * (L/(50*units.kpc))**(-1/2) * (L0/(1*units.kpc))**(1/3) * (
+        tau_scatt/(40*1e-6*units.s))**(5/12)
+    # FRB 181112
+    D_S_181112 = cosmo.angular_diameter_distance(0.47550)
+    D_L_181112 = cosmo.angular_diameter_distance(0.36738)
+    D_LS_181112 = cosmo.angular_diameter_distance_z1z2(0.36738, 0.47550)
+    # Now scale
+    D_S = cosmo.angular_diameter_distance(z_FRB)
+    D_L = cosmo.angular_diameter_distance(zL)
+    D_LS = cosmo.angular_diameter_distance_z1z2(zL, z_FRB)
+    cosmo_scale = ((D_S/D_S_181112) / (D_L/D_L_181112) / (D_LS/D_LS_181112))**(5/12)
+
+    # Frequency
+    nu_181112 = 1 * units.GHz
+    nu_scale = ((nu_obs / nu_181112)**(-5/3))
+
+    # I think there is one more factor of 1+z
+
+    n_e = n_e_unscaled / cosmo_scale / nu_scale
+
+    return n_e
 
 class Turbulence(object):
     """ Class for turbulence calculations in a plasma
@@ -76,8 +117,8 @@ class Turbulence(object):
         CN2 : Quantity
         """
         # Simple expression
-        CN2 = 1.8e-3 * (self.ne/(1e-2*u.cm**(-3)))**2 * (self.L0/(0.001*u.pc))**(-2/3)
-        return (CN2 * u.m**(-20/3.)).si
+        CN2 = 1.8e-3 * (self.ne/(1e-2*units.cm**(-3)))**2 * (self.L0/(0.001*units.pc))**(-2/3)
+        return (CN2 * units.m**(-20/3.)).si
 
     @property
     def SMeff(self):
@@ -200,7 +241,7 @@ class Turbulence(object):
 
         # Evaluate
         k = 2*np.pi / (lobs / (1+self.zL))  # Are we sure about this (1+z) factor?!
-        self.theta = f * D_LS_D_S / (k * self.rdiff) * u.radian
+        self.theta = f * D_LS_D_S / (k * self.rdiff) * units.radian
 
         return self.theta.to('arcsec')
 
@@ -221,7 +262,7 @@ class Turbulence(object):
         """
         # Cosmology
         if cosmo is None:
-            from astropy.cosmology import Planck15 as cosmo
+            cosmo = Planck15
         D_S = cosmo.angular_diameter_distance(zsource)
         D_L = cosmo.angular_diameter_distance(self.zL)
         D_LS = cosmo.angular_diameter_distance_z1z2(self.zL, zsource)
