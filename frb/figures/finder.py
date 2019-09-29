@@ -19,13 +19,19 @@ from astropy.wcs import WCS
 from astropy.coordinates import ICRS
 from astropy.time import Time
 
-from photutils import SkyRectangularAperture
-
 from linetools import utils as ltu
 
 from frb.figures import utils
 from frb.surveys import survey_utils
 from frb.surveys import images
+
+try:
+     from photutils import SkyRectangularAperture
+except ImportError:
+    flag_photu = False
+    print('Install the photutils package to be able to add a slit to an image')
+else:
+    flag_photu = True
 
 
 def from_hdu(hdu, title, **kwargs):
@@ -48,7 +54,7 @@ def from_hdu(hdu, title, **kwargs):
     return generate(image, wcs, title, **kwargs)
 
 
-def generate(image, wcs, title, log_stretch=False,
+def generate(image, wcs, title, flip_ra=False, log_stretch=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
              third_coord=None, slit=None,
@@ -63,6 +69,8 @@ def generate(image, wcs, title, log_stretch=False,
           WCS solution
         title (str):
           TItle; typically the name of the primry source
+        flip_ra (bool, default False):
+            Flip the RA (x-axis). Useful for southern hemisphere finders.
         log_stretch (bool, optional):
             Use a log stretch for the image display
         cutout (tuple, optional):
@@ -114,7 +122,8 @@ def generate(image, wcs, title, log_stretch=False,
     cimg = ax.imshow(image, cmap='Greys', norm=norm)
 
     # Flip so RA increases to the left
-    #ax.invert_xaxis()
+    if flip_ra is True:
+        ax.invert_xaxis()
 
     # N/E
     overlay = ax.get_coords_overlay('icrs')
@@ -174,13 +183,12 @@ def generate(image, wcs, title, log_stretch=False,
         ax.add_patch(c)
     
     # Slit
-    if slit is not None:
+    if ((slit is not None) and (flag_photu is True)):
         # List of values - [coodinates, width, length, PA],
         # e.g. [SkyCoords('21h44m25.255s',-40d54m00.1s', frame='icrs'), 1*u.arcsec, 10*u.arcsec, 20*u.deg]
         slit_coords, width, length, pa = slit
         
         pa_deg = pa.to('deg').value
-        pa_rad = pa_deg * np.pi / 180.
         
         aper = SkyRectangularAperture(positions=slit_coords, w=width, h=length, theta=pa)
         
@@ -190,7 +198,9 @@ def generate(image, wcs, title, log_stretch=False,
         
         plt.text(0.5, -0.05, 'Slit PA={} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
-        
+    
+    if ((slit is not None) and (flag_photu is False)):
+        print('Slit cannot be placed with photutils package')
     
     # Title
     ax.text(0.5, 1.44, title, fontsize=32, horizontalalignment='center', transform=ax.transAxes)
