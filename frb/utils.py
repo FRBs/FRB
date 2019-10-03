@@ -235,7 +235,7 @@ def radec_to_coord(radec):
 def Tsky(nu):
     """ Sky temperature
      Tsky for all other surveys has been evaluated assuming an average sky
-     temperature of 34 K at 408 MHz and a spectral index of −2.6
+     temperature of 34 K at 408 MHz and a spectral index of -2.6
     Follows Haslam et al. 1982
 
     Parameters
