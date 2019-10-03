@@ -54,7 +54,8 @@ def from_hdu(hdu, title, **kwargs):
     return generate(image, wcs, title, **kwargs)
 
 
-def generate(image, wcs, title, flip_ra=False, log_stretch=False,
+def generate(image, wcs, title, flip_ra=False, flip_dec=False,
+             log_stretch=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
              third_coord=None, slit=None,
@@ -68,9 +69,11 @@ def generate(image, wcs, title, flip_ra=False, log_stretch=False,
         wcs (astropy.wcs.WCS):
           WCS solution
         title (str):
-          TItle; typically the name of the primry source
+          Title; typically the name of the primary source
         flip_ra (bool, default False):
             Flip the RA (x-axis). Useful for southern hemisphere finders.
+        flip_dec (bool, default False):
+            Flip the Dec (y-axis). Useful for southern hemisphere finders.
         log_stretch (bool, optional):
             Use a log stretch for the image display
         cutout (tuple, optional):
@@ -101,8 +104,8 @@ def generate(image, wcs, title, flip_ra=False, log_stretch=False,
     utils.set_mplrc()
 
     plt.clf()
-    fig = plt.figure(dpi=600)
-    fig.set_size_inches(7.5,10.5)
+    fig = plt.figure(figsize=(6,8))
+    # fig.set_size_inches(7.5,10.5)
 
     # Cutout?
     if cutout is not None:
@@ -124,6 +127,8 @@ def generate(image, wcs, title, flip_ra=False, log_stretch=False,
     # Flip so RA increases to the left
     if flip_ra is True:
         ax.invert_xaxis()
+    if flip_dec is True:
+        ax.invert_yaxis()
 
     # N/E
     overlay = ax.get_coords_overlay('icrs')
@@ -189,8 +194,8 @@ def generate(image, wcs, title, flip_ra=False, log_stretch=False,
         slit_coords, width, length, pa = slit
         
         pa_deg = pa.to('deg').value
-        
-        aper = SkyRectangularAperture(positions=slit_coords, w=width, h=length, theta=pa)
+
+        aper = SkyRectangularAperture(positions=slit_coords, w=length, h=width, theta=pa)  # For theta=0, width goes North-South, which is slit lenght
         
         apermap = aper.to_pixel(wcs)
         
@@ -298,7 +303,7 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
     plt.ylim(-vimsize / 2., vimsize / 2.)
 
     # Label
-    plt.xlabel('Relative ArcMin', fontsize=20)
+    plt.xlabel('Relative ArcMin', fontsize='large')
     xpos = 0.12 * vimsize
     ypos = 0.02 * vimsize
     plt.text(-vimsize / 2. - xpos, 0., 'EAST', rotation=90., fontsize=20)
