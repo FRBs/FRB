@@ -13,6 +13,7 @@ from pkg_resources import resource_filename
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -399,28 +400,43 @@ def rad3d2(xyz):
     """
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
 
-def SHMR(log_M_star):
+def SHM(log_Mhalo):
   """
-  Stellar to Halo Mass Ratio from the COSMOS-UltraVISTA
-  field for galaxies in the redshift range of 0.2-0.5.
-  Legrand et al 2019 arXiv:1810.10557
+  Stellar mass from Halo Mass from Moster+2010
+  Parameters
+  ----------
+      log_Mhalo: float
+        log10 of the galaxy halo mass (solar masses)
+  Returns
+  -------
+      log_mstar: float
+        log10 of the galaxy stellar mass (solar masses)
+  """
+  alpha = 0.0282
+  beta = 1.057
+  gamma = 0.556
+  logM1 = 11.884
+  M_halo = 10**log_Mhalo
+  M1 = 10**logM1
+
+  log_mstar = log_Mhalo + 2*np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**-gamma)
+  return log_mstar
+
+def HSM(log_mstar):
+  """
+  Halo mass from Stellar mass (Moster+2010)
   Parameters
   ----------
       log_mstar: float
         log10 of the galaxy stellar mass (solar masses)
   Returns
   -------
-      log_mhalo: float
+      log_Mhalo: float
         log10 of the galaxy halo mass (solar masses)
   """
-  log_M1 = 12.49
-  beta = 0.463
-  log_M_star_0 = 10.84
-  delta = 0.77
-  gamma = 0.802
-  mstar_ratio = 10**(log_M_star-log_M_star_0)
+  f = lambda x: SHM(x)-log_mstar
+  return fsolve(f,11)[0]
 
-  return log_M1+beta*(log_M_star-log_M_star_0)+mstar_ratio**delta/(1+mstar_ratio**(-gamma))-0.5
 
 class ModifiedNFW(object):
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
