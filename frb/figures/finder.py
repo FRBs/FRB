@@ -59,7 +59,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
              third_coord=None, slit=None,
-             vmnx=None, outfile=None):
+             vmnx=None, extra_text=None, outfile=None):
     """
     Basic method to generate a Finder chart figure
 
@@ -88,10 +88,13 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
           If provided, place a mark in yellow at this coordinate
         slit (tuple, optional):
           If provided, places a rectangular slit with specified
-          coordinates, width, length, and position angle on image
+          coordinates, width, length, and position angle on image (from North to East)
         vmnx (tuple, optional):
           Used for scaling the image.  Otherwise, the image
           is analyzed for these values.
+        extra_text : str
+          Extra text to be added at the bottom of the Figure.
+          e.g. `DSS r-filter`
         outfile (str, optional):
           Filename for the figure.  File type will be according
           to the extension
@@ -104,7 +107,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     utils.set_mplrc()
 
     plt.clf()
-    fig = plt.figure(figsize=(6,8))
+    fig = plt.figure(figsize=(7,8.5))
     # fig.set_size_inches(7.5,10.5)
 
     # Cutout?
@@ -115,7 +118,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         image = cutout_img.data
 
     # Axis
-    ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
+    ax = fig.add_axes([0.10, 0.20, 0.75, 0.5], projection=wcs)
 
     # Show
     if log_stretch:
@@ -177,9 +180,9 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
             # RA/DEC
             dec_off = np.cos(PA) * sep # arcsec
             ra_off = np.sin(PA) * sep # arcsec (East is *higher* RA)
-            ax.text(0.5, 1.14, 'RA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
+            ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
                 -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
-                     fontsize=18, horizontalalignment='center',transform=ax.transAxes)
+                     fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
     # Add tertiary
     if third_coord is not None:
         c = SphericalCircle((third_coord.ra, third_coord.dec),
@@ -199,9 +202,9 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         apermap = aper.to_pixel(wcs)
         
-        apermap.plot(color='purple', lw=0.5)
+        apermap.plot(color='purple', lw=1)
         
-        plt.text(0.5, -0.05, 'Slit PA={} deg'.format(pa_deg), color='purple',
+        plt.text(0.5, -0.1, 'Slit PA={} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
@@ -210,7 +213,11 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     # Title
     ax.text(0.5, 1.44, title, fontsize=32, horizontalalignment='center', transform=ax.transAxes)
 
+    # Extra text
+    if extra_text is not None:
+        ax.text(-0.1, -0.25, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
     # Sources
+
     # Labels
     #ax.set_xlabel(r'\textbf{DEC (EAST direction)}')
     #ax.set_ylabel(r'\textbf{RA (SOUTH direction)}')
