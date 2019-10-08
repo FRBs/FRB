@@ -419,7 +419,7 @@ def SHM(log_Mhalo):
   M_halo = 10**log_Mhalo
   M1 = 10**logM1
 
-  log_mstar = log_Mhalo + 2*np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**-gamma)
+  log_mstar = log_Mhalo + np.log10(2)+np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
   return log_mstar
 
 def HSM(log_mstar):
