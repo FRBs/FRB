@@ -67,13 +67,8 @@ class DL_Survey(surveycoord.SurveyCoord):
             print(query)
         # Do it while silencing print statements
         result = qc.query(self.token, sql=query,timeout=timeout)
-        sys.stdout = open(os.devnull,"w")
-        temp = convert(result)
-        sys.stdout = sys.__stdout__
-        self.catalog = Table.from_pandas(temp)
-        # TODO:: Dig into why the heck it doesn't want to natively
-        #        output to a table when it was clearly intended to with 'outfmt=table'
-        # Finish
+        self.catalog = convert(result,outfmt="table")
+        
         self.catalog.meta['radius'] = self.radius
         self.catalog.meta['survey'] = self.survey
         # Validate
