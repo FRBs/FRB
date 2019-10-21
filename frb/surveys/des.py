@@ -98,6 +98,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         # Main DES query
         main_cat = super(DES_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
         if len(main_cat) == 0:
+            catalog_utils.clean_cat(main_cat,photom['DES'])
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'])
 
