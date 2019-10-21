@@ -198,7 +198,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         pa_deg = pa.to('deg').value
 
-        aper = SkyRectangularAperture(positions=slit_coords, w=length, h=width, theta=pa)  # For theta=0, width goes North-South, which is slit lenght
+        aper = SkyRectangularAperture(positions=slit_coords, w=length, h=width, theta=pa)  # For theta=0, width goes North-South, which is slit length
         
         apermap = aper.to_pixel(wcs)
         
@@ -208,7 +208,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
-        print('Slit cannot be placed with photutils package')
+        raise IOError('Slit cannot be placed without photutils package')
     
     # Title
     ax.text(0.5, 1.44, title, fontsize=32, horizontalalignment='center', transform=ax.transAxes)
