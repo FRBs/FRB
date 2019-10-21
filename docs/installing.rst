@@ -50,6 +50,10 @@ for data that may be associated to an FRB:
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
+The following package is required to map a slit onto a finder chart (frb.figures.finder):
+
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
+
 The following are required to run spectral line analysis (e.g. frb.galaxies.nebular):
 
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
