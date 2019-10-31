@@ -25,6 +25,14 @@ from frb.figures import utils
 from frb.surveys import survey_utils
 from frb.surveys import images
 
+try:
+     from photutils import SkyRectangularAperture
+except ImportError:
+    flag_photu = False
+    print('Install the photutils package to be able to add a slit to an image')
+else:
+    flag_photu = True
+
 
 def from_hdu(hdu, title, **kwargs):
     """
@@ -46,11 +54,12 @@ def from_hdu(hdu, title, **kwargs):
     return generate(image, wcs, title, **kwargs)
 
 
-def generate(image, wcs, title, log_stretch=False,
+def generate(image, wcs, title, flip_ra=False, flip_dec=False,
+             log_stretch=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
-             third_coord=None,
-             vmnx=None, outfile=None):
+             third_coord=None, slit=None,
+             vmnx=None, extra_text=None, outfile=None):
     """
     Basic method to generate a Finder chart figure
 
@@ -60,7 +69,11 @@ def generate(image, wcs, title, log_stretch=False,
         wcs (astropy.wcs.WCS):
           WCS solution
         title (str):
-          TItle; typically the name of the primry source
+          Title; typically the name of the primary source
+        flip_ra (bool, default False):
+            Flip the RA (x-axis). Useful for southern hemisphere finders.
+        flip_dec (bool, default False):
+            Flip the Dec (y-axis). Useful for southern hemisphere finders.
         log_stretch (bool, optional):
             Use a log stretch for the image display
         cutout (tuple, optional):
@@ -73,9 +86,15 @@ def generate(image, wcs, title, log_stretch=False,
           Assume it is an offset star (i.e. calculate offsets)
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
+        slit (tuple, optional):
+          If provided, places a rectangular slit with specified
+          coordinates, width, length, and position angle on image (from North to East)
         vmnx (tuple, optional):
           Used for scaling the image.  Otherwise, the image
           is analyzed for these values.
+        extra_text : str
+          Extra text to be added at the bottom of the Figure.
+          e.g. `DSS r-filter`
         outfile (str, optional):
           Filename for the figure.  File type will be according
           to the extension
@@ -88,8 +107,8 @@ def generate(image, wcs, title, log_stretch=False,
     utils.set_mplrc()
 
     plt.clf()
-    fig = plt.figure(dpi=600)
-    fig.set_size_inches(7.5,10.5)
+    fig = plt.figure(figsize=(7,8.5))
+    # fig.set_size_inches(7.5,10.5)
 
     # Cutout?
     if cutout is not None:
@@ -99,7 +118,7 @@ def generate(image, wcs, title, log_stretch=False,
         image = cutout_img.data
 
     # Axis
-    ax = fig.add_axes([0.10, 0.20, 0.80, 0.5], projection=wcs)
+    ax = fig.add_axes([0.10, 0.20, 0.75, 0.5], projection=wcs)
 
     # Show
     if log_stretch:
@@ -109,8 +128,10 @@ def generate(image, wcs, title, log_stretch=False,
     cimg = ax.imshow(image, cmap='Greys', norm=norm)
 
     # Flip so RA increases to the left
-    ax.invert_xaxis()
-
+    if flip_ra is True:
+        ax.invert_xaxis()
+    if flip_dec is True:
+        ax.invert_yaxis()
 
     # N/E
     overlay = ax.get_coords_overlay('icrs')
@@ -159,28 +180,44 @@ def generate(image, wcs, title, log_stretch=False,
             # RA/DEC
             dec_off = np.cos(PA) * sep # arcsec
             ra_off = np.sin(PA) * sep # arcsec (East is *higher* RA)
-            ax.text(0.5, 1.14, 'RA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
+            ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
                 -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
-                     fontsize=18, horizontalalignment='center',transform=ax.transAxes)
+                     fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
     # Add tertiary
     if third_coord is not None:
         c = SphericalCircle((third_coord.ra, third_coord.dec),
                             2*units.arcsec, transform=ax.get_transform('icrs'),
                             edgecolor='yellow', facecolor='none')
         ax.add_patch(c)
-    # Slit?
-    '''
-    if slit is not None:
-        r = Rectangle((primary_coord.ra.value, primary_coord.dec.value),
-                      slit[0]/3600., slit[1]/3600., angle=360-slit[2],
-                      transform=ax.get_transform('icrs'),
-                      facecolor='none', edgecolor='red')
-        ax.add_patch(r)
-    '''
+    
+    # Slit
+    if ((slit is not None) and (flag_photu is True)):
+        # List of values - [coodinates, width, length, PA],
+        # e.g. [SkyCoords('21h44m25.255s',-40d54m00.1s', frame='icrs'), 1*u.arcsec, 10*u.arcsec, 20*u.deg]
+        slit_coords, width, length, pa = slit
+        
+        pa_deg = pa.to('deg').value
+
+        aper = SkyRectangularAperture(positions=slit_coords, w=length, h=width, theta=pa)  # For theta=0, width goes North-South, which is slit length
+        
+        apermap = aper.to_pixel(wcs)
+        
+        apermap.plot(color='purple', lw=1)
+        
+        plt.text(0.5, -0.1, 'Slit PA={} deg'.format(pa_deg), color='purple',
+                 fontsize=15, ha='center', va='top', transform=ax.transAxes)
+    
+    if ((slit is not None) and (flag_photu is False)):
+        raise IOError('Slit cannot be placed without photutils package')
+    
     # Title
     ax.text(0.5, 1.44, title, fontsize=32, horizontalalignment='center', transform=ax.transAxes)
 
+    # Extra text
+    if extra_text is not None:
+        ax.text(-0.1, -0.25, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
     # Sources
+
     # Labels
     #ax.set_xlabel(r'\textbf{DEC (EAST direction)}')
     #ax.set_ylabel(r'\textbf{RA (SOUTH direction)}')
@@ -273,7 +310,7 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
     plt.ylim(-vimsize / 2., vimsize / 2.)
 
     # Label
-    plt.xlabel('Relative ArcMin', fontsize=20)
+    plt.xlabel('Relative ArcMin', fontsize='large')
     xpos = 0.12 * vimsize
     ypos = 0.02 * vimsize
     plt.text(-vimsize / 2. - xpos, 0., 'EAST', rotation=90., fontsize=20)
@@ -404,4 +441,3 @@ def dsshttp(coord, imsize):
     url += "&v3="
 
     return url
-
