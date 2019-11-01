@@ -244,6 +244,7 @@ def build_host_181112(build_photom=False):
             photom[key] = host181112.photom[key]
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
+        embed(header='246 of hosts')
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
     host181112.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
