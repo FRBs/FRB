@@ -59,7 +59,6 @@ def build_host_121102(build_photom=False):
         photom['GMOS_i_err'] = 0.1
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
-        embed(header='60')
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
     host121102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
