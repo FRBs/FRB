@@ -140,6 +140,7 @@ def build_host_180924(build_photom=True):
     Args:
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
     """
+    frbname = '180924'
     gal_coord = SkyCoord('J214425.25-405400.81', unit=(units.hourangle, units.deg))
 
     # Instantiate
@@ -153,21 +154,33 @@ def build_host_180924(build_photom=True):
                                    'HG180924_DES_galfit.log'), 0.263)
 
     # Photometry
-
     # DES
+    search_r = 2*units.arcsec
+    des_srvy = des.DES_Survey(gal_coord, search_r)
+    des_tbl = des_srvy.get_catalog(print_query=True)
+    host.parse_photom(des_tbl)
+
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
     if build_photom:
-        search_r = 2*units.arcsec
-        des_srvy = des.DES_Survey(gal_coord, search_r)
-        des_tbl = des_srvy.get_catalog(print_query=True)
-        # Write
-        des_tbl.write(photom_file, format=frbphotom.table_format)
-    else:
-        des_tbl = Table.read(photom_file, format=frbphotom.table_format)
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host.coord.ra.value
+        photom['dec'] = host.coord.dec.value
+        photom['VLT_g'] = 21.38
+        photom['VLT_g_err'] = 0.04
+        photom['VLT_I'] = 20.10
+        photom['VLT_I_err'] = 0.02
+        # Add in DES
+        for key in host.photom.keys():
+            photom[key] = host.photom[key]
+        # Merge/write
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
 
     # Parse
-    host.parse_photom(des_tbl)
+    host.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    #host.parse_photom(des_tbl)
 
     # PPXF
     host.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
@@ -244,7 +257,6 @@ def build_host_181112(build_photom=False):
             photom[key] = host181112.photom[key]
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
-        embed(header='246 of hosts')
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
     host181112.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
