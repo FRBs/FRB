@@ -41,6 +41,22 @@ def set_fontsize(ax,fsz):
         item.set_fontsize(fsz)
 
 
+def set_bokeh_fontsize(p, fsz):
+    """
+    Adjust font size for Bokeh axes
+
+    Args:
+        ax : Bokeh plot class
+        fsz : float
+          Font size
+    """
+    p.xaxis.axis_label_text_font_size = '{:d}pt'.format(fsz)
+    p.xaxis.major_label_text_font_size = "{:d}pt".format(fsz)
+    #
+    p.yaxis.axis_label_text_font_size = '{:d}pt'.format(fsz)
+    p.yaxis.major_label_text_font_size = "{:d}pt".format(fsz)
+
+
 def set_mplrc():
     """
     Font fussing for matplotlib
