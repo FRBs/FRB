@@ -72,6 +72,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
           In h^-1 units already
         rmax: float
           Extent of the halo in units of rvir
+          WARNING: This calculation assumes a single concentration for all halos
 
     Returns:
         ratios: ndarray
