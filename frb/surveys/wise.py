@@ -23,10 +23,10 @@ photom = {}
 
 # DES-WISE
 photom['WISE'] = {}
-DES_WISE_bands = ['W1', 'W2', 'W3', 'W4']
-for band in DES_WISE_bands:
-    photom['WISE']['{:s}'.format(band)] = '{:s}mpro'.format(band.lower())
-    photom['WISE']['{:s}_err'.format(band)] = '{:s}sigmpro'.format(band.lower())
+WISE_bands = ['W1', 'W2', 'W3', 'W4']
+for band in WISE_bands:
+    photom['WISE']['WISE_{:s}'.format(band)] = '{:s}mpro'.format(band.lower())
+    photom['WISE']['WISE_{:s}_err'.format(band)] = '{:s}sigmpro'.format(band.lower())
 photom['WISE']['ra'] = 'ra'
 photom['WISE']['dec'] = 'dec'
 
