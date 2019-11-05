@@ -37,7 +37,7 @@ def _sed_default_params(module):
         params['tau_burst'] = 50.0 #burst e-folding time (Myr)
         params['age_burst'] = 20.0
         params['f_burst'] = 0.0 #burst fraction by mass
-        params['sfr_A'] = 1.0 #SFR at t = 0 (Msun/yr)
+        params['sfr_A'] = 0.1 #SFR at t = 0 (Msun/yr)
         params['normalise'] = False # Normalise SFH to produce one solar mass
     elif module is "bc03":
         params['imf'] = 1 #0: Salpeter 1: Chabrier
