@@ -5,6 +5,7 @@ import pdb
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astropy import units
+from frb.galaxies.defs import valid_filters
 
 # Import check
 try:
@@ -182,47 +183,14 @@ def _detect_mag_cols(photometry_table):
             in the magnitudes.
     """
     assert type(photometry_table)==Table, "Photometry table must be an astropy Table instance."
-    allcols = np.array(photometry_table.colnames)
+    allcols = photometry_table.colnames
+    photom_cols = np.array(valid_filters)
+    photom_errcols = np.array([filt+"_err" for filt in photom_cols])
 
-    #Start with DES
-    photom_cols = []
-    photom_errcols = []
-
-    descols = [col for col in allcols if "DES_" in col and "tile" not in col and "ID" not in col and "err" not in col]
-    des_errcols = [col for col in allcols if "DES_" in col and "err" in col]
+    photom_cols = photom_cols[[elem in allcols for elem in photom_cols]]
+    photom_errcols = photom_errcols[[elem in allcols for elem in photom_errcols]]
     
-    photom_cols += descols
-    photom_errcols += des_errcols
-
-    #WISE
-    wisecols = [col for col in allcols if ("WISE" in col or "W" in col) and "err" not in col]
-    wise_errcols = [col for col in allcols if ("WISE" in col or "W" in col) and "err" in col]
-
-    photom_cols += wisecols
-    photom_errcols += wise_errcols
-
-    #SDSS
-    sdsscols = [col for col in allcols if "SDSS" in col and "err" not in col and "field" not in col and "ID" not in col]
-    sdss_errcols = [col for col in allcols if "SDSS" in col and "err" in col]
-
-    photom_cols += sdsscols
-    photom_errcols += sdss_errcols
-
-    #Pan-STARRS
-    pscols = [col for col in allcols if "Pan-STARRS" in col and "err" not in col and "ID" not in col]
-    ps_errcols = [col for col in allcols if "Pan-STARRS" in col and "err" in col]
-
-    photom_cols += pscols
-    photom_errcols += ps_errcols
-
-    #DECaLS
-    decalcols = [col for col in allcols if "DECaL" in col and "err" not in col and "ID" not in col and 'brick' not in col and 'W' not in col]
-    decal_errcols = [col for col in allcols if "DECaL" in col and "err" in col and 'W' not in col]
-
-    photom_cols += decalcols
-    photom_errcols += decal_errcols
-
-    return photom_cols,photom_errcols
+    return photom_cols.tolist(), photom_errcols.tolist()
 
 def convert_mags_to_flux(photometry_table,fluxunits=units.mJy):
     """
