@@ -882,6 +882,37 @@ class YF17(ModifiedNFW):
         #
         return rho
 
+class MB15(ModifiedNFW):
+    """
+
+    """
+    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, **kwargs):
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
+
+        # Best parameters
+        self.beta = 0.45
+        self.n0_rc3b = 0.79e-2  # Last entry of Table 2; Crazy units
+
+    def nH(self, xyz):
+        """
+        Calculate the number density of Hydrogen
+
+        Args:
+            xyz: ndarray
+              Coordinates in kpc
+
+        Returns:
+            rho: Quantity array
+              Number density (1/cm**3)
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        #
+        #nH = self.n0 * (1+ (radius.self.r_c)**2)**(-3*self.beta/2)
+        nH = self.n0_rc3b / radius**(3*self.beta)
+        #
+        return nH / units.cm**3
 
 class MilkyWay(ModifiedNFW):
     """ Fiducial model for the Galaxy
