@@ -27,8 +27,9 @@ _DEFAULT_SED_MODULES = ["sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "da
 
 def _sed_default_params(module):
     """
-    Returns a default dict of SED modules
-    and their initial paramters.
+    Returns:
+        params (dict): the default dict of SED modules
+        and their initial parameters.
     """
     params = {}
     if module is "sfhdelayed":
@@ -76,21 +77,19 @@ def gen_cigale_in(photometry_table,zcol,infile="cigale_in.fits",overwrite=True):
     Generates the input catalog from
     a photometric catalog.
     Args:
-        photometry_table: astropy Table
+        photometry_table (astropy Table):
             A table from some photometric
             catalog with magnitudes and
             error measurements. Currently supports
             DES, DECaLS, SDSS, Pan-STARRS and WISE
-        zcol: str
+        zcol (str):
             Name of the column with redshift
             esimates.
-        infile: str, optional
+        infile (str, optional):
             Path to the CIGALE input file to
             be written into.
-        overwrite: bool, optional
+        overwrite (bool, optional):
             If true, overwrites file if it already exists
-    Returns:
-        None
     """
     #Table must have a column with redshift estimates
     assert type(zcol)==str, "zcol must be a column name. i.e. a string"
@@ -113,10 +112,10 @@ def gen_cigale_in(photometry_table,zcol,infile="cigale_in.fits",overwrite=True):
         if "DES_Y" in col:
             cigtab.rename_column(col,col.replace("DES_Y","DES_y"))
 
-    #Rename any column with "ID" in it to "_id"
+    #Rename any column with "ID" in it to "id"
     idcol = [col for col in cigtab.colnames if "ID" in col][0]
     cigtab.rename_column(idcol,"id")
-        #Rename 
+    #Rename 
     cigtab = convert_mags_to_flux(cigtab)
     cigtab = cigtab[['id','redshift']+photom_cols]
 
@@ -128,25 +127,25 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
     Initialise a CIGALE configuration file.
     
     Args:
-        data_file: str
+        data_file (str):
             Path to the input photometry data file.
-        config_file: str, optional
+        config_file (str, optional):
             Path to the file where CIGALE's configuration
             is stored.
-        cores: int, optional
+        cores (int, optional):
             Number of CPU cores to be used. Defaults
             to all cores on the system.
-        sed_modules: list of 'str', optional 
+        sed_modules (list of 'str', optional): 
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
             should be a corresponding correct dict
             for sed_modules_params.
-        sed_module_params: dict, optional
+        sed_module_params (dict, optional):
             A dict containing parameter values for
             the input SED modules. Better not use this
             unless you know exactly what you're doing.
     Returns:
-        cigconf: pcigale.session.configuration.Configuration
+        cigconf (pcigale.session.configuration.Configuration):
                 CIGALE Configuration object
     """
     if sed_modules !=_DEFAULT_SED_MODULES:
@@ -181,34 +180,34 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
     """
     Input parameters and run CIGALE.
     Args:
-        photometry_table: astropy Table
+        photometry_table (astropy Table):
             A table from some photometric
             catalog with magnitudes and
             error measurements. Currently supports
             DES, DECaLS, SDSS, Pan-STARRS and WISE
-        zcol: str
+        zcol (str):
             Name of the column with redshift
             esimates.
-        data_file: str
+        data_file (str):
             Path to the input photometry data file.
         config_file: str, optional
             Path to the file where CIGALE's configuration
             is stored.
-        wait_for_input: bool, optional
+        wait_for_input (bool, optional):
             If true, waits for the user to finish
             editing the auto-generated config file
             before running.
-        plot: bool, optional
+        plot (bool, optional):
             Plots the best fit SED if true
-        cores: int, optional
+        cores (int, optional):
             Number of CPU cores to be used. Defaults
             to all cores on the system.
-        sed_modules: list of 'str', optional 
+        sed_modules (list of 'str', optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
             should be a corresponding correct dict
             for sed_modules_params.
-        sed_module_params: dict, optional
+        sed_module_params (dict, optional):
             A dict containing parameter values for
             the input SED modules. Better not use this
             unless you know exactly what you're doing.
@@ -231,5 +230,5 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
             os.system("mv out/ {:s}".format(outdir))
         except:
             print("Invalid output directory path. Output stored in out/")
-    return 0
+    return
     
