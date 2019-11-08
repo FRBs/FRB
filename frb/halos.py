@@ -903,8 +903,7 @@ class MB15(ModifiedNFW):
               Coordinates in kpc
 
         Returns:
-            rho: Quantity array
-              Number density (1/cm**3)
+            ndarray: Number density with units of 1/cm**3
 
         """
         radius = np.sqrt(rad3d2(xyz))
@@ -912,7 +911,7 @@ class MB15(ModifiedNFW):
         #nH = self.n0 * (1+ (radius.self.r_c)**2)**(-3*self.beta/2)
         nH = self.n0_rc3b / radius**(3*self.beta)
         #
-        return nH / units.cm**3
+        return nH # / units.cm**3
 
 class MilkyWay(ModifiedNFW):
     """ Fiducial model for the Galaxy
