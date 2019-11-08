@@ -176,7 +176,7 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
     cigconf.config.write() #Overwrites the config file
 
 def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.ini",wait_for_input=False,
-        plot=True,outdir=None,**kwargs):
+        plot=True,outdir=None,compare_obs_model=False,**kwargs):
     """
     Input parameters and run CIGALE.
     Args:
@@ -230,5 +230,20 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
             os.system("mv out/ {:s}".format(outdir))
         except:
             print("Invalid output directory path. Output stored in out/")
+    if compare_obs_model:
+        #Generate an observation/model flux comparison table.
+        photo_obs_model = Table()
+        with Database() as base:
+            filters = OrderedDict([(name, base.get_filter(name))
+                                for name in cigconf.configuration['bands']
+                                if not (name.endswith('_err') or name.startswith('line')) ])
+            filters_wl = np.array([filt.pivot_wavelength
+                                    for filt in filters.values()])
+            mod = Table.read('out/results.fits')
+            obs = read_table(cigconf.configuration['data_file'])
+            photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
+            photo_obs_model['model_flux'] = np.array([mod["best."+filt][0] for filt in filters.keys()])
+            photo_obs_model['observed_flux'] = np.array([obs[filt][0] for filt in filters.keys()])
+            photo_obs_model['observed_flux_err'] = np.array([obs[filt+'_err'][0] for filt in filters.keys()])
+            photo_obs_model.write("out/photo_observed_model.dat",format="ascii",overwrite=True)
     return
-    
