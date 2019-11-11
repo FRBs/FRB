@@ -112,10 +112,10 @@ class DES_Survey(dlsurvey.DL_Survey):
             idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
             # Fill me
             for band in DES_WISE_bands:
-                main_cat[band.replace("W","WISE")] = -999.
-                main_cat[band.replace("W","WISE")][idx] = wise_cat[band.replace("W","WISE")]
-                main_cat[band.replace("W","WISE")+"_err"] = -999.
-                main_cat[band.replace("W","WISE")+"_err"][idx] = wise_cat['{:s}_err'.format(band.replace("W","WISE"))]
+                main_cat['WISE_{:s}'.format(band)] = -999.
+                main_cat['WISE_{:s}'.format(band)][idx] = wise_cat['{:s}'.format(band)]
+                main_cat['WISE_{:s}_err'.format(band)] = -999.
+                main_cat['WISE_{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band)]
 
         # Finish
         self.catalog = main_cat
