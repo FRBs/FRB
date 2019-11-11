@@ -152,7 +152,6 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
     return n_e.to('cm**-3') * cosmo_scale * nu_scale * z_scale
 
 
-
 def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*units.kpc, alpha=1.,
                         cosmo=None):
     """
