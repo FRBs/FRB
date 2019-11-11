@@ -884,6 +884,10 @@ class YF17(ModifiedNFW):
 
 class MB15(ModifiedNFW):
     """
+    Encodes the Galactic halo profile from
+    Miller & Bregman 2015, ApJ, 800, 14
+    https://ui.adsabs.harvard.edu/abs/2015ApJ...800...14M/abstract
+
 
     """
     def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, **kwargs):
