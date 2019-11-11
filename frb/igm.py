@@ -249,7 +249,7 @@ def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
     # DM halos
     dDM = DM_cosmic.value - np.roll(DM_cosmic.value,1)
     dDM[0] = dDM[1]
-    DM_halos = np.cumsum(dDM*fhalos_interp(zeval)*f_diffuse)
+    DM_halos = np.cumsum(dDM*fhalos_interp(zeval)*f_diffuse)*units.pc/units.cm**3
 
     # Return
     if cumul:
