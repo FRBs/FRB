@@ -29,9 +29,9 @@ We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
 to install and/or update these packages.
 
 * `python <http://www.python.org/>`_ versions 3.6 or later
-* `numpy <http://www.numpy.org/>`_ version 1.14 or later
-* `astropy <http://www.astropy.org/>`_ version 3.0 or later
-* `scipy <http://www.scipy.org/>`_ version 0.19 or later
+* `numpy <http://www.numpy.org/>`_ version 1.15 or later
+* `astropy <http://www.astropy.org/>`_ version 3.1 or later
+* `scipy <http://www.scipy.org/>`_ version 1.0 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
@@ -49,6 +49,10 @@ for data that may be associated to an FRB:
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
+
+The following package is required to map a slit onto a finder chart (frb.figures.finder):
+
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
 
 The following are required to run spectral line analysis (e.g. frb.galaxies.nebular):
 

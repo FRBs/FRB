@@ -52,7 +52,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "Pan_STARRS"
     
-    def get_catalog(self,query_fields=None,release="dr2",table="stack"):
+    def get_catalog(self,query_fields=None,release="dr2",table="stack",print_query=False):
         """
         Query a catalog in the VizieR database for
         photometry.
@@ -88,6 +88,8 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         data['dec'] = self.coord.dec.value
         data['radius'] = self.radius.to(u.deg).value
         data['columns'] = query_fields
+        if print_query:
+            print(url)
         ret = requests.get(url,params=data)
         ret.raise_for_status()
         if len(ret.text)==0:
