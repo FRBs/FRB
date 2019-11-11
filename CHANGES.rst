@@ -20,3 +20,4 @@
 - Add random_assoc script
 - Convenience function for a list of hosts
 - SDSS/DSS finder charts
+- Miller & Bregman 2015 halo profile

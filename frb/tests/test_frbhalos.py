@@ -58,6 +58,12 @@ def test_MB04():
     # Test
     assert np.isclose(ne, 0.0006383507424063443)
 
+def test_MB15():
+    mb15 = halos.MB15()
+    ne = mb15.ne((0.,0.,20.))
+    # Test
+    assert np.isclose(ne, 0.00016150865297256291)
+
 
 def test_modified_NFW():
     # Init
