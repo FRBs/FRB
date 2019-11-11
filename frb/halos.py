@@ -13,6 +13,7 @@ from pkg_resources import resource_filename
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -88,7 +89,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
-        dndlM = hmfe.dndlnM(M, z)
+        dndlM = M*hmfe.dndM(M, z)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
@@ -398,6 +399,43 @@ def rad3d2(xyz):
 
     """
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
+
+def SHM(log_Mhalo):
+  """
+  Stellar mass from Halo Mass from Moster+2010
+  Parameters
+  ----------
+      log_Mhalo: float
+        log10 of the galaxy halo mass (solar masses)
+  Returns
+  -------
+      log_mstar: float
+        log10 of the galaxy stellar mass (solar masses)
+  """
+  alpha = 0.0282
+  beta = 1.057
+  gamma = 0.556
+  logM1 = 11.884
+  M_halo = 10**log_Mhalo
+  M1 = 10**logM1
+
+  log_mstar = log_Mhalo + np.log10(2)+np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
+  return log_mstar
+
+def HSM(log_mstar):
+  """
+  Halo mass from Stellar mass (Moster+2010)
+  Parameters
+  ----------
+      log_mstar: float
+        log10 of the galaxy stellar mass (solar masses)
+  Returns
+  -------
+      log_Mhalo: float
+        log10 of the galaxy halo mass (solar masses)
+  """
+  f = lambda x: SHM(x)-log_mstar
+  return fsolve(f,11)[0]
 
 
 class ModifiedNFW(object):

@@ -38,6 +38,11 @@ DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
 
+# DECaLS
+DECaL_bands = ['g', 'r', 'z']
+for band in DECaL_bands:
+    valid_filters.append('DECaL_{:s}'.format(band))
+
 #PanSTARRS
 PanSTARRS_bands = ['g','r','i','z','y']
 for band in PanSTARRS_bands:
