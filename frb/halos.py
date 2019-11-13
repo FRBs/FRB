@@ -882,12 +882,15 @@ class YF17(ModifiedNFW):
         #
         return rho
 
+
 class MB15(ModifiedNFW):
     """
     Encodes the Galactic halo profile from
     Miller & Bregman 2015, ApJ, 800, 14
     https://ui.adsabs.harvard.edu/abs/2015ApJ...800...14M/abstract
 
+    The default normalization and beta values are taken from their Table 2, last row.
+    The models presented there do not appear to vary too much.
 
     """
     def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, **kwargs):
@@ -911,8 +914,7 @@ class MB15(ModifiedNFW):
 
         """
         radius = np.sqrt(rad3d2(xyz))
-        #
-        #nH = self.n0 * (1+ (radius.self.r_c)**2)**(-3*self.beta/2)
+        #  Equation 2 of Miller & Bregman 2015
         nH = self.n0_rc3b / radius**(3*self.beta)
         #
         return nH # / units.cm**3
