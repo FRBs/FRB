@@ -3,8 +3,8 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
-import pdb
 import os
+from IPython import embed
 
 from pkg_resources import resource_filename
 
@@ -193,7 +193,7 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     rho_ISM = avg_rhoISM(zeval)
 
     # Diffuse
-    rho_diffuse = rho_b - (rho_Mstar+rho_ISM)
+    rho_diffuse = rho_b - (rho_Mstar+rho_ISM)*(1+zeval)**3
 
     # Here we go
     n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
@@ -292,7 +292,6 @@ def avg_rhoISM(z):
     rhoISM = rhoISM_unitless * units.Msun / units.Mpc**3
     #
     return rhoISM
-
 
 
 def avg_rhoMstar(z, remnants=True):
