@@ -54,6 +54,13 @@ def init_hmf():
     # Return
     return hmfe
 
+# Stroing for use
+try:
+    import hmf_emulator
+except:
+    pass
+else:
+    hmfe = init_hmf()
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
@@ -73,12 +80,12 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
           In h^-1 units already
         rmax: float
           Extent of the halo in units of rvir
+          WARNING: This calculation assumes a single concentration for all halos
 
     Returns:
         ratios: ndarray
           rho_halo / rho_m
     """
-    hmfe = init_hmf()
 
     M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
