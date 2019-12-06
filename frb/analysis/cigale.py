@@ -164,7 +164,7 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
         cores = multiprocessing.cpu_count() #Use all cores
     cigconf.config['cores'] = cores
     cigconf.generate_conf() #Writes defaults to config_file
-    cigconf.config['analysis_params']['variables'] = ['sfh.sfr', 'sfh.sfr10Myrs', 'sfh.sfr100Myrs','stellar.m_star','stellar.m_star_old','stellar.m_star_young']
+    cigconf.config['analysis_params']['variables'] = ""
     cigconf.config['analysis_params']['save_best_sed'] = True
     cigconf.config['analysis_params']['lim_flag'] = True
     #Change the default values to new defaults:
@@ -226,8 +226,7 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
     if outdir is not None:
         try:
             os.system("rm -rf {}".format(outdir))
-            os.mkdir(outdir)
-            os.system("mv out/ {:s}".format(outdir))
+            os.system("mv out {:s}".format(outdir))
         except:
             print("Invalid output directory path. Output stored in out/")
     if compare_obs_model:
@@ -239,11 +238,11 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
                                 if not (name.endswith('_err') or name.startswith('line')) ])
             filters_wl = np.array([filt.pivot_wavelength
                                     for filt in filters.values()])
-            mod = Table.read('out/results.fits')
+            mod = Table.read(outdir+'/results.fits')
             obs = read_table(cigconf.configuration['data_file'])
             photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
             photo_obs_model['model_flux'] = np.array([mod["best."+filt][0] for filt in filters.keys()])
             photo_obs_model['observed_flux'] = np.array([obs[filt][0] for filt in filters.keys()])
             photo_obs_model['observed_flux_err'] = np.array([obs[filt+'_err'][0] for filt in filters.keys()])
-            photo_obs_model.write("out/photo_observed_model.dat",format="ascii",overwrite=True)
+            photo_obs_model.write(outdir+"/photo_observed_model.dat",format="ascii",overwrite=True)
     return
