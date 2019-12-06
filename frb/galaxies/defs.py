@@ -49,7 +49,7 @@ for band in PanSTARRS_bands:
     valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
 # VLT
-VLT_bands = ['g', 'I']
+VLT_bands = ['u', 'g', 'i', 'z']
 for band in VLT_bands:
     valid_filters.append('VLT_{:s}'.format(band))
 
