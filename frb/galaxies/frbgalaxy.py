@@ -325,18 +325,19 @@ class FRBGalaxy(object):
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             # Data exists??
-            if band not in self.photom.keys():
-                print("{:s} not found in the data; skipping".format(band))
+            bandname = "WISE_"+band
+            if bandname not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(bandname))
                 continue
             #
-            new_photom[band] = zpt*10**(-new_photom[band]/2.5)*1000 #mJy
-            errname = band+"_err"
+            new_photom[bandname] = zpt*10**(-new_photom[bandname]/2.5)*1000 #mJy
+            errname = bandname+"_err"
             if new_photom[errname] < 0:
                 new_photom[errname] = -99.0
             else:
-                new_photom[errname] = new_photom[band]*(10**(new_photom[errname]/2.5)-1)
-            new_photom.rename_column(band,band.replace("W","WISE"))
-            new_photom.rename_column(band+'_err',band.replace("W","WISE")+"_err")
+                new_photom[errname] = new_photom[bandname]*(10**(new_photom[errname]/2.5)-1)
+            new_photom.rename_column(bandname,bandname.replace("WISE_W","WISE"))
+            new_photom.rename_column(bandname+'_err',bandname.replace("WISE_W","WISE")+"_err")
         #Convert VISTA fluxes to mJy
         vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
         for band, zpt in zip(defs.VISTA_bands,vista_fnu0):
