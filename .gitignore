@@ -100,6 +100,7 @@ FRB190608_host.json
 .DS_Store
 
 # Data files
-kde_and_deft_data/
-obs_outputs/
-sim_outputs/
+dmgap/kde_and_deft_data/*
+dmgap/obs_outputs/*
+dmgap/sim_outputs/*
+!dmgap/*/.gitkeep
