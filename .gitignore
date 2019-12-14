@@ -98,3 +98,8 @@ FRB190608_host.json
 
 # Mac stuff
 .DS_Store
+
+# Data files
+kde_and_deft_data/
+obs_outputs/
+sim_outputs/
