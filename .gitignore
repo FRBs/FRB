@@ -103,4 +103,5 @@ FRB190608_host.json
 dmgap/kde_and_deft_data/*
 dmgap/obs_outputs/*
 dmgap/sim_outputs/*
+dmgap/output_figures/*
 !dmgap/*/.gitkeep
