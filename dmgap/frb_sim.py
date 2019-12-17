@@ -12,14 +12,6 @@ import suftware as sw
 from astropy.cosmology import WMAP9 as cosmo
 import random
 
-import seaborn as sns
-sns.set()
-sns.set_style('darkgrid')
-sns.set_context('poster')
-
-matplotlib.rc('xtick', labelsize=20) 
-matplotlib.rc('ytick', labelsize=20) 
-
 # VARIABLES
 z_obs = np.asarray([0.1927, 0.3212, 0.4755, 0.29, 0.66, 0.1178, 0.378])
 z_stepsize =  0.001
@@ -37,6 +29,7 @@ z_distribution = z[1]
 
 # Calculate average dm
 dm_ave_fn = igm.average_dm(z_max, cosmo=None, cumul=True, neval=1000, mu=1.3)
+
 dm_ave_ = dm_ave_fn[0].value
 z_ave = dm_ave_fn[1]
 dm_int_ave = sp.interpolate.CubicSpline(z_ave,dm_ave_) #spline
@@ -51,7 +44,7 @@ rand_draws_gauss = np.minimum(rand_draws_gauss,1)
 dm_cos = np.maximum(dm_ave + rand_draws_gauss*dm_ave*sigma_dm,0)
 
 # Estimate halo
-dm_halo  = 25.
+dm_halo  = 50.
 
 dm_frb_sim = dm_cos+dm_halo
 dm_stepsize =  0.01
@@ -60,5 +53,6 @@ dm_grid = np.arange(0,dm_max,dm_stepsize)
 
 np.save('sim_outputs/dm_frb_sim.npy', dm_frb_sim)
 np.save('sim_outputs/dm_grid.npy', dm_grid)
+print('FRB PDF simulation saved')
 
 

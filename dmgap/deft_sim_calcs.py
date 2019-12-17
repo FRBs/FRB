@@ -27,6 +27,8 @@ deft_sample_2000 = np.asarray(random.sample(list(dm_frb_sim),2000))
 deft_density_2000 = sw.DensityEstimator(deft_sample_2000, alpha=alpha_param, bounding_box=[0,2500])
 deft_sample_4000 = np.asarray(random.sample(list(dm_frb_sim),4000))
 deft_density_4000 = sw.DensityEstimator(deft_sample_4000, alpha=alpha_param, bounding_box=[0,2500])
+deft_sample_10000 = np.asarray(random.sample(list(dm_frb_sim),10000))
+deft_density_10000 = sw.DensityEstimator(deft_sample_10000, alpha=alpha_param, bounding_box=[0,2500])
 
 # Evaluate optimal density
 deft_optimal_frb_len = deft_density_frb_len.evaluate(dm_grid)
@@ -34,6 +36,7 @@ deft_optimal_100 = deft_density_100.evaluate(dm_grid)
 deft_optimal_1000 = deft_density_1000.evaluate(dm_grid)
 deft_optimal_2000 = deft_density_2000.evaluate(dm_grid)
 deft_optimal_4000 = deft_density_4000.evaluate(dm_grid)
+deft_optimal_10000 = deft_density_10000.evaluate(dm_grid)
 print('Density calculations done.')
 
 # Evaluate sampled densities
@@ -42,6 +45,7 @@ deft_sampled_100 = deft_density_100.evaluate_samples(dm_grid)
 deft_sampled_1000 = deft_density_1000.evaluate_samples(dm_grid)
 deft_sampled_2000 = deft_density_2000.evaluate_samples(dm_grid)
 deft_sampled_4000 = deft_density_4000.evaluate_samples(dm_grid)
+deft_sampled_10000 = deft_density_10000.evaluate_samples(dm_grid)
 print('Sampled density calculations done.')
 
 # Find std 
@@ -77,12 +81,15 @@ np.save('kde_and_deft_data/deft_100_optimal.npy',deft_optimal_100)
 np.save('kde_and_deft_data/deft_1000_optimal.npy',deft_optimal_1000)
 np.save('kde_and_deft_data/deft_2000_optimal.npy',deft_optimal_2000)
 np.save('kde_and_deft_data/deft_4000_optimal.npy',deft_optimal_4000)
+np.save('kde_and_deft_data/deft_10000_optimal.npy',deft_optimal_10000)
 
 np.save('kde_and_deft_data/deft_frb_len_sampled.npy',deft_sampled_frb_len)
 np.save('kde_and_deft_data/deft_100_sampled.npy',deft_sampled_100)
 np.save('kde_and_deft_data/deft_1000_sampled.npy',deft_sampled_1000)
 np.save('kde_and_deft_data/deft_2000_sampled.npy',deft_sampled_2000)
 np.save('kde_and_deft_data/deft_4000_sampled.npy',deft_sampled_4000)
+np.save('kde_and_deft_data/deft_10000_sampled.npy',deft_sampled_10000)
+
 
 np.save('kde_and_deft_data/deft_std_frb_len.npy',deft_std_frb_len)
 np.save('kde_and_deft_data/deft_std_100.npy',deft_std_100)
