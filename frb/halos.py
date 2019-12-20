@@ -883,6 +883,42 @@ class YF17(ModifiedNFW):
         return rho
 
 
+class MB15(ModifiedNFW):
+    """
+    Encodes the Galactic halo profile from
+    Miller & Bregman 2015, ApJ, 800, 14
+    https://ui.adsabs.harvard.edu/abs/2015ApJ...800...14M/abstract
+
+    The default normalization and beta values are taken from their Table 2, last row.
+    The models presented there do not appear to vary too much.
+
+    """
+    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, **kwargs):
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot, **kwargs)
+
+        # Best parameters
+        self.beta = 0.45
+        self.n0_rc3b = 0.79e-2  # Last entry of Table 2; Crazy units
+
+    def nH(self, xyz):
+        """
+        Calculate the number density of Hydrogen
+
+        Args:
+            xyz: ndarray
+              Coordinates in kpc
+
+        Returns:
+            ndarray: Number density with units of 1/cm**3
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        #  Equation 2 of Miller & Bregman 2015
+        nH = self.n0_rc3b / radius**(3*self.beta)
+        #
+        return nH # / units.cm**3
+
 class MilkyWay(ModifiedNFW):
     """ Fiducial model for the Galaxy
 
