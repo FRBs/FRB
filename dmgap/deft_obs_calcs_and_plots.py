@@ -9,13 +9,8 @@ import matplotlib.pyplot as plt
 import suftware as sw
 from percentile_defs import find_quantile
 
-import seaborn as sns
-sns.set()
-sns.set_style('darkgrid')
-sns.set_context('poster')
-
-matplotlib.rc('xtick', labelsize=18) 
-matplotlib.rc('ytick', labelsize=18) 
+matplotlib.rc('xtick', labelsize=12) 
+matplotlib.rc('ytick', labelsize=12) 
 
 # Data upload 
 frbcat_df = pd.read_csv('transient_data/frbcat_df.csv')
@@ -39,14 +34,14 @@ for i in range(len(dmdiff_psr_ensemble_nonnorm[0])):
     dmdiff_psr_ensemble_ = dmdiff_psr_ensemble_nonnorm[:,i]/np.sum(dmdiff_psr_ensemble_nonnorm[:,i])
     dmdiff_psr_ensemble.append(dmdiff_psr_ensemble_)
     ax1.plot(grid_psr,dmdiff_psr_ensemble_*100,color='#f46036',linewidth=1,alpha=.2)
-ax1.plot(grid_psr,dmdiff_psr_optimal*100,color='#f46036',label=r'$\Delta DM_{pulsar}$')
-ax1.set_yticklabels([])
+ax1.plot(grid_psr,dmdiff_psr_optimal*100,color='#f46036',label=r'$\Delta$ DM$_\mathrm{pulsar}$')
 ax1.axis(xmin=-80,xmax=70,ymin=0)
-ax1.set(xlabel=r'$DM$ (pc cm$^{-3}$)')
-ax1.xaxis.label.set_size(24)
+ax1.set(xlabel=r'DM (pc cm$^{-3}$)',ylabel='PDF')
+ax1.xaxis.label.set_size(22)
+ax1.yaxis.label.set_size(22)
 ax1.legend(fontsize=22)
 plt.tight_layout()
-plt.savefig('output_figures/dm_psr.png', dpi=300)
+plt.savefig('obs_outputs/dm_psr.png', dpi=300)
 plt.show()
 
 print('Pulsar calculations done.')
@@ -64,15 +59,16 @@ for i in range(len(dmdiff_frb_ensemble_nonnorm[0])):
     dmdiff_frb_ensemble_ = dmdiff_frb_ensemble_nonnorm[:,i]/np.sum(dmdiff_frb_ensemble_nonnorm[:,i])
     dmdiff_frb_ensemble.append(dmdiff_frb_ensemble_)
     ax2.plot(grid_frb,dmdiff_frb_ensemble_*100,color='crimson',linewidth=1,alpha=.2)
-ax2.plot(grid_frb,dmdiff_frb_optimal*100,color='crimson',label=r'$\Delta DM_{FRB}$')
+ax2.plot(grid_frb,dmdiff_frb_optimal*100,color='crimson',label=r'$\Delta$ DM$_\mathrm{FRB}$')
 # plt.hist(dm_frb_sim, density=True, bins=1000, histtype='stepfilled', alpha=0.2, color='crimson', label=r'$\Delta DM_{FRB,sim}$ ($z_{DEFT}$)')
-ax2.set(xlabel=r'$DM$ (pc cm$^{-3}$)')
-ax2.axis(xmin=0,xmax=1500,ymin=0)
-ax2.xaxis.label.set_size(24)
-ax2.set_yticklabels([])
+ax2.set(xlabel=r'DM (pc cm$^{-3}$)',ylabel='PDF')
+ax2.axis(xmin=0,xmax=2000,ymin=0)
+ax2.xaxis.label.set_size(22)
+ax2.yaxis.label.set_size(22)
 ax2.legend(fontsize=22)
+# plt.yscale('log')
 plt.tight_layout()
-plt.savefig('output_figures/dm_frb.png', dpi=300)
+plt.savefig('obs_outputs/dm_frb.png', dpi=300)
 plt.show()
 print('FRB calculations done.')
 

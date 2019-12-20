@@ -50,7 +50,7 @@ print('FRB data saved')
 psrcat_df = pd.read_csv('transient_data/psrcat.csv', skiprows=2, usecols = [1,2,3,9,10], names=['Name','Pref','dm','RAJD','DECJD'])
 psrcat_df = psrcat_df[~psrcat_df['dm'].str.contains('*', regex=False)].reset_index(drop=True)
 psrcat_df['dm'] = psrcat_df['dm'].astype(float)
-
+print(len(psrcat_df))
 coords = SkyCoord(ra=psrcat_df['RAJD'], dec=psrcat_df['DECJD'], unit=(u.degree))
 
 # Find pulsars within Magellanic clouds
@@ -72,12 +72,12 @@ smc_pulsars = list(psrcat_df[close_to_smc]['Name'])
 psrcat_df = psrcat_df[~psrcat_df['Name'].isin(lmc_pulsars)].reset_index(drop=True)
 psrcat_df = psrcat_df[~psrcat_df['Name'].isin(smc_pulsars)].reset_index(drop=True)
 psrcat_df = psrcat_df[~psrcat_df['Pref'].str.contains('mfl+06', regex=False)].reset_index(drop=True)
-
+print(len(psrcat_df))
 c_icrs = SkyCoord(ra=psrcat_df['RAJD'], dec=psrcat_df['DECJD'], unit=(u.degree), frame='icrs')
 psrcat_df['l'] = pd.DataFrame(c_icrs.galactic.l.value)
 psrcat_df['b'] = pd.DataFrame(c_icrs.galactic.b.value)
 psrcat_df = pd.concat([psrcat_df[psrcat_df.b > b_val], psrcat_df[psrcat_df.b < -b_val]], ignore_index=True)
-
+print(len(psrcat_df))
 # Pulsar ne2001
 psr_dmmax = []
 for i in range(len(psrcat_df['dm'])):

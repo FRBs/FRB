@@ -7,6 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import ne2001.density
 from frb import igm
+from scipy.stats import lognorm
 from pdf_defs import make_pdf, rv_amount
 import suftware as sw
 from astropy.cosmology import WMAP9 as cosmo
@@ -46,7 +47,13 @@ dm_cos = np.maximum(dm_ave + rand_draws_gauss*dm_ave*sigma_dm,0)
 # Estimate halo
 dm_halo  = 50.
 
-dm_frb_sim = dm_cos+dm_halo
+# DM_host
+#use loglikelihood function for this
+mu_host = 40.
+sigma_host = 1.
+dm_host = lognorm(sigma_host, loc=mu_host, scale=15).rvs(size=rv_amount)
+
+dm_frb_sim = dm_cos+dm_halo+dm_host
 dm_stepsize =  0.01
 dm_max = 3000
 dm_grid = np.arange(0,dm_max,dm_stepsize)
