@@ -88,6 +88,7 @@ def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1., cosmo=
 
     return tau.to('s')
 
+
 def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc, fV=1., cosmo=None,
                      verbose=False):
     """
@@ -153,7 +154,7 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
 
 
 def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*units.kpc, alpha=1.,
-                        cosmo=None):
+                        cosmo=None, debug=False):
     """
     Estimate n_e based on observed temporal broadening
 
@@ -197,12 +198,17 @@ def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*un
     D_LS = cosmo.angular_diameter_distance_z1z2(zL, z_FRB)
     cosmo_scale = (D_L*D_LS/D_S)**(-5/12) / D_term
 
+    if debug:
+        print("D_S", D_S.to('Gpc'))
+        print("D_L", D_L.to('Gpc'))
+        print("D_LS", D_LS.to('Gpc'))
+
     # Redshift
     z_scale = (1+zL)**(17/12) / zterm
 
     # Frequency
     nu_181112 = 1.3 * units.GHz
-    nu_scale = (nu_obs / nu_181112)**(22/10)
+    nu_scale = (nu_obs / nu_181112)**(22/12)
 
     # Scale
     n_e = n_e_unscaled * z_scale * cosmo_scale * nu_scale
