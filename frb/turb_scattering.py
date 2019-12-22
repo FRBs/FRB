@@ -152,7 +152,6 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
         z_scale = ((1+zL)/(1+0.36738))**(1/2)
         cosmo_scale = ((D_L*D_LS/D_S)/D_term)**(-1)
 
-
     # Return
     return n_e.to('cm**-3') * cosmo_scale * nu_scale * z_scale
 
