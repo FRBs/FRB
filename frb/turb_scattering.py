@@ -124,33 +124,32 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
     D_L = cosmo.angular_diameter_distance(zL)
     D_LS = cosmo.angular_diameter_distance_z1z2(zL, z_FRB)
 
-    # Scale
-    D_S_181112 = cosmo.angular_diameter_distance(0.47550)
-    D_L_181112 = cosmo.angular_diameter_distance(0.36738)
-    D_LS_181112 = cosmo.angular_diameter_distance_z1z2(0.36738, 0.47550)
-    D_term = D_L_181112*D_LS_181112/D_S_181112
+    # Scale -- It is more correct to use the distances we used in our paper as reference (although result is very similar)
+    D_term = (1.05*.262)/1.23*1000*units.Mpc
 
     nu_181112 = 1.3 * units.GHz
     nu_scale = (nu_obs / nu_181112)**2
+    z_scale = ((1+zL)/(1+0.36738))
+    cosmo_scale = ((D_L*D_LS/D_S)/D_term)
 
     # Branch
-    Rlim = 0.011*units.pc * np.sqrt(tau_scatt/(40*units.microsecond))
+    Rlim = 0.011*units.pc * np.sqrt(tau_scatt/(40*units.microsecond)*cosmo_scale)/z_scale
     if R < Rlim: #0.011*units.pc * np.sqrt(tau_scatt/(40*units.microsecond)):
         if verbose:
             print("In R<{} limit".format(Rlim.to('pc')))
-        n_e = (0.1*units.cm**-3) * 0.6 * np.sqrt(tau_scatt/(40*units.microsecond)) / np.sqrt(
-            (L/50/units.kpc) * (fV/1e-3) * (0.1*units.pc/R))
+        n_e = (0.1*units.cm**-3) * 0.568 * np.sqrt(tau_scatt/(40*units.microsecond)) / np.sqrt(
+                (L/50/units.kpc) * (fV/1e-3) * (0.1*units.pc/R))
         # Scalings
-        z_scale = ((1+zL)/(1+0.36738))**(3/2)
-        cosmo_scale = ((D_L*D_LS/D_S)/D_term)**(-1/2)
+        z_scale = z_scale**(3/2)
+        cosmo_scale = cosmo_scale**(-1/2)
     else:
         if verbose:
             print("In R>{} limit".format(Rlim.to('pc')))
-        n_e = (0.1*units.cm**-3) * 5 / np.sqrt((L/50/units.kpc) * (fV/1e-3)) * (
-                0.1*units.pc/R)**(3/2)
+        n_e = (0.1*units.cm**-3) * 5.03 / np.sqrt((L/50/units.kpc) * (fV/1e-3)) * (
+                R/(0.1*units.pc))**(3/2)
         # Scalings
-        z_scale = ((1+zL)/(1+0.36738))**(1/2)
-        cosmo_scale = ((D_L*D_LS/D_S)/D_term)**(-1)
+        z_scale = z_scale**2
+        cosmo_scale = cosmo_scale**(-1)
 
     # Return
     return n_e.to('cm**-3') * cosmo_scale * nu_scale * z_scale
