@@ -360,7 +360,6 @@ def build_host_190102(run_ppxf=False, build_photom=False):
 
     # SFR
     host190102.calc_nebular_SFR('Ha')
-    #host.derived['SFR_nebular_err'] = -999.
 
     # CIGALE
     host190102.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits'))
