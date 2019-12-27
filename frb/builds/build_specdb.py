@@ -246,10 +246,9 @@ def generate_by_refs(input_refs, outfile, version):
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
         try:
-            maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key,
-                              first=(flag_g==1), close_pairs=(instr in pair_groups))
+            maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, first=(flag_g==1), close_pairs=(instr in pair_groups))
         except:
-            embed(header='251')
+            embed(header='251 in build_specdb')
 
         # Ingest --
         pbuild.ingest_spectra(hdf, instr, full_meta, max_npix=maxpix, verbose=False,
@@ -273,7 +272,7 @@ def main(inflg='all'):
 
     # Public
     if flg & (2**1):
-        generate_by_refs(['Prochaska2019', 'Bannister2019'], 'FRB_specDB_Public.hdf5', 'v0.1')
+        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'FRB_specDB_Public.hdf5', 'v0.2')
 
 
 # Command line execution
