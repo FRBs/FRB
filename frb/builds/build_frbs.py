@@ -90,11 +90,38 @@ def frb_181112():
     path = resource_filename('frb', 'data/FRBs')
     frb181112.write_to_json(path=path)
 
+def frb_190102():
+    """Bhandari+20, ApJL --
+    """
+    fname = 'FRB190102'
+    wv_oiii = 6466.48
+    z_OIII = wv_oiii / 5008.239 - 1
+    frb190102 = frb.FRB(fname, 'J212939.7-792832.3', # Pulled from Slack 26-03-2019
+                        362 * units.pc / units.cm**3,
+                        z_frb=z_OIII)
+    # Error ellipse [REQUIRED]
+    frb190102.set_ee(0.1, 0.1, 0., 95.)
+
+    # Error in DM
+    frb190102.DM_err = 1 * units.pc / units.cm**3
+
+    # NE2001
+    frb190102.set_DMISM()
+    # RM
+    #frb190102.RM = 10 * units.rad / units.m**2
+    #frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb190102.refs = ['Bhandari2019']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190102.write_to_json(path=path)
+
 
 def frb_190523():
     """Ravi+19, Nature --
         https://ui.adsabs.harvard.edu/abs/2019Natur.572..352R/abstract
-
     """
     fname = 'FRB190523'
     frb190523 = frb.FRB(fname, 'J134815.6+722811',
@@ -123,6 +150,32 @@ def frb_190523():
     path = resource_filename('frb', 'data/FRBs')
     frb190523.write_to_json(path=path)
 
+def frb_190608():
+    """Bhandari+20, ApJL --
+    """
+    fname = 'FRB190608'
+    frb190608 = frb.FRB(fname, "J221604.74-075353.6",  # Pulled from Slack on 2019 Sep 20
+                        339.8 * units.pc / units.cm**3,
+                        z_frb=0.1177805)  # Taken from the SDSS table
+    # Error ellipse [REQUIRED]
+    frb190608.set_ee(0.1, 0.1, 0., 95.)
+    # Error in DM
+    frb190608.DM_err = 1 * units.pc / units.cm**3
+
+    # NE2001
+    frb190608.set_DMISM()
+    # RM
+    #frb190102.RM = 10 * units.rad / units.m**2
+    #frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb190608.refs = ['Bhandari2019']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190608.write_to_json(path=path)
+
+
 def main(inflg='all'):
 
     if inflg == 'all':
@@ -146,6 +199,13 @@ def main(inflg='all'):
     if flg & (2**3):
         frb_190523()
 
+    # 190608
+    if flg & (2**4):
+        frb_190608()
+
+    # 190102
+    if flg & (2**5):
+        frb_190102()
 
 
 # Command line execution
