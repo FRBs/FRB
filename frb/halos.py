@@ -174,7 +174,6 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
 
     # l(X)
     loX = ((constants.c/cosmo.H0) * ns * Ap).decompose().value
-    import pdb; pdb.set_trace()
 
     # dX
     X = cosmo.absorption_distance(zs)
