@@ -12,11 +12,18 @@ import numpy as np
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.table import Table
+from astropy.coordinates import match_coordinates_sky
 
 from frb.galaxies import frbgalaxy, defs
 from frb.galaxies import photom as frbphotom
+from frb.galaxies import ppxf
+from frb.galaxies import nebular
 from frb.surveys import des
+from frb.surveys import sdss
+from frb.surveys import wise
 from frb.surveys import panstarrs
+
+from linetools.spectra.xspectrum1d import XSpectrum1D
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
@@ -209,7 +216,7 @@ def build_host_180924(build_photom=True):
 def build_host_181112(build_photom=False):
     """ Build the host galaxy data for FRB 181112
 
-    All of the data comes from Prochaska+2019, Science, in press
+    All of the data comes from Prochaska+2019, Science
 
     Args:
         build_photom (bool, optional):
@@ -281,6 +288,91 @@ def build_host_181112(build_photom=False):
     host181112.write_to_json(path=path)
 
 
+def build_host_190102(run_ppxf=False, build_photom=False):
+    """ Build the host galaxy data for FRB 190102
+
+    All of the data comes from Bhandrari+2020, ApJL, in press
+
+    Args:
+        build_photom (bool, optional):
+    """
+    frbname = '190102'
+    # Stuart on June 17, 2019
+    #  -- Astrometry.net !
+    gal_coord = SkyCoord('J212939.60-792832.4',
+                         unit=(units.hourangle, units.deg))  # Cherie;  07-Mar-2019
+    # Instantiate
+    host190102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+
+    # Redshift -- Gaussian fit to [OIII 5007] in MagE
+    #  Looks great on the other lines
+    #  Ok on FORS2 Halpha
+    wv_oiii = 6466.48
+    z_OIII = wv_oiii / 5008.239 - 1
+    host190102.set_z(z_OIII, 'spec')
+
+    photom_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'bhandari2019_photom.ascii')
+    # VLT/FORS2 -- Pulled from draft on 2019-06-23
+    # VLT/FORS2 -- Pulled from spreadsheet 2019-06-23
+    if build_photom:
+        photom = Table()
+        photom['ra'] = [host190102.coord.ra.value]
+        photom['dec'] = host190102.coord.dec.value
+        photom['Name'] = host190102.name
+        photom['VLT_u'] = 23.   # Dust corrected
+        photom['VLT_u_err'] = -999.
+        photom['VLT_g'] = 21.8  # Dust corrected
+        photom['VLT_g_err'] = 0.1
+        photom['VLT_I'] = 20.71 # Dust corrected
+        photom['VLT_I_err'] = 0.05
+        photom['VLT_z'] = 20.5 # Dust corrected
+        photom['VLT_z_err'] = 0.2
+        # Write
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    host190102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # PPXF
+    if run_ppxf:
+        # MagE
+        results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_MagE_ppxf.ecsv')
+        spec_fit = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_MagE_ppxf.fits')
+        meta, spectrum = host190102.get_metaspec(instr='MagE')
+        R = meta['R']
+        # Correct for Galactic extinction
+        ebv = float(nebular.get_ebv(host190102.coord)['meanValue'])
+        alAV = nebular.load_extinction('MW')
+        AV = ebv * 3.1  # RV
+        Al = alAV(spectrum.wavelength.value) * AV
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        # Mask
+        atmos = [(7550, 7750)]
+        ppxf.run(new_spec, R, host190102.z, results_file=results_file, spec_fit=spec_fit, chk=True, atmos=atmos)
+    host190102.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_MagE_ppxf.ecsv'))
+
+    # Derived quantities
+
+    # AV
+    host190102.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    host190102.calc_nebular_SFR('Ha')
+    #host.derived['SFR_nebular_err'] = -999.
+
+    # CIGALE
+    host190102.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits'))
+
+    # Vet all
+    host190102.vet_all()
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host190102.write_to_json(path=path)
+
+
 def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False):
     """
     Build the host galaxy data for FRB 190523
@@ -348,7 +440,90 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190523.write_to_json(path=path)
 
-    
+
+def build_host_190608(run_ppxf=False, build_photom=False):
+    """ Build the host galaxy data for FRB 190608
+
+    All of the data comes from Bhandrari+2020, ApJL, in press
+
+    Args:
+        build_photom (bool, optional):
+    """
+    frbname = '190608'
+    gal_coord = SkyCoord('J221604.90-075356.0',
+                         unit=(units.hourangle, units.deg))  # Cherie;  07-Mar-2019
+
+    # Instantiate
+    host190608 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+
+    # Load redshift table
+    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+                      format='ascii.fixed_width')
+    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        embed(header='190608')
+    # Redshift -- SDSS
+    host190608.set_z(ztbl[idx]['ZEM'], 'spec')
+
+    # Morphology
+    #host190608.parse_galfit(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
+    #                               'HG180924_galfit_DES.log'), 0.263)
+
+    # Photometry
+
+    # SDSS
+    # Grab the table (requires internet)
+    photom_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'bhandari2019_photom.ascii')
+    if build_photom:
+        # VLT
+        search_r = 1 * units.arcsec
+        # SDSS
+        sdss_srvy = sdss.SDSS_Survey(gal_coord, search_r)
+        sdss_tbl = sdss_srvy.get_catalog(print_query=True)
+        sdss_tbl['Name'] = 'HG190608'
+        photom = frbphotom.merge_photom_tables(sdss_tbl, photom_file)
+        # WISE
+        wise_srvy = wise.WISE_Survey(gal_coord, search_r)
+        wise_tbl = wise_srvy.get_catalog(print_query=True)
+        wise_tbl['Name'] = 'HG190608'
+        # Write
+        photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
+        embed(header='151 of build')
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Parse
+    host190608.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # Run CIGALE
+    #host190608.run_cigale('CRAFT', 'Bhandari2019', ANYOTHEROPTIONSHERE=)
+
+    # PPXF
+    if run_ppxf:
+        results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
+        meta, spectrum = host190608.get_metaspec(instr='SDSS')
+        spec_fit = None
+        ppxf.run(spectrum, 2000., host190608.z, results_file=results_file, spec_fit=spec_fit, chk=True)
+    host190608.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv'))
+
+    # Derived quantities
+
+    # AV
+    host190608.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    host190608.calc_nebular_SFR('Ha')
+    #host.derived['SFR_nebular_err'] = -999.
+
+    # CIGALE
+    host190608.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019',
+                                         'HG190608_CIGALE.fits'))
+    # Vet all
+    host190608.vet_all()
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host190608.write_to_json(path=path)
+
 def main(inflg='all', build_photom=False):
 
     if inflg == 'all':
@@ -368,9 +543,17 @@ def main(inflg='all', build_photom=False):
     if flg & (2**2):
         build_host_181112(build_photom=build_photom)
 
-    # 181112
+    # 190523
     if flg & (2**3):
         build_host_190523(build_photom=build_photom)
+
+    # 190608
+    if flg & (2**4):
+        build_host_190608(build_photom=build_photom)
+
+    # 190102
+    if flg & (2**5):
+        build_host_190102(build_photom=build_photom)
 
 
 # Command line execution
