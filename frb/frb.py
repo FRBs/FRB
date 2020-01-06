@@ -5,10 +5,15 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 from pkg_resources import resource_filename
 import os
+import glob
+
+import numpy as np
+import pandas as pd
 
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
+from astropy.table import Table
 
 from frb import utils
 from frb import mw
@@ -45,6 +50,10 @@ class GenericFRB(object):
         lpol_err (Quantity):
         refs (list):
             List of str, reference names
+        z (float):
+            Redshift
+        z_err (float):
+            Uncertainty in the redshift
 
     """
     @classmethod
@@ -331,9 +340,11 @@ class FRB(GenericFRB):
             frb_name (str):
             coord (astropy.coordinates.SkyCoord):
             DM (Quantity):
-            S:
+            S (Quantity):
+                Source density
             nu_c:
-            z_frb:
+            z_frb (float):
+                Redshift
             **kwargs:
         """
         super(FRB, self).__init__(S, nu_c, DM, coord=coord, **kwargs)
@@ -363,4 +374,85 @@ class FRB(GenericFRB):
         # Finish
         txt = txt + '>'
         return (txt)
+
+
+def get_valunit(item):
+    if isinstance(item, units.Quantity):
+        return item.value, item.unit
+    else:
+        return item, None
+
+def build_table_of_frbs(fattrs=None):
+    """
+    Generate a Pandas table of FRB data
+
+    Warning:  As standard, missing values are given NaN in the Pandas table
+        Be careful!
+
+    Args:
+        fattrs (list):
+            Float attributes for the Table
+            The code also, by default, looks for accompanying _err attributes
+
+    Returns:
+        pd.DataFrame, dict:  Table of data on FRBs,  dict of their units
+
+    """
+    if fattrs is None:
+        fattrs = ['DM', 'fluence', 'RM', 'lpol', 'z']
+    # Grab the files
+    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
+    frb_files.sort()
+    # Load up the FRBs
+    frbs = []
+    for frb_file in frb_files:
+        frb_name = os.path.basename(frb_file).split('.')[0]
+        frbs.append(FRB.by_name(frb_name))
+
+    # Table
+    frb_tbl = pd.DataFrame({'Name': [ifrb.frb_name for ifrb in frbs]})
+    tbl_units = {}
+
+    def assign_value(tfrb, key, ilist):
+        val, unit = get_valunit(getattr(tfrb, key))
+        ilist.append(val)
+        # Deal with units
+        if key not in tbl_units.keys():
+            if unit is not None:
+                tbl_units[key] = unit.to_string()
+            else:
+                tbl_units[key] = None
+        else:
+            if unit is not None:
+                try:
+                    assert tbl_units[key] == unit.to_string()
+                except:
+                    import pdb; pdb.set_trace()
+
+    # Float Attributes
+    for fattr in fattrs:
+        values = []
+        # Error
+        errors = []
+        has_error = False
+        # Now loop me
+        for ss, ifrb in enumerate(frbs):
+            if hasattr(ifrb, fattr) and getattr(ifrb, fattr) is not None:
+                assign_value(ifrb, fattr, values)
+            else:
+                values.append(np.nan)
+            # Try error
+            eattr = fattr+'_err'
+            if hasattr(ifrb, eattr) and getattr(ifrb, eattr) is not None:
+                has_error = True
+                assign_value(ifrb, eattr, errors)
+            else:
+                errors.append(np.nan)
+        # Add to Table
+        frb_tbl[fattr] = values
+        if has_error:
+            frb_tbl[eattr] = errors
+
+    # Return
+    return frb_tbl, tbl_units
 
