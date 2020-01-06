@@ -377,7 +377,6 @@ class FRB(GenericFRB):
 
 
 
-
 def build_table_of_frbs(fattrs=None):
     """
     Generate a Pandas table of FRB data
