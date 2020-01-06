@@ -1,12 +1,9 @@
-.. highlight:: rest
-
 **************
 Installing frb
 **************
 
 This document describes how to install the `frb`
-repository.  We also describe
-:ref:`download-public`.
+repository.
 
 Installing Dependencies
 =======================
@@ -33,6 +30,7 @@ to install and/or update these packages.
 * `astropy <http://www.astropy.org/>`_ version 3.1 or later
 * `scipy <http://www.scipy.org/>`_ version 1.0 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
+* `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 
