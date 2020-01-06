@@ -8,12 +8,12 @@ import os
 import glob
 
 import numpy as np
+
 import pandas as pd
 
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
-from astropy.table import Table
 
 from frb import utils
 from frb import mw
@@ -377,10 +377,21 @@ class FRB(GenericFRB):
 
 
 def get_valunit(item):
+    """
+    Grab the value and unit of an input item
+
+    Args:
+        item (units.Quantity or any Python object):
+
+    Returns:
+        value, unit
+
+    """
     if isinstance(item, units.Quantity):
         return item.value, item.unit
     else:
         return item, None
+
 
 def build_table_of_frbs(fattrs=None):
     """
@@ -413,21 +424,33 @@ def build_table_of_frbs(fattrs=None):
     frb_tbl = pd.DataFrame({'Name': [ifrb.frb_name for ifrb in frbs]})
     tbl_units = {}
 
-    def assign_value(tfrb, key, ilist):
+    # Simple method to help with value/units in
+    def assign_value(tfrb, key, ilist, itbl_units):
+        """
+        Assign a value into a list, dealing with astropy.units.Quantity objects
+
+        The input list and dict of units may be modified in place
+
+        Args:
+            tfrb (FRB):
+            key (str):
+            ilist (list):
+                Input list
+            itbl_units (dict):
+                Input dict of units
+
+        """
         val, unit = get_valunit(getattr(tfrb, key))
         ilist.append(val)
         # Deal with units
-        if key not in tbl_units.keys():
+        if key not in itbl_units.keys():
             if unit is not None:
-                tbl_units[key] = unit.to_string()
+                itbl_units[key] = unit.to_string()
             else:
-                tbl_units[key] = None
+                itbl_units[key] = None
         else:
             if unit is not None:
-                try:
-                    assert tbl_units[key] == unit.to_string()
-                except:
-                    import pdb; pdb.set_trace()
+                assert itbl_units[key] == unit.to_string()
 
     # Float Attributes
     for fattr in fattrs:
@@ -438,14 +461,14 @@ def build_table_of_frbs(fattrs=None):
         # Now loop me
         for ss, ifrb in enumerate(frbs):
             if hasattr(ifrb, fattr) and getattr(ifrb, fattr) is not None:
-                assign_value(ifrb, fattr, values)
+                assign_value(ifrb, fattr, values, tbl_units)
             else:
                 values.append(np.nan)
             # Try error
             eattr = fattr+'_err'
             if hasattr(ifrb, eattr) and getattr(ifrb, eattr) is not None:
                 has_error = True
-                assign_value(ifrb, eattr, errors)
+                assign_value(ifrb, eattr, errors, tbl_units)
             else:
                 errors.append(np.nan)
         # Add to Table
