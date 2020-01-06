@@ -408,6 +408,7 @@ def build_table_of_frbs(fattrs=None):
     # Table
     frb_tbl = pd.DataFrame({'FRB': [ifrb.frb_name for ifrb in frbs]})
     tbl_units = {}
+    tbl_units['FRB'] = None
 
     # Coordinates
     coords = SkyCoord([ifrb.coord for ifrb in frbs])
