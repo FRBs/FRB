@@ -408,7 +408,7 @@ def rad3d2(xyz):
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
 
 
-def stellarmass_from_halomass(log_Mhalo):
+def stellarmass_from_halomass(log_Mhalo,z=0):
     """ Stellar mass from Halo Mass from Moster+2010
 
     Args:
@@ -424,12 +424,13 @@ def stellarmass_from_halomass(log_Mhalo):
     Returns:
         float: log_mstar, log10 of the galaxy stellar mass (solar masses)
     """
-    alpha = 0.0282
-    beta = 1.057
-    gamma = 0.556
-    logM1 = 11.884
+    alpha = 0.0282*(1+z)**-0.72
+    beta = 1.06+0.17*z
+    gamma = 0.556*(1+z)**-0.26
+    logM1 = 11.884*(1+z)**0.019
     M_halo = 10**log_Mhalo
     M1 = 10**logM1
+    
 
     # Simple
     log_mstar = log_Mhalo + np.log10(2)+np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
@@ -437,7 +438,7 @@ def stellarmass_from_halomass(log_Mhalo):
     return log_mstar
 
 
-def halomass_from_stellarmass(log_mstar):
+def halomass_from_stellarmass(log_mstar,z=0):
     """ Halo mass from Stellar mass (Moster+2010)
 
     Args:
@@ -446,7 +447,7 @@ def halomass_from_stellarmass(log_mstar):
     Returns:
         float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
     """
-    f = lambda x: stellarmass_from_halomass(x)-log_mstar
+    f = lambda x: stellarmass_from_halomass(x,z=z)-log_mstar
     return fsolve(f,11)[0]
 
 
