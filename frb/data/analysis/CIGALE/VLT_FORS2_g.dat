@@ -1,6 +1,6 @@
-#VLT_g
+#VLT_FORS2_g
 #photon
-#VLT_g band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
+#VLT FORS2 g_HIGH band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
 3785.000000 0.005730
 3790.000000 0.010320
 3795.000000 0.017560

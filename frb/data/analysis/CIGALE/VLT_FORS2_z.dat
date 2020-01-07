@@ -1,6 +1,6 @@
-#VLT_z
+#VLT_FORS2_z
 #photon
-#VLT_z band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
+#VLT FORS2 z_GUNN band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
 7768.0 0.0000000000
 7775.0 0.0001000000
 7783.0 0.0001000000
