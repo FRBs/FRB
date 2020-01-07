@@ -314,18 +314,21 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     # Compare?
     if compare_obs_model:
         #Generate an observation/model flux comparison table.
-        photo_obs_model = Table()
         with Database() as base:
             filters = OrderedDict([(name, base.get_filter(name))
                                 for name in cigconf.configuration['bands']
                                 if not (name.endswith('_err') or name.startswith('line')) ])
             filters_wl = np.array([filt.pivot_wavelength
                                     for filt in filters.values()])
-            mod = Table.read(outdir+'/results.fits')
+            mods = Table.read(outdir+'/results.fits')
             obs = read_table(os.path.join(outdir, cigconf.configuration['data_file']))
-            photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
-            photo_obs_model['model_flux'] = np.array([mod["best."+filt][0] for filt in filters.keys()])
-            photo_obs_model['observed_flux'] = np.array([obs[filt][0] for filt in filters.keys()])
-            photo_obs_model['observed_flux_err'] = np.array([obs[filt+'_err'][0] for filt in filters.keys()])
-            photo_obs_model.write(outdir+"/photo_observed_model.dat",format="ascii",overwrite=True)
+            for model, obj in zip(mods, obs):
+                photo_obs_model = Table()
+                photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
+                photo_obs_model['model_flux'] = np.array([model["best."+filt] for filt in filters.keys()])
+                photo_obs_model['observed_flux'] = np.array([obj[filt] for filt in filters.keys()])
+                photo_obs_model['observed_flux_err'] = np.array([obj[filt+'_err'] for filt in filters.keys()])
+                photo_obs_model.write(outdir+"/photo_observed_model_"+str(model['id'])+".dat",format="ascii",overwrite=True)
+            #import pdb; pdb.set_trace()
+            
     return
