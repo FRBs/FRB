@@ -34,7 +34,7 @@ to install and/or update these packages.
 
 If you are using Anaconda, you can check the presence of these packages with::
 
-	conda list "^python|numpy|astropy|scipy"
+	conda list "^python|numpy|astropy|scipy|pandas"
 
 If the packages have been installed, this command should print
 out all the packages and their version numbers.
@@ -65,6 +65,7 @@ The following are required to run some of the halo codes:
 The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
+* `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this

@@ -153,7 +153,7 @@ def build_host_180924(build_photom=True):
     # Instantiate
     host = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, '180924')
 
-    # Redshift
+    # Redshift -- JXP measured from multiple data sources
     host.set_z(0.3212, 'spec')
 
     # Morphology
