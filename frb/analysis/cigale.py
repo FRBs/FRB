@@ -19,14 +19,25 @@ from pcigale_plots import sed
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
 
-_DEFAULT_SED_MODULES = ["sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "dale2014", "restframe_parameters", "redshifting"]
+from IPython import embed
+
+# Default list of SED modules for CIGALE
+_DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "dale2014",
+                        "restframe_parameters", "redshifting")
 
 #TODO Create a function to check the input filters
 #Or create a translation file like eazy's.
 #def check_filters(data_file):
 
+
 def _sed_default_params(module):
     """
+    Set the default SED
+
+    Args:
+        module (str):
+            Specify the SED using the CIGALE standard names, e.g. sfhdelayed, bc03, etc.
+
     Returns:
         params (dict): the default dict of SED modules
         and their initial parameters.
@@ -72,32 +83,39 @@ def _sed_default_params(module):
         params['redshift'] = '' #Use input redshifts
     return params
 
-def gen_cigale_in(photometry_table,zcol,infile="cigale_in.fits",overwrite=True):
+
+def gen_cigale_in(photometry_table, zcol, infile="cigale_in.fits", overwrite=True):
     """
     Generates the input catalog from
     a photometric catalog.
+
     Args:
         photometry_table (astropy Table):
             A table from some photometric
             catalog with magnitudes and
             error measurements. Currently supports
             DES, DECaLS, SDSS, Pan-STARRS and WISE
+
+            The naming convention follows those specified in frb.galaxies.defs
+            with the exception of WISE which use WISE-1, etc. although the code
+            also handles WISE-W1, etc.
         zcol (str):
-            Name of the column with redshift
-            esimates.
+            Name of the column with redshift estimates
         infile (str, optional):
-            Path to the CIGALE input file to
-            be written into.
+            Output name + path for the CIGALE input file generated
         overwrite (bool, optional):
             If true, overwrites file if it already exists
     """
     #Table must have a column with redshift estimates
-    assert type(zcol)==str, "zcol must be a column name. i.e. a string"
+    if not isinstance(zcol, str):
+        raise IOError("zcol must be a column name. i.e. a string")
     assert zcol in photometry_table.colnames, "{} not found in the table. Please check".format(zcol)
+
     magcols, mag_errcols = _detect_mag_cols(photometry_table)
     cigtab = photometry_table.copy()
     cigtab.rename_column(zcol,"redshift")
     photom_cols = magcols+mag_errcols
+
     #First rename columns to something CIGALE understands
     for col in photom_cols:
         #Rename W to WISE
@@ -117,14 +135,18 @@ def gen_cigale_in(photometry_table,zcol,infile="cigale_in.fits",overwrite=True):
     cigtab.rename_column(idcol,"id")
     #Rename 
     cigtab = convert_mags_to_flux(cigtab)
+    embed(header='138 of cigale')
     cigtab = cigtab[['id','redshift']+photom_cols]
 
     cigtab.write(infile,overwrite=overwrite)
     return
 
-def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DEFAULT_SED_MODULES,sed_modules_params=None):
+
+def _initialise(data_file, config_file="pcigale.ini",
+                cores=None, sed_modules=_DEFAULT_SED_MODULES,
+                sed_modules_params=None):
     """
-    Initialise a CIGALE configuration file.
+    Initialise a CIGALE configuration file and write to disk.
     
     Args:
         data_file (str):
@@ -135,7 +157,7 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
         cores (int, optional):
             Number of CPU cores to be used. Defaults
             to all cores on the system.
-        sed_modules (list of 'str', optional): 
+        sed_modules (list or tuple, optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
             should be a corresponding correct dict
@@ -148,9 +170,11 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
         cigconf (pcigale.session.configuration.Configuration):
                 CIGALE Configuration object
     """
+    # Check
     if sed_modules !=_DEFAULT_SED_MODULES:
         assert sed_modules_params is not None,\
              "If you're not using the default modules, you'll have to input SED parameters"
+    # Init
     cigconf = Configuration(config_file) #a set of dicts, mostly
     cigconf.create_blank_conf() #Initialises a pcigale.ini file
 
@@ -167,41 +191,53 @@ def _initialise(data_file,config_file = "pcigale.ini",cores=None,sed_modules=_DE
     cigconf.config['analysis_params']['variables'] = ""
     cigconf.config['analysis_params']['save_best_sed'] = True
     cigconf.config['analysis_params']['lim_flag'] = True
-    #Change the default values to new defaults:
+
+    # Change the default values to new defaults:
     if sed_modules_params is None:
         sed_modules_params = {}
         for module in sed_modules:
             sed_modules_params[module] = _sed_default_params(module)
     cigconf.config['sed_modules_params'] = sed_modules_params
-    cigconf.config.write() #Overwrites the config file
 
-def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.ini",wait_for_input=False,
-        plot=True,outdir=None,compare_obs_model=False,**kwargs):
+    # Overwrites the config file
+    cigconf.config.write()
+
+    # Return
+    return cigconf
+
+
+def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale.ini",
+        wait_for_input=False, plot=True, outdir=None, compare_obs_model=False, **kwargs):
     """
-    Input parameters and run CIGALE.
+    Input parameters and then run CIGALE.
+
     Args:
         photometry_table (astropy Table):
-            A table from some photometric
-            catalog with magnitudes and
+            A table from some photometric catalog with magnitudes and
             error measurements. Currently supports
             DES, DECaLS, SDSS, Pan-STARRS and WISE
         zcol (str):
-            Name of the column with redshift
-            esimates.
-        data_file (str):
-            Path to the input photometry data file.
-        config_file: str, optional
-            Path to the file where CIGALE's configuration
-            is stored.
+            Name of the column with redshift estimates.
+        data_file (str, optional):
+            Path to the photometry data file generated used as input to CIGALE
+        config_file (str, optional):
+            Path to the file where CIGALE's configuration generated
         wait_for_input (bool, optional):
-            If true, waits for the user to finish
-            editing the auto-generated config file
+            If true, waits for the user to finish editing the auto-generated config file
             before running.
         plot (bool, optional):
             Plots the best fit SED if true
         cores (int, optional):
             Number of CPU cores to be used. Defaults
             to all cores on the system.
+        outdir (str, optional):
+            Path to the many outputs of CIGALE
+            If not supplied, the outputs will appear in a folder named out/
+        compare_obs_model (bool, optional):
+            If True compare the input observed fluxes with the model fluxes
+            This writes a Table to outdir named 'photo_observed_model.dat'
+
+    kwargs:  These are passed into _initialise()
         sed_modules (list of 'str', optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
@@ -223,12 +259,17 @@ def run(photometry_table,zcol, data_file="cigale_in.fits", config_file="pcigale.
     if plot:
         sed(cigconf,"mJy",True)
 
+    # Rename the default output directory?
     if outdir is not None:
         try:
             os.system("rm -rf {}".format(outdir))
             os.system("mv out {:s}".format(outdir))
         except:
             print("Invalid output directory path. Output stored in out/")
+    else:
+        outdir = 'out'
+
+    # Compare?
     if compare_obs_model:
         #Generate an observation/model flux comparison table.
         photo_obs_model = Table()

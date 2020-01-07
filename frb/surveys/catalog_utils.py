@@ -192,16 +192,17 @@ def _detect_mag_cols(photometry_table):
     
     return photom_cols.tolist(), photom_errcols.tolist()
 
-def convert_mags_to_flux(photometry_table,fluxunits=units.mJy):
+
+def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
     """
     Takes a table of photometric measurements
     in mags and converts it to flux units.
 
     Args:
-        photometry_table: astropy Table
+        photometry_table (astropy.table.Table):
             A table containing photometric
             data from a catlog.
-        fluxunits: astropy PrefixUnit, optional
+        fluxunits (astropy PrefixUnit, optional):
             Flux units to convert the magnitudes
             to. Default is mJy.
         Returns:
