@@ -136,7 +136,22 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
     cigtab = convert_mags_to_flux(cigtab)
     cigtab = cigtab[['id','redshift']+photom_cols]
 
-    # Rename WISE columns to something CIGALE understands
+    # Rename our filters to CIGALE names, as needed
+    new_names = {
+        'SDSS_u': 'sdss.up',
+        'SDSS_g': 'sdss.gp',
+        'SDSS_r': 'sdss.rp',
+        'SDSS_i': 'sdss.ip',
+        'SDSS_z': 'sdss.zp',
+        'WISE_W1': 'WISE1',
+        'WISE_W2': 'WISE2',
+        'WISE_W3': 'WISE3',
+        'WISE_W4': 'WISE4',
+        'VISTA_Y': 'vista.vircam.Y',
+        'VISTA_J': 'vista.vircam.J',
+        'VISTA_H': 'vista.vircam.H',
+        'VISTA_Ks': 'vista.vircam.Ks',
+    }
     for col in photom_cols:
         # Rename WISE_W to WISE
         if "W" in col and "WISE" not in col:

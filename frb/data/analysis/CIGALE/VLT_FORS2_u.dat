@@ -1,6 +1,6 @@
-#VLT_u
+#VLT_FORS2_u
 #photon
-#VLT_u band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
+#VLT FORS2 u_HIGH band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
 3170.000000 0.006840
 3175.000000 0.012610
 3180.000000 0.021410

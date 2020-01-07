@@ -1,6 +1,6 @@
-#VLT_i
+#VLT_FORS2_I
 #photon
-#VLT_i band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
+#VLT FORS2 I_BESS band http://www.eso.org/sci/facilities/paranal/instruments/fors/inst/Filters/curves.html
 6960.000000 0.004530
 6965.000000 0.005530
 6970.000000 0.006680
