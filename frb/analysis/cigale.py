@@ -84,7 +84,7 @@ def _sed_default_params(module):
     return params
 
 
-def gen_cigale_in(photometry_table, zcol, infile="cigale_in.fits", overwrite=True):
+def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", overwrite=True):
     """
     Generates the input catalog from
     a photometric catalog.
@@ -101,6 +101,11 @@ def gen_cigale_in(photometry_table, zcol, infile="cigale_in.fits", overwrite=Tru
             also handles WISE-W1, etc.
         zcol (str):
             Name of the column with redshift estimates
+        idcol (str, optional):
+            Name of the column with object IDs. By default,
+            the code looks for the first column with "ID" in
+            its name. If that's not present, it creates a
+            column with row numbers for IDs.
         infile (str, optional):
             Output name + path for the CIGALE input file generated
         overwrite (bool, optional):
@@ -116,28 +121,36 @@ def gen_cigale_in(photometry_table, zcol, infile="cigale_in.fits", overwrite=Tru
     cigtab.rename_column(zcol,"redshift")
     photom_cols = magcols+mag_errcols
 
-    #First rename columns to something CIGALE understands
+    # Rename any column with "ID" in it to "id"
+    if idcol is None:
+        try:
+            idcol = [col for col in cigtab.colnames if "ID" in col.upper()][0]
+        except IndexError:
+            print("No column with 'ID' in name. Adding a column.")
+            idcol = 'id'
+            cigtab[idcol] = np.arange(len(cigtab))+1 
+
+    cigtab.rename_column(idcol,"id")
+    
+    #First round of renaming
+    cigtab = convert_mags_to_flux(cigtab)
+    cigtab = cigtab[['id','redshift']+photom_cols]
+
+    # Rename WISE columns to something CIGALE understands
     for col in photom_cols:
-        #Rename W to WISE
+        # Rename WISE_W to WISE
         if "W" in col and "WISE" not in col:
             cigtab.rename_column(col,col.replace("W","WISE"))
-
-            #DECaLS table also have a DECaLS-WISE xmatch
+        elif "WISE_W" in col:
+            cigtab.rename_column(col,col.replace("WISE_W","WISE"))
+            #DECaLS tables also have a DECaLS-WISE xmatch
             if "DECaL" in col:
                 cigtab[col][cigtab[col].mask]= -99.0
                 cigtab.rename_column(col,col.replace("DECaL_",""))
-        #Rename DES_Y to DES_y
-        if "DES_Y" in col:
-            cigtab.rename_column(col,col.replace("DES_Y","DES_y"))
-
-    #Rename any column with "ID" in it to "id"
-    idcol = [col for col in cigtab.colnames if "ID" in col][0]
-    cigtab.rename_column(idcol,"id")
-    #Rename 
-    cigtab = convert_mags_to_flux(cigtab)
-    embed(header='138 of cigale')
-    cigtab = cigtab[['id','redshift']+photom_cols]
-
+        # Renmae DECaL to DES because it's the same instrument
+        if "DECaL" in col:
+            cigtab.rename_column(col,col.replace("DECaL","DES"))
+    #embed(header="something")
     cigtab.write(infile,overwrite=overwrite)
     return
 
