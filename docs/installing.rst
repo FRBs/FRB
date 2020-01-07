@@ -71,6 +71,8 @@ For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
 `Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
 
+Our CIGALE wrappers require custom filter files to be included in your
+`pcigale` installation. See the instructions below to know how. 
 
 Installing frb
 ==============
@@ -90,6 +92,17 @@ This should install the package and scripts.
 Make sure that your PATH includes the standard
 location for Python scripts (e.g. ~/anaconda/bin)
 
+Adding additional CIGALE filter files
+=====================================
+
+You can find the filter files in `frb.data.analysis.CIGALE`.
+* Copy all the `.dat` files to `database_builder.filters` in
+your CIGALE installation.
+* Delete, if exists, the `pcigale/data/data.db` file in your CIGALE folder.
+* Head to the top level in your CIGALE folder and run `python setup.py build`.
+
+This will create a new `data.db` file in the same location with
+our custom filter files. **Our wrappers will not work without these.** 
 
 .. _download-public:
 
