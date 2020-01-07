@@ -14,7 +14,7 @@ ne = density.ElectronDensity()
 psrcat_df = pd.read_csv('transient_data/psrcat.csv', skiprows=2, usecols = [1,2,3,9,10], names=['Name','Pref','dm','RAJD','DECJD']) 
 
 # FRB DATA
-frbcat_df = pd.read_csv('transient_data/frbcat_20191111.csv', skiprows=1, usecols= [0,5,6,7], names=['Name','l','b','dm']) 
+frbcat_df = pd.read_csv('transient_data/frbcat_20200107.csv', skiprows=1, usecols= [0,5,6,7], names=['Name','l','b','dm']) 
 frbcat_df['dm'] = frbcat_df['dm'].str.split('&').str[0].astype(float).values
 
 # Find FRBs in line of sight of MCs
@@ -34,7 +34,7 @@ frbcat_df = frbcat_df[~frbcat_df['Name'].isin(lmc_frb)].reset_index(drop=True)
 frbcat_df = frbcat_df[~frbcat_df['Name'].isin(smc_frb)].reset_index(drop=True)
 
 frbcat_df = pd.concat([frbcat_df[frbcat_df.b > b_val], frbcat_df[frbcat_df.b < -b_val]], ignore_index=True)
-print('FRB datasize is:', len(frbcat_df))
+print('FRB data size is:', len(frbcat_df))
 # FRB ne2001
 frb_dmmax = []
 for i in range(len(frbcat_df['dm'])):
@@ -50,7 +50,6 @@ print('FRB data saved')
 psrcat_df = pd.read_csv('transient_data/psrcat.csv', skiprows=2, usecols = [1,2,3,9,10], names=['Name','Pref','dm','RAJD','DECJD'])
 psrcat_df = psrcat_df[~psrcat_df['dm'].str.contains('*', regex=False)].reset_index(drop=True)
 psrcat_df['dm'] = psrcat_df['dm'].astype(float)
-print(len(psrcat_df))
 coords = SkyCoord(ra=psrcat_df['RAJD'], dec=psrcat_df['DECJD'], unit=(u.degree))
 
 # Find pulsars within Magellanic clouds
@@ -72,12 +71,12 @@ smc_pulsars = list(psrcat_df[close_to_smc]['Name'])
 psrcat_df = psrcat_df[~psrcat_df['Name'].isin(lmc_pulsars)].reset_index(drop=True)
 psrcat_df = psrcat_df[~psrcat_df['Name'].isin(smc_pulsars)].reset_index(drop=True)
 psrcat_df = psrcat_df[~psrcat_df['Pref'].str.contains('mfl+06', regex=False)].reset_index(drop=True)
-print(len(psrcat_df))
+
 c_icrs = SkyCoord(ra=psrcat_df['RAJD'], dec=psrcat_df['DECJD'], unit=(u.degree), frame='icrs')
 psrcat_df['l'] = pd.DataFrame(c_icrs.galactic.l.value)
 psrcat_df['b'] = pd.DataFrame(c_icrs.galactic.b.value)
 psrcat_df = pd.concat([psrcat_df[psrcat_df.b > b_val], psrcat_df[psrcat_df.b < -b_val]], ignore_index=True)
-print(len(psrcat_df))
+print('Pulsar data size is: ', len(psrcat_df))
 # Pulsar ne2001
 psr_dmmax = []
 for i in range(len(psrcat_df['dm'])):
