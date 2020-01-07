@@ -143,6 +143,10 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
         'SDSS_r': 'sdss.rp',
         'SDSS_i': 'sdss.ip',
         'SDSS_z': 'sdss.zp',
+        'VLT_u': 'VLT_FORS2_u',
+        'VLT_g': 'VLT_FORS2_g',
+        'VLT_I': 'VLT_FORS2_I',
+        'VLT_z': 'VLT_FORS2_z',
         'WISE_W1': 'WISE1',
         'WISE_W2': 'WISE2',
         'WISE_W3': 'WISE3',
@@ -152,6 +156,13 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
         'VISTA_H': 'vista.vircam.H',
         'VISTA_Ks': 'vista.vircam.Ks',
     }
+    for key in new_names:
+        if key in photom_cols:
+            cigtab.rename_column(key, new_names[key])
+            # Try Error
+            if key+'_err' in photom_cols:
+                cigtab.rename_column(key+'_err', new_names[key]+'_err')
+    '''
     for col in photom_cols:
         # Rename WISE_W to WISE
         if "W" in col and "WISE" not in col:
@@ -165,7 +176,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
         # Renmae DECaL to DES because it's the same instrument
         if "DECaL" in col:
             cigtab.rename_column(col,col.replace("DECaL","DES"))
-    #embed(header="something")
+    '''
     cigtab.write(infile,overwrite=overwrite)
     return
 
@@ -235,7 +246,7 @@ def _initialise(data_file, config_file="pcigale.ini",
 
 
 def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir=None, compare_obs_model=False, **kwargs):
+        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
     """
     Input parameters and then run CIGALE.
 
@@ -247,9 +258,9 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         zcol (str):
             Name of the column with redshift estimates.
         data_file (str, optional):
-            Path to the photometry data file generated used as input to CIGALE
+            Root name for the photometry data file generated used as input to CIGALE
         config_file (str, optional):
-            Path to the file where CIGALE's configuration generated
+            Root name for the file where CIGALE's configuration is generated
         wait_for_input (bool, optional):
             If true, waits for the user to finish editing the auto-generated config file
             before running.
@@ -278,7 +289,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
 
     """
     gen_cigale_in(photometry_table,zcol,infile=data_file,overwrite=True)
-    _initialise(data_file,config_file=config_file,**kwargs)
+    _initialise(data_file, config_file=config_file,**kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
     cigconf = Configuration(config_file)
@@ -288,14 +299,17 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         sed(cigconf,"mJy",True)
 
     # Rename the default output directory?
-    if outdir is not None:
+    if outdir != 'out':
         try:
             os.system("rm -rf {}".format(outdir))
             os.system("mv out {:s}".format(outdir))
         except:
             print("Invalid output directory path. Output stored in out/")
-    else:
-        outdir = 'out'
+
+    # Move input files into outdir too
+    os.system("mv {:s} {:s}".format(data_file, outdir))
+    os.system("mv {:s} {:s}".format(config_file, outdir))
+    os.system("mv {:s}.spec {:s}".format(config_file, outdir))
 
     # Compare?
     if compare_obs_model:
@@ -308,7 +322,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             filters_wl = np.array([filt.pivot_wavelength
                                     for filt in filters.values()])
             mod = Table.read(outdir+'/results.fits')
-            obs = read_table(cigconf.configuration['data_file'])
+            obs = read_table(os.path.join(outdir, cigconf.configuration['data_file']))
             photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
             photo_obs_model['model_flux'] = np.array([mod["best."+filt][0] for filt in filters.keys()])
             photo_obs_model['observed_flux'] = np.array([obs[filt][0] for filt in filters.keys()])
