@@ -1,6 +1,5 @@
 """ Methods related to fussing with a catalog"""
 import numpy as np
-import pdb
 
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
@@ -191,7 +190,6 @@ def _detect_mag_cols(photometry_table):
     photom_errcols = photom_errcols[[elem in allcols for elem in photom_errcols]]
     
     return photom_cols.tolist(), photom_errcols.tolist()
-
 
 def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
     """
