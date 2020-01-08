@@ -62,7 +62,7 @@ ax1.fill_between(dm_grid, deft_optimal_100-deft_std_100, deft_optimal_100+deft_s
 # ax1.set_yticklabels([])
 ax1.legend(fontsize=16)
 ax1.set(ylabel='PDF')
-ax1.axis(xmin=0,xmax=1000,ymin=0,ymax=0.0025)
+ax1.axis(xmin=0,xmax=2000,ymin=0,ymax=0.0025)
 ax1.xaxis.label.set_size(16)
 ax1.yaxis.label.set_size(16)
 
@@ -74,7 +74,7 @@ ax2.fill_between(dm_grid, deft_optimal_1000-deft_std_1000, deft_optimal_1000+def
 # ax2.set_yticklabels([])
 ax2.set(ylabel='PDF')
 ax2.legend(fontsize=16)
-ax2.axis(xmin=0,xmax=1000,ymin=0,ymax=0.0025)
+ax2.axis(xmin=0,xmax=2000,ymin=0,ymax=0.0025)
 ax2.xaxis.label.set_size(16)
 ax2.yaxis.label.set_size(16)
 
@@ -85,7 +85,7 @@ ax3.plot(dm_grid, deft_optimal_2000, color='crimson',linewidth=1,label=r'DM$_\ma
 ax3.fill_between(dm_grid, deft_optimal_2000-deft_std_2000, deft_optimal_2000+deft_std_2000, alpha=.4,color='crimson')
 ax3.set(ylabel='PDF')
 ax3.legend(fontsize=14)
-ax3.axis(xmin=0,xmax=1000,ymin=0,ymax=0.0025)
+ax3.axis(xmin=0,xmax=2000,ymin=0,ymax=0.0025)
 ax3.xaxis.label.set_size(16)
 ax3.yaxis.label.set_size(16)
 
@@ -96,7 +96,7 @@ ax4.plot(dm_grid, deft_optimal_4000, color='crimson',linewidth=1,label=r'DM$_\ma
 ax4.fill_between(dm_grid, deft_optimal_4000-deft_std_4000, deft_optimal_4000+deft_std_4000, alpha=.4,color='crimson')
 # ax4.set_yticklabels([])
 ax4.legend(fontsize=16)
-ax4.axis(xmin=0,xmax=1000,ymin=0,ymax=0.0025)
+ax4.axis(xmin=0,xmax=2000,ymin=0,ymax=0.0025)
 ax4.set(xlabel=r'DM (pc cm$^{-3}$)',ylabel='PDF')
 ax4.xaxis.label.set_size(16)
 ax4.yaxis.label.set_size(16)
