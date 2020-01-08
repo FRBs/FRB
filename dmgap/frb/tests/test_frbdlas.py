@@ -10,31 +10,31 @@ import os
 from astropy.units import Quantity
 from astropy import units as u
 
-from frb.dlas import approx_avgdm
-from frb.dlas import monte_dm
+from frb.dlas import approx_avgDM
+from frb.dlas import monte_DM
 from frb.dlas import monte_tau
 
 
-def test_approx_avgdm():
-    dm = approx_avgdm(1.)
-    assert isinstance(dm, Quantity)
-    assert dm.unit == (u.pc/u.cm**3)
-    assert np.isclose(dm.value, 0.00651401)
+def test_approx_avgDM():
+    DM = approx_avgDM(1.)
+    assert isinstance(DM, Quantity)
+    assert DM.unit == (u.pc/u.cm**3)
+    assert np.isclose(DM.value, 0.00651401)
     # Array
-    dms = approx_avgdm(np.array([0., 1., 2.]))
-    assert len(dms) == 3
+    DMs = approx_avgDM(np.array([0., 1., 2.]))
+    assert len(DMs) == 3
     # Error
     with pytest.raises(IOError):
-        approx_avgdm(10.)
+        approx_avgDM(10.)
 
 
-def test_monte_dm():
-    """ Monte-carlo of dm values
+def test_monte_DM():
+    """ Monte-carlo of DM values
     """
     zeval = np.array([0.,1.,2.])
-    dms = monte_dm(np.array(zeval))
-    assert dms.shape[0] == 100
-    assert dms.shape[1] == zeval.size
+    DMs = monte_DM(np.array(zeval))
+    assert DMs.shape[0] == 100
+    assert DMs.shape[1] == zeval.size
 
 
 def test_monte_tau():

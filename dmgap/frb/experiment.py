@@ -59,7 +59,7 @@ class Experiment(object):
                 t_scatt = 0.*u.s
         # t_chan  (Lorimer & Kramer 2005)
         t_chan = 8.3e-6*u.s * (self.data['Dnu'].to('MHz').value/self.data['Channels']) * (
-            frb.nu_c.to('GHz').value)**(-3) * frb.dm.to('pc/cm**3').value
+            frb.nu_c.to('GHz').value)**(-3) * frb.DM.to('pc/cm**3').value
         # Wb
         Wb = np.sqrt(frb.Wi**2 + t_chan**2 + t_samp**2 + t_scatt**2)
         # T_Sky

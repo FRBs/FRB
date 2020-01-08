@@ -1,4 +1,4 @@
-""" Module for dm Halo calculations
+""" Module for DM Halo calculations
 """
 from __future__ import print_function, absolute_import, division, unicode_literals
 
@@ -59,7 +59,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     Calculate the fraction of dark matter in collapsed halos
      over a mass range and at a given redshift
 
-    Note that the fraction of dm associated with these halos
+    Note that the fraction of DM associated with these halos
     will be scaled down by an additional factor of f_diffuse
 
     Requires Aemulus HMF to be installed
@@ -184,7 +184,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
 def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=None, dz_box=0.1,
     dz_grid=0.01, f_hot=0.75, verbose=True):
     """
-    Generate a universe of dark matter halos with dm measurements
+    Generate a universe of dark matter halos with DM measurements
     Mainly an internal function for generating useful output grids.
 
     Requires the Aemulus Halo Mass function
@@ -202,12 +202,12 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         dz_box: float, optional
           Size of the slice of the universe for each sub-calculation
         dz_grid: float, optional
-          redshift spacing in the dm grid
+          redshift spacing in the DM grid
         f_hot: float
-          Fraction of the cosmic fraction of matter in diffuse gas (for dm)
+          Fraction of the cosmic fraction of matter in diffuse gas (for DM)
 
     Returns:
-        dm_grid: ndarray (ntrial, nz)
+        DM_grid: ndarray (ntrial, nz)
         halo_tbl: Table
           Table of all the halos intersected
 
@@ -237,7 +237,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     print('L_base = {} cMpc'.format(base_l))
     warnings.warn("Worry about being big enough given cMpc vs pMpc")
 
-    dm_grid = np.zeros((ntrial,nz))
+    DM_grid = np.zeros((ntrial,nz))
 
     # Spline distance to z
     D_max = cosmo.comoving_distance(z_FRB)
@@ -247,7 +247,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     # Save halo info
     #halos = [[] for i in range(ntrial)]
-    halo_i, M_i, R_i, dm_i, z_i = [], [], [], [], []
+    halo_i, M_i, R_i, DM_i, z_i = [], [], [], [], []
 
     # Loop me
     prev_zbox = 0.
@@ -294,8 +294,8 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         N_halo = int(np.round(avg_N + np.sqrt(avg_N)*rstate.randn(1)))
 
         # Random masses
-        randm = rstate.random_sample(N_halo)
-        rM = np.exp(mhalo_spl(randm)) / cosmo.h
+        randM = rstate.random_sample(N_halo)
+        rM = np.exp(mhalo_spl(randM)) / cosmo.h
 
         # r200
         r200 = (((3*rM*units.M_sun.cgs) / (4*np.pi*200*cosmo.critical_density(zbox)))**(1/3)).to('kpc')
@@ -317,7 +317,7 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
         z_ran = D_to_z(Z_c)
 
         # Loop on trials
-        all_dms = []
+        all_DMs = []
         all_nhalo = []
         all_r200 = []
         for itrial in range(ntrial):
@@ -335,10 +335,10 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
             print("We hit {} halos".format(np.sum(intersect)))
             all_nhalo.append(np.sum(intersect))
             if not np.any(intersect):
-                all_dms.append(0.)
+                all_DMs.append(0.)
                 continue
             # Loop -- FIND A WAY TO SPEED THIS UP!
-            dms = []
+            DMs = []
             for iobj in np.where(intersect)[0]:
                 # Init
                 if rM[iobj] > 1e14: # Use ICM model
@@ -349,21 +349,21 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
                 model.M_halo = 10.**model.log_Mhalo * constants.M_sun.cgs
                 model.z = zbox # To be consistent with above;  should be close enough
                 model.setup_param(cosmo=cosmo)
-                # dm
-                dm = model.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+model.z)
-                dms.append(dm)
+                # DM
+                DM = model.Ne_Rperp(R_phys[iobj], rmax=r_max, add_units=False)/(1+model.z)
+                DMs.append(DM)
                 # Save halo info
                 halo_i.append(itrial)
                 M_i.append(model.M_halo.value)
                 R_i.append(R_phys[iobj].value)
-                dm_i.append(dm)
+                DM_i.append(DM)
                 z_i.append(z_ran[iobj])
                 all_r200.append(cgm.r200.value)
             # Save em
             iz = (z_ran[intersect]/dz_grid).astype(int)
-            dm_grid[itrial,iz] += dms
-            all_dms.append(np.sum(dms))
-            #print(dms, np.log10(rM[intersect]), R_phys[intersect])
+            DM_grid[itrial,iz] += DMs
+            all_DMs.append(np.sum(DMs))
+            #print(DMs, np.log10(rM[intersect]), R_phys[intersect])
             if (itrial % 100) == 0:
                 pdb.set_trace()
 
@@ -372,16 +372,16 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
     halo_tbl['trial'] = halo_i
     halo_tbl['M'] = M_i
     halo_tbl['R'] = R_i
-    halo_tbl['dm'] = dm_i
+    halo_tbl['DM'] = DM_i
     halo_tbl['z'] = z_i
 
     # Write
     if outfile is not None:
         print("Writing to {}".format(outfile))
-        np.save(outfile, dm_grid, allow_pickle=False)
+        np.save(outfile, DM_grid, allow_pickle=False)
         halo_tbl.write(outfile+'.fits', overwrite=True)
 
-    return dm_grid, halo_tbl
+    return DM_grid, halo_tbl
 
 
 def rad3d2(xyz):
@@ -915,9 +915,9 @@ class M31(ModifiedNFW):
         self.coord = SkyCoord('J004244.3+411609', unit=(units.hourangle, units.deg),
                               distance=self.distance)
 
-    def dm_from_Galactic(self, scoord, **kwargs):
+    def DM_from_Galactic(self, scoord, **kwargs):
         """
-        Calculate dm through M31's halo from the Sun
+        Calculate DM through M31's halo from the Sun
         given a direction
 
         Args:
@@ -927,7 +927,7 @@ class M31(ModifiedNFW):
                Passed to Ne_Rperp
 
         Returns:
-            dm: Quantity
+            DM: Quantity
               Dispersion measure through M31's halo
         """
         # Setup the geometry
@@ -944,9 +944,9 @@ class M31(ModifiedNFW):
             return 0 * units.pc / units.cm**3
         # Rperp
         Rperp = np.abs(a*x0 + b*y0 + c) / np.sqrt(a**2 + b**2)  # kpc
-        # dm
-        dm = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
-        return dm
+        # DM
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
 
 
 class LMC(ModifiedNFW):

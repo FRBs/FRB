@@ -6,3 +6,18 @@ foreground galaxies.
 The script build_hosts.py is used to generate
 or re-generate JSON files for FRB host galaxies.
 Best run by developers only.
+
+-------
+SDSS
+
+-------
+PRIMUS
+
+To generate star-formation main sequence figures,
+you will need to download the PRIMUS catalogs from here:
+https://primus.ucsd.edu/version1.html
+
+PRIMUS_2013_zcat_v1.fits
+PRIMUS_2014_mass_v1.fits
+
+

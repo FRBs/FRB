@@ -38,7 +38,7 @@ plt.plot(dm_grid,deft_optimal_10000,color='crimson',label=r'DEFT DM$_\mathrm{FRB
 plt.plot(dm_grid,deft_sampled_10000,color='crimson',linewidth=0.5,alpha=.1)
 plt.xlabel(r'DM (pc cm$^{-3}$)',fontsize=22)
 plt.ylabel('PDF',fontsize=22)
-plt.xlim(0,1000)
+plt.xlim(0,2000)
 plt.legend(fontsize=22)
 plt.tight_layout()
 plt.savefig('sim_outputs/DM_10000_samples.png', dpi=300)

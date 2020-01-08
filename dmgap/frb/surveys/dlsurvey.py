@@ -8,6 +8,7 @@ import numpy as np
 import warnings
 from astropy.table import Table
 from astropy import units
+import warnings
 
 import sys, os
 try:
@@ -44,7 +45,7 @@ class DL_Survey(surveycoord.SurveyCoord):
     def _select_best_img(self,imgTable,verbose,timeout=120):
         pass
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,timeout=120):
         """
         Get catalog sources around the given coordinates
         within self.radius.
@@ -65,7 +66,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         if print_query:
             print(query)
         # Do it while silencing print statements
-        result = qc.query(self.token, sql=query)
+        result = qc.query(self.token, sql=query,timeout=timeout)
         sys.stdout = open(os.devnull,"w")
         temp = convert(result)
         sys.stdout = sys.__stdout__
@@ -99,7 +100,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
         
-        if band.lower() not in self.bands:
+        if band.lower() not in self.bands and band not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
 
         table_cols, col_vals, bandstr = self._parse_cat_band(band)
@@ -139,12 +140,11 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         """
         self.cutout_size = imsize
-
         if "r" in self.bands:
             band = "r"
         elif band is None:
             band = self.bands[-1]
-            raise UserWarning("Retrieving cutout in {:s} band".format(band))
+            warnings.warn("Retrieving cutout in {:s} band".format(band))
 
         img_hdu = self.get_image(imsize, band)
         if img_hdu is not None:

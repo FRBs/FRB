@@ -22,20 +22,21 @@ def test_rhoISM():
     assert rhoISM.unit == u.Msun/u.Mpc**3
     assert np.isclose(rhoISM.value, 2.19389268e+08)
 
-def test_igmdm():
-    dm = igm.average_dm(1.)
+def test_igmDM():
+    DM = igm.average_DM(1.)
     # Value and unit
-    assert dm.unit == u.pc/u.cm**3
-    assert np.isclose(dm.value, 1053.0827, rtol=0.001)
+    assert DM.unit == u.pc/u.cm**3
+    assert np.isclose(DM.value, 1053.0827, rtol=0.001)
     # Cumulative
-    dm_cum, zeval = igm.average_dm(1., cumul=True)
-    assert dm == dm_cum[-1]
+    DM_cum, zeval = igm.average_DM(1., cumul=True)
+    assert DM == DM_cum[-1]
     # Cross through HeII reionization
-    dm4 = igm.average_dm(4.)
-    assert np.isclose(dm4.value, 3866.9971167, rtol=0.001)
+    DM4 = igm.average_DM(4.)
+    assert np.isclose(DM4.value, 3866.9971167, rtol=0.001)
 
 
-def test_z_from_dm():
-    z = igm.z_from_dm(1000.*u.pc/u.cm**3)
+def test_z_from_DM():
+    # Note this removes 100 DM units of 'nuisance'
+    z = igm.z_from_DM(1000.*u.pc/u.cm**3)
     # Test
-    assert np.isclose(z, 0.95200554, rtol=0.001)
+    assert np.isclose(z, 0.86206876, rtol=0.001)

@@ -12,17 +12,17 @@ from frb.halos import ModifiedNFW
 
 from ne2001 import density
 
-def ismdm(coord):
+def ismDM(coord):
     gcoord = coord.transform_to('galactic')
     l, b = gcoord.l.value, gcoord.b.value
     
     ne = density.ElectronDensity()#**PARAMS)
-    ismdm = ne.dm(l, b, 100.)
+    ismDM = ne.DM(l, b, 100.)
     
     # Return
-    return ismdm
+    return ismDM
 
-def halodm(coord, f_diffuse=0.75, zero=True):
+def haloDM(coord, f_diffuse=0.75, zero=True):
 
     gcoord = coord.transform_to('galactic')
     l, b = gcoord.l.value, gcoord.b.value
@@ -36,6 +36,6 @@ def halodm(coord, f_diffuse=0.75, zero=True):
         mnfw_2.zero_inner_ne = 10.  # kpc
     params = dict(F=1., e_density=1.)
     model_ne = density.NEobject(mnfw_2.ne, **params)
-    halodm = model_ne.dm(l, b, mnfw_2.r200.value)
+    haloDM = model_ne.DM(l, b, mnfw_2.r200.value)
     #
-    return halodm
+    return haloDM

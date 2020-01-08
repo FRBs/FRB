@@ -18,6 +18,7 @@ from astropy.cosmology import Planck15
 from astropy import constants
 
 from frb import halos
+from frb import mw
 
 def fukugita04_dict():
     """
@@ -115,33 +116,47 @@ def average_He_nume(z, z_HIreion=7.):
         return neHe[0]
 
 
-def z_from_dm(dm, cosmo=None):
+def z_from_DM(DM, cosmo=None, coord=None, corr_nuisance=True):
     """
-    Report back an estimated redshift from an input IGM dm
+    Report back an estimated redshift from an input IGM DM
     Any contributions from the Galaxy and/or host need to have been 'removed'
 
-    Parameters
-    ----------
-    dm: Quantity
-    cosmo: astropy.cosmology, optional
+    Args:
+        DM (Quantity):
+        cosmo (astropy.cosmology, optional):
+        coord (astropy.coordinate.SkyCoord, optional):
+           If provided, use it to remove the ISM
+        corr_nuisance (bool, optional):
+            If True, correct for the MW Halo and the host with
+            100 DM units
 
-    Returns
-    -------
-    z: float
+    Returns:
+        float: Redshift
 
     """
-    # Calculate dms
-    all_dm, zeval = average_dm(20., cosmo=cosmo, neval=20000, cumul=True)
+    if coord is not None:
+        DM_ISM = mw.ismDM(coord)
+        DM_use = DM - DM_ISM
+    else:
+        DM_use = DM
+
+    # Correct
+    if corr_nuisance:
+        DM_use -= 100 * units.pc/units.cm**3
+
+    # Calculate DMs
+    all_DM, zeval = average_DM(20., cosmo=cosmo, neval=20000, cumul=True)
     # Interpolate
-    fint = interp1d(all_dm.value, zeval)
+    fint = interp1d(all_DM.value, zeval)
     # Evaluate
-    z = fint(dm.to('pc/cm**3').value)
+    z = fint(DM_use.to('pc/cm**3').value)
+    # Return
     return z
 
 
-def average_dm(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
+def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     """
-    Calculate the average cosmic dm 'expected' based on our empirical
+    Calculate the average cosmic DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
 
     This includes both the IGM and galactic halos, i.e. any and all diffuse gas
@@ -153,11 +168,11 @@ def average_dm(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     mu: float
       Reduced mass correction for He when calculating n_H
     cumul: bool, optional
-      Return the dm as a function of z
+      Return the DM as a function of z
 
     Returns
     -------
-    dm: Quantity
+    DM: Quantity
       One value if cumul=False
       else evaluated at a series of z (neval)
     zeval: ndarray, optional
@@ -186,23 +201,23 @@ def average_dm(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
 
     n_e = n_H * (1.-average_fHI(zeval)) + n_He*(average_He_nume(zeval))
 
-    # Cosmology -- 2nd term is the (1+z) factor for dm
+    # Cosmology -- 2nd term is the (1+z) factor for DM
     denom = np.sqrt((1+zeval)**3 * cosmo.Om0 + cosmo.Ode0) * (1+zeval) * (1+zeval)
 
     # Time to Sum
     dz = zeval[1] - zeval[0]
-    dm_cum = ((constants.c/cosmo.H0) * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
+    DM_cum = ((constants.c/cosmo.H0) * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
 
     # Return
     if cumul:
-        return dm_cum, zeval
+        return DM_cum, zeval
     else:
-        return dm_cum[-1]
+        return DM_cum[-1]
 
 
-def avg_dmhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
+def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
     """
-    Average dm_halos term from halos along the sightline to an FRB
+    Average DM_halos term from halos along the sightline to an FRB
 
     Args:
         z: float
@@ -217,30 +232,30 @@ def avg_dmhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False):
           Return a cumulative evaluation?
 
     Returns:
-        dm: Quantity
+        DM: Quantity
           One value if cumul=False
           else evaluated at a series of z
         zeval: ndarray, optional
           Evaluation redshifts if cumul=True
     """
 
-    # Cosmic dm
-    dm_cosmic, zeval = average_dm(z, cumul=True)
+    # Cosmic DM
+    DM_cosmic, zeval = average_DM(z, cumul=True)
     # Halo mass fraction
     zvals = np.linspace(0., z, 20)
     fhalos = halos.frac_in_halos(zvals, 10**logMmin, 1e16, rmax=1.)
     fhalos_interp = IUS(zvals, fhalos)
 
-    # dm halos
-    ddm = dm_cosmic.value - np.roll(dm_cosmic.value,1)
-    ddm[0] = ddm[1]
-    dm_halos = np.cumsum(ddm*fhalos_interp(zeval)*f_diffuse)
+    # DM halos
+    dDM = DM_cosmic.value - np.roll(DM_cosmic.value,1)
+    dDM[0] = dDM[1]
+    DM_halos = np.cumsum(dDM*fhalos_interp(zeval)*f_diffuse)
 
     # Return
     if cumul:
-        return dm_halos, zeval
+        return DM_halos, zeval
     else:
-        return dm_halos[-1]
+        return DM_halos[-1]
 
 def avg_rhoISM(z):
     """

@@ -85,11 +85,11 @@ def test_milky_way():
 def test_m31():
     M31 = halos.M31()
     assert np.isclose(M31.coord.distance.to('kpc').value, 752.)
-    # dm through the halo
+    # DM through the halo
     coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
-    dm = M31.dm_from_Galactic(coord)
-    assert dm.unit == u.pc/u.cm**3
-    assert np.isclose(dm.value, 133.63954635)
+    DM = M31.DM_from_Galactic(coord)
+    assert DM.unit == u.pc/u.cm**3
+    assert np.isclose(DM.value, 133.63954635)
 
 def test_satellites():
     smc = halos.SMC()

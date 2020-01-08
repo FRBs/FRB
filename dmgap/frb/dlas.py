@@ -15,8 +15,8 @@ from frb.io import load_dla_fits
 from frb.turb_scattering import Turbulence
 
 
-def approx_avgdm(zeval, dla_model='atan', verbose=False):
-    """ Calculate the average dm from intervening galaxies
+def approx_avgDM(zeval, dla_model='atan', verbose=False):
+    """ Calculate the average DM from intervening galaxies
     This method is approximate (and fast) and accurate
     to better than 1% in-so-far as the analysis is correct.
 
@@ -30,7 +30,7 @@ def approx_avgdm(zeval, dla_model='atan', verbose=False):
 
     Returns
     -------
-    avgdm : Quantity (depending on type of input z)
+    avgDM : Quantity (depending on type of input z)
       Units of pc/cm**3
 
     """
@@ -66,25 +66,25 @@ def approx_avgdm(zeval, dla_model='atan', verbose=False):
     avgz = np.cumsum(zcalc * lz * dz) / cumul
 
     '''
-    # <dm> for a single DLA (rest-frame)
-    dm_DLA = 10. ** (avgNHI + nenH) / u.cm ** 2
+    # <DM> for a single DLA (rest-frame)
+    DM_DLA = 10. ** (avgNHI + nenH) / u.cm ** 2
     if verbose:
-        print("dm for an average DLA = {} (rest-frame)".format(dm_DLA.to('pc/cm**3')))
+        print("DM for an average DLA = {} (rest-frame)".format(DM_DLA.to('pc/cm**3')))
     '''
 
     # Altogether now
-    avgdm_values = 10 ** avgNHI * 10 ** nenH * cumul / (1 + avgz) #/ u.cm ** 2
+    avgDM_values = 10 ** avgNHI * 10 ** nenH * cumul / (1 + avgz) #/ u.cm ** 2
 
     # Finish up
-    dm_values = np.zeros_like(zeval)
+    DM_values = np.zeros_like(zeval)
     for kk,iz in enumerate(zeval):
         iminz = np.argmin(np.abs(iz - zcalc))
-        dm_values[kk] = avgdm_values[iminz]
+        DM_values[kk] = avgDM_values[iminz]
     # Return
-    return (dm_values / u.cm**2).to('pc/cm**3')
+    return (DM_values / u.cm**2).to('pc/cm**3')
 
 
-def monte_dm(zeval, model='atan', nrand=100, verbose=False):
+def monte_DM(zeval, model='atan', nrand=100, verbose=False):
     """
     Parameters
     ----------
@@ -97,8 +97,8 @@ def monte_dm(zeval, model='atan', nrand=100, verbose=False):
 
     Returns
     -------
-    rand_dm : ndarray
-      Random dm values
+    rand_DM : ndarray
+      Random DM values
       Reported in pc/cm**3  (unitless array)
 
     """
@@ -129,7 +129,7 @@ def monte_dm(zeval, model='atan', nrand=100, verbose=False):
     interp_nz = interp1d(z, nzc)
     interp_revnz = interp1d((nzc-nzc[0])/nzc[-1], z)  # Accurate to ~1%
     #
-    rand_dm = np.zeros((nrand, zeval.size))
+    rand_DM = np.zeros((nrand, zeval.size))
     nz = interp_nz(zeval)
     for kk,inz in enumerate(nz):
         # Random number of DLAs
@@ -145,21 +145,21 @@ def monte_dm(zeval, model='atan', nrand=100, verbose=False):
         # Draw zdla
         rval2 = np.random.uniform(size=ndla)
         zdla = interp_revnz(rval2*inz/nzc[-1])
-        # dm values
-        dmi = 10.**(rNHI + nenH) / (1+zdla)
+        # DM values
+        DMi = 10.**(rNHI + nenH) / (1+zdla)
         # Generate a dummy array
-        dmarr = np.zeros((nrand, max(rn)))
+        DMarr = np.zeros((nrand, max(rn)))
         cnt = 0
         for jj in range(nrand): # Fill
             if rn[jj] > 0:
-                dmarr[jj,:rn[jj]] = dmi[cnt:cnt+rn[jj]]
+                DMarr[jj,:rn[jj]] = DMi[cnt:cnt+rn[jj]]
                 cnt += rn[jj]
         # Fill em up
-        rand_dm[:,kk] = np.sum(dmarr,axis=1)
+        rand_DM[:,kk] = np.sum(DMarr,axis=1)
 
     # Return
     unit_conv = (1/u.cm**2).to('pc/cm**3').value
-    return rand_dm * unit_conv
+    return rand_DM * unit_conv
 
 
 def monte_tau(zeval, nrand=100, nHI=0.1, avg_ne=-2.6,
