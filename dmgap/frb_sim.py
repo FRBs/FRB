@@ -14,7 +14,7 @@ from astropy.cosmology import WMAP9 as cosmo
 import random
 
 # VARIABLES
-z_obs = np.asarray([0.1927, 0.3212, 0.4755, 0.29, 0.66, 0.1178, 0.378])
+z_obs = np.asarray([0.0337, 0.1927, 0.3212, 0.4755, 0.29, 0.66, 0.1178, 0.378])
 z_stepsize =  0.001
 z_max = 1.5
 z_grid = np.arange(0,z_max,z_stepsize)
