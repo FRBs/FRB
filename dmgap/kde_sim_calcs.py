@@ -89,25 +89,45 @@ np.save('kde_and_deft_data/kde_2000_bootstrapped.npy',kde_2000_bootstrapped)
 np.save('kde_and_deft_data/kde_std_2000.npy',kde_std_2000)
 print('KDE done for 2000 draws')
 
-# Sample size = 4000
-dm_sample_4000 = np.sort(np.asarray(random.sample(list(dm_frb_sim),4000)))
-n_4000 = 100
-reps_4000 = 100
-resample_4000 = np.sort(np.random.choice(dm_frb_sim, (n_4000, reps_4000),replace=True))
-kde_optimal_4000 = make_kde_funtion(grid=dm_grid, draws = dm_sample_4000, min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
+# Sample size = 5000
+dm_sample_5000 = np.sort(np.asarray(random.sample(list(dm_frb_sim),5000)))
+n_5000 = 100
+reps_5000 = 100
+resample_5000 = np.sort(np.random.choice(dm_frb_sim, (n_5000, reps_5000),replace=True))
+kde_optimal_5000 = make_kde_funtion(grid=dm_grid, draws = dm_sample_5000, min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
 
-kde_4000_bootstrapped = []
+kde_5000_bootstrapped = []
 for i in range(len(frbcat_df['dmdiff'])):
-    kde_predictions = make_kde_funtion(grid=dm_grid, draws = resample_4000[i], min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
-    kde_4000_bootstrapped.append([kde_predictions])
+    kde_predictions = make_kde_funtion(grid=dm_grid, draws = resample_5000[i], min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
+    kde_5000_bootstrapped.append([kde_predictions])
 
-kde_4000_bootstrapped = np.array(kde_4000_bootstrapped)
-kde_std_4000 = np.std(kde_4000_bootstrapped, axis=0).reshape(-1)
+kde_5000_bootstrapped = np.array(kde_5000_bootstrapped)
+kde_std_5000 = np.std(kde_5000_bootstrapped, axis=0).reshape(-1)
 
-np.save('kde_and_deft_data/kde_4000_optimal.npy',kde_optimal_4000)
-np.save('kde_and_deft_data/kde_4000_bootstrapped.npy',kde_4000_bootstrapped)
-np.save('kde_and_deft_data/kde_std_4000.npy',kde_std_4000)
-print('KDE done for 4000 draws')
+np.save('kde_and_deft_data/kde_5000_optimal.npy',kde_optimal_5000)
+np.save('kde_and_deft_data/kde_5000_bootstrapped.npy',kde_5000_bootstrapped)
+np.save('kde_and_deft_data/kde_std_5000.npy',kde_std_5000)
+print('KDE done for 5000 draws')
+
+# Sample size = 10000
+dm_sample_10000 = np.sort(np.asarray(random.sample(list(dm_frb_sim),10000)))
+n_10000 = 100
+reps_10000 = 100
+resample_10000 = np.sort(np.random.choice(dm_frb_sim, (n_10000, reps_10000),replace=True))
+kde_optimal_10000 = make_kde_funtion(grid=dm_grid, draws = dm_sample_10000, min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
+
+kde_10000_bootstrapped = []
+for i in range(len(frbcat_df['dmdiff'])):
+    kde_predictions = make_kde_funtion(grid=dm_grid, draws = resample_10000[i], min_bandwidth=20, max_bandwidth=30, bandwidth_stepsize=1, cv=5, kernel='gaussian')
+    kde_10000_bootstrapped.append([kde_predictions])
+
+kde_10000_bootstrapped = np.array(kde_10000_bootstrapped)
+kde_std_10000 = np.std(kde_10000_bootstrapped, axis=0).reshape(-1)
+
+np.save('kde_and_deft_data/kde_10000_optimal.npy',kde_optimal_10000)
+np.save('kde_and_deft_data/kde_10000_bootstrapped.npy',kde_10000_bootstrapped)
+np.save('kde_and_deft_data/kde_std_10000.npy',kde_std_10000)
+print('KDE done for 10000 draws')
 
 
 

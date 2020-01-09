@@ -25,8 +25,8 @@ deft_sample_1000 = np.asarray(random.sample(list(dm_frb_sim),1000))
 deft_density_1000 = sw.DensityEstimator(deft_sample_1000, alpha=alpha_param, bounding_box=[0,2500])
 deft_sample_2000 = np.asarray(random.sample(list(dm_frb_sim),2000))
 deft_density_2000 = sw.DensityEstimator(deft_sample_2000, alpha=alpha_param, bounding_box=[0,2500])
-deft_sample_4000 = np.asarray(random.sample(list(dm_frb_sim),4000))
-deft_density_4000 = sw.DensityEstimator(deft_sample_4000, alpha=alpha_param, bounding_box=[0,2500])
+deft_sample_5000 = np.asarray(random.sample(list(dm_frb_sim),5000))
+deft_density_5000 = sw.DensityEstimator(deft_sample_5000, alpha=alpha_param, bounding_box=[0,2500])
 deft_sample_10000 = np.asarray(random.sample(list(dm_frb_sim),10000))
 deft_density_10000 = sw.DensityEstimator(deft_sample_10000, alpha=alpha_param, bounding_box=[0,2500])
 
@@ -35,7 +35,7 @@ deft_optimal_frb_len = deft_density_frb_len.evaluate(dm_grid)
 deft_optimal_100 = deft_density_100.evaluate(dm_grid)
 deft_optimal_1000 = deft_density_1000.evaluate(dm_grid)
 deft_optimal_2000 = deft_density_2000.evaluate(dm_grid)
-deft_optimal_4000 = deft_density_4000.evaluate(dm_grid)
+deft_optimal_5000 = deft_density_5000.evaluate(dm_grid)
 deft_optimal_10000 = deft_density_10000.evaluate(dm_grid)
 print('Density calculations done.')
 
@@ -44,7 +44,7 @@ deft_sampled_frb_len = deft_density_frb_len.evaluate_samples(dm_grid)
 deft_sampled_100 = deft_density_100.evaluate_samples(dm_grid)
 deft_sampled_1000 = deft_density_1000.evaluate_samples(dm_grid)
 deft_sampled_2000 = deft_density_2000.evaluate_samples(dm_grid)
-deft_sampled_4000 = deft_density_4000.evaluate_samples(dm_grid)
+deft_sampled_5000 = deft_density_5000.evaluate_samples(dm_grid)
 deft_sampled_10000 = deft_density_10000.evaluate_samples(dm_grid)
 print('Sampled density calculations done.')
 
@@ -69,10 +69,16 @@ for i in range(len(dm_grid)):
     deft_std_2000_ = np.std(deft_sampled_2000[i])
     deft_std_2000 = np.append(deft_std_2000,deft_std_2000_)
 
-deft_std_4000 = []
+deft_std_5000 = []
 for i in range(len(dm_grid)):
-    deft_std_4000_ = np.std(deft_sampled_4000[i])
-    deft_std_4000 = np.append(deft_std_4000,deft_std_4000_)
+    deft_std_5000_ = np.std(deft_sampled_5000[i])
+    deft_std_5000 = np.append(deft_std_5000,deft_std_5000_)
+
+deft_std_10000 = []
+for i in range(len(dm_grid)):
+    deft_std_10000_ = np.std(deft_sampled_10000[i])
+    deft_std_10000 = np.append(deft_std_10000,deft_std_10000_)
+
 print('Standard deviation calculations done.')
 
 # Save DEFT datasets
@@ -80,19 +86,19 @@ np.save('kde_and_deft_data/deft_frb_len_optimal.npy',deft_optimal_frb_len)
 np.save('kde_and_deft_data/deft_100_optimal.npy',deft_optimal_100)
 np.save('kde_and_deft_data/deft_1000_optimal.npy',deft_optimal_1000)
 np.save('kde_and_deft_data/deft_2000_optimal.npy',deft_optimal_2000)
-np.save('kde_and_deft_data/deft_4000_optimal.npy',deft_optimal_4000)
+np.save('kde_and_deft_data/deft_5000_optimal.npy',deft_optimal_5000)
 np.save('kde_and_deft_data/deft_10000_optimal.npy',deft_optimal_10000)
 
 np.save('kde_and_deft_data/deft_frb_len_sampled.npy',deft_sampled_frb_len)
 np.save('kde_and_deft_data/deft_100_sampled.npy',deft_sampled_100)
 np.save('kde_and_deft_data/deft_1000_sampled.npy',deft_sampled_1000)
 np.save('kde_and_deft_data/deft_2000_sampled.npy',deft_sampled_2000)
-np.save('kde_and_deft_data/deft_4000_sampled.npy',deft_sampled_4000)
+np.save('kde_and_deft_data/deft_5000_sampled.npy',deft_sampled_5000)
 np.save('kde_and_deft_data/deft_10000_sampled.npy',deft_sampled_10000)
-
 
 np.save('kde_and_deft_data/deft_std_frb_len.npy',deft_std_frb_len)
 np.save('kde_and_deft_data/deft_std_100.npy',deft_std_100)
 np.save('kde_and_deft_data/deft_std_1000.npy',deft_std_1000)
 np.save('kde_and_deft_data/deft_std_2000.npy',deft_std_2000)
-np.save('kde_and_deft_data/deft_std_4000.npy',deft_std_4000)
+np.save('kde_and_deft_data/deft_std_5000.npy',deft_std_5000)
+np.save('kde_and_deft_data/deft_std_10000.npy',deft_std_10000)
