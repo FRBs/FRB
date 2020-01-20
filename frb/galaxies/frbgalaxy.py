@@ -387,7 +387,7 @@ class FRBGalaxy(object):
             return
 
         # Grab the spectra
-        xspec, meta = specDB.spectra_from_coord(self.coord)
+        xspec, meta = specDB.spectra_from_coord(self.coord)  # Tolerance is 0.5''
 
         # Return all?
         if return_all:
