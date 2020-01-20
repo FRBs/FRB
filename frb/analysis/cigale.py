@@ -14,7 +14,6 @@ from pcigale.session.configuration import Configuration
 from pcigale.analysis_modules import get_module
 from pcigale.data import Database
 from pcigale.utils import read_table
-from pcigale_plots import sed
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
@@ -296,7 +295,11 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     analysis_module = get_module(cigconf.configuration['analysis_method'])
     analysis_module.process(cigconf.configuration)
     if plot:
+        from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
         sed(cigconf,"mJy",True)
+        # Set back to a GUI
+        import matplotlib
+        matplotlib.use('TkAgg')
 
     # Rename the default output directory?
     if outdir != 'out':
