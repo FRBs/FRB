@@ -271,13 +271,8 @@ def main(inflg='all'):
     else:
         flg = int(inflg)
 
-    # CRAFT
-    if flg & (2**0):
-        #generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
-        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019', 'Heintz2020'], 'specDB_CRAFT.hdf5', 'v0.2')
-
     # Public
-    if flg & (2**1):
+    if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'FRB_specDB_Public.hdf5', 'v0.2')
 
 
