@@ -12,7 +12,7 @@ To find constraints on the DM gap, follow the steps below:
        
 2. Calculate and plot DEFT PDFs
 
-        $ python deft_obs_calcs_and_plots.py
+        $ python obs_calcs_and_plots.py
 
 3. Find DM values for different confidence intervals
 
@@ -28,11 +28,11 @@ To evaluate the expected performance of DEFT as more data becomes available, we 
 
 2. Calculate DEFT approximations using different sample sizes 
 
-        $ python deft_sim_calcs.py
+        $ python sim_calcs.py
 
 3. Plot the PDFs
 
-        $ python deft_sim_plots.py
+        $ python sim_plots.py
 
 
 ## Comparing DEFT to KDE with FRB Data
