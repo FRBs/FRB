@@ -234,7 +234,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
 
 #### ###############################
 def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, outfile=None,
-         show_slit=None, show_another=None, cradius=None, in_img=None):
+         show_slit=None, show_another=None, cradius=None, in_img=None, dss_only=False):
     """
     Generate a SDSS or DSS finder
 
@@ -257,6 +257,8 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
             Circle radius, only shown if show_circ is True.
             Default is imsize/50.
         in_img (PIL image, optional):
+        dss_only (bool, optional):
+            Only pull from DSS
     """
     # Init
     vimsize = imsize.to('arcmin').value
@@ -277,7 +279,7 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
 
     # Grab the Image
     if in_img is None:
-        img, oBW = getjpg(coord, imsize)#, BW=BW, DSS=DSS)
+        img, oBW = getjpg(coord, imsize, dss_only=dss_only)
     else:
         img = in_img
         oBW = True
@@ -387,7 +389,7 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
 
 
 # ##########################################
-def getjpg(coord, imsize):
+def getjpg(coord, imsize, dss_only=False):
     """
     Grab an SDSS or DSS image
 
@@ -395,13 +397,19 @@ def getjpg(coord, imsize):
         coord (SkyCoord):
         imsize (Angle or Quantity):
             image size
+        dss_only (bool, optional):
+            Only pull from DSS
 
     Returns:
         PIL, bool:  Image, flag indicating if the image is B&W
     """
     sdss = survey_utils.load_survey_by_name('SDSS', coord, 0.02*units.deg)
     # Dummy call to see if SDSS covers it
-    cat = sdss.get_catalog()
+    if dss_only:
+        cat = None
+    else:
+        cat = sdss.get_catalog()
+    # Pull from DSS?
     if cat is None:
         print("No SDSS Image;  Querying DSS")
         BW = True
