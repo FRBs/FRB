@@ -70,6 +70,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# Galaxy DB
+Galaxy_DB/
+
 # IPython Notebook
 .ipynb_checkpoints
 
@@ -85,6 +88,7 @@ celerybeat-schedule
 # virtualenv
 venv/
 ENV/
+.idea/
 
 # Spyder project settings
 .spyderproject

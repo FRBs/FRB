@@ -489,21 +489,17 @@ def build_host_190608(run_ppxf=False, build_photom=False):
         wise_tbl['Name'] = 'HG190608'
         # Write
         photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
-        embed(header='151 of build')
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
     # Parse
     host190608.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
-    # Run CIGALE
-    #host190608.run_cigale('CRAFT', 'Bhandari2019', ANYOTHEROPTIONSHERE=)
-
     # PPXF
+    results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
     if run_ppxf:
-        results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
         meta, spectrum = host190608.get_metaspec(instr='SDSS')
         spec_fit = None
         ppxf.run(spectrum, 2000., host190608.z, results_file=results_file, spec_fit=spec_fit, chk=True)
-    host190608.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv'))
+    host190608.parse_ppxf(results_file)
 
     # Derived quantities
 
@@ -549,7 +545,7 @@ def main(inflg='all', build_photom=False):
 
     # 190608
     if flg & (2**4):
-        build_host_190608(build_photom=build_photom)
+        build_host_190608(build_photom=build_photom)#, run_ppxf=True)
 
     # 190102
     if flg & (2**5):
