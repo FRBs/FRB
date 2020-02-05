@@ -78,6 +78,7 @@ psrcat_df['l'] = pd.DataFrame(c_icrs.galactic.l.value)
 psrcat_df['b'] = pd.DataFrame(c_icrs.galactic.b.value)
 psrcat_df = pd.concat([psrcat_df[psrcat_df.b > b_val], psrcat_df[psrcat_df.b < -b_val]], ignore_index=True)
 print('Pulsar data size is: ', len(psrcat_df))
+
 # Pulsar ne2001
 psr_dmmax = []
 for i in range(len(psrcat_df['dm'])):

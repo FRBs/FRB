@@ -11,8 +11,8 @@ import matplotlib.pyplot as plt
  
 rv_amount = 10**6
 
-def make_pdf(distribution,num_of_draws,grid,stepsize):
-    # Makes PDF of given distribution
+def make_pdf(distribution, num_of_draws, grid, stepsize):
+    " Makes PDF of given distribution "
     x_grid = np.arange(len(grid)) #rv_discrete only accepts interger values
     values = grid
     pdf = sp.stats.rv_discrete(values=(x_grid, distribution))
@@ -22,7 +22,8 @@ def make_pdf(distribution,num_of_draws,grid,stepsize):
     return draws, distribution_scaled
 
 def make_kde_funtion(grid, draws, min_bandwidth, max_bandwidth, bandwidth_stepsize, cv, kernel):
-    # Returns KDE distribution
+    " Returns KDE distribution "
+    " cv is number of cross-validation folds "
     draws = np.asarray(draws)
     params = {'bandwidth': np.arange(min_bandwidth, max_bandwidth, bandwidth_stepsize)}
     grid_cv = GridSearchCV(KernelDensity(kernel=kernel), params, cv=cv)
@@ -35,8 +36,8 @@ def make_kde_funtion(grid, draws, min_bandwidth, max_bandwidth, bandwidth_stepsi
     return kde
 
 def find_kde_ensemble(grid, draws, min_bandwidth, max_bandwidth, bandwidth_stepsize, cv, kernel, n, reps):
-    # Find ensemble via bootstrapping
-    # n=number of samples, reps=number of ensembles to take 
+    " Find ensemble via bootstrapping "
+    " n=number of samples, reps=number of ensembles to take "
     resample_set = np.sort(np.random.choice(draws, (n, reps),replace=True))
     kde_bootstrapped = []
     for i in range(len(draws)):

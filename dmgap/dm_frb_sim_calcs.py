@@ -35,11 +35,33 @@ sampled_1000 = density_1000.evaluate_samples(dm_grid)
 sampled_10000 = density_10000.evaluate_samples(dm_grid)
 print('Sampled density calculations done.')
 
-# Save DEFT datasets
-np.save('sim_output_data/frb_100_optimal.npy',optimal_100)
-np.save('sim_output_data/frb_1000_optimal.npy',optimal_1000)
-np.save('sim_output_data/frb_10000_optimal.npy',optimal_10000)
+# Evaluate standard deviations
+std_100 = []
+for i in range(len(dm_grid)):
+    std_100_ = np.std(sampled_100[i])
+    std_100 = np.append(std_100,std_100_)
 
-np.save('sim_output_data/frb_100_sampled.npy',sampled_100)
-np.save('sim_output_data/frb_1000_sampled.npy',sampled_1000)
-np.save('sim_output_data/frb_10000_sampled.npy',sampled_10000)
+std_1000 = []
+for i in range(len(dm_grid)):
+    std_1000_ = np.std(sampled_1000[i])
+    std_1000 = np.append(std_1000,std_1000_)
+
+std_10000 = []
+for i in range(len(dm_grid)):
+    std_10000_ = np.std(sampled_10000[i])
+    std_10000 = np.append(std_10000,std_10000_)
+
+print('Standard deviation calculations done.')
+
+# Save DEFT datasets
+np.save('sim_output_data/optimal_100.npy',optimal_100)
+np.save('sim_output_data/optimal_1000.npy',optimal_1000)
+np.save('sim_output_data/optimal_10000.npy',optimal_10000)
+
+np.save('sim_output_data/sampled_100.npy',sampled_100)
+np.save('sim_output_data/sampled_1000.npy',sampled_1000)
+np.save('sim_output_data/sampled_10000.npy',sampled_10000)
+
+np.save('sim_output_data/std_100.npy',std_100)
+np.save('sim_output_data/std_1000.npy',std_1000)
+np.save('sim_output_data/std_10000.npy',std_10000)
