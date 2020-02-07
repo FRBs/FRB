@@ -3,6 +3,7 @@ import numpy as np
 import pdb
 
 from astropy.coordinates import SkyCoord
+from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
 from frb.galaxies.defs import valid_filters
@@ -166,6 +167,49 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
             photom_column, catalog[photom_column][in_radius][brightest])]
     # Return
     return summary_list
+
+def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
+                     RACol1 = "ra", DecCol1 = "dec",
+                     RACol2 = "ra", DecCol2 = "dec"):
+    """
+    Cross matches two astronomical catalogs and returns
+    the matched tables.
+    Args:
+        cat1, cat2: astropy Tables
+            Two tables with sky coordinates to be
+            matched.
+        skydist: astropy Quantity, optional
+            Maximum separation for a valid match.
+            5 arcsec by default.
+        RACol1, RACol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain RA in degrees.
+        DecCol1, DecCol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain Dec in degrees.
+        zCol1, zCol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain redshift in degrees.
+            Matches in 3D if supplied. Both should be given.
+    returns:
+        match1, match2: astropy Table
+            Tables of matched rows from cat1 and cat2.
+    """
+
+    # TODO add assertion statements to test input validity.
+     
+    # Get corodinates
+    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit = "deg")
+    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit = "deg")
+
+    # Match 2D
+    idx, d2d, _ = cat1_coord.match_to_catalog_sky(cat2_coord)
+
+    # Get matched tables
+    match1 = cat1[d2d < skydist]
+    match2 = cat2[idx[d2d < skydist]]
+
+    return match1, match2
 
 def _detect_mag_cols(photometry_table):
     """
