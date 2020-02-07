@@ -409,7 +409,8 @@ def rad3d2(xyz):
 
 
 def stellarmass_from_halomass(log_Mhalo,z=0):
-    """ Stellar mass from Halo Mass from Moster+2010
+    """ Stellar mass from Halo Mass from Moster+2013
+    https://doi.org/10.1093/mnras/sts261
 
     Args:
         log_Mhalo:
@@ -424,16 +425,30 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     Returns:
         float: log_mstar, log10 of the galaxy stellar mass (solar masses)
     """
-    alpha = 0.0282*(1+z)**-0.72
-    beta = 1.06+0.17*z
-    gamma = 0.556*(1+z)**-0.26
-    logM1 = 11.884*(1+z)**0.019
-    M_halo = 10**log_Mhalo
-    M1 = 10**logM1
-    
+    # Define model parameters from Table 1
+    # of the paper.
+    N10 = 0.0351
+    N11 = -0.0247
+    beta10 = 1.376
+    beta11 = -0.826
+    gamma10 = 0.608
+    gamma11 = 0.329
+    M10 = 11.59
+    M11 = 1.195
 
+    # Get redshift dependent parameters
+    # from equations 11-14.
+    z_factor = z/(1+z)
+    N = N10 + N11*z_factor
+    beta = beta10 + beta11*z_factor
+    gamma = gamma10 + gamma11*z_factor
+    logM1 = M10 + M11*z_factor
+    M1 = 10**logM1
+
+    M_halo = 10**log_Mhalo
+    
     # Simple
-    log_mstar = log_Mhalo + np.log10(2)+np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
+    log_mstar = log_Mhalo + np.log10(2*N) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
     # Done
     return log_mstar
 
