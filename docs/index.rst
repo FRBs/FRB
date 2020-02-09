@@ -27,6 +27,7 @@ Data
    :maxdepth: 2
 
    data
+   database
 
 Dispersion Measure
 ------------------
