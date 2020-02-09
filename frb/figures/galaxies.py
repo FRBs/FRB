@@ -18,11 +18,31 @@ from frb.figures import utils
 
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
+
 def sub_image(fig, hdu, FRB, img_center=None,
               imsize=30*units.arcsec, vmnx = (None,None),
               xyaxis=(0.15, 0.15, 0.8, 0.8), fsz=15.,
               tick_spacing=None, invert=False,
               cmap='Blues', cclr='red'):
+    """
+
+    Args:
+        fig:
+        hdu:
+        FRB:
+        img_center:
+        imsize:
+        vmnx:
+        xyaxis:
+        fsz:
+        tick_spacing:
+        invert:
+        cmap:
+        cclr:
+
+    Returns:
+
+    """
 
     header = hdu[0].header
     hst_uvis = hdu[0].data
@@ -65,7 +85,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
     '''
     utils.set_fontsize(axIMG, 15.)
 
-    return
+    return cutout, axIMG
 
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
