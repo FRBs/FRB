@@ -20,7 +20,8 @@ except ImportError:
     warnings.warn("Galaxy nebular line analysis requires linetools.  Install it if you want to use them")
 
 # GLOBALS
-Ha_Hb_intrin = 2.8  # Osterbrock
+Ha_Hb_intrin = 2.87  # Osterbrock 2006 Book
+Hb_Hg_intrin = 1./0.466  # Osterbrock 2006 Book
 Ha_conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
 
 def load_extinction(curve):
@@ -77,6 +78,16 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
         F2_obs = neb_lines['Hbeta']
         #
         pair = True
+        intrinsic = Ha_Hb_intrin
+    elif method == 'Hb/Hg':
+        wave1 = 4862.7 #redder
+        wave2 = 4341.7
+        #
+        F1_obs = neb_lines['Hbeta']
+        F2_obs = neb_lines['Hgamma']
+        #
+        pair = True
+        intrinsic = Hb_Hg_intrin
     else:
         print("Not prepared for this method of analysis: {}".format(method))
         raise IOError("See docs for available options")
@@ -92,7 +103,7 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     fratio_obs = F1_obs/F2_obs
 
     # Calculate using intrinsic ratio
-    AV = 2.5 * np.log10(Ha_Hb_intrin/fratio_obs) / (a1AV - a2AV)
+    AV = 2.5 * np.log10(intrinsic/fratio_obs) / (a1AV - a2AV)
 
     # Return
     return AV
