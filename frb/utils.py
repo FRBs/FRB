@@ -10,6 +10,54 @@ import warnings
 
 import json, gzip
 
+
+# Simple method to help with value/units in
+def assign_value(tfrb, key, ilist, tbl_units):
+    """
+    Assign a value into a list, dealing with astropy.units.Quantity objects
+
+    The input list and dict of units may be modified in place
+
+    Args:
+        tfrb (frb.frb.FRB):
+        key (str):
+        ilist (list):
+            Input list
+        tbl_units (dict):
+            Input dict of units
+
+    """
+    val, unit = get_valunit(getattr(tfrb, key))
+    ilist.append(val)
+    # Deal with units
+    if key not in tbl_units.keys():
+        if unit is not None:
+            tbl_units[key] = unit.to_string()
+        else:
+            tbl_units[key] = None
+    else:
+        if unit is not None:
+            assert tbl_units[key] == unit.to_string()
+
+
+def get_valunit(item):
+    """
+    Grab the value and unit of an input item allowing
+    for an astropy.units.Quantity
+
+    Args:
+        item (units.Quantity or any Python object):
+
+    Returns:
+        value, unit
+
+    """
+    if isinstance(item, units.Quantity):
+        return item.value, item.unit
+    else:
+        return item, None
+
+
 def jsonify(obj, debug=False):
     """ Recursively process an object so it can be serialised in json
     format.

@@ -158,7 +158,8 @@ def frb_190608():
                         339.8 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
-    frb190608.set_ee(0.1, 0.1, 0., 95.)
+    frb190608.set_ee(0.02, 0.02, 0., 68.) # Statistsical
+    frb190608.set_ee(0.4, 0.4, 0., 68., stat=False)  # Systematic
     # Error in DM
     frb190608.DM_err = 1 * units.pc / units.cm**3
 

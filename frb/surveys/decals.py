@@ -26,7 +26,7 @@ for band in DECaL_bands:
     if "W" not in band:
         bandstr = 'DECaL_'+band
     else:
-        bandstr = band.replace("W","WISE")
+        bandstr = 'WISE_'+band
     photom['DECaL'][bandstr] = 'mag_{:s}'.format(band.lower())
     photom['DECaL'][bandstr+"_err"] = 'snr_{:s}'.format(band.lower())
 photom['DECaL']['DECaL_ID'] = 'decals_id'

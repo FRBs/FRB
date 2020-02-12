@@ -1,12 +1,9 @@
-.. highlight:: rest
-
 **************
 Installing frb
 **************
 
 This document describes how to install the `frb`
-repository.  We also describe
-:ref:`download-public`.
+repository.
 
 Installing Dependencies
 =======================
@@ -33,10 +30,11 @@ to install and/or update these packages.
 * `astropy <http://www.astropy.org/>`_ version 3.1 or later
 * `scipy <http://www.scipy.org/>`_ version 1.0 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
+* `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 
-	conda list "^python|numpy|astropy|scipy"
+	conda list "^python|numpy|astropy|scipy|pandas"
 
 If the packages have been installed, this command should print
 out all the packages and their version numbers.
@@ -67,11 +65,15 @@ The following are required to run some of the halo codes:
 The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
+* `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
 `Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
 
+Our CIGALE wrappers use custom filter files not
+provided by their current release (e.g DES, Pan-STARRS).
+See the instructions for adding those as needed.
 
 Installing frb
 ==============
@@ -90,6 +92,23 @@ From there, you can build and install with::
 This should install the package and scripts.
 Make sure that your PATH includes the standard
 location for Python scripts (e.g. ~/anaconda/bin)
+
+Adding additional CIGALE filter files
+=====================================
+
+We have had to add new filters to CIGALE (e.g. from
+DES and Pan-STARRS).
+You can find these filter files in
+`frb.data.analysis.CIGALE`.
+If you use any of those surveys,
+**our wrappers will not work without them.**
+
+Here are the steps to update CIGALE:
+
+* cd frb/data/analysis/CIGALE
+* Add any desired filter into your CIGALE code base with:  `pcigale-filters add file.dat`
+
+Note that DECaLs uses the BASS and MzLS data files.
 
 
 .. _download-public:
