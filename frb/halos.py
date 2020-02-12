@@ -47,7 +47,7 @@ def init_hmf():
     cosmo_dict = {"omega_cdm":(cosmo.Om0-cosmo.Ob0)*cosmo.h**2,
                   "omega_b":cosmo.Ob0*cosmo.h**2,"ok":0.0,
                   "ln10As": 3.098, # THIS REPLACES sigma8
-                  "H0":cosmo.H0.to('km/s/Mpc').value,
+                  "H0":cosmo.H0.to('km/(s*Mpc)').value,
                   "n_s":ns,"w0":-1.0,"N_eff":Neff} # "wa":0.0 is assumed internally
     hmfe = hmf_emulator.hmf_emulator()
     hmfe.set_cosmology(cosmo_dict)
