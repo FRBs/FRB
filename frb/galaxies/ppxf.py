@@ -3,7 +3,6 @@
 from pkg_resources import resource_filename
 
 import numpy as np
-import pdb
 
 from matplotlib import pyplot as plt
 #from goodies import closest
@@ -22,10 +21,14 @@ from ppxf import ppxf_util as util
 from ppxf import miles_util as lib
 from time import clock
 
+from IPython import embed
+
 def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         flux_scale=1., atmos=[], gaps=[], wvmnx=(0.,1e9)):
     """
     Wrapper for running and handling outputs
+
+    Outputs are written to disk
 
     Args:
         spec_file (str or XSpectrum1D):
@@ -37,7 +40,10 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         flux_scale:
         atmos (list of tuple):
             List of (wvmin,wvmax) regions to mask during the analysis
-        gaps:
+            This is a list of lists, e.g.  [[7150., 7300.]]
+        gaps (list):
+            Regions to ignore due to detector gaps or any other bad regions
+            This is a list of lists, e.g.  [[6675., 6725.]]
         wvmnx:
     """
     # Init

@@ -18,11 +18,31 @@ from frb.figures import utils
 
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
 
+
 def sub_image(fig, hdu, FRB, img_center=None,
               imsize=30*units.arcsec, vmnx = (None,None),
               xyaxis=(0.15, 0.15, 0.8, 0.8), fsz=15.,
               tick_spacing=None, invert=False,
               cmap='Blues', cclr='red'):
+    """
+
+    Args:
+        fig:
+        hdu:
+        FRB:
+        img_center:
+        imsize:
+        vmnx:
+        xyaxis:
+        fsz:
+        tick_spacing:
+        invert:
+        cmap:
+        cclr:
+
+    Returns:
+
+    """
 
     header = hdu[0].header
     hst_uvis = hdu[0].data
@@ -65,7 +85,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
     '''
     utils.set_fontsize(axIMG, 15.)
 
-    return
+    return cutout, axIMG
 
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
@@ -188,7 +208,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
     utils.set_fontsize(ax_BPT, 13.)
 
 
-def sub_sfms(ax_M, galaxies, clrs, markers):
+def sub_sfms(ax_M, galaxies, clrs, markers, show_legend=True):
     """
     Generate a SF vs. M* plot on top of PRIMUS galaxies
 
@@ -196,10 +216,12 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
         ax_M (matplotlib.axis):
         galaxies (list):
             List of FRB.galaxies.frbgalaxy.FRBGalaxy objects
-        clrs (list):
+        clrs (list or str):
             List of matplotlib colors
+            if 'auto', sources are colored according to their SFR
         markers (list):
             List of matplotlib marker types
+        show_legend (bool, optional):
 
     """
     utils.set_mplrc()
@@ -252,26 +274,45 @@ def sub_sfms(ax_M, galaxies, clrs, markers):
         else:
             continue
         # SFR
-        if 'SFR_nebular_err' in galaxy.derived.keys():
-            logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], galaxy.derived['SFR_nebular_err'])
+        # Try Nebular first
+        if 'SFR_nebular' in galaxy.derived.keys():
+            if 'SFR_nebular_err' in galaxy.derived.keys():
+                logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], galaxy.derived['SFR_nebular_err'])
+            else:
+                logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], 0.3*galaxy.derived['SFR_nebular'])
+        elif 'SFR_photom' in galaxy.derived.keys():
+            # Demand 3 sigma
+            logS, sig_logS = utils.log_me(galaxy.derived['SFR_photom'], galaxy.derived['SFR_photom_err'])
+            if galaxy.derived['SFR_photom'] < 3*galaxy.derived['SFR_photom_err']:
+                sig_logS = None
         else:
-            logS, sig_logS = utils.log_me(galaxy.derived['SFR_nebular'], 0.3*galaxy.derived['SFR_nebular'])
+            continue
+        # Color
+        if isinstance(clrs, str):
+            assert clrs == 'auto'
+            if sig_logS is None:
+                clr = 'red'
+            else:
+                clr = 'blue'
+        else:
+            clr = clrs[kk]
         # Plot
         ax_M.errorbar([logM], [logS], xerr=sig_logM, yerr=sig_logS,
-                      color=clrs[kk], marker=markers[kk],
+                      color=clr, marker=markers[kk],
                      markersize="12", capsize=3, label=galaxy.name)
         if sig_logS is None:
             # Down arrow
-            plt.arrow(logM, logS, 0., -0.2, fc=clrs[kk], ec=clrs[kk],
+            plt.arrow(logM, logS, 0., -0.2, fc=clr, ec=clr,
                   head_width=0.02*4, head_length=0.05*2)
 
     ax_M.annotate(r"\textbf{Star forming}", (8.5, 0.8), fontsize=13.)
     ax_M.annotate(r"\textbf{Quiescent}", (11, -0.9), fontsize=13.)
     ax_M.set_xlabel("$\log \, (M_*/M_\odot)$")
     ax_M.set_ylabel("$\log \, SFR (M_\odot$/yr)")
-    ax_M.legend(loc='lower left')
+    if show_legend:
+        ax_M.legend(loc='lower left')
     ax_M.set_xlim(7.5, 11.8)
-    ax_M.set_ylim(-2.5, 1.2)
+    ax_M.set_ylim(-2.4, 1.6)
 
 
 def sub_color_mag(ax, galaxies, clrs, markers):

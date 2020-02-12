@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE']
+all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S']
 db_path = os.getenv('FRB_GDB')
 
 
@@ -229,9 +229,14 @@ def generate_by_refs(input_refs, outfile, version):
             maxpix = 4000
             scale = 1e-17
         elif instr == 'MagE':
-            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 'TELESCOPE':'TELESCOP',
-                          'INSTR':'INSTRUME', 'DISPERSER': 'DISPNAME'}
+            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 'TELESCOPE': 'TELESCOP',
+                          'INSTR': 'INSTRUME', 'DISPERSER': 'DISPNAME'}
             maxpix = 18000
+            scale = 1e-17
+        elif instr == 'GMOS-S':
+            mdict = dict(TELESCOPE='Gemini-S', INSTR='GMOS-S')
+            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 'DISPERSER': 'DISPNAME'}
+            maxpix = 3500
             scale = 1e-17
         else:
             embed(header='172')
@@ -266,12 +271,8 @@ def main(inflg='all'):
     else:
         flg = int(inflg)
 
-    # CRAFT
-    if flg & (2**0):
-        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'specDB_CRAFT.hdf5', 'v0.1')
-
     # Public
-    if flg & (2**1):
+    if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'FRB_specDB_Public.hdf5', 'v0.2')
 
 
