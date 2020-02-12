@@ -481,9 +481,11 @@ class ModifiedNFW(object):
         alpha: float, optional
           Parameter to modify NFW profile power-law
         y0: float, optional
-          Parameter to modify NFW profile position
+          Parameter to modify NFW profile position.
         z: float, optional
           Redshift of the halo
+        cosmo: astropy cosmology, optional
+          Cosmology of the universe. Planck15 by default.
 
     Attributes:
         H0: Quantity;  Hubble constant
@@ -499,7 +501,7 @@ class ModifiedNFW(object):
 
     """
     def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
-                 y0=1., z=0., cosmo=None, **kwargs):
+                 y0=1., z=0., cosmo=cosmo, **kwargs):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo
@@ -515,7 +517,7 @@ class ModifiedNFW(object):
         # Init more
         self.setup_param(cosmo=self.cosmo)
 
-    def setup_param(self, cosmo=None):
+    def setup_param(self):
         """ Setup key parameters of the model
         """
         # Cosmology
@@ -524,7 +526,7 @@ class ModifiedNFW(object):
             self.fb = 0.16       # Baryon fraction
             self.H0 = 70. *units.km/units.s/ units.Mpc
         else:
-            self.rhoc = cosmo.critical_density(self.z)
+            self.rhoc = self.cosmo.critical_density(self.z)
             self.fb = cosmo.Ob0/cosmo.Om0
             self.H0 = cosmo.H0
         # Dark Matter
