@@ -29,6 +29,7 @@ def make_kde_funtion(grid, draws, min_bandwidth, max_bandwidth, bandwidth_stepsi
     grid_cv = GridSearchCV(KernelDensity(kernel=kernel), params, cv=cv)
     grid_cv.fit(draws.reshape(-1,1))
     bandwidth_opt= grid_cv.best_estimator_.bandwidth
+    # print('Optimal bandwidth is:',bandwidth_opt)
     kde_skl = KernelDensity(kernel=kernel,bandwidth=bandwidth_opt)
     kde_skl.fit(draws.reshape(-1,1))
     log_kde = kde_skl.score_samples(grid.reshape(-1,1))

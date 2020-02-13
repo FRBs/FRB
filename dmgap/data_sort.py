@@ -90,6 +90,7 @@ psrcat_df['deltaDM'] = pd.DataFrame(psrcat_df['dm']-psrcat_df['dmmax'])
 psrcat_df = psrcat_df.drop('RAJD', axis=1)
 psrcat_df = psrcat_df.drop('DECJD', axis=1)
 psrcat_df.to_csv('transient_data/psrcat_df.csv')
+print(max(psrcat_df['deltaDM']))
 print('Pulsar data saved')
 
 
