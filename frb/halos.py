@@ -517,7 +517,7 @@ class ModifiedNFW(object):
         # Init more
         self.setup_param(cosmo=self.cosmo)
 
-    def setup_param(self):
+    def setup_param(self,cosmo):
         """ Setup key parameters of the model
         """
         # Cosmology
