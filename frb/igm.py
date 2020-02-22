@@ -238,7 +238,7 @@ def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False, rmax=1.):
     DM_cosmic, zeval = average_DM(z, cumul=True)
     # Halo mass fraction
     zvals = np.linspace(0., z, 20)
-    fhalos = halos.frac_in_halos(zvals, 10**logMmin, 1e16, rmax=1.)
+    fhalos = halos.frac_in_halos(zvals, 10**logMmin, 1e16, rmax = rmax)
     fhalos_interp = IUS(zvals, fhalos)
 
     # DM halos
