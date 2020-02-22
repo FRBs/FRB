@@ -454,7 +454,7 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
 
 
 def halomass_from_stellarmass(log_mstar,z=0):
-    """ Halo mass from Stellar mass (Moster+2010)
+    """ Halo mass from Stellar mass (Moster+2013)
 
     Args:
         log_mstar (float): log10 of the galaxy stellar mass (solar masses)
