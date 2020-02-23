@@ -130,6 +130,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         Mlow: float
           Mass of minimum halo in Solar masses
           The code deals with h^-1 factors so that you do not
+          The minimum value is 2e10
         zFRB: float
           Redshift of the FRB
         radius: Quantity, optional
@@ -152,6 +153,10 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         zeval: ndarray
         Ncumul: ndarray
     """
+    # Mlow limit
+    if Mlow < 2e10:
+        warnings.warn("Calculations are limited to Mlow > 2e10")
+        return
     # HMF
     if hmfe is None:
         hmfe = init_hmf()
