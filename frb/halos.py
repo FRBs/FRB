@@ -102,7 +102,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         # Integrate
         rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
-        rho_M = cosmo.critical_density(z) * cosmo.Om(z) / (1+z)**3  # Tinker calculations are all mass
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z)  # Tinker calculations are all mass 
         ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)
@@ -533,7 +533,7 @@ class ModifiedNFW(object):
         self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
         self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
         # Baryons
-        self.M_b = self.M_halo * self.fb
+        self.M_b = self.M_halo * self.fb/(1-self.fb)
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
         # Misc
         self.mu = 1.33   # Reduced mass correction for Helium
