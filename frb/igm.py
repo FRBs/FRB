@@ -253,7 +253,7 @@ def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False, rmax=1.):
         return DM_halos[-1]
 
 
-def average_DMIGM(z, fb=1., rmax=1., neval=1000):
+def average_DMIGM(z, fb=1., rmax=1., neval=10000):
     """
     Estimate DM_IGM in a cumulative fashion
 
@@ -275,7 +275,7 @@ def average_DMIGM(z, fb=1., rmax=1., neval=1000):
     zvals = np.linspace(0., z, 50)  # Keep it cheap for fhalos
     dz_vals = zvals[1] - zvals[0]
     # Fraction of DM mass in halos
-    fhalos = halos.frac_in_halos(zvals, 3e10, 1e16, rmax=rmax)
+    fhalos = halos.frac_in_halos(zvals, 10**(10.3), 1e16, rmax=rmax)
 
     # Fraction of mass in IGM
     fIGM = 1. - fhalos*fb
@@ -297,7 +297,7 @@ def average_DMIGM(z, fb=1., rmax=1., neval=1000):
     DM_IGM = f_IGM(zeval)
 
     # Return
-    return DM_IGM * units.pc / units.cm**2, zeval
+    return DM_IGM * units.pc / units.cm**3, zeval
 
 def avg_rhoISM(z):
     """
