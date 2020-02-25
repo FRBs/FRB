@@ -190,7 +190,7 @@ def f_diffuse(z, cosmo = Planck15, return_rho = False):
   else:
     return f_diffuse, rho_b*f_diffuse*(1+z)**3
 
-def ne_cosmic(z, cosmo = Planck15, mu = 4/3):
+def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
   """
   Calculate the average cosmic electron
   number density as a function of redshift.
@@ -200,13 +200,15 @@ def ne_cosmic(z, cosmo = Planck15, mu = 4/3):
     cosmo: astropy Cosmology, optional
       Cosmology in which the calculations
       are to be performed.
+    mu: float
+      Reduced mass
   Returns:
     ne_cosmic: astropy Quantity
       Average physical number density of
       electrons in the unverse in cm^-3.
   """
   # Get diffuse gas density
-  _, rho_diffuse = f_diffuse(z, return_rho=True)
+  _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
 
   # Number densities of H and He
   n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
