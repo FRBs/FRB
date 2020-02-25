@@ -116,7 +116,7 @@ def average_He_nume(z, z_HIreion=7.):
         return neHe[0]
 
 
-def z_from_DM(DM, cosmo=None, coord=None, corr_nuisance=True):
+def z_from_DM(DM, cosmo = Planck15, coord=None, corr_nuisance=True):
     """
     Report back an estimated redshift from an input IGM DM
     Any contributions from the Galaxy and/or host need to have been 'removed'
@@ -153,8 +153,70 @@ def z_from_DM(DM, cosmo=None, coord=None, corr_nuisance=True):
     # Return
     return z
 
+def f_diffuse(z, cosmo = Planck15, return_rho = False):
+  """
+  Calculate the cosmic fraction of baryons
+  in diffuse gas phase based on our empirical
+  knowledge of baryon distributions and their 
+  ionization state.
 
-def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
+  Args:
+    z: float or ndarray
+      Redshift
+    cosmo: astropy Cosmology, optional
+      Cosmology of the universe.
+    return_rho: bool, optional
+      If true, the diffuse gas density
+      is returned too.
+  Returns:
+    f_diffuse: float, ndarray
+      Diffuse gas baryon fraction.
+    rho_diffuse: astropy quantity
+      Physical diffuse gas density.
+      Returned if return_rho
+      is set to true.
+  """
+  # Get comoving baryon mass density
+  rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
+
+  # Dense components
+  rho_Mstar = avg_rhoMstar(z, remnants=True)
+  rho_ISM = avg_rhoISM(z)
+
+  # Diffuse gas fraction
+  f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
+  if not return_rho:
+    return f_diffuse
+  else:
+    return f_diffuse, rho_b*f_diffuse*(1+z)**3
+
+def ne_cosmic(z, cosmo = Planck15, mu = 4/3):
+  """
+  Calculate the average cosmic electron
+  number density as a function of redshift.
+  Args:
+    z: float or ndarray
+      Redshift
+    cosmo: astropy Cosmology, optional
+      Cosmology in which the calculations
+      are to be performed.
+  Returns:
+    ne_cosmic: astropy Quantity
+      Average number density of
+      electrons in the unverse in cm^-3.
+  """
+  # Get diffuse gas density
+  _, rho_diffuse = f_diffuse(z, return_rho=True)
+
+  # Number densities of H and He
+  n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
+  n_He = n_H / 12.  # 25% He mass fraction
+
+  # Compute electron number density
+  ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
+  return ne_cosmic
+
+def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
     """
     Calculate the average cosmic DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
@@ -172,34 +234,18 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
     Returns:
         Quantity (cumul=False) or Quantity, ndarray (cumul=True): DM, zeval
     """
-    # Cosmology
-    if cosmo is None:
-        cosmo = Planck15
     # Init
     zeval = np.linspace(0., z, neval)[1:]
 
-    # Get baryon mass density
-    rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3') * (1+zeval)**3
-
-    # Dense components
-    rho_Mstar = avg_rhoMstar(zeval, remnants=True)
-    rho_ISM = avg_rhoISM(zeval)
-
-    # Diffuse
-    rho_diffuse = rho_b - (rho_Mstar+rho_ISM)*(1+zeval)**3
-
-    # Here we go
-    n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
-    n_He = n_H / 12.  # 25% He mass fraction
-
-    n_e = n_H * (1.-average_fHI(zeval)) + n_He*(average_He_nume(zeval))
+    # Get n_e as a function of z
+    n_e = ne_cosmic(zeval)
 
     # Cosmology -- 2nd term is the (1+z) factor for DM
-    denom = np.sqrt((1+zeval)**3 * cosmo.Om0 + cosmo.Ode0) * (1+zeval) * (1+zeval)
+    denom = cosmo.H(zeval) * (1+zeval) * (1+zeval)
 
     # Time to Sum
     dz = zeval[1] - zeval[0]
-    DM_cum = ((constants.c/cosmo.H0) * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
+    DM_cum = (constants.c * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
 
     # Return
     if cumul:
@@ -208,96 +254,106 @@ def average_DM(z, cosmo=None, cumul=False, neval=10000, mu=1.3):
         return DM_cum[-1]
 
 
-def avg_DMhalos(z, logMmin=10.3, f_diffuse=0.75, cumul=False, rmax=1.):
+def average_DMhalos(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, rmax=1., neval = 10000):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
     Args:
         z: float
           Redshift of the FRB
+        cosmo: astropy Cosmology
+          Cosmology in which the calculations
+          are to be performed.
         logMmin: float, optional
           Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
           The code deals with h^-1 factors, i.e. do not impose it yourself
-        f_diffuse: float, optional
-          Fraction of the cosmic baryon fraction in diffuse gas
+        f_hot: float, optional
+          Fraction of the halo baryons in diffuse phase.
         cumul: bool, optional
           Return a cumulative evaluation?
         rmax: float, optional
           Size of a halo in units of r200
 
     Returns:
-        DM: Quantity
+        DM_halos: Quantity or Quantity array
           One value if cumul=False
           else evaluated at a series of z
         zeval: ndarray, optional
           Evaluation redshifts if cumul=True
     """
 
-    # Cosmic DM
-    DM_cosmic, zeval = average_DM(z, cumul=True)
-    # Halo mass fraction
-    zvals = np.linspace(0., z, 20)
-    fhalos = halos.frac_in_halos(zvals, 10**logMmin, 1e16, rmax = rmax)
-    fhalos_interp = IUS(zvals, fhalos)
+    zeval, dz = np.linspace(0, z, neval, retstep = True)
+
+    # Electron number density in the universe
+    ne_tot = ne_cosmic(zeval, cosmo = cosmo)
+
+    # Diffuse gas mass fraction
+    f_diff = f_diffuse(zeval, cosmo = cosmo)
+
+    # Fraction of total mass in halos
+    zvals = np.linspace(0, z, 20)
+    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 1e16, rmax = rmax)
+    fhalos_interp = IUS(zvals, fhalos)(zeval)
+
+    # Electron number density in halos only
+    ne_halos = ne_tot*fhalos_interp*f_hot/f_diff
+
+    # Cosmology -- 2nd term is the (1+z) factor for DM
+    denom = cosmo.H(zeval) * (1+zeval) * (1+zeval)
 
     # DM halos
-    dDM = DM_cosmic.value - np.roll(DM_cosmic.value,1)
-    dDM[0] = dDM[1]
-    DM_halos = np.cumsum(dDM*fhalos_interp(zeval)*f_diffuse)*units.pc/units.cm**3
+    DM_halos = (constants.c * np.cumsum(ne_halos * dz / denom)).to('pc/cm**3')
 
     # Return
     if cumul:
         return DM_halos, zeval
     else:
         return DM_halos[-1]
-
-
-def average_DMIGM(z, fb=1., rmax=1., neval=10000):
+    
+def average_DMIGM(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, rmax=1., neval = 10000):
     """
     Estimate DM_IGM in a cumulative fashion
 
     Args:
-        z (float):
-            Redshift for the evaluation
-        fb (float, optional):
-            Fraction of the cosmic baryons in a given halo
-            1 means halos have all of their alloted baryons to r200
-        rmax (float, optional):
-        neval (int, optional):
-            Number of redshift evaluations
+        z: float
+          Redshift of the FRB
+        cosmo: astropy Cosmology
+          Cosmology in which the calculations
+          are to be performed.
+        logMmin: float, optional
+          Lowest mass halos to consider
+          Cannot be much below 10.3 or the Halo code barfs
+          The code deals with h^-1 factors, i.e. do not impose it yourself
+        f_hot: float, optional
+          Fraction of the halo baryons in diffuse phase.
+        cumul: bool, optional
+          Return a cumulative evaluation?
+        rmax: float, optional
+          Size of a halo in units of r200
 
     Returns:
-        ndarray, Quantity
-
+        DM: Quantity or Quantity array
+          One value if cumul=False
+          else evaluated at a series of z
+        zeval: ndarray, optional
+          Evaluation redshifts if cumul=True
     """
-    # Redshifts
-    zvals = np.linspace(0., z, 50)  # Keep it cheap for fhalos
-    dz_vals = zvals[1] - zvals[0]
-    # Fraction of DM mass in halos
-    fhalos = halos.frac_in_halos(zvals, 10**(10.3), 1e16, rmax=rmax)
+    # DM cosmic
+    DM_cosmic, zeval = average_DM(z, cosmo = cosmo, cumul=True, neval=neval)
 
-    # Fraction of mass in IGM
-    fIGM = 1. - fhalos*fb
-
-    # DM_cosmic
-    DM_cosmic_cumul, zeval = average_DM(z, cumul=True, neval=neval)
-    dzeval = zeval[1] - zeval[0]
-    dDM_cosmic = DM_cosmic_cumul - np.roll(DM_cosmic_cumul, 1)
-    dDM_cosmic[0] = dDM_cosmic[1]
-    DM_interp = IUS(zeval, dDM_cosmic)
-    dDM_IGM = DM_interp(zvals) * fIGM * dz_vals / dzeval
-    dDM_cosm = DM_interp(zvals) * dz_vals / dzeval
-
-    # Interpolate
-    sub_DM_IGM = np.cumsum(dDM_IGM)
-    f_IGM = IUS(zvals, sub_DM_IGM)
-
-    # Evaluate
-    DM_IGM = f_IGM(zeval)
+    # DM_halos
+    DM_halos, _ = avg_DMhalos(z,cosmo = cosmo, logMmin = logMmin,
+                              f_hot=f_hot, cumul = True, rmax = rmax, neval = neval)
+    
+    # Subtract the two
+    DM_IGM = DM_cosmic - DM_halos
 
     # Return
-    return DM_IGM * units.pc / units.cm**3, zeval
+    if cumul:
+        return DM_IGM, zeval
+    else:
+        return DM_IGM[-1]
 
 def avg_rhoISM(z):
     """
