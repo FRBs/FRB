@@ -253,7 +253,7 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
         return DM_cum[-1]
 
 
-def average_DMhalos(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, rmax=1., neval = 10000):
+def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neval = 10000, cumul=False):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
@@ -263,16 +263,19 @@ def average_DMhalos(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False
         cosmo: astropy Cosmology
           Cosmology in which the calculations
           are to be performed.
+        f_hot: float, optional
+          Fraction of the halo baryons in diffuse phase.
+        rmax: float, optional
+          Size of a halo in units of r200
         logMmin: float, optional
           Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
           The code deals with h^-1 factors, i.e. do not impose it yourself
-        f_hot: float, optional
-          Fraction of the halo baryons in diffuse phase.
+        neval: int, optional
+          Number of redshift values between
+          0 and z the function is evaluated at.
         cumul: bool, optional
           Return a cumulative evaluation?
-        rmax: float, optional
-          Size of a halo in units of r200
 
     Returns:
         DM_halos: Quantity or Quantity array
@@ -310,7 +313,7 @@ def average_DMhalos(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False
     else:
         return DM_halos[-1]
     
-def average_DMIGM(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, rmax=1., neval = 10000):
+def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neval = 10000, cumul=False):
     """
     Estimate DM_IGM in a cumulative fashion
 
@@ -320,17 +323,19 @@ def average_DMIGM(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, 
         cosmo: astropy Cosmology
           Cosmology in which the calculations
           are to be performed.
+        f_hot: float, optional
+          Fraction of the halo baryons in diffuse phase.
+        rmax: float, optional
+          Size of a halo in units of r200
         logMmin: float, optional
           Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
           The code deals with h^-1 factors, i.e. do not impose it yourself
-        f_hot: float, optional
-          Fraction of the halo baryons in diffuse phase.
+        neval: int, optional
+          Number of redshift values between
+          0 and z the function is evaluated at.
         cumul: bool, optional
           Return a cumulative evaluation?
-        rmax: float, optional
-          Size of a halo in units of r200
-
     Returns:
         DM: Quantity or Quantity array
           One value if cumul=False
