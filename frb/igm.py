@@ -202,7 +202,7 @@ def ne_cosmic(z, cosmo = Planck15, mu = 4/3):
       are to be performed.
   Returns:
     ne_cosmic: astropy Quantity
-      Average number density of
+      Average physical number density of
       electrons in the unverse in cm^-3.
   """
   # Get diffuse gas density
