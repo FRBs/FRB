@@ -235,7 +235,7 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
         Quantity (cumul=False) or Quantity, ndarray (cumul=True): DM, zeval
     """
     # Init
-    zeval = np.linspace(0., z, neval)[1:]
+    zeval, dz = np.linspace(0., z, neval,retstep=True)
 
     # Get n_e as a function of z
     n_e = ne_cosmic(zeval)
@@ -244,7 +244,6 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
     denom = cosmo.H(zeval) * (1+zeval) * (1+zeval)
 
     # Time to Sum
-    dz = zeval[1] - zeval[0]
     DM_cum = (constants.c * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
 
     # Return
