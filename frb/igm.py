@@ -343,7 +343,7 @@ def average_DMIGM(z, cosmo = Planck15, logMmin=10.3, f_hot = 0.75, cumul=False, 
     DM_cosmic, zeval = average_DM(z, cosmo = cosmo, cumul=True, neval=neval)
 
     # DM_halos
-    DM_halos, _ = avg_DMhalos(z,cosmo = cosmo, logMmin = logMmin,
+    DM_halos, _ = average_DMhalos(z,cosmo = cosmo, logMmin = logMmin,
                               f_hot=f_hot, cumul = True, rmax = rmax, neval = neval)
     
     # Subtract the two
