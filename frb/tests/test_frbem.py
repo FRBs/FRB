@@ -24,5 +24,5 @@ def test_dm_from_em():
     em_121102 = em.em_from_halpha(6.8e-16 * units.erg / units.cm ** 2 / units.s / units.arcsec ** 2, 0.1927)
     DM_s = em.dm_from_em(em_121102, 1 * units.kpc)
     # Test
-    assert DM_s.unit == units.pc / units.cm**2
+    assert DM_s.unit == units.pc / units.cm**3
     assert np.isclose(DM_s.value, 408.52143)
