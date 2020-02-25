@@ -531,7 +531,7 @@ class ModifiedNFW(object):
         self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
         self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
         # Baryons
-        self.M_b = self.M_halo * self.fb/(1-self.fb)
+        self.M_b = self.M_halo * self.fb
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
         # Misc
         self.mu = 1.33   # Reduced mass correction for Helium
