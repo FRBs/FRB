@@ -64,7 +64,7 @@ else:
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
-    Calculate the fraction of dark matter in collapsed halos
+    Calculate the fraction of matter in collapsed halos
      over a mass range and at a given redshift
 
     Note that the fraction of DM associated with these halos
