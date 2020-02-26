@@ -64,7 +64,7 @@ else:
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
-    Calculate the fraction of dark matter in collapsed halos
+    Calculate the fraction of matter in collapsed halos
      over a mass range and at a given redshift
 
     Note that the fraction of DM associated with these halos
@@ -92,8 +92,6 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
     ratios = []
     for z in zvals:
-        a = 1./(1.0 + z) # scale factor
-
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
         dndlM = M*hmfe.dndM(M, z)
@@ -102,7 +100,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         # Integrate
         rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
-        rho_M = cosmo.critical_density(z) * cosmo.Om(z) / (1+z)**3  # Tinker calculations are all mass
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z)/(1+z)**3  # Tinker calculations are all mass 
         ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)

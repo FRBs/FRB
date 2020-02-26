@@ -50,13 +50,13 @@ def test_halo_incidence():
 def test_YF17():
     yf17 = halos.YF17()
     ne = yf17.ne((0.,0.,20.))
-    assert np.isclose(ne, 0.000914661079202801)
+    assert np.isclose(ne, 0.0008810111443709797)
 
 def test_MB04():
     mb04 = halos.MB04()
     ne = mb04.ne((0.,0.,20.))
     # Test
-    assert np.isclose(ne, 0.0006383507424063443)
+    assert np.isclose(ne, 0.0006035175125538989)
 
 def test_MB15():
     mb15 = halos.MB15()
@@ -79,7 +79,7 @@ def test_modified_NFW():
     assert rho.size == 100
     xyz0 = [100., 0., 0.]
     nH0 = mNFW.nH(xyz0)
-    assert np.isclose(nH0, 0.0002092, rtol=1e-3)
+    assert np.isclose(nH0, 0.00020454, rtol=1e-3)
     # ne
     ne = mNFW.ne(xyz)
     assert np.all(ne > nH)
@@ -95,7 +95,7 @@ def test_m31():
     coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
     DM = M31.DM_from_Galactic(coord)
     assert DM.unit == u.pc/u.cm**3
-    assert np.isclose(DM.value, 133.63954635)
+    assert np.isclose(DM.value, 126.34957194)
 
 def test_satellites():
     smc = halos.SMC()
@@ -106,4 +106,4 @@ def test_ICM():
     icm = halos.ICM(log_Mhalo=14.5)
     ne = icm.ne(dummy_xyz)
     #
-    assert np.isclose(ne, 0.03179812)
+    assert np.isclose(ne, 0.02900411)
