@@ -26,9 +26,9 @@ We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
 to install and/or update these packages.
 
 * `python <http://www.python.org/>`_ versions 3.6 or later
-* `numpy <http://www.numpy.org/>`_ version 1.15 or later
-* `astropy <http://www.astropy.org/>`_ version 3.1 or later
-* `scipy <http://www.scipy.org/>`_ version 1.0 or later
+* `numpy <http://www.numpy.org/>`_ version 1.16 or later
+* `astropy <http://www.astropy.org/>`_ version 4.0 or later
+* `scipy <http://www.scipy.org/>`_ version 1.2 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
 * `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
 
