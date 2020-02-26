@@ -13,6 +13,8 @@ from astropy.io.fits.hdu.image import PrimaryHDU
 from frb.surveys import survey_utils
 from PIL import Image
 
+remote_data = pytest.mark.remote_data
+
 def test_sdss():
     try:
         from dl import queryClient as qc, authClient as ac, helpers
