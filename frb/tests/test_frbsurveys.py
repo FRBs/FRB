@@ -16,11 +16,6 @@ from PIL import Image
 remote_data = pytest.mark.remote_data
 
 def test_sdss():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
     #
@@ -30,12 +25,8 @@ def test_sdss():
     assert isinstance(sdss_tbl, Table)
     assert len(sdss_tbl) == 2
 
+@remote_data
 def test_wise():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
 
@@ -46,12 +37,8 @@ def test_wise():
     assert len(wise_tbl) == 1
 
 
+@remote_data
 def test_psrcat():
-    try:
-        import pulsars
-    except ImportError:
-        assert True
-        return
     # Catalog
     coord = SkyCoord('J000604.8+183459', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -63,12 +50,8 @@ def test_psrcat():
     assert len(pulsars) == 1
 
 
+@remote_data
 def test_des():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
     # Catalog
     coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -80,12 +63,8 @@ def test_des():
     assert len(des_tbl) == 1
 
 
+@remote_data
 def test_decals():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
 
@@ -98,11 +77,6 @@ def test_decals():
 
 
 def test_first():
-    try:
-        from dl import queryClient as qc, authClient as ac, helpers
-    except ImportError:
-        assert True
-        return
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
     #
@@ -113,13 +87,6 @@ def test_first():
     assert len(first_tbl) == 1
 
 def test_panstarrs():
-    #Test dependency
-    try:
-        from astroquery.vizier import Vizier
-    except ImportError:
-        assert True
-        return
-
     #Test get_catalog
     coord = SkyCoord(0, 0,unit="deg")
     search_r = 30*units.arcsec
