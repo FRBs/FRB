@@ -19,8 +19,8 @@ from ne2001 import density
 
 
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
-                IGM_only=True,
-                M31=False, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
+                IGM_only=True, smin=0.1,
+                M31=None, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
 
@@ -49,8 +49,11 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         fg_halos (dict or Table):
             Used to add to DM_IGM
             Keys must include 'z' 'DM' 'lbl'
-        dsmx (float): Padding on the x-axis;  Gpc
+        smin (float, optional):
+            Minimum value in axis2 (Gpc)
+        dsmx (float, optional): Padding on the x-axis;  Gpc
         FRB_DM (float): Observed value;  sets ymax = FRB_DM+50
+
     """
     if halos:
         embed()
@@ -116,27 +119,30 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
     zvals = np.linspace(z0, 0.5, 50)
     dz_vals = zvals[1] - zvals[0]
     #
-    fhalos = frb_halos.frac_in_halos(zvals, 3e10, 1e16, rmax=1.)
-    fIGM = 1. - fhalos
-    #
     DM_cosmic_cumul, zeval = frb_igm.average_DM(zvals[-1], cumul=True)
     dzeval = zeval[1] - zeval[0]
     dDM_cosmic = DM_cosmic_cumul - np.roll(DM_cosmic_cumul, 1)
     dDM_cosmic[0] = dDM_cosmic[1]
     #
     DM_interp = IUS(zeval, dDM_cosmic)
-    dDM_IGM = DM_interp(zvals) * fIGM * dz_vals / dzeval
+
     dDM_cosm = DM_interp(zvals) * dz_vals / dzeval
-    sub_DM_IGM = np.cumsum(dDM_IGM)
     sub_DM_cosm = np.cumsum(dDM_cosm)
-    f_IGM = IUS(zvals, sub_DM_IGM)
     f_cosm = IUS(zvals, sub_DM_cosm)
     zvals2 = np.linspace(z0, zFRB, 1000)
-    DM_IGM = f_IGM(zvals2)
     DM_cosmic = f_cosm(zvals2)
 
     # Ignore halos?
     if IGM_only:
+        #
+        fhalos = frb_halos.frac_in_halos(zvals, 3e10, 1e16, rmax=1.)
+        fIGM = 1. - fhalos
+        #
+        dDM_IGM = DM_interp(zvals) * fIGM * dz_vals / dzeval
+        sub_DM_IGM = np.cumsum(dDM_IGM)
+        f_IGM = IUS(zvals, sub_DM_IGM)
+        DM_IGM = f_IGM(zvals2)
+        #
         DM_cosmic = DM_IGM.copy()
 
     # Halos at last
@@ -197,11 +203,16 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
     ax2.set_xlabel(r'\textbf{Distance (Gpc)}')
 
     smax = cosmo.comoving_distance(zFRB).to('Gpc').value
-    ax2.set_xlim(0.1, smax+dsmx)  # Gpc
-    ax2.fill_between((0.1, smax-dsmx), 0, max_y, color='gray', alpha=0.4)  # Galactic Halo
-    ax2.fill_between((smax-dsmx, smax+dsmx), 0, max_y, color='red', alpha=0.4)  # Galactic Halo
+    ax2.fill_between((smin, smax-dsmx), 0, max_y, color='gray', alpha=0.4)  # Cosmic
     ilbl = r'\textbf{Cosmic}'
     ax2.text(0.2, max_y * yscl, ilbl, color='black', fontsize=lsz, ha='left', va='top')
+
+    # Host
+    if host_DM > 0.:
+        ax2.fill_between((smax-dsmx, smax+dsmx), 0, max_y, color='red', alpha=0.4)  # Host
+        ax2.set_xlim(smin, smax+dsmx)  # Gpc
+    else:
+        ax2.set_xlim(smin, smax)  # Gpc
 
     if FRB_DM is not None:
         ax1.axhline(y=FRB_DM, ls='--', color='black')
