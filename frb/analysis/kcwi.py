@@ -12,10 +12,19 @@ from astropy.wcs import WCS, utils as wcsutils
 from astropy import units as u
 from scipy.interpolate import interp1d
 
-import sep
+try:
+    import sep
+except ImportError:
+    raise ImportError("Requirement unmet: sep. Run `pip install sep`")
 
-from spectral_cube import SpectralCube
-import pyregion as pyreg
+try:
+    from spectral_cube import SpectralCube
+except ImportError:
+    raise ImportError("Requirement unmet: SpectralCube. Run `pip install spectral-cube`.")
+try:
+    import pyregion as pyreg
+except ImportError:
+    raise ImportError("Requirement unmet: pyregion. Run `pip install pyregion`.")
 
 import glob, os, sys
 
