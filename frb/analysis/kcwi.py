@@ -311,7 +311,7 @@ def get_source_spectra(cubefile, varfile, objects, outdir = "spectra/", marzfile
     cube = SpectralCube.read(cubefile)
     varcube = SpectralCube.read(varfile)
 
-    wave = cube.spectral_axis.data
+    wave = cube.spectral_axis.value
 
     # Convert to vacuum wavelengths?
     if tovac:
@@ -333,8 +333,7 @@ def get_source_spectra(cubefile, varfile, objects, outdir = "spectra/", marzfile
         spec, varspec = spec_from_ellipse(cube, varcube,
                                           obj['x'], obj['y'],
                                           obj['a'], obj['b'],
-                                          obj['theta'], r = 2,
-                                          kind='mean')
+                                          obj['theta'], r = 2)
 
         # Produce spectrum fits file
         spechdu = fits.PrimaryHDU(spec.data, header=spec.header)
