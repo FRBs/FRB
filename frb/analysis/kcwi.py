@@ -3,6 +3,7 @@ Utilities to handle KCWI datacubes
 """
 
 import numpy as np
+import warnings
 
 from astropy.io import fits
 from astropy.table import Table
@@ -45,6 +46,20 @@ def _spectral_tile(array, cube):
     """
     return np.tile(array, (cube.shape[2],cube.shape[1],1)).T
 
+def _clean_wave(cube):
+    """
+    If there are "good" wavelengths defined
+    in the header, return a subcube filtering
+    out the bad wavelengths. 
+    """
+    if 'WAVEGOOD0' in list(cube.header.keys()):
+        wlow = cube.header['WAVEGOOD0']
+        whigh = cube.header['WAVEGOOD1']
+        clean_cube = cube.spectral_slab(wlow, whigh)
+        return clean_cube
+    else:
+        return cube
+
 def _interp_trans(transfile, kind= "cubic", fill_value=0, **readkw):
     """
     Interpolate a transmission curve from
@@ -66,6 +81,28 @@ def _interp_trans(transfile, kind= "cubic", fill_value=0, **readkw):
     wave, transval = Table.read(transfile, **readkw)
     trans = interp1d(wave, transval, kind=kind, fill_value=fill_value)
     return trans
+
+def silence_warnings(warncategory):
+    """
+    To silence spectral cube warnings.
+    Check out spectral_cube.utils for
+    warning categories.
+    """
+    warnings.filterwarnings('ignore', category=warncategory, append=True)
+
+def wave_mask(cube, mask_1d):
+    """
+    Mask out wavelengths using
+    a 1D grid. Values corresponding
+    to "False" are masked out.
+    """
+    assert len(mask_1d) == len(cube.spectral_axis), "Mask length ({:d}) doesn't match cube's spectral axis length ({:d}).".format(len(mask_1d), len(cube.spectral_axis))
+
+    assert mask_1d.dtype == bool, "Mask must be a boolean array."
+
+    mm = _spectral_tile(mask_1d, cube)
+    return cube.with_mask(mm)
+
 
 def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None, overwrite = False):
     """
@@ -127,7 +164,7 @@ def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None
     
     return img
 
-def spec_from_mask(cube, mask_arr, varcube=None, kind="mean"):
+def spec_from_mask(cube, mask_arr, varcube=None, kind="mean", how="cube"):
     """
     Extract a spectrum from a cube
     within a mask.
@@ -136,6 +173,10 @@ def spec_from_mask(cube, mask_arr, varcube=None, kind="mean"):
         mask_arr (numpy array): A 2D boolean array
         varcube (Spectral Cube, optional): Variance cube
         kind (str, optional): median or mean
+        how (str, optional): "cube" or "slice". Load 
+            the entire masked cube to memory when 
+            computing spectra or compute it looping
+            over slices.
     Returns:
         spec (OneDSpectrum): The extracted spectrum.
         var (OneDSpectrum): Variance in spectrum.
@@ -143,17 +184,21 @@ def spec_from_mask(cube, mask_arr, varcube=None, kind="mean"):
     """
     assert mask_arr.dtype == bool, "Masks must be boolean. int type masks make computation slow."
 
+    assert how in ["cube", "slice"], "You can either take the full cube or compute the spectrum slice-by-slice."
+
     masked_cube = cube.subcube_from_mask(mask_arr)
+    masked_cube = _clean_wave(masked_cube)
 
     #TODO: add more methods of obtaining the central estimate
     if kind is "mean":
-        spec = masked_cube.mean(axis=(1,2), how = 'slice')
+        spec = masked_cube.mean(axis=(1,2), how = how)
     # if kind is max:
     # if kind is something_else:
 
     if varcube:
         masked_var = varcube.subcube_from_mask(mask_arr)
-        var = masked_var.mean(axis = (1,2), how = "slice")
+        var = _clean_wave(masked_cube)
+        var = masked_var.mean(axis = (1,2), how = how)
         return spec, var
     
     return spec
@@ -220,6 +265,8 @@ def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 
     if regfile:
         reg = pyreg.open(regfile).as_imagecoord(white.header)
         mask = reg.get_filter().mask(data)
+    else:
+        mask = None
 
     # Characterize sky
     bkg = sep.Background(data, mask = mask)
@@ -236,7 +283,7 @@ def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 
                                   minarea = minarea, clean = clean,
                                   segmentation_map=True)
     if write:
-        Table(objects).write(write)
+        Table(objects).write(write, overwrite = True)
     
     return Table(objects), segmap
 
@@ -307,6 +354,7 @@ def get_source_spectra(cubefile, varfile, objects, outdir = "spectra/", marzfile
         marzfile (str, optional): name of MARZ file to dump
             all spectra into. File creation is skipped if
             a name is not supplied.
+        tovac (bool, optional): Covert wavelengths to vacuum.
     Returns:
         speclist (ndarray): A 2D array of with an extracted
             spectrum in each row.
