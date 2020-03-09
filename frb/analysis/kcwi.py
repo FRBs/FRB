@@ -104,7 +104,10 @@ def wave_mask(cube, mask_1d):
     return cube.with_mask(mm)
 
 
-def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None, overwrite = False):
+def get_img(cubefile, wlow = None, whigh = None, 
+            trans_curve = None, how = "cube",
+            bkgsub = False, save = None,
+            overwrite = False, **bkgsubkw):
     """
     Flatten cube along wavelength and produce a 2D
     image.
@@ -121,6 +124,13 @@ def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None
             We recommend passing a function produced by scipy
             interpolation method. Wavelength is assumed to
             be in angstroms.
+        how (str, optional): "cube", "slice" or "ray". How do
+            you want to load the cube to memory?
+            "cube" loads the whole thing for summing. "slice"
+            and "ray" do it slicewise or spectral-ray-wise.
+        bkgsub (bool, optional): Subtract background continuum?
+        **bkgsubkw: Keyword args to be passed to sep.Background
+            for background estimation.
         save (str, optional): Path to file to be
             saved to.
         overwrite (bool, optional): Overwrite existing
@@ -128,6 +138,7 @@ def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None
     Returns:
         img (Spectral Cube Projection): Flattened 2D image
     """
+    assert how in ["cube", "slice", "ray"], "Invalid summing method. Choose one of 'cube', 'slice' and 'ray'."
     # Read in datacube
     cube = SpectralCube.read(cubefile)
 
@@ -158,7 +169,10 @@ def get_img(cubefile, wlow = None, whigh = None, trans_curve = None, save = None
         goodcube = goodcube*tt
     
     # Make image
-    img = goodcube.sum(axis = 0, how = "ray")
+    img = goodcube.sum(axis = 0, how = how)
+    if bkgsub:
+        bkg = sep.Background(img.value, **bkgsubkw)
+        img = img - bkg*img.unit
     if save:
         img.write(save, overwrite = overwrite)
     
@@ -274,6 +288,9 @@ def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 
     # Subtract background? 
     if bkgsub:
         bkg.subfrom(data)
+        # Compute background again
+        bkg = sep.Background(data, mask = mask)
+
 
     # Compute source detection threshold
     thresh = nsig*bkg.globalrms
