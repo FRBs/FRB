@@ -151,15 +151,15 @@ def frb_190523():
     frb190523.write_to_json(path=path)
 
 def frb_190608():
-    """Bhandari+20, ApJL --
+    """Bhandari+20, ApJL, Day+20, in prep. --
     """
     fname = 'FRB190608'
     frb190608 = frb.FRB(fname, "J221604.74-075353.6",  # Pulled from Slack on 2019 Sep 20
                         339.8 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
-    frb190608.set_ee(0.02, 0.02, 0., 68.) # Statistsical
-    frb190608.set_ee(0.4, 0.4, 0., 68., stat=False)  # Systematic
+    frb190608.set_ee(0.19315, 0.18, 0., 68.) # Statistsical
+    frb190608.set_ee(0.178292, 0.18, 0., 68., stat=False)  # Systematic
     # Error in DM
     frb190608.DM_err = 1 * units.pc / units.cm**3
 
@@ -170,7 +170,7 @@ def frb_190608():
     #frb190102.RM_err = 1 * units.rad / units.m**2
 
     # References
-    frb190608.refs = ['Bhandari2019']
+    frb190608.refs = ['Bhandari2020','Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
