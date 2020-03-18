@@ -14,8 +14,8 @@ import sys, os
 try:
     from dl import queryClient as qc, authClient as ac
     from dl.helpers.utils import convert
-except ImportError:
-    print("Warning:  You need to install dl")
+except:
+    print("Warning:  dl is not installed or will not properly connect")
 
 from frb.surveys import surveycoord
 

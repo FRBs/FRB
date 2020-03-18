@@ -181,6 +181,7 @@ class GenericFRB(object):
         #
         return
 
+
     def set_width(self, wtype, value, overwrite=False):
         """ Set a Width value
 
