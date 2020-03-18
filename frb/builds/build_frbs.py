@@ -176,6 +176,34 @@ def frb_190608():
     frb190608.write_to_json(path=path)
 
 
+def frb_190711():
+    """MacQuart+20, Day+2020
+    """
+    fname = 'FRB190711'
+    frb190711 = frb.FRB(fname, 'J215740.68-802128.8',  # MacQuarter+2020, Day+2020
+                        587.9 * units.pc / units.cm ** 3,    # Day+2020
+                        z_frb=0.52172)
+    # Error ellipse
+    frb190711.set_ee(0.3, 0.3, 0., 68.)  # (Statistical)
+    frb190711.set_ee(0.38, 0.3, 0., 68., stat=False)  # Systematic
+
+    # Error in DM
+    frb190711.DM_err = 1 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb190711.set_DMISM()
+    # RM -- Day+2020
+    frb190711.RM = 9 * units.rad / units.m**2
+    frb190711.RM_err = 2 * units.rad / units.m**2
+
+    # References
+    frb190711.refs = ['MacQuart2019', 'Day+2020']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190711.write_to_json(path=path)
+
+
 def main(inflg='all'):
 
     if inflg == 'all':
@@ -206,6 +234,10 @@ def main(inflg='all'):
     # 190102
     if flg & (2**5):
         frb_190102()
+
+    # 190711
+    if flg & (2**6): # 64
+        frb_190711()
 
 
 # Command line execution
