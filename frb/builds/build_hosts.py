@@ -27,7 +27,8 @@ from linetools.spectra.xspectrum1d import XSpectrum1D
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
-    embed(header='You need to set $FRB_GDB')
+    print("Warning, you need to set $FRB_GDB to build hosts")
+    #embed(header='You need to set $FRB_GDB')
 
 
 def build_host_121102(build_photom=False):
