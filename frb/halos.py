@@ -47,7 +47,7 @@ def init_hmf():
     cosmo_dict = {"omega_cdm":(cosmo.Om0-cosmo.Ob0)*cosmo.h**2,
                   "omega_b":cosmo.Ob0*cosmo.h**2,"ok":0.0,
                   "ln10As": 3.098, # THIS REPLACES sigma8
-                  "H0":cosmo.H0.to('km/s/Mpc').value,
+                  "H0":cosmo.H0.to('km/(s*Mpc)').value,
                   "n_s":ns,"w0":-1.0,"N_eff":Neff} # "wa":0.0 is assumed internally
     hmfe = hmf_emulator.hmf_emulator()
     hmfe.set_cosmology(cosmo_dict)
@@ -64,7 +64,7 @@ else:
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
-    Calculate the fraction of dark matter in collapsed halos
+    Calculate the fraction of matter in collapsed halos
      over a mass range and at a given redshift
 
     Note that the fraction of DM associated with these halos
@@ -92,8 +92,6 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
     ratios = []
     for z in zvals:
-        a = 1./(1.0 + z) # scale factor
-
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
         dndlM = M*hmfe.dndM(M, z)
@@ -102,7 +100,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         # Integrate
         rho_tot = M_spl.integral(np.log(Mlow*cosmo.h), np.log(Mhigh*cosmo.h)) * units.M_sun / units.Mpc ** 3
         # Cosmology
-        rho_M = cosmo.critical_density(z) * cosmo.Om(z) / (1+z)**3  # Tinker calculations are all mass
+        rho_M = cosmo.critical_density(z) * cosmo.Om(z)/(1+z)**3  # Tinker calculations are all mass 
         ratio = (rho_tot*cosmo.h**2 / rho_M).decompose()
         #
         ratios.append(ratio)
@@ -130,6 +128,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         Mlow: float
           Mass of minimum halo in Solar masses
           The code deals with h^-1 factors so that you do not
+          The minimum value is 2e10
         zFRB: float
           Redshift of the FRB
         radius: Quantity, optional
@@ -152,6 +151,10 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         zeval: ndarray
         Ncumul: ndarray
     """
+    # Mlow limit
+    if Mlow < 2e10:
+        warnings.warn("Calculations are limited to Mlow > 2e10")
+        return
     # HMF
     if hmfe is None:
         hmfe = init_hmf()
@@ -454,7 +457,7 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
 
 
 def halomass_from_stellarmass(log_mstar,z=0):
-    """ Halo mass from Stellar mass (Moster+2010)
+    """ Halo mass from Stellar mass (Moster+2013)
 
     Args:
         log_mstar (float): log10 of the galaxy stellar mass (solar masses)
@@ -481,9 +484,11 @@ class ModifiedNFW(object):
         alpha: float, optional
           Parameter to modify NFW profile power-law
         y0: float, optional
-          Parameter to modify NFW profile position
+          Parameter to modify NFW profile position.
         z: float, optional
           Redshift of the halo
+        cosmo: astropy cosmology, optional
+          Cosmology of the universe. Planck15 by default.
 
     Attributes:
         H0: Quantity;  Hubble constant
@@ -499,7 +504,7 @@ class ModifiedNFW(object):
 
     """
     def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
-                 y0=1., z=0., cosmo=None, **kwargs):
+                 y0=1., z=0., cosmo=cosmo, **kwargs):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo
@@ -515,7 +520,7 @@ class ModifiedNFW(object):
         # Init more
         self.setup_param(cosmo=self.cosmo)
 
-    def setup_param(self, cosmo=None):
+    def setup_param(self,cosmo):
         """ Setup key parameters of the model
         """
         # Cosmology
@@ -524,7 +529,7 @@ class ModifiedNFW(object):
             self.fb = 0.16       # Baryon fraction
             self.H0 = 70. *units.km/units.s/ units.Mpc
         else:
-            self.rhoc = cosmo.critical_density(self.z)
+            self.rhoc = self.cosmo.critical_density(self.z)
             self.fb = cosmo.Ob0/cosmo.Om0
             self.H0 = cosmo.H0
         # Dark Matter

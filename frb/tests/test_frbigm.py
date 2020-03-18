@@ -26,17 +26,17 @@ def test_igmDM():
     DM = igm.average_DM(1.)
     # Value and unit
     assert DM.unit == u.pc/u.cm**3
-    assert np.isclose(DM.value, 966.62888, rtol=0.001)
+    assert np.isclose(DM.value, 941.13451342, rtol=0.001)
     # Cumulative
-    DM_cum, zeval = igm.average_DM(1., cumul=True)
+    DM_cum, _ = igm.average_DM(1., cumul=True)
     assert DM == DM_cum[-1]
     # Cross through HeII reionization
     DM4 = igm.average_DM(4.)
-    assert np.isclose(DM4.value, 3650.434194, rtol=0.001)
+    assert np.isclose(DM4.value, 3551.37492765, rtol=0.001)
 
 
 def test_z_from_DM():
     # Note this removes 100 DM units of 'nuisance'
     z = igm.z_from_DM(1000.*u.pc/u.cm**3)
     # Test
-    assert np.isclose(z, 0.93407, rtol=0.001)
+    assert np.isclose(z, 0.95739493, rtol=0.001)
