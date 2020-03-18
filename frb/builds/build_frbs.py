@@ -154,7 +154,7 @@ def frb_190608():
     """Bhandari+20, ApJL, Day+20, in prep. --
     """
     fname = 'FRB190608'
-    frb190608 = frb.FRB(fname, "J221604.74-075353.6",  # Pulled from Slack on 2019 Sep 20
+    frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
                         339.8 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
