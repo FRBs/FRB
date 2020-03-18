@@ -155,7 +155,8 @@ class GenericFRB(object):
             print("Need to set coord first!")
         self.DMISM = mw.ismDM(self.coord)
 
-    def set_ee(self, a, b, theta, cl):
+
+    def set_ee(self, a, b, theta, cl, stat=True):
         """
         Set an error ellipse for the FRB position
 
@@ -164,13 +165,23 @@ class GenericFRB(object):
             b (float):  minor axis; Arcsec
             theta (float): rotation of the major axis E from N (deg)
             cl (float): confidence level
+            stat (bool, optional):
+                If True, fill in statistical error
+                if False, fill in systematic
         """
-        self.eellipse['a'] = a
-        self.eellipse['b'] = b
-        self.eellipse['theta'] = theta
-        self.eellipse['cl'] = cl
+        if stat:
+            self.eellipse['a'] = a
+            self.eellipse['b'] = b
+            self.eellipse['theta'] = theta
+            self.eellipse['cl'] = cl
+        else:
+            self.eellipse['a_sys'] = a
+            self.eellipse['b_sys'] = b
+            self.eellipse['theta_sys'] = theta
+            self.eellipse['cl_sys'] = cl
         #
         return
+
 
     def set_width(self, wtype, value, overwrite=False):
         """ Set a Width value
