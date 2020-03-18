@@ -20,7 +20,8 @@ from frb.galaxies import photom as frbphotom
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
-    embed(header='You need to set $FRB_GDB')
+    print("Warning, you need to set $FRB_GDB to build hosts")
+    #embed(header='You need to set $FRB_GDB')
 
 
 def build_fg_181112(build_photom=False):
