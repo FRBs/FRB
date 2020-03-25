@@ -89,6 +89,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         slit (tuple, optional):
           If provided, places a rectangular slit with specified
           coordinates, width, length, and position angle on image (from North to East)
+          [SkyCoords('21h44m25.255s',-40d54m00.1s', frame='icrs'), 1*u.arcsec, 10*u.arcsec, 20*u.deg]
         vmnx (tuple, optional):
           Used for scaling the image.  Otherwise, the image
           is analyzed for these values.
