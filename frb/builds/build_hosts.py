@@ -61,10 +61,10 @@ def build_host_121102(build_photom=False):
         photom['ra'] = [host121102.coord.ra.value]
         photom['dec'] = host121102.coord.dec.value
         #
-        photom['GMOS_r'] = 25.1
-        photom['GMOS_r_err'] = 0.1
-        photom['GMOS_i'] = 23.9
-        photom['GMOS_i_err'] = 0.1
+        photom['GMOS_N_r'] = 25.1
+        photom['GMOS_N_r_err'] = 0.1
+        photom['GMOS_N_i'] = 23.9
+        photom['GMOS_N_i_err'] = 0.1
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
