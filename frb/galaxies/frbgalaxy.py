@@ -257,10 +257,14 @@ class FRBGalaxy(object):
                 if (filter in self.photom.keys()) and (not overwrite):
                     pass
                 else:
-                    self.photom[filter] = phot_tbl[filter][row]
-                    # Try error
-                    if filter+'_err' in phot_tbl.keys():
-                        self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+                    # -999. is used as empty fill value
+                    if phot_tbl[filter][row] < -990:
+                        pass
+                    else:
+                        self.photom[filter] = phot_tbl[filter][row]
+                        # Try error
+                        if filter+'_err' in phot_tbl.keys():
+                            self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
     
     def gen_cigale_data_in(self, ID=None, filename='data.fits', overwrite=False):
         """
