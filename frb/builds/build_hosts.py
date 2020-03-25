@@ -529,7 +529,7 @@ def main(inflg='all', build_photom=False):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=build_photom)
+        build_host_121102(build_photom=build_photom) # 1
 
     # 180924
     if flg & (2**1):
