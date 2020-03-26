@@ -4,6 +4,8 @@ import os
 import warnings
 import numpy as np
 
+from pkg_resources import resource_filename
+
 from IPython import embed
 
 from astropy.table import Table, hstack, vstack, join
@@ -66,10 +68,13 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     return merge_tbl
 
 
-def extinction_correction(filter_name, EBV=0.138, RV=3.1):
+def extinction_correction(filter, EBV, RV=3.1):
     # Read in filter
+    path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
 
-    filter_read = pd.read_csv(filter_name, delimiter=' ')
+    filter_file = os.path.join(path_to_filters, filter+'.dat')
+
+    filter_read = pd.read_csv(filter_file, delimiter=' ')
     wave = filter_read[0]
     throughput = filter_read[1]
     AV = EBV * RV
