@@ -11,6 +11,8 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
 
+from frb.galaxies import nebular
+
 # Photometry globals
 table_format = 'ascii.fixed_width'
 
@@ -63,4 +65,15 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     return merge_tbl
 
 
+def extinction_correction(filter_name, EBV, RV=3.1):
+    # Read in filer
+    wave, throughput = READ(filter_name)
+    AV = EBV * RV
+    AlAV = nebular.load_extinction()
+    Alambda = AV * AlAV(wave)
+    source_flux = 1.
+    delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
+        throughput * source_flux, wave)
 
+    correction = 1./delta
+    return correction
