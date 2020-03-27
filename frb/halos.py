@@ -428,6 +428,7 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     Returns:
         float: log_mstar, log10 of the galaxy stellar mass (solar masses)
     """
+        
     # Define model parameters from Table 1
     # of the paper.
     N10 = 0.0351
@@ -465,8 +466,14 @@ def halomass_from_stellarmass(log_mstar,z=0):
     Returns:
         float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
     """
-    f = lambda x: stellarmass_from_halomass(x,z=z)-log_mstar
-    return fsolve(f,11)[0]
+    try:
+        log_mstar*z
+    except ValueError:
+        raise TypeError("log_mstar and z can't be broadcast together for root finding. Use numpy arrays of same length or scalar values.")
+
+    f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
+    guess = 2+log_mstar
+    return fsolve(f, guess)
 
 
 class ModifiedNFW(object):
