@@ -273,7 +273,7 @@ def spec_from_ellipse(cube, varcube = None,
     mask = np.zeros(cube.shape[1:], dtype=np.bool)
     sep.mask_ellipse(mask, x0, y0, a, b, theta,r)
     
-    return spec_from_mask(cube, mask, varcube)
+    return spec_from_mask(cube, mask, varcube=varcube)
 
 def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 0.0001, regfile = None, write = None, bkgsub = True):
     """
@@ -447,8 +447,6 @@ def get_source_spectra(cubefile, varfile, objects, outdir = "spectra/", marzfile
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
     for idx, obj in enumerate(objects):
-        # TODO: Make a specdb file instead of saving
-        # individual spectra
         spec, varspec = spec_from_ellipse(cube, varcube,
                                           obj['x'], obj['y'],
                                           obj['a'], obj['b'],
