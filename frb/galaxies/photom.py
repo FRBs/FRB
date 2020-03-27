@@ -4,12 +4,17 @@ import os
 import warnings
 import numpy as np
 
+from pkg_resources import resource_filename
+
 from IPython import embed
 
 from astropy.table import Table, hstack, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
+
+from frb.galaxies import nebular
+import pandas as pd
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -63,4 +68,42 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     return merge_tbl
 
 
+def extinction_correction(filter, EBV, RV=3.1):
+    """
 
+    calculate MW extinction correction for given filter
+
+    Args:
+        filter (str):
+            filter name (name of file without .dat extension)
+        EBV (float):
+            E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
+        RV:
+            from gbrammer/threedhst eazyPy.py -- characterizes MW dust
+
+    Returns:
+             float: linear extinction correction
+
+    """
+    # Read in filter in pd dataframe
+    path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
+    filter_file = os.path.join(path_to_filters, filter+'.dat')
+    filter_read = pd.read_csv(filter_file, sep=' ', header=0)
+
+    #get wave and transmission (file should have these headers in first row)
+    wave = filter_read['wave']
+    throughput = filter_read['transmission']
+
+    #get MW extinction correction
+    AV = EBV * RV
+    AlAV = nebular.load_extinction('MW')
+    Alambda = AV * AlAV(wave)
+    source_flux = 1.
+
+    #calculate linear correction
+    delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
+        throughput * source_flux, wave)
+
+    correction = 1./delta
+
+    return correction
