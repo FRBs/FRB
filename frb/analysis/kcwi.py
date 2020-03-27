@@ -213,7 +213,9 @@ def spec_from_mask(cube, mask_arr, varcube=None, kind="mean", how="cube"):
     within a mask.
     Args:
         cube (Spectral Cube): A datacube object
-        mask_arr (numpy array): A 2D boolean array
+        mask_arr (numpy array): A 2D boolean array. A
+            spectrum is extracted from the regions
+            corresponding to True.
         varcube (Spectral Cube, optional): Variance cube
         kind (str, optional): median or mean
         how (str, optional): "cube" or "slice". Load 
