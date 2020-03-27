@@ -14,7 +14,6 @@ from astropy.coordinates import match_coordinates_sky
 from astropy import units
 
 from frb.galaxies import nebular
-import pandas as pd
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -85,14 +84,14 @@ def extinction_correction(filter, EBV, RV=3.1):
              float: linear extinction correction
 
     """
-    # Read in filter in pd dataframe
+    # Read in filter in Table
     path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
     filter_file = os.path.join(path_to_filters, filter+'.dat')
-    filter_read = pd.read_csv(filter_file, sep=' ', header=0)
+    filter_tbl = Table.read(filter_file, format='ascii')
 
     #get wave and transmission (file should have these headers in first row)
-    wave = filter_read['wave']
-    throughput = filter_read['transmission']
+    wave = filter_tbl['col1'].data
+    throughput = filter_tbl['col2'].data
 
     #get MW extinction correction
     AV = EBV * RV
