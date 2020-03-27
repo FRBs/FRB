@@ -91,7 +91,7 @@ VISTA_bands = ['Y','J','H','Ks']
 for band in VISTA_bands:
     valid_filters.append('VISTA_{:s}'.format(band))
 
-valid_photom = valid_filters
+valid_photom = valid_filters + ['EBV']  # Galactic
 
 ##############################################################
 # Line measurements -- Use linetools naming only!!!
