@@ -69,20 +69,36 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
 
 
 def extinction_correction(filter, EBV, RV=3.1):
-    # Read in filter
+    """
+
+    Args:
+        filter: filter name (name of file without .dat extension)
+        EBV: E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
+        RV: from gbrammer/threedhst eazyPy.py -- characterizes MW dust
+
+    Returns: correction
+                linear extinction correction
+
+    """
+    # Read in filter in pd dataframe
     path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
-
     filter_file = os.path.join(path_to_filters, filter+'.dat')
+    filter_read = pd.read_csv(filter_file, sep=' ', header=0)
 
-    filter_read = pd.read_csv(filter_file, delimiter=' ')
-    wave = filter_read[0]
-    throughput = filter_read[1]
+    #get wave and transmission (file should have these headers in first row)
+    wave = filter_read['wave']
+    throughput = filter_read['transmission']
+
+    #get MW extinction correction
     AV = EBV * RV
     AlAV = nebular.load_extinction('MW')
     Alambda = AV * AlAV(wave)
     source_flux = 1.
+
+    #calculate linear correction
     delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
         throughput * source_flux, wave)
 
     correction = 1./delta
+
     return correction
