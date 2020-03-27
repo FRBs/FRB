@@ -33,24 +33,43 @@ def _air_to_vac(wave):
     """
     Helper function to convert wavelengths
     in air to vacuum.
+    Args:
+        wave (float or ndarray): wavelength in air in angstroms
+    Returns:
+        wave_vac (float or ndarray): wavelength in vacuum in angstroms
     """
     sigma2 = (1e4/wave)**2
     fact = 1.+5.792105e-2/(238.0185-sigma2)+1.67917e-3/(57.362-sigma2)
-    return wave*fact 
+    wave_vac = wave*fact
+    return wave_vac
 
 def _spectral_tile(array, cube):
     """
     Helper function that tiles 1D array of
     size cube.spectral_axis.shape and tiles it
     to the same shape as the cube.
+    Args:
+        array (ndarray): the 1D array that needs to be tiled.
+        cube (Spectral Cube): reference cube for tiling.
+    Returns:
+        tiled_array (ndarray): an array with the 1D array tiled
+            in the spatial dimension. This has the same shape
+            as the cube.
     """
-    return np.tile(array, (cube.shape[2],cube.shape[1],1)).T
+    tiled_array = np.tile(array, (cube.shape[2],cube.shape[1],1)).T
+    return tiled_array
 
 def _clean_wave(cube):
     """
     If there are "good" wavelengths defined
     in the header, return a subcube filtering
     out the bad wavelengths. 
+    Args:
+        cube (Spectral cube): Spectral cube to be
+            cleaned.
+    Returns:
+        clean_cube (Spectral cube): Cleaned cube
+            with bad wavelengths removed.
     """
     if 'WAVEGOOD0' in list(cube.header.keys()):
         wlow = cube.header['WAVEGOOD0']
@@ -87,14 +106,24 @@ def silence_warnings(warncategory):
     To silence spectral cube warnings.
     Check out spectral_cube.utils for
     warning categories.
+    Args:
+        warncategory (Warnings category): category of Warnings you want
+            to silence.
     """
     warnings.filterwarnings('ignore', category=warncategory, append=True)
+    return
 
 def wave_mask(cube, mask_1d):
     """
     Mask out wavelengths using
     a 1D grid. Values corresponding
     to "False" are masked out.
+    Args:
+        cube (Spectral cube): Datacube
+        mask_1D (bool ndarray): 1D boolean array
+            of same length as cube.spectral_axis
+    Returns:
+        masked_cube (Spectral cube): masked datacube.
     """
     assert len(mask_1d) == len(cube.spectral_axis), "Mask length ({:d}) doesn't match cube's spectral axis length ({:d}).".format(len(mask_1d), len(cube.spectral_axis))
 
@@ -307,6 +336,20 @@ def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 
 def _make_marz(cube, speclist, varspeclist, objects,marzfile="marzfile.fits", tovac = True):
     """
     Helper function to create a MARZ input file
+    Args:
+        cube (Spectral cube): Datacube
+        speclist (list): list of spectra. i.e.
+            Spectral cube Projections of same
+            shape as cube.spectral_axis.
+        varspeclist (list): list of spectral
+            variances (same object class and
+            shape as speclist elements)
+        objects (astropy Table): Table of
+            objects detected using sep.extract
+        marzfile (str, optional): Name of
+            output MARZ fits file.
+        tovac (bool, optional): Convert wavelengths
+            to vacuum?
     """
     # TODO: Actually compute sky background
     nobjs = len(objects)
