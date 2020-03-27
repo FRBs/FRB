@@ -71,13 +71,18 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
 def extinction_correction(filter, EBV, RV=3.1):
     """
 
-    Args:
-        filter: filter name (name of file without .dat extension)
-        EBV: E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
-        RV: from gbrammer/threedhst eazyPy.py -- characterizes MW dust
+    calculate MW extinction correction for given filter
 
-    Returns: correction
-                linear extinction correction
+    Args:
+        filter (str):
+            filter name (name of file without .dat extension)
+        EBV (float):
+            E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
+        RV:
+            from gbrammer/threedhst eazyPy.py -- characterizes MW dust
+
+    Returns:
+             float: linear extinction correction
 
     """
     # Read in filter in pd dataframe
