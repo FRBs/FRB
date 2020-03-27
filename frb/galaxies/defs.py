@@ -72,6 +72,10 @@ NOT_bands = ['z']
 for band in NOT_bands:
     valid_filters.append('NOT_{:s}'.format(band))
 
+#NIRI
+NIRI_bands = ['J']
+for band in NIRI_bands:
+    valid_filters.append('NIRI_{:s}'.format(band))
 
 #LRIS
 LRISb_bands = ['U', 'G', 'V', 'B']
