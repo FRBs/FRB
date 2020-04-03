@@ -67,7 +67,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     return merge_tbl
 
 
-def extinction_correction(filter, EBV, RV=3.1):
+def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     """
 
     calculate MW extinction correction for given filter
@@ -79,6 +79,10 @@ def extinction_correction(filter, EBV, RV=3.1):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
         RV:
             from gbrammer/threedhst eazyPy.py -- characterizes MW dust
+        max_wave (float, optional):
+            If set, cut off the calculation at this maximum wavelength.
+            A bit of a hack for the near-IR, in large part because the
+            MW extinction curve ends at 1.4 microns.
 
     Returns:
              float: linear extinction correction
@@ -92,6 +96,12 @@ def extinction_correction(filter, EBV, RV=3.1):
     #get wave and transmission (file should have these headers in first row)
     wave = filter_tbl['col1'].data
     throughput = filter_tbl['col2'].data
+
+    if max_wave:
+        warnings.warn("Cutting off the extinction correction calculation at {} Ang".format(max_wave))
+        gdwv = wave < max_wave
+        wave = wave[gdwv]
+        throughput = throughput[gdwv]
 
     #get MW extinction correction
     AV = EBV * RV
