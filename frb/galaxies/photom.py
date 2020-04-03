@@ -46,7 +46,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
         embed(header='42 of photom')
     # Coords
     new_coords = SkyCoord(ra=new_tbl['ra'], dec=new_tbl['dec'], unit='deg')
-    old_coords = SkyCoord(ra=old_tbl['ra'], dec=new_tbl['dec'], unit='deg')
+    old_coords = SkyCoord(ra=old_tbl['ra'], dec=old_tbl['dec'], unit='deg')
     idx, d2d, _ = match_coordinates_sky(new_coords, old_coords, nthneighbor=1)
     match = d2d < tol
 
