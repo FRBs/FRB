@@ -154,6 +154,8 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
         'VISTA_J': 'vista.vircam.J',
         'VISTA_H': 'vista.vircam.H',
         'VISTA_Ks': 'vista.vircam.Ks',
+        'LRISr_I': 'LRIS_I',
+        'LRISb_V': 'LRIS_V'
     }
     for key in new_names:
         if key in photom_cols:
