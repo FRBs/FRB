@@ -280,6 +280,9 @@ def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
     #For all other photometry:
     other_mags = np.setdiff1d(mag_cols,wisecols)
     other_errs = np.setdiff1d(mag_errcols,wise_errcols)
+
+
+
     for mag, err in zip(other_mags, other_errs):
         badmags = fluxtable[mag] < 0
         fluxtable[mag][badmags] = -99.0
@@ -290,10 +293,10 @@ def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
 
         # Upper limits -- Assume to have been recorded as 3 sigma
+        #   Arbitrarily set the value to 1/3 of the error (could even set to 0)
         uplimit = photometry_table[err] == 999.
-        embed(header='294 of catalog_utils')
         fluxtable[err][uplimit] = fluxtable[mag][uplimit] / 3.
-
+        fluxtable[mag][uplimit] = fluxtable[mag][uplimit] / 9.
     return fluxtable
     
     
