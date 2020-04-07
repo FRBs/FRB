@@ -3,6 +3,8 @@
 import os
 import warnings
 from pkg_resources import resource_filename
+from distutils import spawn
+import subprocess
 
 from astropy.table import Table
 
@@ -23,8 +25,22 @@ frb_to_eazy_filters = dict(GMOS_S_r=349,
                            DES_Y=298,
                            )
 
+def eazy_filenames(input_dir, name):
+    catfile = os.path.join(input_dir, '{}.cat'.format(name))
+    param_file = os.path.join(input_dir, 'zphot.param.{}'.format(name))
+    #
+    return catfile, param_file
 
-def eazy_input_files(photom, input_dir, name, prior_filter=None):
+def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
+
+    # Output filenames
+    catfile, param_file = eazy_filenames(input_dir, name)
+
+    # Check output dir
+    full_out_dir = os.path.join(input_dir, out_dir)
+    if not os.path.isdir(full_out_dir):
+        warnings.warn("Output directory {} does not exist, creating it!".format(full_out_dir))
+        os.mkdir(full_out_dir)
 
     # Prior
     if prior_filter is not None:
@@ -72,7 +88,6 @@ def eazy_input_files(photom, input_dir, name, prior_filter=None):
     for key in fluxtable.keys():
         newfs.append(key)
         newv.append(str(fluxtable[key].data[0]))
-    catfile = os.path.join(input_dir, '{}.cat'.format(name))
     with open(catfile, 'w') as f:
         # Filters
         allf = ' '.join(newfs)
@@ -87,8 +102,7 @@ def eazy_input_files(photom, input_dir, name, prior_filter=None):
     with open(default_file, 'r') as df:
         df_lines = df.readlines()
 
-    new_default_file = os.path.join(input_dir, 'zphot.param.{}'.format(name))
-    with open(new_default_file, 'w') as f:
+    with open(param_file, 'w') as f:
         for dfline in df_lines:
             if 'CATALOG_FILE' in dfline:
                 line = dfline.replace('REPLACE.cat', base_cat)
@@ -100,15 +114,28 @@ def eazy_input_files(photom, input_dir, name, prior_filter=None):
                 line = dfline  # Deal with this if we do anything other than r
             elif prior_filter is not None and 'PRIOR_ABZP' in dfline:
                 line = dfline  # Deal with this if we do anything other than r
+            elif 'Directory to put output files in' in dfline:  # Relative to the Input directory
+                line = dfline[0:10]+dfline[10:].replace('OUTPUT', out_dir, -1)
+            elif 'MAIN_OUTPUT_FILE' in dfline:  # Relative to the Input directory
+                line = dfline.replace('photz', 'photz_{}'.format(name))
             else:
                 line = dfline
             # Write
             f.write(line)
-    print("Wrote param file: {}".format(new_default_file))
+    print("Wrote param file: {}".format(param_file))
 
 
+def run_eazy(input_dir, name, logfile):
+    _, param_file = eazy_filenames(input_dir, name)
 
-
-def run_eazy_on_photom(photom):
-    pass
+    # Find the eazy executable
+    path_to_eazy = spawn.find_executable('eazy')
+    if path_to_eazy is None:
+        raise ValueError("You must have eazy in your Unix path..")
+    # Run it!
+    command_line = [path_to_eazy, '-p', os.path.basename(param_file)]
+    with open(logfile, 'w') as f:
+        retval = subprocess.call(command_line, stdout=f, stderr=f, cwd=input_dir)
+    #subprocess.call(['tail', '-2', logfile])
+    #
 
