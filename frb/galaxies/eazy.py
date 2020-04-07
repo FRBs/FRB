@@ -116,8 +116,6 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
                 line = dfline  # Deal with this if we do anything other than r
             elif 'Directory to put output files in' in dfline:  # Relative to the Input directory
                 line = dfline[0:10]+dfline[10:].replace('OUTPUT', out_dir, -1)
-            elif 'MAIN_OUTPUT_FILE' in dfline:  # Relative to the Input directory
-                line = dfline.replace('photz', 'photz_{}'.format(name))
             else:
                 line = dfline
             # Write
