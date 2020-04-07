@@ -45,9 +45,9 @@ POFZ_FILE            n                  # Write out Pofz/object, .pz
 BINARY_OUTPUT        y                  # Save OBS_SED, TEMP_SED, PZ in binary format to read with e.g IDL
 
 ## Redshift / Mag prior
-APPLY_PRIOR          y                  # Apply apparent magnitude prior
+APPLY_PRIOR          n                  # Apply apparent magnitude prior
 PRIOR_FILE           templates/prior_R_extend.dat # File containing prior grid
-PRIOR_FILTER         349                 # Filter from FILTER_RES corresponding to the columns in PRIOR_FILE
+PRIOR_FILTER         999                # Filter from FILTER_RES corresponding to the columns in PRIOR_FILE
 PRIOR_ABZP           23.9               # AB zeropoint of fluxes in catalog.  Needed for calculating apparent mags!
 
 ## Redshift Grid
