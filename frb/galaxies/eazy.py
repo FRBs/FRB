@@ -28,10 +28,50 @@ frb_to_eazy_filters = dict(GMOS_S_r=349,
                            )
 
 def eazy_filenames(input_dir, name):
+    """
+    Generate names for EAZY files
+
+    Args:
+        input_dir (str):
+            Path to eazy inputs/ folder  (can be relative)
+            This is where eazy will be run
+        name (str):
+            Name of the source being analzyed
+
+    Returns:
+        tuple:  catalog_filename, parameter_filename
+
+    """
     catfile = os.path.join(input_dir, '{}.cat'.format(name))
     param_file = os.path.join(input_dir, 'zphot.param.{}'.format(name))
     #
     return catfile, param_file
+
+def eazy_setup(input_dir, template_dir):
+    """
+    Setup for EAZY
+
+    Args:
+        input_dir (str):
+            Path to perosonal eazy inputs/ folder  (can be relative)
+        template_dir:
+            Path to templates/ folder in EAZY software package
+
+    Returns:
+
+    """
+    if not os.path.isdir(input_dir):
+        os.mkdir(input_dir)
+    # Copy over templates
+    os.system('cp -rp {:s} {:s}'.format(template_dir, os.path.join(input_dir, '..')))
+    # And link
+    os.system('ln -s {:s} {:s}'.format('../templates', os.path.join(input_dir, 'templates')))
+    # And FILTER files
+    filter_info = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest.info')
+    os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
+    filter_latest = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
+    os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
+
 
 def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
     """
@@ -42,6 +82,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
 
     Args:
         photom (dict):
+            Held by an FRBGalaxy object
         input_dir (str):
             Path to eazy inputs/ folder  (can be relative)
             This is where eazy will be run
