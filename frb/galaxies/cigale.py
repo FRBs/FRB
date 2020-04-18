@@ -337,3 +337,20 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             #import pdb; pdb.set_trace()
             
     return
+
+def host_run(photom, host, cigale_file=None):
+    cigale_tbl = photom.copy()
+    cigale_tbl['z'] = host.z
+    cigale_tbl['ID'] = host.name
+
+    # Run
+    run(cigale_tbl, 'z', outdir=host.name, compare_obs_model=True)
+
+    # Rename/move
+    if cigale_file is not None:
+        os.system('cp -rp {:s}/results.fits {:s}'.format(host.name, cigale_file))
+        model_file = cigale_file.replace('CIGALE', 'CIGALE_model')
+        os.system('cp -rp {:s}/{:s}_best_model.fits {:s}'.format(host.name, host.name, model_file))
+        photo_file = cigale_file.replace('CIGALE.fits', 'CIGALE_photo.dat')
+        os.system('cp -rp {:s}/photo_observed_model_{:s}.dat {:s}'.format(host.name, host.name, photo_file))
+

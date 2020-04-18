@@ -66,6 +66,7 @@ The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
 * `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
+* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this

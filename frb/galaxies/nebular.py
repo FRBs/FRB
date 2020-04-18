@@ -15,6 +15,11 @@ from astropy.table import Table
 from astropy import units
 
 try:
+    import extinction
+except ImportError:
+    warnings.warn("extinction package not loaded.  Extinction corrections will fail")
+
+try:
     from linetools.lists import linelist
 except ImportError:
     warnings.warn("Galaxy nebular line analysis requires linetools.  Install it if you want to use them")
@@ -24,35 +29,12 @@ Ha_Hb_intrin = 2.87  # Osterbrock 2006 Book
 Hb_Hg_intrin = 1./0.466  # Osterbrock 2006 Book
 Ha_conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
 
-def load_extinction(curve):
-    """
-    Load an extinction curve
 
-    This method may move elsewhere..
-
-    Args:
-        curve (str): Name of the extinction curve
-          MW = Standard Cardelli
-
-    Returns:
-        scipy.interpolate.interp1d: Interpolation function for alambda/AV
-
-    """
-    # Load the extinction curve
-    if curve == 'MW':
-        dust_file = resource_filename('frb', 'data/Dust/MW_dust.dat')
-        MW_dust = Table.read(dust_file, format='ascii')
-    else:
-        raise IOError("Not ready for this extinction curve!")
-    # Generate function for interpolating
-    alAV = interp1d(MW_dust['wave'], MW_dust['Al_AV'])
-    # Return
-    return alAV
-
-
-def calc_dust_extinct(neb_lines, method, curve='MW'):
+def calc_dust_extinct(neb_lines, method):
     """
     Estimate the Visual extinction A_V based on input nebular emission lines
+
+    Uses the Fitzpatrick & Massa (2007) extinction law
 
     Args:
         neb_lines (dict):  Line fluxes
@@ -66,10 +48,6 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     """
 
 
-    # Dust extinction curve
-    alAV = load_extinction(curve)
-
-    # Which ratio?
     if method == 'Ha/Hb':
         wave1 = 6564.6  # redder
         wave2 = 4862.7
@@ -96,8 +74,8 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
         raise IOError("Not ready for this mode")
 
     # Extinction
-    a1AV = alAV(wave1)
-    a2AV = alAV(wave2)
+    a1AV = extinction.fm07(wave1, 1.0)
+    a2AV = extinction.fm07(wave2, 1.0)
 
     # Observed ratio
     fratio_obs = F1_obs/F2_obs
@@ -109,7 +87,7 @@ def calc_dust_extinct(neb_lines, method, curve='MW'):
     return AV
 
 
-def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
+def calc_lum(neb_lines, line, z, cosmo, AV=None):
     """
     Calculate the line luminosity (and error) from input nebular line emission
 
@@ -121,7 +99,6 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
         z (float):  Emission redshift -- for Luminosity distance
         cosmo (astropy.cosmology.FLRW): Cosmology
         AV (float, optional):  Visual extinction, if supplied will apply
-        curve (str):  Name of the extinction curve.  Only used if A_V is supplied
 
     Returns:
         Quantity, Quantity:  Luminosity, sig(Luminosity)
@@ -132,8 +109,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None, curve='MW'):
 
     # Dust correct?
     if AV is not None:
-        alAV = load_extinction(curve)
-        al = AV * alAV(wave.to('Angstrom').value)
+        al = extinction.fm07(wave.to('Angstrom').value, AV)
     else:
         al = 0.
 

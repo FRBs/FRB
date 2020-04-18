@@ -14,9 +14,16 @@ from astropy.coordinates import match_coordinates_sky
 from astropy import units
 
 from frb.galaxies import nebular
+from frb.galaxies import defs
+
+try:
+    import extinction
+except ImportError:
+    print("extinction package not loaded.  Extinction corrections will fail")
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
+
 
 def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
@@ -69,8 +76,9 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
 
 def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     """
-
     calculate MW extinction correction for given filter
+
+    Uses the Fitzpatrick & Massa (2007) extinction law
 
     Args:
         filter (str):
@@ -105,8 +113,8 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
 
     #get MW extinction correction
     AV = EBV * RV
-    AlAV = nebular.load_extinction('MW')
-    Alambda = AV * AlAV(wave)
+    #AlAV = nebular.load_extinction('MW')
+    Alambda = extinction.fm07(wave, AV)
     source_flux = 1.
 
     #calculate linear correction
@@ -116,3 +124,43 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     correction = 1./delta
 
     return correction
+
+
+def correct_photom_table(photom, EBV):
+    """
+    Correct the input photometry table for Galactic extinction
+    Table is modified in place
+
+    If there is SDSS photometry, we look for the extinction values
+    provided by the Survey itself.
+
+    Uses extinction_correction()
+
+    Args:
+        photom (astropy.table.Table):
+        EBV (float):
+            E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
+
+    """
+
+    # Dust correct
+    for key in photom.keys():
+        if key in ['Name', 'ra', 'dec', 'extinction', 'SDSS_ID',
+                   'run', 'rerun'] or 'err' in key:
+            continue
+        filt = key
+        if filt not in defs.valid_filters:
+            print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filt))
+            continue
+        # SDSS
+        if 'SDSS' in filt:
+            if 'extinction_{}'.format(filt[-1]) in photom.keys():
+                print("Appying SDSS-provided extinction correction")
+                photom[key] -= photom['extinction_{}'.format(filt[-1])]
+                continue
+        try:
+            dust_correct = extinction_correction(filt, EBV, max_wave=14000)
+            mag_dust = 2.5 * np.log10(1. / dust_correct)
+            photom[key] += mag_dust
+        except:
+            embed(header='145 of photom; bad filter?')
