@@ -83,7 +83,8 @@ def _sed_default_params(module):
     return params
 
 
-def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", overwrite=True):
+def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
+                  overwrite=True, **kwargs):
     """
     Generates the input catalog from
     a photometric catalog.
@@ -109,6 +110,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
             Output name + path for the CIGALE input file generated
         overwrite (bool, optional):
             If true, overwrites file if it already exists
+        kwargs: only here to catch extras
     """
     #Table must have a column with redshift estimates
     if not isinstance(zcol, str):
@@ -184,7 +186,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits", o
 
 def _initialise(data_file, config_file="pcigale.ini",
                 cores=None, sed_modules=_DEFAULT_SED_MODULES,
-                sed_modules_params=None):
+                sed_modules_params=None, **kwargs):
     """
     Initialise a CIGALE configuration file and write to disk.
     
@@ -206,6 +208,7 @@ def _initialise(data_file, config_file="pcigale.ini",
             A dict containing parameter values for
             the input SED modules. Better not use this
             unless you know exactly what you're doing.
+        kwargs: only here to catch extras
     Returns:
         cigconf (pcigale.session.configuration.Configuration):
                 CIGALE Configuration object
@@ -277,7 +280,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             If True compare the input observed fluxes with the model fluxes
             This writes a Table to outdir named 'photo_observed_model.dat'
 
-    kwargs:  These are passed into _initialise()
+    kwargs:  These are passed into gen_cigale_in() and _initialise()
         sed_modules (list of 'str', optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
@@ -289,7 +292,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             unless you know exactly what you're doing.
 
     """
-    gen_cigale_in(photometry_table,zcol,infile=data_file,overwrite=True)
+    gen_cigale_in(photometry_table,zcol,infile=data_file,overwrite=True, **kwargs)
     _initialise(data_file, config_file=config_file,**kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
@@ -344,7 +347,7 @@ def host_run(photom, host, cigale_file=None):
     cigale_tbl['ID'] = host.name
 
     # Run
-    run(cigale_tbl, 'z', outdir=host.name, compare_obs_model=True)
+    run(cigale_tbl, 'z', outdir=host.name, compare_obs_model=True, idcol='ID')
 
     # Rename/move
     if cigale_file is not None:
