@@ -131,7 +131,7 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     return correction
 
 
-def correct_photom_table(photom, EBV):
+def correct_photom_table(photom, EBV, max_wave=None):
     """
     Correct the input photometry table for Galactic extinction
     Table is modified in place
@@ -155,7 +155,7 @@ def correct_photom_table(photom, EBV):
             continue
         filter = key
         if filter not in defs.valid_filters:
-            print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filt))
+            print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filter))
             continue
         # SDSS
         if 'SDSS' in filter:
@@ -169,7 +169,7 @@ def correct_photom_table(photom, EBV):
         else:
             _filter = filter
         try:
-            dust_correct = extinction_correction(_filter, EBV, max_wave=14000)
+            dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave)
             mag_dust = 2.5 * np.log10(1. / dust_correct)
             photom[key] += mag_dust
         except:
