@@ -98,7 +98,12 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     """
     # Read in filter in Table
     path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
-    filter_file = os.path.join(path_to_filters, filter+'.dat')
+    # Hack for LRIS which does not differentiate between cameras
+    if 'LRIS' in filter:
+        _filter = 'LRIS_{}'.format(filter[-1])
+    else:
+        _filter = filter
+    filter_file = os.path.join(path_to_filters, _filter+'.dat')
     filter_tbl = Table.read(filter_file, format='ascii')
 
     #get wave and transmission (file should have these headers in first row)
@@ -148,18 +153,23 @@ def correct_photom_table(photom, EBV):
         if key in ['Name', 'ra', 'dec', 'extinction', 'SDSS_ID',
                    'run', 'rerun'] or 'err' in key:
             continue
-        filt = key
-        if filt not in defs.valid_filters:
+        filter = key
+        if filter not in defs.valid_filters:
             print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filt))
             continue
         # SDSS
-        if 'SDSS' in filt:
-            if 'extinction_{}'.format(filt[-1]) in photom.keys():
+        if 'SDSS' in filter:
+            if 'extinction_{}'.format(filter[-1]) in photom.keys():
                 print("Appying SDSS-provided extinction correction")
-                photom[key] -= photom['extinction_{}'.format(filt[-1])]
+                photom[key] -= photom['extinction_{}'.format(filter[-1])]
                 continue
+        # Hack for LRIS
+        if 'LRIS' in filter:
+            _filter = 'LRIS_{}'.format(filter[-1])
+        else:
+            _filter = filter
         try:
-            dust_correct = extinction_correction(filt, EBV, max_wave=14000)
+            dust_correct = extinction_correction(_filter, EBV, max_wave=14000)
             mag_dust = 2.5 * np.log10(1. / dust_correct)
             photom[key] += mag_dust
         except:
