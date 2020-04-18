@@ -1,0 +1,75 @@
+#### EAZY Default parameters
+
+## Filters
+FILTERS_RES          FILTER.RES.latest  # Filter transmission data
+FILTER_FORMAT        1                  # Format of FILTERS_RES file -- 0: energy-  1: photon-counting detector
+SMOOTH_FILTERS       n                  # Smooth filter curves with Gaussian
+SMOOTH_SIGMA         100.               # Gaussian sigma (in Angstroms) to smooth filters
+
+## Templates
+TEMPLATES_FILE       templates/br07_default.spectra.param # Template definition file
+TEMPLATE_COMBOS      a                  # Template combination options: 
+                                        #         1 : one template at a time
+                                        #         2 : two templates, read allowed combinations from TEMPLATES_FILE
+                                        #        -2 : two templates, all permutations
+                                        # a <or> 99 : all templates simultaneously
+NMF_TOLERANCE        1.e-4              # Tolerance for non-negative combinations (TEMPLATE_COMBOS=a)
+WAVELENGTH_FILE      templates/EAZY_v1.1_lines/lambda_v1.1.def # Wavelength grid definition file
+TEMP_ERR_FILE        templates/TEMPLATE_ERROR.eazy_v1.0 # Template error definition file
+TEMP_ERR_A2          0.50               # Template error amplitude
+SYS_ERR              0.00               # Systematic flux error (% of flux)
+APPLY_IGM            y                  # Apply Madau 1995 IGM absorption
+LAF_FILE             templates/LAFcoeff.txt # File containing the Lyman alpha forest data from Inoue
+DLA_FILE             templates/DLAcoeff.txt # File containing the damped Lyman absorber data from Inoue
+SCALE_2175_BUMP      0.00               # Scaling of 2175A bump.  Values 0.13 (0.27) absorb ~10 (20) % at peak.
+
+DUMP_TEMPLATE_CACHE  n                  # Write binary template cache
+USE_TEMPLATE_CACHE   n                  # Load in template cache
+CACHE_FILE           photz.tempfilt     # Template cache file (in OUTPUT_DIRECTORY)
+
+## Input Files
+CATALOG_FILE         REPLACE.cat # Catalog data file
+MAGNITUDES           n                  # Catalog photometry in magnitudes rather than f_nu fluxes
+NOT_OBS_THRESHOLD    -90                # Ignore flux point if <NOT_OBS_THRESH
+N_MIN_COLORS         5                  # Require N_MIN_COLORS to fit
+
+## Output Files
+OUTPUT_DIRECTORY     OUTPUT             # Directory to put output files in
+MAIN_OUTPUT_FILE     photz              # Main output file, .zout
+PRINT_ERRORS         y                  # Print 68, 95 and 99% confidence intervals
+CHI2_SCALE           1.0                # Scale ML Chi-squared values to improve confidence intervals
+VERBOSE_LOG          y                  # Dump information from the run into [MAIN_OUTPUT_FILE].param
+OBS_SED_FILE         y                  # Write out observed SED/object, .obs_sed
+TEMP_SED_FILE        y                  # Write out best template fit/object, .temp_sed
+POFZ_FILE            n                  # Write out Pofz/object, .pz
+BINARY_OUTPUT        y                  # Save OBS_SED, TEMP_SED, PZ in binary format to read with e.g IDL
+
+## Redshift / Mag prior
+APPLY_PRIOR          n                  # Apply apparent magnitude prior
+PRIOR_FILE           templates/prior_R_extend.dat # File containing prior grid
+PRIOR_FILTER         999                # Filter from FILTER_RES corresponding to the columns in PRIOR_FILE
+PRIOR_ABZP           23.9               # AB zeropoint of fluxes in catalog.  Needed for calculating apparent mags!
+
+## Redshift Grid
+FIX_ZSPEC            n                  # Fix redshift to catalog zspec
+Z_MIN                0.01               # Minimum redshift
+Z_MAX                5.0                # Maximum redshift
+Z_STEP               0.001               # Redshift step size
+Z_STEP_TYPE          1                  #  0 = ZSTEP, 1 = Z_STEP*(1+z)
+
+## Zeropoint Offsets
+GET_ZP_OFFSETS       n                  # Look for zphot.zeropoint file and compute zeropoint offsets
+ZP_OFFSET_TOL        1.e-4              # Tolerance for iterative fit for zeropoint offsets [not implemented]
+
+## Rest-frame colors
+REST_FILTERS         ---                # Comma-separated list of rest frame filters to compute
+RF_PADDING           1000.              # Padding (Ang) for choosing observed filters around specified rest-frame pair.
+RF_ERRORS            n                  # Compute RF color errors from p(z)
+Z_COLUMN             z_peak             # Redshift to use for rest-frame color calculation (z_a, z_p, z_m1, z_m2, z_peak)
+USE_ZSPEC_FOR_REST   y                  # Use z_spec when available for rest-frame colors
+READ_ZBIN            n                  # Get redshifts from OUTPUT_DIRECTORY/MAIN_OUTPUT_FILE.zbin rather than fitting them.
+
+## Cosmology
+H0                   70.0               # Hubble constant (km/s/Mpc)
+OMEGA_M              0.3                # Omega_matter
+OMEGA_L              0.7                # Omega_lambda
