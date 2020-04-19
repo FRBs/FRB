@@ -74,8 +74,8 @@ def calc_dust_extinct(neb_lines, method):
         raise IOError("Not ready for this mode")
 
     # Extinction
-    a1AV = extinction.fm07(wave1, 1.0)
-    a2AV = extinction.fm07(wave2, 1.0)
+    a1AV = extinction.fm07(np.atleast_1d(wave1), 1.0)[0]
+    a2AV = extinction.fm07(np.atleast_1d(wave2), 1.0)[0]
 
     # Observed ratio
     fratio_obs = F1_obs/F2_obs
@@ -109,7 +109,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
 
     # Dust correct?
     if AV is not None:
-        al = extinction.fm07(wave.to('Angstrom').value, AV)
+        al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
     else:
         al = 0.
 
@@ -157,7 +157,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
         raise IOError("Not prepared for method: {}".format(method))
 
     # Luminosity
-    Lum, Lum_err = calc_lum(neb_lines, line, z, cosmo, AV=AV, curve=curve)
+    Lum, Lum_err = calc_lum(neb_lines, line, z, cosmo, AV=AV)#, curve=curve)
 
     # SFR
     SFR = Lum.to('erg/s').value * conversion
