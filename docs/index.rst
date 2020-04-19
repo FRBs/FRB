@@ -44,6 +44,7 @@ Galaxies
    :maxdepth: 2
 
    galaxies
+   eazy
 
 
 Rotation Measure
