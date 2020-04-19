@@ -5,15 +5,11 @@
 import pytest
 import os
 import shutil
+import numpy as np
 
 from astropy.table import Table
-from astropy.coordinates import SkyCoord
-from astropy import units
-from astropy.io.fits.hdu.image import PrimaryHDU
 
-from frb.surveys import survey_utils
 from frb.galaxies.frbgalaxy import FRBHost
-from PIL import Image
 
 try:
     from frb.galaxies import eazy as frbeazy
@@ -72,8 +68,14 @@ def test_eazy(host_obj):
     frbeazy.run_eazy(data_path('eazy/input'),
                      host_obj.name,
                      os.path.join(data_path('eazy/output'), 'logfile'))
-
     assert os.path.isfile(data_path('eazy/output/photz.zout'))
+
+    # Read
+    zgrid, pzi, prior = frbeazy.getEazyPz(-1, MAIN_OUTPUT_FILE='photz',
+                                          OUTPUT_DIRECTORY=data_path('eazy/output'),
+                                          CACHE_FILE='Same', binaries=None, get_prior=True)
+    zphot, sig_zphot = frbeazy.eazy_stats(zgrid, pzi)
+    assert np.isclose(zphot, 0.5929091244436179)
 
     # Remove
     shutil.rmtree(data_path('eazy'))
