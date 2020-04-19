@@ -7,12 +7,18 @@ from distutils import spawn
 import subprocess
 
 import numpy as np
+import pandas
 
 from astropy.table import Table
+from astropy.cosmology import Planck15
 
 from frb.surveys import catalog_utils
 
 from IPython import embed
+
+_template_list = ['br07_default','br07_goods','cww+kin','eazy_v1.0','eazy_v1.1_lines','eazy_v1.2_dusty','eazy_v1.3','pegase','pegase13']
+_default_prior = 'prior_R_extend'
+_acceptable_combos = [1,2,99,-1,'a']
 
 # This syncs to our custom FILTERS.RES.latest file
 frb_to_eazy_filters = dict(GMOS_S_r=349,
@@ -28,12 +34,60 @@ frb_to_eazy_filters = dict(GMOS_S_r=349,
                            )
 
 def eazy_filenames(input_dir, name):
+    """
+    Generate names for EAZY files
+
+    Args:
+        input_dir (str):
+            Path to eazy inputs/ folder  (can be relative)
+            This is where eazy will be run
+        name (str):
+            Name of the source being analzyed
+
+    Returns:
+        tuple:  catalog_filename, parameter_filename, translate_file
+
+    """
+    if not os.path.isdir(input_dir):
+        os.mkdir(input_dir)
     catfile = os.path.join(input_dir, '{}.cat'.format(name))
     param_file = os.path.join(input_dir, 'zphot.param.{}'.format(name))
+    translate_file = os.path.join(input_dir, 'zphot.translate.{}'.format(name))
     #
-    return catfile, param_file
+    return catfile, param_file, translate_file
 
-def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
+
+def eazy_setup(input_dir, template_dir):
+    """
+    Setup for EAZY
+
+    Args:
+        input_dir (str):
+            Path to perosonal eazy inputs/ folder  (can be relative)
+        template_dir:
+            Path to templates/ folder in EAZY software package
+
+    Returns:
+
+    """
+    if not os.path.isdir(input_dir):
+        os.mkdir(input_dir)
+    # Copy over templates
+    os.system('cp -rp {:s} {:s}'.format(template_dir, os.path.join(input_dir, '..')))
+    # And link
+    os.system('ln -s {:s} {:s}'.format('../templates', os.path.join(input_dir, 'templates')))
+    # And FILTER files
+    filter_info = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest.info')
+    os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
+    filter_latest = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
+    os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
+
+
+def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
+                     templates='eazy_v1.3', combo="a", cosmo=None,
+                     magnitudes=False, prior=_default_prior,
+                     zmin=0.050, zmax=7.000, zstep=0.0010, prior_ABZP=23.9,
+                     n_min_col=5):
     """
     Write to disk a series of files needed to run EAZY
       - catalog file
@@ -42,6 +96,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
 
     Args:
         photom (dict):
+            Held by an FRBGalaxy object
         input_dir (str):
             Path to eazy inputs/ folder  (can be relative)
             This is where eazy will be run
@@ -51,10 +106,40 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
             Path to eazy OUTPUT folder *relative* to the input_dir
         prior_filter (str, optional):
             If provided, use the flux in this filter for EAZY's prior
+        templates (str, optional):
+            Template set name to be used. Should be one of
+            'br07_deafult','br07_goods','cww+kin','eazy_v1.0',
+            'eazy_v1.1_lines','eazy_v1.2_dusty','eazy_v1.3','pegase',
+            'pegase13'.
+        combo (int or str, optional):
+            Combinations of templates to be used for analysis. Can be
+            one of 1,2,99,-1 and 'a'. Read EAZY's zphot.param.default
+            file for details
+        cosmo (astropy.cosmology, optional):
+            Defaults to Planck15
+        prior (str, optional):
+            Name of the prior file found in the EAZY templates folder.
+            Default value is 'prior_R_zmax7'.
+        magnitudes (bool, optional):
+            True if catalog contains magnitudes as opposed to F_nu values.
+        zmin (float, optional):
+            Minimum search redshift for EAZY. Default value is 0.05.
+        zmax (float, optional):
+            Maximum search redshift for EAZY. Be careful about the prior
+            file not having information beyond a redshift less than zmax.
+        zstep (float, optional):
+            Step size of the redshift grid. (z_{i+1} = z_i+zstep*(1+z_i)).
+            Default value is 0.001.
+        prior_ABZP (float, optional):
+            Zero point redshift for the band on which prior will be applied.
+            Default value is for DECam r (https://cdcvs.fnal.gov/redmine/projects/des-sci-verification/wiki/Photometry)
     """
+    #
+    if cosmo is None:
+        cosmo = Planck15
 
     # Output filenames
-    catfile, param_file = eazy_filenames(input_dir, name)
+    catfile, param_file, translate_file = eazy_filenames(input_dir, name)
 
     # Check output dir
     full_out_dir = os.path.join(input_dir, out_dir)
@@ -89,11 +174,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
         filters.append(filt)
         codes.append(code)
     # Do it
-    outfile = os.path.join(input_dir, 'zphot.translate')
-    with open(outfile, 'w') as f:
+    with open(translate_file, 'w') as f:
         for code, filt in zip(codes, filters):
             f.write('{} {} \n'.format(filt, code))
-    print("Wrote: {}".format(outfile))
+    print("Wrote: {}".format(translate_file))
 
     # Catalog file
     # Generate a simple table
@@ -119,28 +203,72 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None):
 
     # Input file
     default_file = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'zphot.param.default')
-    with open(default_file, 'r') as df:
-        df_lines = df.readlines()
+    #with open(default_file, 'r') as df:
+    #    df_lines = df.readlines()
+    in_tab = pandas.read_table(default_file, delim_whitespace=True, comment="#",
+                            header=None, names=('eazy_par', 'par_val'))
 
-    with open(param_file, 'w') as f:
-        for dfline in df_lines:
-            if 'CATALOG_FILE' in dfline:
-                line = dfline.replace('REPLACE.cat', base_cat)
-            elif prior_filter is not None and 'APPLY_PRIOR' in dfline:
-                line = dfline.replace('n', 'y', 1)
-            elif prior_filter is not None and 'PRIOR_FILTER' in dfline:
-                line = dfline.replace('999', str(frb_to_eazy_filters[prior_filter]), 1)
-            elif prior_filter is not None and 'PRIOR_FILE' in dfline:
-                line = dfline  # Deal with this if we do anything other than r
-            elif prior_filter is not None and 'PRIOR_ABZP' in dfline:
-                line = dfline  # Deal with this if we do anything other than r
-            elif 'Directory to put output files in' in dfline:  # Relative to the Input directory
-                line = dfline[0:10]+dfline[10:].replace('OUTPUT', out_dir, -1)
-            else:
-                line = dfline
+    # Expect it lands in src/
+    _eazy_path = os.path.abspath(os.path.realpath(spawn.find_executable('eazy')))
+    _eazy_root = _eazy_path[0:_eazy_path.find('src')]
+
+    # Change default parameters to reflect current values
+    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = _eazy_root + 'inputs/FILTER.RES.latest'
+    in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = _eazy_root + 'templates/' + templates + ".spectra.param"
+    in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = _eazy_root + 'templates/TEMPLATE_ERROR.eazy_v1.0'
+    in_tab.par_val[in_tab.eazy_par == 'TEMPLATE_COMBOS'] = combo
+    in_tab.par_val[in_tab.eazy_par == 'WAVELENGTH_FILE'] = _eazy_root + 'templates/EAZY_v1.1_lines/lambda_v1.1.def'
+    in_tab.par_val[in_tab.eazy_par == 'LAF_FILE'] = _eazy_root + 'templates/LAFcoeff.txt'
+    in_tab.par_val[in_tab.eazy_par == 'DLA_FILE'] = _eazy_root + 'templates/DLAcoeff.txt'
+    in_tab.par_val[in_tab.eazy_par == 'CATALOG_FILE'] = base_cat
+    if magnitudes:
+        in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'y'
+    else:
+        in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'n'
+    in_tab.par_val[in_tab.eazy_par == 'N_MIN_COLORS'] = n_min_col
+    in_tab.par_val[in_tab.eazy_par == 'OUTPUT_DIRECTORY'] = out_dir
+    in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 1
+    # Prior
+    if prior_filter is not None:
+        in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 'y'
+        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILE'] = _eazy_root + 'templates/' + prior + '.dat'
+        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILTER'] = str(frb_to_eazy_filters[prior_filter])
+        in_tab.par_val[in_tab.eazy_par == 'PRIOR_ABZP'] = prior_ABZP
+    in_tab.par_val[in_tab.eazy_par == 'Z_MIN'] = zmin
+    in_tab.par_val[in_tab.eazy_par == 'Z_MAX'] = zmax
+    in_tab.par_val[in_tab.eazy_par == 'Z_STEP'] = zstep
+    in_tab.par_val[in_tab.eazy_par == 'H0'] = cosmo.H0.value
+    in_tab.par_val[in_tab.eazy_par == 'OMEGA_M'] = cosmo.Om0
+    in_tab.par_val[in_tab.eazy_par == 'OMEGA_L'] = cosmo.Ode0
+
+    # Create infile
+    in_tab.to_csv(param_file, header=False, index=False, sep="\t")
+
+#    with open(param_file, 'w') as f:
+#        for dfline in df_lines:
+#            if 'CATALOG_FILE' in dfline:
+#                line = dfline.replace('REPLACE.cat', base_cat)
+#            elif prior_filter is not None and 'APPLY_PRIOR' in dfline:
+#                line = dfline.replace('n', 'y', 1)
+#            elif prior_filter is not None and 'PRIOR_FILTER' in dfline:
+#                line = dfline.replace('999', str(frb_to_eazy_filters[prior_filter]), 1)
+#            elif prior_filter is not None and 'PRIOR_FILE' in dfline:
+#                line = dfline  # Deal with this if we do anything other than r
+#            elif prior_filter is not None and 'PRIOR_ABZP' in dfline:
+#                line = dfline  # Deal with this if we do anything other than r
+#            elif 'Directory to put output files in' in dfline:  # Relative to the Input directory
+#                line = dfline[0:10]+dfline[10:].replace('OUTPUT', out_dir, -1)
+#            else:
+#                line = dfline
             # Write
-            f.write(line)
-    print("Wrote param file: {}".format(param_file))
+#            f.write(line)
+#    print("Wrote param file: {}".format(param_file))
+
+    # Generate a soft link to the templates
+    template_folder = os.path.join(_eazy_root, 'templates')
+    link = os.path.join(input_dir, '..', 'templates')
+    if not os.path.isdir(link):
+        os.symlink(template_folder, link)
 
 
 def run_eazy(input_dir, name, logfile):
@@ -155,16 +283,34 @@ def run_eazy(input_dir, name, logfile):
             Name of the source being analzyed
         logfile (str):
     """
-    _, param_file = eazy_filenames(input_dir, name)
+    _, param_file, translate_file = eazy_filenames(input_dir, name)
 
     # Find the eazy executable
     path_to_eazy = spawn.find_executable('eazy')
     if path_to_eazy is None:
         raise ValueError("You must have eazy in your Unix path..")
     # Run it!
-    command_line = [path_to_eazy, '-p', os.path.basename(param_file)]
-    with open(logfile, 'w') as f:
-        retval = subprocess.call(command_line, stdout=f, stderr=f, cwd=input_dir)
+    command_line = [path_to_eazy, '-p', os.path.basename(param_file),
+                    '-t', os.path.basename(translate_file)]
+    #
+    eazy_out = subprocess.run(command_line, stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE, cwd=input_dir)
+    # Dump stdout to logfile
+    with open(logfile, "a") as fstream:
+        fstream.write(eazy_out.stdout.decode('utf-8'))
+
+    # Check if the process ran successfully
+    if eazy_out.returncode == 0:
+        print("EAZY ran successfully!")
+    elif eazy_out.returncode == -6:
+        print(
+            "Try to put your input parameter and translate files in a place with a shorter relative paths. Otherwise, you get this buffer overflow.")
+    else:
+        # Dump stderr to logfile
+        with open(logfile, "a") as fstream:
+            fstream.write("ERROR\n------------------------------------\n")
+            fstream.write(eazy_out.stderr.decode('utf-8'))
+        print("Somethign went wrong. Look at {:s} for details".format(logfile))
 
 
 def eazy_stats(zgrid, pzi):
