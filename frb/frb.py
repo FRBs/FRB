@@ -31,7 +31,7 @@ class GenericFRB(object):
         nu_c : Quantity
           Centre frequency
         DM : Quantity
-        coord : multi-format, optional
+        coord (astropy.coordinates.SkyCoord): multi-format, optional
           RA/DEC in one of many formats (see utils.radec_to_coord)
         cosmo:
 
