@@ -669,7 +669,7 @@ def main(inflg='all', options=None):
         build_host_190608(build_photom=build_photom)#, run_ppxf=True)
 
     # 190102
-    if flg & (2**5):
+    if flg & (2**5):  # 32
         build_host_190102(build_photom=build_photom)
 
     # 180916

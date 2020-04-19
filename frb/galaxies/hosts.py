@@ -1,8 +1,6 @@
 """ Module related to host galaxies of FRBs
 Warning: Might get chopped up into pieces sommeday
 """
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 import numpy as np
 import pdb
 
@@ -26,13 +24,14 @@ def chance_coincidence(rmag, ang_dist):
         float:  Probability of a chance association
 
     """
-
     # WHERE DOES THIS EQUATION COME FROM?
     sigma = 1. / (3600. ** 2 * 0.334 * np.log(10)) * 10 ** (0.334 * (rmag - 22.963) + 4.320)
 
+    # Do it
     eta = np.pi * ang_dist.to('arcsec').value ** 2 * sigma
     Pch = 1. - np.exp(-eta)
 
+    # Return
     return Pch
 
 
