@@ -661,7 +661,7 @@ def main(inflg='all', options=None):
         build_host_181112(build_photom=build_photom)
 
     # 190523
-    if flg & (2**3):
+    if flg & (2**3):  # 8
         build_host_190523(build_photom=build_photom)
 
     # 190608
