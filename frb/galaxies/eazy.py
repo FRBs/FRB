@@ -243,7 +243,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     #_eazy_root = _eazy_path[0:_eazy_path.find('src')]
 
     # Change default parameters to reflect current values
-    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = 'FILTER.RES.latest'
+    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = os.path.join(_eazy_root, 'templates/' + templates + ".spectra.param")
     in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = os.path.join(_eazy_root,'templates/TEMPLATE_ERROR.eazy_v1.0')
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATE_COMBOS'] = combo
