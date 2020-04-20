@@ -42,6 +42,8 @@ def frb_180916():
     frb180916 = frb.FRB(name, coord,
                         348.76*units.pc / units.cm**3,
                         z_frb=0.0337)
+    # Error ellipse
+    frb180916.set_ee(0.0023, 0.0023, 0., 68.)
     # Error in DM
     frb180916.DM_err = 0.10 * units.pc / units.cm**3
     # NE2001
