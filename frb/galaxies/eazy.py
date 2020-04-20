@@ -642,7 +642,7 @@ PlotSEDExample(idx=20)
     if show_rest:
         z_peak = zout['z_peak'][idx]
         xrest = 1+z_peak
-        rest_label = '_\mathrm{rest}'
+        rest_label = r'$\mathrm{rest}$'
     else:
         xrest = 1.
         rest_label = ''
