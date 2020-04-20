@@ -13,6 +13,9 @@ from astropy.coordinates import SkyCoord
 
 from frb.galaxies import nebular
 
+remote_data = pytest.mark.remote_data
+
+@remote_data
 def test_ebv():
 
     coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
