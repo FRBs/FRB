@@ -16,8 +16,17 @@ from frb.surveys import catalog_utils
 
 from IPython import embed
 
+# Necessary because people might not execute eazy from src
+# but might have a copy in bin or some other location.
+try:
+    _eazy_root = os.environ['EAZYDIR']
+except KeyError:
+    import pdb; pdb.set_trace()
+    raise AssertionError('Please define the variable EAZYDIR in your environment pointing to the EAZY folder.')
+
 _template_list = ['br07_default','br07_goods','cww+kin','eazy_v1.0','eazy_v1.1_lines','eazy_v1.2_dusty','eazy_v1.3','pegase','pegase13']
-_default_prior = 'prior_R_extend'
+_acceptable_priors = ['prior_R_zmax7', 'prior_K_zmax7', 'prior_R_extend', 'prior_K_extend'] # F160W_TAO not included yet.
+_default_prior = 'prior_R_zmax7'
 _acceptable_combos = [1,2,99,-1,'a']
 
 # This syncs to our custom FILTERS.RES.latest file
@@ -26,11 +35,24 @@ frb_to_eazy_filters = dict(GMOS_S_r=349,
                            LRISr_I=345,
                            NOT_z=348,
                            NIRI_J=257,
-                           DES_g=294,
-                           DES_r=295,
-                           DES_i=296,
-                           DES_z=297,
-                           DES_Y=298,
+                           DECaL_g=294, # Turns out these are legacy transmission curves
+                           DECaL_r=295,
+                           DECaL_z=296,
+                           DES_u=351, # Added DR1 filter curves
+                           DES_g=352,
+                           DES_r=353,
+                           DES_i=354,
+                           DES_z=355,
+                           DES_y=356,
+                           SDSS_u=156,
+                           SDSS_g=157,
+                           SDSS_r=158,
+                           SDSS_i=159,
+                           SDSS_z=160,
+                           WISE_W1=244,
+                           WISE_W2=245,
+                           WISE_W3=246,
+                           WISE_W4=247
                            )
 
 def eazy_filenames(input_dir, name):
@@ -57,19 +79,23 @@ def eazy_filenames(input_dir, name):
     return catfile, param_file, translate_file
 
 
-def eazy_setup(input_dir, template_dir):
+def eazy_setup(input_dir, template_dir=None):
     """
     Setup for EAZY
 
     Args:
         input_dir (str):
-            Path to perosonal eazy inputs/ folder  (can be relative)
-        template_dir:
-            Path to templates/ folder in EAZY software package
+            Path to personal eazy inputs/ folder  (can be relative)
+        template_dir(str, optional):
+            Path to templates/ folder in EAZY software package.
+            If not given, it looks for the folder of `eazy`,
+            the executable and navigates from there.
 
     Returns:
 
     """
+    if template_dir is None:
+        template_dir = os.path.join(_eazy_root, "templates")
     if not os.path.isdir(input_dir):
         os.mkdir(input_dir)
     # Copy over templates
@@ -81,7 +107,7 @@ def eazy_setup(input_dir, template_dir):
     os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
     filter_latest = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
-
+    return
 
 def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
                      templates='eazy_v1.3', combo="a", cosmo=None,
@@ -149,8 +175,12 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
 
     # Prior
     if prior_filter is not None:
-        if prior_filter[-1] not in ['r', 'R']:
+        assert prior in _acceptable_priors, "Allowed priors are {}".format(_acceptable_priors)
+        if prior_filter[-1] not in ['r', 'R', 'k', 'K']:
             raise IOError("Not prepared for this type of prior filter")
+    
+    # Test combo
+    assert combo in _acceptable_combos, "Allowed values of 'combo' are {}".format(_acceptable_combos)
 
     # Generate the translate file
     filters = []
@@ -208,18 +238,18 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     in_tab = pandas.read_table(default_file, delim_whitespace=True, comment="#",
                             header=None, names=('eazy_par', 'par_val'))
 
-    # Expect it lands in src/
-    _eazy_path = os.path.abspath(os.path.realpath(spawn.find_executable('eazy')))
-    _eazy_root = _eazy_path[0:_eazy_path.find('src')]
+    # Expect it lands in src/ # Won't work if someone has put eazy in their bin folder.
+    #_eazy_path = os.path.abspath(os.path.realpath(spawn.find_executable('eazy')))
+    #_eazy_root = _eazy_path[0:_eazy_path.find('src')]
 
     # Change default parameters to reflect current values
-    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = _eazy_root + 'inputs/FILTER.RES.latest'
-    in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = _eazy_root + 'templates/' + templates + ".spectra.param"
-    in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = _eazy_root + 'templates/TEMPLATE_ERROR.eazy_v1.0'
+    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = 'FILTER.RES.latest'
+    in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = os.path.join(_eazy_root, 'templates/' + templates + ".spectra.param")
+    in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = os.path.join(_eazy_root,'templates/TEMPLATE_ERROR.eazy_v1.0')
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATE_COMBOS'] = combo
-    in_tab.par_val[in_tab.eazy_par == 'WAVELENGTH_FILE'] = _eazy_root + 'templates/EAZY_v1.1_lines/lambda_v1.1.def'
-    in_tab.par_val[in_tab.eazy_par == 'LAF_FILE'] = _eazy_root + 'templates/LAFcoeff.txt'
-    in_tab.par_val[in_tab.eazy_par == 'DLA_FILE'] = _eazy_root + 'templates/DLAcoeff.txt'
+    in_tab.par_val[in_tab.eazy_par == 'WAVELENGTH_FILE'] = os.path.join(_eazy_root,'templates/EAZY_v1.1_lines/lambda_v1.1.def')
+    in_tab.par_val[in_tab.eazy_par == 'LAF_FILE'] = os.path.join(_eazy_root,'templates/LAFcoeff.txt')
+    in_tab.par_val[in_tab.eazy_par == 'DLA_FILE'] = os.path.join(_eazy_root,'templates/DLAcoeff.txt')
     in_tab.par_val[in_tab.eazy_par == 'CATALOG_FILE'] = base_cat
     if magnitudes:
         in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'y'
@@ -227,11 +257,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
         in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'n'
     in_tab.par_val[in_tab.eazy_par == 'N_MIN_COLORS'] = n_min_col
     in_tab.par_val[in_tab.eazy_par == 'OUTPUT_DIRECTORY'] = out_dir
-    in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 1
     # Prior
     if prior_filter is not None:
         in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 'y'
-        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILE'] = _eazy_root + 'templates/' + prior + '.dat'
+        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILE'] = os.path.join(_eazy_root,'templates/' + prior + '.dat')
         in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILTER'] = str(frb_to_eazy_filters[prior_filter])
         in_tab.par_val[in_tab.eazy_par == 'PRIOR_ABZP'] = prior_ABZP
     in_tab.par_val[in_tab.eazy_par == 'Z_MIN'] = zmin
@@ -269,6 +298,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     link = os.path.join(input_dir, '..', 'templates')
     if not os.path.isdir(link):
         os.symlink(template_folder, link)
+    return
 
 
 def run_eazy(input_dir, name, logfile):
@@ -507,3 +537,216 @@ def getEazyPz(idx, MAIN_OUTPUT_FILE='photz', OUTPUT_DIRECTORY='./OUTPUT', CACHE_
     else:
         return tempfilt['zgrid'], pzi
 
+def getEazySED(idx, MAIN_OUTPUT_FILE='photz', OUTPUT_DIRECTORY='./OUTPUT', CACHE_FILE='Same', scale_flambda=1.e-17, verbose=False, individual_templates=False):
+    """
+lambdaz, temp_sed, lci, obs_sed, fobs, efobs = \
+     getEazySED(idx, MAIN_OUTPUT_FILE='photz', OUTPUT_DIRECTORY='./OUTPUT', CACHE_FILE='Same')
+    
+    Get best-fit Eazy template for object number 'idx' from the specified Eazy output files. 
+
+    Output variables are as follows:
+        
+        lambdaz: full best-fit template (observed) wavelength, interpolated at WAVELENGTH_GRID
+        temp_sed:          "        "              flux (F_lambda)
+        lci: filter pivot wavelengths
+        fobs: observed fluxes, including zeropoint offsets if used, F_lambda
+        efobs: observed flux errors,    "            "        "        "
+    """
+    tempfilt, coeffs, temp_seds, pz = readEazyBinary(MAIN_OUTPUT_FILE=MAIN_OUTPUT_FILE, OUTPUT_DIRECTORY=OUTPUT_DIRECTORY, CACHE_FILE = CACHE_FILE)
+    
+    ##### Apply zeropoint factors
+    param = EazyParam(PARAM_FILE=OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.param')
+    fnumbers = np.zeros(len(param.filters), dtype=np.int)
+    for i in range(len(fnumbers)):
+        fnumbers[i] = int(param.filters[i].fnumber)
+    
+    zpfile = OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.zeropoint'
+    if os.path.exists(zpfile):
+        zpfilts, zpf_file = np.loadtxt(zpfile, unpack=True, dtype=np.str)                                    
+        zpf = np.ones(tempfilt['NFILT'])
+        for i in range(len(zpfilts)):
+            match = fnumbers == int(zpfilts[i][1:])
+            zpf[match] = np.float(zpf_file[i])
+    else:
+        zpf = np.ones(tempfilt['NFILT'])
+
+    zpfactors = np.dot(zpf.reshape(tempfilt['NFILT'],1),\
+                       np.ones(tempfilt['NOBJ']).reshape(1,tempfilt['NOBJ']))
+
+    if verbose:
+        print(zpf)
+        
+    tempfilt['fnu'] *= zpfactors
+    tempfilt['efnu'] *= zpfactors
+    
+    lci = tempfilt['lc'].copy()
+    
+    params = EazyParam(PARAM_FILE=OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.param')
+    abzp = np.float(params['PRIOR_ABZP'])
+        
+    # fobs = tempfilt['fnu'][:,idx]/(lci/5500.)**2*flam_factor
+    # efobs = tempfilt['efnu'][:,idx]/(lci/5500.)**2*flam_factor
+    ### Physical f_lambda fluxes, 10**-17 ergs / s / cm2 / A
+    if scale_flambda:
+        flam_factor = 10**(-0.4*(params['PRIOR_ABZP']+48.6))*3.e18/scale_flambda
+    else:
+        flam_factor = 5500.**2
+    
+    missing = (tempfilt['fnu'][:,idx] < -99) | (tempfilt['efnu'][:,idx] < 0)
+    fobs = tempfilt['fnu'][:,idx]/lci**2*flam_factor
+    efobs = tempfilt['efnu'][:,idx]/lci**2*flam_factor
+    fobs[missing] = -99
+    efobs[missing] = -99
+    #print lci, tempfilt['fnu'][:,idx], tempfilt['efnu'][:,idx]
+    
+    ##### Broad-band SED
+    obs_sed = np.dot(tempfilt['tempfilt'][:,:,coeffs['izbest'][idx]],\
+                     coeffs['coeffs'][:,idx])/(lci)**2*flam_factor
+    
+    zi = tempfilt['zgrid'][coeffs['izbest'][idx]]
+    
+    ###### Full template SED, observed frame
+    lambdaz = temp_seds['templam']*(1+zi)
+    temp_sed = np.dot(temp_seds['temp_seds'],coeffs['coeffs'][:,idx])
+    if individual_templates:
+        temp_sed = temp_seds['temp_seds']*coeffs['coeffs'][:,idx]
+    
+    temp_sed /= (1+zi)**2
+    
+    temp_sed *= (1/5500.)**2*flam_factor
+    
+    ###### IGM absorption
+    lim1 = np.where(temp_seds['templam'] < 912)
+    lim2 = np.where((temp_seds['templam'] >= 912) & (temp_seds['templam'] < 1026))
+    lim3 = np.where((temp_seds['templam'] >= 1026) & (temp_seds['templam'] < 1216))
+    
+    if lim1[0].size > 0: temp_sed[lim1] *= 0.
+    if lim2[0].size > 0: temp_sed[lim2] *= 1.-temp_seds['db'][coeffs['izbest'][idx]]
+    if lim3[0].size > 0: temp_sed[lim3] *= 1.-temp_seds['da'][coeffs['izbest'][idx]]
+        
+    ###### Done
+    return lambdaz, temp_sed, lci, obs_sed, fobs, efobs
+
+def plotExampleSED(idx=20, writePNG=True, MAIN_OUTPUT_FILE = 'photz', OUTPUT_DIRECTORY = 'OUTPUT', CACHE_FILE = 'Same', lrange=[3000,8.e4], axes=None, individual_templates=False, fnu=False, show_pz=True, snlim=2, scale_flambda=1.e-17, setrc=True, show_rest=False):
+    """
+PlotSEDExample(idx=20)
+
+    Plot an example Eazy best-fit SED.
+    """
+
+    #zout = catIO.ReadASCIICat(OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.zout')
+    #zout = catIO.Readfile(OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.zout')
+    zout = catIO.Table(OUTPUT_DIRECTORY+'/'+MAIN_OUTPUT_FILE+'.zout')    
+    #qz = np.where(zout.z_spec > 0)[0]
+    print((zout.filename))
+    qz = np.arange(len(zout['id']))
+    
+    if show_rest:
+        z_peak = zout['z_peak'][idx]
+        xrest = 1+z_peak
+        rest_label = '_\mathrm{rest}'
+    else:
+        xrest = 1.
+        rest_label = ''
+        
+    lambdaz, temp_sed, lci, obs_sed, fobs, efobs = \
+        getEazySED(qz[idx], MAIN_OUTPUT_FILE=MAIN_OUTPUT_FILE, \
+                          OUTPUT_DIRECTORY=OUTPUT_DIRECTORY, \
+                          CACHE_FILE = CACHE_FILE, individual_templates=individual_templates, scale_flambda=scale_flambda)
+    
+    zgrid, pz = getEazyPz(qz[idx], MAIN_OUTPUT_FILE=MAIN_OUTPUT_FILE, \
+                                   OUTPUT_DIRECTORY=OUTPUT_DIRECTORY, \
+                                   CACHE_FILE = CACHE_FILE)
+    ##### plot defaults
+    #rc('font',**{'family':'serif','serif':['Times']})
+    if setrc:
+        plt.rcParams['font.family'] = 'sans-serif'
+        plt.rcParams['font.serif'] = ['Helvetica']
+        #plt.rcParams['ps.useafm'] = True
+        plt.rcParams['patch.linewidth'] = 0.
+        plt.rcParams['patch.edgecolor'] = 'black'
+        #plt.rcParams['text.usetex'] = True
+        plt.rcParams['text.usetex'] = False
+        #plt.rcParams['text.latex.preamble'] = ''
+
+    ##### start plot
+    if axes is None:
+        fig = plt.figure(figsize=[8,4],dpi=100)
+        fig.subplots_adjust(wspace=0.18, hspace=0.0,left=0.09,bottom=0.15,right=0.98,top=0.98)
+    
+    #### Plot parameters
+    plotsize=35
+    alph=0.9
+    
+    if fnu:
+        temp_sed *= (lambdaz / 5500.)**2
+        fobs *= (lci/5500.)**2
+        efobs *= (lci/5500.)**2
+        obs_sed *= (lci/5500.)**2
+
+    #### Full best-fit template
+    if axes is None:
+        ax = fig.add_subplot(121)
+        axp = fig.add_subplot(122)
+    else:
+        ax = axes[0]
+        axp = axes[1]
+        
+    if individual_templates:
+        ax.plot(lambdaz/xrest, temp_sed, linewidth=1.0, color='blue',alpha=0.4)
+        ax.plot(lambdaz/xrest, temp_sed.sum(axis=1), linewidth=1.0, color='blue',alpha=alph)
+    else:
+        ax.plot(lambdaz/xrest, temp_sed, linewidth=1.5, color='blue',alpha=alph*0.8, zorder=-3)
+    
+    #### template fluxes integrated through the filters
+    ax.scatter(lci/xrest, obs_sed,
+               c='red',marker='o',s=plotsize,alpha=alph, zorder=-1)
+
+    #### Observed fluxes w/ errors
+    #ax.errorbar(lci,fobs,yerr=efobs,ecolor=None,
+    #           color='black',fmt='o',alpha=alph)
+    #
+    # ax.errorbar(lci, fobs, yerr=efobs, ecolor='black',
+    #            color='black',fmt='o',alpha=alph, markeredgecolor='black', markerfacecolor='None', markeredgewidth=1.5, ms=8, zorder=1)
+
+    highsn = fobs/efobs > snlim
+    ax.errorbar(lci[highsn]/xrest, fobs[highsn], yerr=efobs[highsn], ecolor='black',
+               color='black',fmt='o',alpha=alph, markeredgecolor='black', markerfacecolor='None', markeredgewidth=1.5, ms=8, zorder=2)
+    #
+    ax.errorbar(lci[~highsn]/xrest, fobs[~highsn], yerr=efobs[~highsn], ecolor='0.7',
+               color='black',fmt='o',alpha=alph, markeredgecolor='0.7', markerfacecolor='None', markeredgewidth=1.5, ms=8, zorder=1)
+    
+    for i in range(len(lci)):
+        print(('%f %e %e %e' %(lci[i], obs_sed[i], fobs[i], efobs[i])))
+        
+    #### Set axis range and titles
+    ax.semilogx()
+    ax.set_xlim(lrange[0],lrange[1])
+    ax.set_ylim(-0.05*max(obs_sed),1.1*max(fobs))
+    ax.set_xlabel(r'$\lambda%s$ [$\AA$]' %(rest_label))
+    ax.set_ylabel(r'$f_\lambda$')
+    
+    ##### P(z)
+    if (pz is not None) & (show_pz):            
+        axp.plot(zgrid, pz, linewidth=1.0, color='orange',alpha=alph)
+        axp.fill_between(zgrid,pz,np.zeros(zgrid.size),color='yellow')
+
+        if zout['z_spec'][qz[idx]] > 0:
+            axp.plot(zout['z_spec'][qz[idx]]*np.ones(2), np.array([0,1e6]),color='red',alpha=0.4)
+
+        #### Set axis range and titles
+        axp.set_xlim(0,np.ceil(np.max(zgrid)))
+        axp.set_ylim(0,1.1*max(pz))
+        axp.set_xlabel(r'$z$')
+        axp.set_ylabel(r'$p(z)$')
+        
+    if (writePNG is not False) & (axes is None):
+        if isinstance(writePNG, str):
+            out=writePNG
+        else:
+            out='/tmp/test.pdf'
+            
+        fig.savefig(out,dpi=100)
+
+    if axes is None:
+        return fig #[ax, axp]
