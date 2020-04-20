@@ -222,8 +222,8 @@ def frb_190611():
     # NE2001
     frb190611.set_DMISM()
     # RM
-    #frb190611.RM = 20 * units.rad / units.m**2
-    #frb190611.RM_err = 4 * units.rad / units.m**2
+    frb190611.RM = 20 * units.rad / units.m**2
+    frb190611.RM_err = 4 * units.rad / units.m**2
 
     # References
     frb190611.refs = ['MacQuart2019', 'Day2020']
