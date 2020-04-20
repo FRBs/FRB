@@ -98,10 +98,8 @@ def eazy_setup(input_dir, template_dir=None):
         template_dir = os.path.join(_eazy_root, "templates")
     if not os.path.isdir(input_dir):
         os.mkdir(input_dir)
-    # Copy over templates
-    os.system('cp -rp {:s} {:s}'.format(template_dir, os.path.join(input_dir, '..')))
     # And link
-    os.system('ln -s {:s} {:s}'.format('../templates', os.path.join(input_dir, 'templates')))
+    os.system('ln -s {:s} {:s}'.format(template_dir, os.path.join(input_dir, 'templates')))
     # And FILTER files
     filter_info = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest.info')
     os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
