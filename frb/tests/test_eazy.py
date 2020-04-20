@@ -75,7 +75,7 @@ def test_eazy(host_obj):
                                           OUTPUT_DIRECTORY=data_path('eazy/output'),
                                           CACHE_FILE='Same', binaries=None, get_prior=True)
     zphot, sig_zphot = frbeazy.eazy_stats(zgrid, pzi)
-    assert np.isclose(zphot, 0.5929091244436179)
+    assert np.isclose(zphot, 0.5929259648750858)
 
     # Remove
     shutil.rmtree(data_path('eazy'))
