@@ -8,17 +8,21 @@ from astropy import units
 from astropy.coordinates import SkyCoord, match_coordinates_sky
 
 
-def chance_coincidence(rmag, ang_dist):
+def chance_coincidence(rmag, r_i):
     """
     Calculate the chance probability of a galaxy to an FRB
 
-    Taken from REFERENCE HERE!!
+    Taken from Bloom et al. 2002
+        https://ui.adsabs.harvard.edu/abs/2002AJ....123.1111B/abstract
 
     ..todo.. Expand to allow for other filters
 
     Args:
         rmag (float):  r-band magnitude
-        ang_dist (Angle or Quantity):
+        r_i (Angle or Quantity):
+            Effective radius, angular
+            Should be the max[2Rhalf, 3 sigma_r0, (R_0^2 + 4 Rhalf^2)^1/2]
+            See Bloom et al. 2002
 
     Returns:
         float:  Probability of a chance association
@@ -28,7 +32,7 @@ def chance_coincidence(rmag, ang_dist):
     sigma = 1. / (3600. ** 2 * 0.334 * np.log(10)) * 10 ** (0.334 * (rmag - 22.963) + 4.320)
 
     # Do it
-    eta = np.pi * ang_dist.to('arcsec').value ** 2 * sigma
+    eta = np.pi * r_i.to('arcsec').value ** 2 * sigma
     Pch = 1. - np.exp(-eta)
 
     # Return
