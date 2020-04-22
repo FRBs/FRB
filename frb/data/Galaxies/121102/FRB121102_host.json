@@ -16,8 +16,8 @@
         "b/a_err": 0.13,
         "n": 2.2,
         "n_err": 1.5,
-        "reff_ang": 0.41,
-        "reff_ang_err": 0.06
+        "reff_ang": 0.2,
+        "reff_ang_err": 0.01
     },
     "neb_lines": {
         "Halpha": 2.6082162461507154e-16,
