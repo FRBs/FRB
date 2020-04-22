@@ -1,7 +1,5 @@
 """DES Survey"""
 
-import pdb
-
 import numpy as np
 from astropy import units, io, utils
 
@@ -34,8 +32,8 @@ photom['DES']['DES_tile'] = 'tilename'
 photom['DES-WISE'] = {}
 DES_WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in DES_WISE_bands:
-    photom['DES-WISE']['{:s}'.format(band)] = '{:s}mpro'.format(band.lower())
-    photom['DES-WISE']['{:s}_err'.format(band)] = '{:s}sigmpro'.format(band.lower())
+    photom['DES-WISE'][band.replace("W","WISE")] = '{:s}mpro'.format(band.lower())
+    photom['DES-WISE'][band.replace("W","WISE")+"_err"] = '{:s}sigmpro'.format(band.lower())
 photom['DES-WISE']['DES_ID'] = 'coadd_object_id'
 photom['DES-WISE']['DES_ra'] = 'des_ra'
 photom['DES-WISE']['DES_dec'] = 'des_dec'
@@ -98,6 +96,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         # Main DES query
         main_cat = super(DES_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
         if len(main_cat) == 0:
+            main_cat = catalog_utils.clean_cat(main_cat,photom['DES'])
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'])
 
@@ -105,16 +104,15 @@ class DES_Survey(dlsurvey.DL_Survey):
         wise_query = self._gen_cat_query(qtype='wise')
         wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query,**kwargs)
         wise_cat = catalog_utils.clean_cat(wise_cat, photom['DES-WISE'], fill_mask=-999.)
-
         # Match em up
         if len(wise_cat) > 0:
             idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
             # Fill me
             for band in DES_WISE_bands:
-                main_cat['{:s}'.format(band)] = -999.
-                main_cat['{:s}'.format(band)][idx] = wise_cat['{:s}'.format(band)]
-                main_cat['{:s}_err'.format(band)] = -999.
-                main_cat['{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band)]
+                main_cat['WISE_{:s}'.format(band)] = -999.
+                main_cat['WISE_{:s}'.format(band)][idx] = wise_cat[band.replace("W","WISE")]
+                main_cat['WISE_{:s}_err'.format(band)] = -999.
+                main_cat['WISE_{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band.replace("W","WISE"))]
 
         # Finish
         self.catalog = main_cat

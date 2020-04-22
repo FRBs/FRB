@@ -39,6 +39,11 @@ photom["Pan-STARRS"]['ra'] = 'raStack'
 photom["Pan-STARRS"]['dec'] = 'decStack'
 photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 
+# Define the default set of query fields
+_DEFAULT_query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag']
+_DEFAULT_query_fields +=['{:s}PSFmag'.format(band) for band in PanSTARRS_bands]
+_DEFAULT_query_fields +=['{:s}PSFmagErr'.format(band) for band in PanSTARRS_bands]
+
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     """
     A class to access all the catalogs hosted on the
@@ -52,7 +57,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "Pan_STARRS"
     
-    def get_catalog(self,query_fields=None,release="dr2",table="stack"):
+    def get_catalog(self,query_fields=None,release="dr2",table="stack",print_query=False):
         """
         Query a catalog in the VizieR database for
         photometry.
@@ -60,7 +65,8 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         Args:
             query_fields: list, optional
                 A list of query fields to
-                get.
+                get in addition to the
+                default fields.
             release: str, optional
                 "dr1" or "dr2" (default: "dr2").
                 Data release version.
@@ -78,9 +84,10 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         _check_legal(table,release)
         url = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/{:s}/{:s}.csv".format(release,table)
         if query_fields is None:
-            query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag']
-            query_fields +=['{:s}PSFmag'.format(band) for band in PanSTARRS_bands]
-            query_fields +=['{:s}PSFmagErr'.format(band) for band in PanSTARRS_bands]
+            query_fields = _DEFAULT_query_fields
+        else:
+            query_fields = _DEFAULT_query_fields+query_fields
+        
         #Validate columns
         _check_columns(query_fields,table,release)
         data = {}
@@ -88,6 +95,8 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         data['dec'] = self.coord.dec.value
         data['radius'] = self.radius.to(u.deg).value
         data['columns'] = query_fields
+        if print_query:
+            print(url)
         ret = requests.get(url,params=data)
         ret.raise_for_status()
         if len(ret.text)==0:
@@ -100,7 +109,17 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         photom_catalog = Table.read(ret.text,format="ascii.csv")
         pdict = photom['Pan-STARRS']
         photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
+
+        #Remove bad positions because Pan-STARRS apparently decided
+        #to flag some positions with large negative numbers. Why even keep
+        #them?
+        #import pdb; pdb.set_trace()
+        bad_ra = (photom_catalog['ra']<0)+(photom_catalog['ra']>360)
+        bad_dec = (photom_catalog['dec']<-90)+(photom_catalog['dec']>90)
+        bad_pos = bad_ra+bad_dec # bad_ra OR bad_dec
+        photom_catalog = photom_catalog[~bad_pos]
         #
+        
         self.catalog = catalog_utils.sort_by_separation(photom_catalog, self.coord,
                                                         radec=('ra','dec'), add_sep=True)
         # Meta

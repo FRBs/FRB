@@ -2,6 +2,7 @@
 
 import numpy as np
 from astropy import units, io, utils
+from astropy.table import Table
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
@@ -22,8 +23,12 @@ photom = {}
 photom['DECaL'] = {}
 DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
 for band in DECaL_bands:
-    photom['DECaL']['DECaL_{:s}'.format(band)] = 'mag_{:s}'.format(band.lower())
-    photom['DECaL']['DECaL_{:s}_err'.format(band)] = 'snr_{:s}'.format(band.lower())
+    if "W" not in band:
+        bandstr = 'DECaL_'+band
+    else:
+        bandstr = 'WISE_'+band
+    photom['DECaL'][bandstr] = 'mag_{:s}'.format(band.lower())
+    photom['DECaL'][bandstr+"_err"] = 'snr_{:s}'.format(band.lower())
 photom['DECaL']['DECaL_ID'] = 'decals_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
@@ -66,10 +71,15 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         """
         # Query
         main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
+        main_cat = Table(main_cat,masked=True)
+        # 
+        for col in main_cat.colnames:
+            main_cat[col].mask = np.isnan(main_cat[col])
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:
-            main_cat[col] = 2.5*np.log10(1+1/main_cat[col])
+            main_cat[col].mask = (1+1/main_cat[col]>0)&(main_cat[col]>0)
+        main_cat = main_cat.filled(-99.0)
         #Remove gaia objects if necessary
         if exclude_gaia:
             self.catalog = main_cat[main_cat['gaia_pointsource']==0]

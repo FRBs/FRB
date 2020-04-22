@@ -38,20 +38,25 @@ DES_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in DES_bands:
     valid_filters.append('DES_{:s}'.format(band))
 
+# DECaLS
+DECaL_bands = ['g', 'r', 'z']
+for band in DECaL_bands:
+    valid_filters.append('DECaL_{:s}'.format(band))
+
 #PanSTARRS
 PanSTARRS_bands = ['g','r','i','z','y']
 for band in PanSTARRS_bands:
     valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
 # VLT
-VLT_bands = ['g', 'I']
+VLT_bands = ['u', 'g', 'I', 'z']
 for band in VLT_bands:
     valid_filters.append('VLT_{:s}'.format(band))
 
 # WISE
 WISE_bands = ['W1', 'W2', 'W3', 'W4']
 for band in WISE_bands:
-    valid_filters.append('{:s}'.format(band))
+    valid_filters.append('WISE_{:s}'.format(band))
 
 # GMOS
 GMOS_bands = ['u', 'g', 'r', 'i', 'z']

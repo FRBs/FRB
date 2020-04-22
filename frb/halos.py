@@ -13,6 +13,7 @@ from pkg_resources import resource_filename
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -53,6 +54,13 @@ def init_hmf():
     # Return
     return hmfe
 
+# Stroing for use
+try:
+    import hmf_emulator
+except:
+    pass
+else:
+    hmfe = init_hmf()
 
 def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     """
@@ -72,12 +80,12 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
           In h^-1 units already
         rmax: float
           Extent of the halo in units of rvir
+          WARNING: This calculation assumes a single concentration for all halos
 
     Returns:
         ratios: ndarray
           rho_halo / rho_m
     """
-    hmfe = init_hmf()
 
     M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
@@ -88,7 +96,7 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
         # Setup
         #dndlM = np.array([hmfe.dndlnM(Mi, a)[0] for Mi in M])
-        dndlM = hmfe.dndlnM(M, z)
+        dndlM = M*hmfe.dndM(M, z)
         M_spl = IUS(lM, M * dndlM)
 
         # Integrate
@@ -400,6 +408,48 @@ def rad3d2(xyz):
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
 
 
+def stellarmass_from_halomass(log_Mhalo):
+    """ Stellar mass from Halo Mass from Moster+2010
+
+    Args:
+        log_Mhalo:
+
+    Returns:
+
+
+    Args:
+      log_Mhalo: float
+        log10 of the galaxy halo mass (solar masses)
+
+    Returns:
+        float: log_mstar, log10 of the galaxy stellar mass (solar masses)
+    """
+    alpha = 0.0282
+    beta = 1.057
+    gamma = 0.556
+    logM1 = 11.884
+    M_halo = 10**log_Mhalo
+    M1 = 10**logM1
+
+    # Simple
+    log_mstar = log_Mhalo + np.log10(2)+np.log10(alpha) - np.log10((M_halo/M1)**-beta+(M_halo/M1)**gamma)
+    # Done
+    return log_mstar
+
+
+def halomass_from_stellarmass(log_mstar):
+    """ Halo mass from Stellar mass (Moster+2010)
+
+    Args:
+        log_mstar (float): log10 of the galaxy stellar mass (solar masses)
+
+    Returns:
+        float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
+    """
+    f = lambda x: stellarmass_from_halomass(x)-log_mstar
+    return fsolve(f,11)[0]
+
+
 class ModifiedNFW(object):
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
     for the hot, virialized gas.
@@ -432,7 +482,8 @@ class ModifiedNFW(object):
 
 
     """
-    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0., y0=1., z=0., cosmo=None, **kwargs):
+    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
+                 y0=1., z=0., cosmo=None, **kwargs):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo

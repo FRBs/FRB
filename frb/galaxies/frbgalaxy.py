@@ -8,6 +8,8 @@ from IPython import embed
 import warnings
 import glob
 
+import pandas as pd
+
 from pkg_resources import resource_filename
 
 from astropy.coordinates import SkyCoord
@@ -325,18 +327,19 @@ class FRBGalaxy(object):
         wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
         for band,zpt in zip(defs.WISE_bands,wise_fnu0):
             # Data exists??
-            if band not in self.photom.keys():
-                print("{:s} not found in the data; skipping".format(band))
+            bandname = "WISE_"+band
+            if bandname not in self.photom.keys():
+                print("{:s} not found in the data; skipping".format(bandname))
                 continue
             #
-            new_photom[band] = zpt*10**(-new_photom[band]/2.5)*1000 #mJy
-            errname = band+"_err"
+            new_photom[bandname] = zpt*10**(-new_photom[bandname]/2.5)*1000 #mJy
+            errname = bandname+"_err"
             if new_photom[errname] < 0:
                 new_photom[errname] = -99.0
             else:
-                new_photom[errname] = new_photom[band]*(10**(new_photom[errname]/2.5)-1)
-            new_photom.rename_column(band,band.replace("W","WISE"))
-            new_photom.rename_column(band+'_err',band.replace("W","WISE")+"_err")
+                new_photom[errname] = new_photom[bandname]*(10**(new_photom[errname]/2.5)-1)
+            new_photom.rename_column(bandname,bandname.replace("WISE_W","WISE"))
+            new_photom.rename_column(bandname+'_err',bandname.replace("WISE_W","WISE")+"_err")
         #Convert VISTA fluxes to mJy
         vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
         for band, zpt in zip(defs.VISTA_bands,vista_fnu0):
@@ -384,7 +387,7 @@ class FRBGalaxy(object):
             return
 
         # Grab the spectra
-        xspec, meta = specDB.spectra_from_coord(self.coord)
+        xspec, meta = specDB.spectra_from_coord(self.coord)  # Tolerance is 0.5''
 
         # Return all?
         if return_all:
@@ -851,5 +854,70 @@ def list_of_hosts():
             frbs.append(ifrb)
     # Return
     return frbs, hosts
+
+
+def build_table_of_hosts():
+    """
+    Generate a Pandas table of FRB Host galaxy data.  These are slurped
+    from the 'derived', 'photom', and 'neb_lines' dicts of each host object
+
+    Warning:  As standard, missing values are given NaN in the Pandas table
+        Be careful!
+
+    Note:
+        RA, DEC are given as RA_host, DEC_host to avoid conflict with the FRB table
+
+    Returns:
+        pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
+
+    """
+    _, hosts = list_of_hosts()
+    nhosts = len(hosts)
+
+    # Table
+    host_tbl = pd.DataFrame({'Host': [host.name for host in hosts]})
+    frb_names = ['FRB'+host.frb for host in hosts]
+    host_tbl['FRB'] = frb_names
+    tbl_units = {}
+
+    # Coordinates
+    coords = SkyCoord([host.coord for host in hosts])
+    # Named to faciliate merging with an FRB table
+    host_tbl['RA_host'] = coords.ra.value
+    host_tbl['DEC_host'] = coords.dec.value
+    tbl_units['RA_host'] = 'deg'
+    tbl_units['DEC_host'] = 'deg'
+
+    # Loop on the 3 main dicts
+    for attr in ['derived', 'photom', 'neb_lines']:
+        # Load up the dicts
+        dicts = [getattr(host, attr) for host in hosts]
+
+        # Photometry
+        all_keys = []
+        for idict in dicts:
+            all_keys += list(idict.keys())
+            #all_keys += list(host.photom.keys())
+        #
+        all_keys = np.array(all_keys)
+        uni_keys = np.unique(all_keys)
+
+        # Slurp using Nan's for missing values
+        tbl_dict = {}
+        for key in uni_keys:
+            tbl_dict[key] = np.array([np.nan]*nhosts)
+        for ss in range(nhosts): #, host in enumerate(hosts):
+            for pkey in dicts[ss].keys(): #host.photom.keys():
+                tbl_dict[pkey][ss] = dicts[ss][pkey]
+        for key in tbl_dict.keys():
+            # Error check
+            if key in host_tbl.keys():
+                raise IOError("Duplicate items!!")
+            # Set
+            host_tbl[key] = tbl_dict[key]
+            tbl_units[key] = 'See galaxies.defs.py'
+
+    # Return
+    return host_tbl, tbl_units
 
 

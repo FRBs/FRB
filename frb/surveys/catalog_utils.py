@@ -1,9 +1,10 @@
 """ Methods related to fussing with a catalog"""
 import numpy as np
-import pdb
 
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 from astropy import units
+from frb.galaxies.defs import valid_filters
 
 # Import check
 try:
@@ -165,6 +166,94 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     # Return
     return summary_list
 
+def _detect_mag_cols(photometry_table):
+    """
+    Searches the column names of a 
+    photometry table for columns with mags.
+    Args:
+        photometry_table: astropy Table
+            A table containing photometric
+            data from a catlog.
+    Returns:
+        mag_colnames: list
+            A list of column names with magnitudes
+        mag_err_colnames: list
+            A list of column names with errors
+            in the magnitudes.
+    """
+    assert type(photometry_table)==Table, "Photometry table must be an astropy Table instance."
+    allcols = photometry_table.colnames
+    photom_cols = np.array(valid_filters)
+    photom_errcols = np.array([filt+"_err" for filt in photom_cols])
+
+    photom_cols = photom_cols[[elem in allcols for elem in photom_cols]]
+    photom_errcols = photom_errcols[[elem in allcols for elem in photom_errcols]]
+    
+    return photom_cols.tolist(), photom_errcols.tolist()
+
+def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
+    """
+    Takes a table of photometric measurements
+    in mags and converts it to flux units.
+
+    Args:
+        photometry_table (astropy.table.Table):
+            A table containing photometric
+            data from a catlog.
+        fluxunits (astropy PrefixUnit, optional):
+            Flux units to convert the magnitudes
+            to. Default is mJy.
+        Returns:
+            fluxtable: astropy Table
+                `photometry_table` but the magnitudes
+                are converted to fluxes.
+    """
+    fluxtable = photometry_table.copy()
+    mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
+    convert = units.mJy.to(fluxunits)
+    #If there's a "W" in the column name, it's from WISE 
+    wisecols = sorted([col for col in mag_cols if "W" in col])
+    wise_errcols = sorted([col for col in mag_errcols if "W" in col])
+
+    #Similarly define vista cols
+    vistacols = sorted([col for col in mag_cols if "VISTA" in col])
+    vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
+
+    wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
+    for mag,err,fnu0 in zip(wisecols,wise_errcols,wise_fnu0):
+        badmags = fluxtable[mag]<0
+        fluxtable[mag][badmags] = -99.0
+        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        baderrs = fluxtable[err]<0
+        fluxtable[err][baderrs]=-99.0
+        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+        if "WISE" not in mag:
+            fluxtable.rename_column(mag,mag.replace("W","WISE"))
+            fluxtable.rename_column(err,err.replace("W","WISE"))
+
+    #Convert VISTA fluxes to mJy
+    vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+    for mag,err,fnu0 in zip(vistacols,vista_errcols,vista_fnu0):
+        badmags = fluxtable[mag]<0
+        fluxtable[mag][badmags] = -99.0
+        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        baderrs = fluxtable[err]<0
+        fluxtable[err][baderrs]=-99.0
+        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+    #For all other photometry:
+    other_mags = np.setdiff1d(mag_cols,wisecols)
+    other_errs = np.setdiff1d(mag_errcols,wise_errcols)
+
+    for mag,err in zip(other_mags,other_errs):
+        badmags = fluxtable[mag]<0
+        fluxtable[mag][badmags] = -99.0
+        fluxtable[mag][~badmags] = 3630.7805*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        baderrs = fluxtable[err]<0
+        fluxtable[err][baderrs]=-99.0
+        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+    return fluxtable
+    
+    
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
     def xmatch_gaia(catalog,max_sep = 5*u.arcsec,racol='ra',deccol='dec'):

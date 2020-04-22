@@ -21,3 +21,7 @@
 - Convenience function for a list of hosts
 - SDSS/DSS finder charts
 - Miller & Bregman 2015 halo profile
+- Wrappers to run CIGALE; CIGALE filters
+- FRBs from Bhandari et al. and Macquart et al. 2020
+- Convenience functions for FRB and host tables
+- Quantity convenience functions
