@@ -1,6 +1,7 @@
 0.1 (unreleased)
 ----------------
 
+- Add WFC3 and Spitzer bands as allowed photometry
 - Eliminate 2.7
 - Start igm.py module
 - Add RM and associated methods
