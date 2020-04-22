@@ -23,6 +23,7 @@ from frb.surveys import des
 from frb.surveys import sdss
 from frb.surveys import wise
 from frb.surveys import panstarrs
+from frb.surveys import catalog_utils
 
 try:
     import extinction
@@ -94,10 +95,11 @@ def build_host_121102(build_photom=False):
         photom['WFC3_F160W_err'] = 0.03
 
         # Spitzer from Bassa (micro-Jy)
-        photom['Spitzer_3.6'] = 1.03  # in micro-Jy
-        photom['Spitzer_3.6_err'] = 0.19  # in micro-Jy
-        photom['Spitzer_4.5'] = 0.9  # upper limit (6sigma) in micro-Jy
-        photom['Spitzer_4.5_err'] = -999  # in micro-Jy
+        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03*units.mJy, flux_err=0.19*units.mJy)  # in micro-Jy
+        photom['Spitzer_3.6'] = mag_3p6
+        photom['Spitzer_3.6_err'] = err_mag_3p6
+        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9*units.mJy)[0]   # upper limit (6sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999  # the flux is un upper limit, note it is 6sigma
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
