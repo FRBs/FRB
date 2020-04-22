@@ -67,9 +67,6 @@ def build_host_121102(build_photom=False):
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
 
-    # Morphology : Bassa+2017 half-light
-    host121102.morphology['reff_ang'] = 0.20   # arcsec
-    host121102.morphology['reff_ang_err'] = 0.01
 
     # Photometry -- Tendulkar 2017
     photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
@@ -127,10 +124,10 @@ def build_host_121102(build_photom=False):
             continue
         assert key in defs.valid_neb_lines
 
-    # Morphology
-    host121102.morphology['reff_ang'] = 0.41
-    host121102.morphology['reff_ang_err'] = 0.06
-    #
+    # Morphology : Bassa+2017 half-light
+    host121102.morphology['reff_ang'] = 0.20   # arcsec
+    host121102.morphology['reff_ang_err'] = 0.01
+    # Other
     host121102.morphology['n'] = 2.2
     host121102.morphology['n_err'] = 1.5
     #
