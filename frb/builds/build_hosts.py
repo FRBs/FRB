@@ -69,17 +69,36 @@ def build_host_121102(build_photom=False):
 
 
     # Photometry -- Tendulkar 2017
-    photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
+    # photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
+    photom_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'bassa2017_photom.ascii')
     if build_photom:
         photom = Table()
         #photom['Name'] = ['HG121102']  DO NOT USE str columns!
         photom['ra'] = [host121102.coord.ra.value]
         photom['dec'] = host121102.coord.dec.value
         #
-        photom['GMOS_N_r'] = 25.1
-        photom['GMOS_N_r_err'] = 0.1
-        photom['GMOS_N_i'] = 23.9
-        photom['GMOS_N_i_err'] = 0.1
+        # GMOS-N photometry from Bassa+2017, different than Tendulkar+2017, see Bassa+17 for details (AB)
+        photom['GMOS_N_r'] = 25.46
+        photom['GMOS_N_r_err'] = 0.14
+        photom['GMOS_N_i'] = 24.75
+        photom['GMOS_N_i_err'] = 0.09
+        photom['GMOS_N_z'] = 24.30
+        photom['GMOS_N_z_err'] = 0.13
+        photom['GMOS_N_g'] = 25.85
+        photom['GMOS_N_g_err'] = 0.12
+
+        # HST from Bassa+2017 (AB)
+        photom['WFC3_F110W'] = 23.675
+        photom['WFC3_F110W_err'] = 0.012
+        photom['WFC3_F160W'] = 23.31
+        photom['WFC3_F160W_err'] = 0.03
+
+        # Spitzer from Bassa (micro-Jy)
+        photom['Spitzer_3.6'] = 1.03  # in micro-Jy
+        photom['Spitzer_3.6_err'] = 0.19  # in micro-Jy
+        photom['Spitzer_4.5'] = 0.9  # upper limit (6sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999  # in micro-Jy
+
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
