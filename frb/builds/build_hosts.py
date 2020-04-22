@@ -48,7 +48,10 @@ def build_host_121102(build_photom=False):
 
     Writes to 121102/FRB121102_host.json
 
-    All of the data currently comes from Tendulkar et al. 2017
+    The majority of data comes from Tendulkar et al. 2017
+
+    reff from Bassa+17 https://ui.adsabs.harvard.edu/abs/2017ApJ...843L...8B/abstract
+
 
     Args:
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
@@ -63,6 +66,10 @@ def build_host_121102(build_photom=False):
 
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
+
+    # Morphology : Bassa+2017 half-light
+    host121102.morphology['reff_ang'] = 0.20   # arcsec
+    host121102.morphology['reff_ang_err'] = 0.01
 
     # Photometry -- Tendulkar 2017
     photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
@@ -138,6 +145,9 @@ def build_host_121102(build_photom=False):
     host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
+
+    # References
+    host121102.refs = ['Tendulkar2017, Bassa2017']
 
     # Vet
     assert host121102.vet_all()
