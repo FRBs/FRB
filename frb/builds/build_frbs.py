@@ -157,7 +157,7 @@ def frb_190523():
                         760.8 * units.pc / units.cm**3,
                         z_frb=0.660)
     # Error ellipse [REQUIRED]
-    frb190523.set_ee(5, 2, 0., 340) # JXP eyeball
+    frb190523.set_ee(4, 1.5, 0., 340) # Halfing the 3x8'' at 95% reported by Ravi et al.
     # Error in DM
     frb190523.DM_err = 0.6 * units.pc / units.cm**3
 
