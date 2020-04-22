@@ -96,6 +96,8 @@ def build_host_121102(build_photom=False):
         # Spitzer from Bassa (micro-Jy)
         photom['Spitzer_3.6'] = 1.03  # in micro-Jy
         photom['Spitzer_3.6_err'] = 0.19  # in micro-Jy
+        photom['Spitzer_4.5'] = 0.9  # upper limit (6sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999  # in micro-Jy
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
