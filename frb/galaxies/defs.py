@@ -53,11 +53,6 @@ VLT_bands = ['u', 'g', 'I', 'z']
 for band in VLT_bands:
     valid_filters.append('VLT_{:s}'.format(band))
 
-# WISE
-WISE_bands = ['W1', 'W2', 'W3', 'W4']
-for band in WISE_bands:
-    valid_filters.append('WISE_{:s}'.format(band))
-
 # GMOS
 #south
 GMOS_bands = ['u', 'g', 'r', 'i', 'z']
@@ -90,6 +85,23 @@ for band in LRISr_bands:
 VISTA_bands = ['Y','J','H','Ks']
 for band in VISTA_bands:
     valid_filters.append('VISTA_{:s}'.format(band))
+
+# HST instruments
+# WFC3
+WFC3_bands = ['F110W', 'F160W']
+for band in WFC3_bands:
+    valid_filters.append('WFC3_{:s}'.format(band))
+
+# WISE
+WISE_bands = ['W1', 'W2', 'W3', 'W4']
+for band in WISE_bands:
+    valid_filters.append('WISE_{:s}'.format(band))
+
+# Spitzer
+Spitzer_bands = ['3.6', '4.5']
+for band in Spitzer_bands:
+    valid_filters.append('Spitzer_{:s}'.format(band))
+
 
 valid_photom = valid_filters + ['EBV']  # Galactic
 
