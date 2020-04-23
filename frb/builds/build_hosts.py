@@ -43,7 +43,7 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 
-def build_host_121102(build_photom=False):
+def build_host_121102(build_photom=False, build_cigale=False):
     """
     Generate the JSON file for FRB 121102
 
@@ -68,13 +68,15 @@ def build_host_121102(build_photom=False):
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
 
+    # Photometry
+    EBV = nebular.get_ebv(gal_coord)['meanValue']  #
+    print("EBV={} for the host {}".format(EBV, host121102.name))
 
-    # Photometry -- Tendulkar 2017
     # photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
     photom_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'bassa2017_photom.ascii')
     if build_photom:
         photom = Table()
-        #photom['Name'] = ['HG121102']  DO NOT USE str columns!
+        photom['Name'] = ['HG121102']
         photom['ra'] = [host121102.coord.ra.value]
         photom['dec'] = host121102.coord.dec.value
         #
@@ -104,7 +106,23 @@ def build_host_121102(build_photom=False):
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+
+    # Read
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    frbphotom.correct_photom_table(photom, EBV, 'HG121102')
+    # Parse
     host121102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # CIGALE
+    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
+    if build_cigale:
+        cut_photom = photom.copy()
+        # Run
+        embed(header='122 of build_hosts')
+        cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
+
+    host121102.parse_cigale(cigale_file)
 
     # Nebular lines
     neb_lines = {}
@@ -617,10 +635,10 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
         photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
         # Write
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    # Parse
+    # Read
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correction
-    frbphotom.correct_photom_table(photom, EBV)
+    frbphotom.correct_photom_table(photom, EBV, 'HG180916')
     # Parse
     host180916.parse_photom(photom)
 
@@ -678,7 +696,7 @@ def main(inflg='all', options=None):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=build_photom) # 1
+        build_host_121102(build_photom=build_photom, build_cigale=build_cigale) # 1
 
     # 180924
     if flg & (2**1):
