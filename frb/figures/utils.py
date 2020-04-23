@@ -46,9 +46,8 @@ def set_bokeh_fontsize(p, fsz):
     Adjust font size for Bokeh axes
 
     Args:
-        ax : Bokeh plot class
-        fsz : float
-          Font size
+        p (Bokeh plot class):
+        sz (int): Font size
     """
     p.xaxis.axis_label_text_font_size = '{:d}pt'.format(fsz)
     p.xaxis.major_label_text_font_size = "{:d}pt".format(fsz)
