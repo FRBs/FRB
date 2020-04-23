@@ -403,29 +403,37 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
 
     """
     frbname = '190523'
-    gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')
+    S1_gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')  # Pan-STARRs; J134815.4392+722814.7216
 
     # Instantiate
-    host190523 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    host190523_S1 = frbgalaxy.FRBHost(S1_gal_coord.ra.value, S1_gal_coord.dec.value, frbname)
+    host190523_S1.name += '_S1'
 
     # Load redshift table
-    host190523.set_z(0.660, 'spec')
+    host190523_S1.set_z(0.660, 'spec')
 
     # Morphology
 
     # Photometry
+    EBV = nebular.get_ebv(S1_gal_coord)['meanValue']  #
+    print("EBV={} for the host of {}".format(EBV, frbname))
 
     # PanStarrs
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'ravi2019_photom.ascii')
     if build_photom:
         search_r = 1 * units.arcsec
-        ps_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        ps_srvy = panstarrs.Pan_STARRS_Survey(S1_gal_coord, search_r)
         ps_tbl = ps_srvy.get_catalog(print_query=True)
+        ps_tbl['Name'] = host190523_S1.name
         photom = frbphotom.merge_photom_tables(ps_tbl, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Read
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    frbphotom.correct_photom_table(photom, EBV, 'HG190523_S1')
     # Parse
-    host190523.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    host190523_S1.parse_photom(photom)
 
     # PPXF
     '''
@@ -438,19 +446,19 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     '''
 
     # CIGALE -- PanStarrs photometry but our own CIGALE analysis
-    host190523.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
+    host190523_S1.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
                                          'S1_190523_CIGALE.fits'))
 
     # Derived quantities
-    host190523.derived['SFR_nebular'] = 1.3
-    host190523.derived['SFR_nebular_err'] = -999.
+    host190523_S1.derived['SFR_nebular'] = 1.3
+    host190523_S1.derived['SFR_nebular_err'] = -999.
 
     # Vet all
-    host190523.vet_all()
+    host190523_S1.vet_all()
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
-    host190523.write_to_json(path=path)
+    host190523_S1.write_to_json(path=path)
 
 
 def build_host_190608(run_ppxf=False, build_photom=False):

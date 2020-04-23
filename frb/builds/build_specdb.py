@@ -268,6 +268,7 @@ def generate_by_refs(input_refs, outfile, version):
     # Write
     spbu.write_hdf(hdf, str('FRB'), maindb, zpri, gdict, version, Publisher=str('JXP'))
     print("Wrote {:s} DB file".format(outfile))
+    print("You probably need to move it into SPECDB")
 
 
 def main(inflg='all'):
