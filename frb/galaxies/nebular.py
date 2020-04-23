@@ -27,7 +27,7 @@ except ImportError:
 # GLOBALS
 Ha_Hb_intrin = 2.87  # Osterbrock 2006 Book
 Hb_Hg_intrin = 1./0.466  # Osterbrock 2006 Book
-Ha_conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+Ha_conversion = 7.9e-42 * units.Msun/units.yr  * 0.63 # Kennicutt 1998 (Salpeter IMF) converted to Chabrier IMF by factor of 0.63
 
 
 def calc_dust_extinct(neb_lines, method):
