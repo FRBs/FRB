@@ -342,6 +342,17 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     return
 
 def host_run(photom, host, cigale_file=None):
+    """
+    Wrapper to faciliate running CIGALE on a FRBGalaxy
+
+    Args:
+        photom (astropy.table.Table):
+        host (frb.galaxies.frbgalaxy.FRBGalaxy):
+        cigale_file (str, optional):
+
+    Returns:
+
+    """
     cigale_tbl = photom.copy()
     cigale_tbl['z'] = host.z
     cigale_tbl['ID'] = host.name

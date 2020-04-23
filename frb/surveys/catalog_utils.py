@@ -50,6 +50,7 @@ def clean_cat(catalog, pdict, fill_mask=None):
             catalog = catalog.filled(fill_mask)
     return catalog
 
+
 def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     """
     Sort an input catalog by separation from input coordinate
@@ -83,6 +84,7 @@ def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     srt_catalog = catalog[isrt]
     # Return
     return srt_catalog
+
 
 def match_ids(IDs, match_IDs, require_in_match=True):
     """ Match input IDs to another array of IDs (usually in a table)
@@ -159,6 +161,7 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     # Return
     return summary_list
 
+
 def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
                      RACol1 = "ra", DecCol1 = "dec",
                      RACol2 = "ra", DecCol2 = "dec"):
@@ -202,6 +205,7 @@ def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
 
     return match1, match2
 
+
 def _detect_mag_cols(photometry_table):
     """
     Searches the column names of a 
@@ -226,6 +230,39 @@ def _detect_mag_cols(photometry_table):
     photom_errcols = photom_errcols[[elem in allcols for elem in photom_errcols]]
     
     return photom_cols.tolist(), photom_errcols.tolist()
+
+
+def mag_from_flux(flux, flux_err=None):
+    """
+    Get the AB magnitude from a flux
+
+    Parameters
+    ----------
+    flux : Quantity
+        Flux
+    flux_err : Quantity
+        Error in flux (optional)
+
+    Returns
+    -------
+    mag, mag_err : float, float
+        AB magnitude and its error (if flux_err is given)
+        AB magnitude and `None` (if flux_err is `None`)
+    """
+    # convert flux to Jansky
+    flux_Jy = flux.to('Jy').value
+
+    # get mag
+    mag_AB = -2.5*np.log10(flux_Jy) + 8.9
+
+    # get error
+    if flux_err is not None:
+        flux_Jy_err = flux_err.to('Jy').value
+        err_mag2 = (-2.5/np.log(10.) / flux_Jy)**2 * flux_Jy_err**2
+        err_mag = np.sqrt(err_mag2)
+    else:
+        err_mag = None
+    return mag_AB, err_mag
 
 
 def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
@@ -281,8 +318,6 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     #For all other photometry:
     other_mags = np.setdiff1d(mag_cols,wisecols)
     other_errs = np.setdiff1d(mag_errcols,wise_errcols)
-
-
 
     for mag, err in zip(other_mags, other_errs):
         badmags = fluxtable[mag] < 0
