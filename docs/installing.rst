@@ -48,6 +48,10 @@ for data that may be associated to an FRB:
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
+The following package(s) is/are required to access FRB galaxy spectra:
+
+* `specdb <https://github.com/specdb/specdb.git>`_  no versioning (yet)
+
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
 * `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
@@ -58,6 +62,7 @@ The following are required to run spectral line analysis (e.g. frb.galaxies.nebu
 
 The following are required to run some of the halo codes:
 
+* `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
 * `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
