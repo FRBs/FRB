@@ -290,12 +290,12 @@
 290    166 IMACS/sloan_z_red01.data lambda_c= 9.7105e+03 AB-Vega=0.570
 291    130 ESO/WFI-V89_843.raw +atm lambda_c= 5.3758e+03 AB-Vega=-0.014
 292    215 ESO/WFI-Rc162_844.raw +atm lambda_c= 6.4938e+03 AB-Vega=0.193
-293   1043 DECam/DECam_u.txt lambda_c= 3.8566e+03 AB-Vega=0.340
-294    835 DECam/DECam_g.txt lambda_c= 4.8200e+03 AB-Vega=-0.090
-295    628 DECam/DECam_r.txt lambda_c= 6.4230e+03 AB-Vega=0.182
-296    518 DECam/DECam_i.txt lambda_c= 7.8067e+03 AB-Vega=0.406
-297    442 DECam/DECam_z.txt lambda_c= 9.1585e+03 AB-Vega=0.517
-298    411 DECam/DECam_Y.txt lambda_c= 9.8668e+03 AB-Vega=0.564
+293   1043 DECam/DECam_u_legacy.txt lambda_c= 3.8566e+03 AB-Vega=0.340
+294    835 DECam/DECam_g_legacy.txt lambda_c= 4.8200e+03 AB-Vega=-0.090
+295    628 DECam/DECam_r_legacy.txt lambda_c= 6.4230e+03 AB-Vega=0.182
+296    518 DECam/DECam_i_legacy.txt lambda_c= 7.8067e+03 AB-Vega=0.406
+297    442 DECam/DECam_z_legacy.txt lambda_c= 9.1585e+03 AB-Vega=0.517
+298    411 DECam/DECam_Y_legacy.txt lambda_c= 9.8668e+03 AB-Vega=0.564
 299    149 MOSFIRE/mosfire_Y.txt lambda_c= 1.0474e+04 AB-Vega=0.640
 300    185 MOSFIRE/mosfire_J.txt lambda_c= 1.2517e+04 AB-Vega=0.913
 301    174 MOSFIRE/mosfire_H.txt lambda_c= 1.6340e+04 AB-Vega=1.347
@@ -348,3 +348,9 @@
 348 293 NOT/NOT_z_filt.txt lambda_c= 8.78e+03
 349 890 GMOS_S_r lambda_c=6314.53
 350 35 GMOS_N_r lambda_c=6298.13
+351 75 DECam/DECam_u.txt lambda_c=3.867e+03 AB-Vega=0.308
+352 355 DECam/DECam_g.txt lambda_c=4.825e+03 AB-Vega=-0.079
+353 391 DECam/DECam_r.txt lambda_c=6.413e+03 AB-Vega=0.198
+354 391 DECam/DECam_i.txt lambda_c=7.821e+03 AB-Vega=0.419
+355 381 DECam/DECam_z.txt lambda_c=9.229e+03 AB-Vega=0.521
+356 281 DECam/DECam_Y.txt lambda_c=9.839e+03 AB-Vega=0.570
