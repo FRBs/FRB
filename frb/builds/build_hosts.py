@@ -115,7 +115,7 @@ def build_host_121102(build_photom=False, build_cigale=False):
     host121102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'HG121102_CIGALE.fits')
     if build_cigale:
         cut_photom = photom.copy()
         # Run
