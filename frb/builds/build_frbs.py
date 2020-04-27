@@ -215,7 +215,8 @@ def frb_190611():
     FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
                                 unit=(units.hourangle, units.deg))
     frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
-                        332.6 * units.pc / units.cm**3)
+                        332.6 * units.pc / units.cm**3,
+                        z_frb=0.3778)  # Bright
     # Error ellipse [REQUIRED]
     frb190611.set_ee(0.7, 0.7, 0., 68.)
     # Error in DM
