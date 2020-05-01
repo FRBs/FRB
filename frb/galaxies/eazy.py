@@ -16,8 +16,17 @@ from frb.surveys import catalog_utils
 
 from IPython import embed
 
+# Necessary because people might not execute eazy from src
+# but might have a copy in bin or some other location.
+try:
+    _eazy_root = os.environ['EAZYDIR']
+except KeyError:
+    import pdb; pdb.set_trace()
+    raise AssertionError('Please define the variable EAZYDIR in your environment pointing to the EAZY folder.')
+
 _template_list = ['br07_default','br07_goods','cww+kin','eazy_v1.0','eazy_v1.1_lines','eazy_v1.2_dusty','eazy_v1.3','pegase','pegase13']
-_default_prior = 'prior_R_extend'
+_acceptable_priors = ['prior_R_zmax7', 'prior_K_zmax7', 'prior_R_extend', 'prior_K_extend'] # F160W_TAO not included yet.
+_default_prior = 'prior_R_zmax7'
 _acceptable_combos = [1,2,99,-1,'a']
 
 # This syncs to our custom FILTERS.RES.latest file
@@ -26,11 +35,24 @@ frb_to_eazy_filters = dict(GMOS_S_r=349,
                            LRISr_I=345,
                            NOT_z=348,
                            NIRI_J=257,
-                           DES_g=294,
-                           DES_r=295,
-                           DES_i=296,
-                           DES_z=297,
-                           DES_Y=298,
+                           DECaL_g=294, # Turns out these are legacy transmission curves
+                           DECaL_r=295,
+                           DECaL_z=296,
+                           DES_u=351, # Added DR1 filter curves
+                           DES_g=352,
+                           DES_r=353,
+                           DES_i=354,
+                           DES_z=355,
+                           DES_y=356,
+                           SDSS_u=156,
+                           SDSS_g=157,
+                           SDSS_r=158,
+                           SDSS_i=159,
+                           SDSS_z=160,
+                           WISE_W1=244,
+                           WISE_W2=245,
+                           WISE_W3=246,
+                           WISE_W4=247
                            )
 
 def eazy_filenames(input_dir, name):
@@ -57,31 +79,33 @@ def eazy_filenames(input_dir, name):
     return catfile, param_file, translate_file
 
 
-def eazy_setup(input_dir, template_dir):
+def eazy_setup(input_dir, template_dir=None):
     """
     Setup for EAZY
 
     Args:
         input_dir (str):
-            Path to perosonal eazy inputs/ folder  (can be relative)
-        template_dir:
-            Path to templates/ folder in EAZY software package
+            Path to personal eazy inputs/ folder  (can be relative)
+        template_dir(str, optional):
+            Path to templates/ folder in EAZY software package.
+            If not given, it looks for the folder of `eazy`,
+            the executable and navigates from there.
 
     Returns:
 
     """
+    if template_dir is None:
+        template_dir = os.path.join(_eazy_root, "templates")
     if not os.path.isdir(input_dir):
         os.mkdir(input_dir)
-    # Copy over templates
-    os.system('cp -rp {:s} {:s}'.format(template_dir, os.path.join(input_dir, '..')))
     # And link
-    os.system('ln -s {:s} {:s}'.format('../templates', os.path.join(input_dir, 'templates')))
+    os.system('ln -s {:s} {:s}'.format(template_dir, os.path.join(input_dir, 'templates')))
     # And FILTER files
     filter_info = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest.info')
     os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
     filter_latest = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
-
+    return
 
 def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
                      templates='eazy_v1.3', combo="a", cosmo=None,
@@ -149,8 +173,12 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
 
     # Prior
     if prior_filter is not None:
-        if prior_filter[-1] not in ['r', 'R']:
+        assert prior in _acceptable_priors, "Allowed priors are {}".format(_acceptable_priors)
+        if prior_filter[-1] not in ['r', 'R', 'k', 'K']:
             raise IOError("Not prepared for this type of prior filter")
+    
+    # Test combo
+    assert combo in _acceptable_combos, "Allowed values of 'combo' are {}".format(_acceptable_combos)
 
     # Generate the translate file
     filters = []
@@ -208,18 +236,18 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     in_tab = pandas.read_table(default_file, delim_whitespace=True, comment="#",
                             header=None, names=('eazy_par', 'par_val'))
 
-    # Expect it lands in src/
-    _eazy_path = os.path.abspath(os.path.realpath(spawn.find_executable('eazy')))
-    _eazy_root = _eazy_path[0:_eazy_path.find('src')]
+    # Expect it lands in src/ # Won't work if someone has put eazy in their bin folder.
+    #_eazy_path = os.path.abspath(os.path.realpath(spawn.find_executable('eazy')))
+    #_eazy_root = _eazy_path[0:_eazy_path.find('src')]
 
     # Change default parameters to reflect current values
-    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = _eazy_root + 'inputs/FILTER.RES.latest'
-    in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = _eazy_root + 'templates/' + templates + ".spectra.param"
-    in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = _eazy_root + 'templates/TEMPLATE_ERROR.eazy_v1.0'
+    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
+    in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = os.path.join(_eazy_root, 'templates/' + templates + ".spectra.param")
+    in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = os.path.join(_eazy_root,'templates/TEMPLATE_ERROR.eazy_v1.0')
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATE_COMBOS'] = combo
-    in_tab.par_val[in_tab.eazy_par == 'WAVELENGTH_FILE'] = _eazy_root + 'templates/EAZY_v1.1_lines/lambda_v1.1.def'
-    in_tab.par_val[in_tab.eazy_par == 'LAF_FILE'] = _eazy_root + 'templates/LAFcoeff.txt'
-    in_tab.par_val[in_tab.eazy_par == 'DLA_FILE'] = _eazy_root + 'templates/DLAcoeff.txt'
+    in_tab.par_val[in_tab.eazy_par == 'WAVELENGTH_FILE'] = os.path.join(_eazy_root,'templates/EAZY_v1.1_lines/lambda_v1.1.def')
+    in_tab.par_val[in_tab.eazy_par == 'LAF_FILE'] = os.path.join(_eazy_root,'templates/LAFcoeff.txt')
+    in_tab.par_val[in_tab.eazy_par == 'DLA_FILE'] = os.path.join(_eazy_root,'templates/DLAcoeff.txt')
     in_tab.par_val[in_tab.eazy_par == 'CATALOG_FILE'] = base_cat
     if magnitudes:
         in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'y'
@@ -227,11 +255,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
         in_tab.par_val[in_tab.eazy_par == 'MAGNITUDES'] = 'n'
     in_tab.par_val[in_tab.eazy_par == 'N_MIN_COLORS'] = n_min_col
     in_tab.par_val[in_tab.eazy_par == 'OUTPUT_DIRECTORY'] = out_dir
-    in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 1
     # Prior
     if prior_filter is not None:
         in_tab.par_val[in_tab.eazy_par == 'APPLY_PRIOR'] = 'y'
-        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILE'] = _eazy_root + 'templates/' + prior + '.dat'
+        in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILE'] = os.path.join(_eazy_root,'templates/' + prior + '.dat')
         in_tab.par_val[in_tab.eazy_par == 'PRIOR_FILTER'] = str(frb_to_eazy_filters[prior_filter])
         in_tab.par_val[in_tab.eazy_par == 'PRIOR_ABZP'] = prior_ABZP
     in_tab.par_val[in_tab.eazy_par == 'Z_MIN'] = zmin
@@ -269,6 +296,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     link = os.path.join(input_dir, '..', 'templates')
     if not os.path.isdir(link):
         os.symlink(template_folder, link)
+    return
 
 
 def run_eazy(input_dir, name, logfile):
@@ -506,4 +534,3 @@ def getEazyPz(idx, MAIN_OUTPUT_FILE='photz', OUTPUT_DIRECTORY='./OUTPUT', CACHE_
         return tempfilt['zgrid'], pzi, prior
     else:
         return tempfilt['zgrid'], pzi
-
