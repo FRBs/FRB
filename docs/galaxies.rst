@@ -1,5 +1,3 @@
-.. highlight:: rest
-
 ************
 FRB Galaxies
 ************
