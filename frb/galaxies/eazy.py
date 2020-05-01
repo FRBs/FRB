@@ -30,30 +30,35 @@ _default_prior = 'prior_R_zmax7'
 _acceptable_combos = [1,2,99,-1,'a']
 
 # This syncs to our custom FILTERS.RES.latest file
-frb_to_eazy_filters = dict(GMOS_S_r=349,
-                           LRISb_V=346,
-                           LRISr_I=345,
-                           NOT_z=348,
-                           NIRI_J=257,
-                           DECaL_g=294, # Turns out these are legacy transmission curves
-                           DECaL_r=295,
-                           DECaL_z=296,
-                           DES_u=351, # Added DR1 filter curves
-                           DES_g=352,
-                           DES_r=353,
-                           DES_i=354,
-                           DES_z=355,
-                           DES_y=356,
-                           SDSS_u=156,
-                           SDSS_g=157,
-                           SDSS_r=158,
-                           SDSS_i=159,
-                           SDSS_z=160,
-                           WISE_W1=244,
-                           WISE_W2=245,
-                           WISE_W3=246,
-                           WISE_W4=247
-                           )
+frb_to_eazy_filters = {"GMOS_S_r":349,
+                           "LRISb_V":346,
+                           "LRISr_I":345,
+                           "NOT_z":348,
+                           "NIRI_J":257,
+                           "DECaL_g":294, # Turns out these are legacy transmission curves
+                           "DECaL_r":295,
+                           "DECaL_z":296,
+                           "DES_u":351, # Added DR1 filter curves
+                           "DES_g":352,
+                           "DES_r":353,
+                           "DES_i":354,
+                           "DES_z":355,
+                           "DES_y":356,
+                           "SDSS_u":156,
+                           "SDSS_g":157,
+                           "SDSS_r":158,
+                           "SDSS_i":159,
+                           "SDSS_z":160,
+                           "WISE_W1":244,
+                           "WISE_W2":245,
+                           "WISE_W3":246,
+                           "WISE_W4":247,
+                           "Pan-STARRS_g":334,
+                           "Pan-STARRS_r":335,
+                           "Pan-STARRS_i":336,
+                           "Pan-STARRS_z":337,
+                           "Pan-STARRS_y":338,
+                            }
 
 def eazy_filenames(input_dir, name):
     """
