@@ -115,6 +115,25 @@ Here are the steps to update CIGALE:
 
 Note that DECaLs uses the BASS and MzLS data files.
 
+EAZY setup
+==========
+
+In order to perform photo-z estimation
+with EAZY using our wrappers, the following
+changes need to be made.
+
+* Add an environment variable `EAZYDIR` that points to your EAZY installation. Add this to your `bashrc`::
+
+	export EAZYDIR="/path/to/eazy-photoz/"
+
+* Locate the `templates` folder in `$EAZYDIR` and edit the paths present in `*.spectra.param`. Replace all SED file paths with the absolute paths. For instance, in `$EAZYDIR/templates/eazy_v1.3.spectra.param`, replace::
+
+	templates/EAZY_v1.1_lines/eazy_v1.1_sed1.dat
+
+with::
+
+	/path/to/eazy-photoz/templates/EAZY_v1.1_lines/eazy_v1.1_sed1.dat
+
 
 .. _download-public:
 
