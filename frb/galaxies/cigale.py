@@ -10,10 +10,14 @@ from collections import OrderedDict
 
 from astropy.table import Table
 
-from pcigale.session.configuration import Configuration
-from pcigale.analysis_modules import get_module
-from pcigale.data import Database
-from pcigale.utils import read_table
+try:
+    from pcigale.session.configuration import Configuration
+except ImportError:
+    print("You will need to install pcigale to use the cigale.py module")
+else:
+    from pcigale.analysis_modules import get_module
+    from pcigale.data import Database
+    from pcigale.utils import read_table
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
