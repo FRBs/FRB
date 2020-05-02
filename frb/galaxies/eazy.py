@@ -21,8 +21,7 @@ from IPython import embed
 try:
     _eazy_root = os.environ['EAZYDIR']
 except KeyError:
-    import pdb; pdb.set_trace()
-    raise AssertionError('Please define the variable EAZYDIR in your environment pointing to the EAZY folder.')
+    print('You need to define the variable EAZYDIR in your environment pointing to the EAZY folder to run eazy.')
 
 _template_list = ['br07_default','br07_goods','cww+kin','eazy_v1.0','eazy_v1.1_lines','eazy_v1.2_dusty','eazy_v1.3','pegase','pegase13']
 _acceptable_priors = ['prior_R_zmax7', 'prior_K_zmax7', 'prior_R_extend', 'prior_K_extend'] # F160W_TAO not included yet.
