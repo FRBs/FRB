@@ -39,6 +39,23 @@ def chance_coincidence(rmag, r_i):
     return Pch
 
 
+def chance_dx(rmag):
+    """
+    Returns the angular separation for a secure association (1%)
+    as in https://ui.adsabs.harvard.edu/abs/2014MNRAS.437.1495T/abstract
+
+    Args:
+        rmag (float):
+            r-band magnitude
+
+    Returns:
+        Quantity: Angular offset in arcsec
+
+    """
+    dx = 1.48 * 10**13 * rmag**(-9.53) * units.arcsec
+    #
+    return dx
+
 def random_separation(catalog, wcs, npix, trim=1*units.arcmin, ntrial=100):
 
     # Catalog
