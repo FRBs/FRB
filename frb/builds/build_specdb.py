@@ -23,7 +23,7 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 'LRISr']
+all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 'LRISr', 'DEIMOS']
 db_path = os.getenv('FRB_GDB')
 
 
@@ -241,8 +241,12 @@ def generate_by_refs(input_refs, outfile, version):
         elif instr == 'LRISr':
             mdict = dict(TELESCOPE='Keck-1')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
-            #parse_head = {'R': True, 'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME'}
             maxpix = 2050
+            scale = 1e-17
+        elif instr == 'DEIMOS':
+            mdict = dict(TELESCOPE='Keck-2')
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
+            maxpix = 9000
             scale = 1e-17
         else:
             embed(header='172')
