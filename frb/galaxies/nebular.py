@@ -9,8 +9,6 @@ import warnings
 
 from xml.etree import ElementTree as ET
 
-from scipy.interpolate import interp1d
-
 from astropy.table import Table
 from astropy import units
 
@@ -27,7 +25,8 @@ except ImportError:
 # GLOBALS
 Ha_Hb_intrin = 2.87  # Osterbrock 2006 Book
 Hb_Hg_intrin = 1./0.466  # Osterbrock 2006 Book
-Ha_conversion = 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998
+Ha_conversion = 0.63 * 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998 + Chabrier,
+# e.g. https://ned.ipac.caltech.edu/level5/March14/Madau/Madau3.html
 
 
 def calc_dust_extinct(neb_lines, method):
