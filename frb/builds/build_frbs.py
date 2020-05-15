@@ -31,6 +31,33 @@ def frb_121102():
     frb121102.from_json('FRB121102.json')
 
 
+def frb_180916():
+    """
+     FRB 180916.J0158+65
+        All of the data currently comes from Marcote et al. 2020
+        https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
+    """
+    coord = SkyCoord("01h58m00.75017s 65d43m00.3152s", frame='icrs')
+    name = 'FRB180916'
+    frb180916 = frb.FRB(name, coord,
+                        348.76*units.pc / units.cm**3,
+                        z_frb=0.0337)
+    # Error ellipse
+    frb180916.set_ee(0.0023, 0.0023, 0., 68.)
+    # Error in DM
+    frb180916.DM_err = 0.10 * units.pc / units.cm**3
+    # NE2001
+    frb180916.set_DMISM()
+    #
+    #frb180924.fluence = 16 * units.Jy * units.ms
+    #frb180924.fluence_err = 1 * units.Jy * units.ms
+    #
+    # References
+    frb180916.refs = ['Marcote2020']
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb180916.write_to_json(path=path)
+
 def frb_180924():
     """
     FRB 180924
@@ -248,7 +275,7 @@ def main(inflg='all'):
         frb_121102()
 
     # 180924
-    if flg & (2**1):
+    if flg & (2**1):  # 2
         frb_180924()
 
     # 181112
@@ -274,6 +301,11 @@ def main(inflg='all'):
     # 190611
     if flg & (2**7):  # 128
         frb_190611()
+
+    # 180916
+    if flg & (2**8): # 256
+        frb_180916()
+
 
 
 # Command line execution
