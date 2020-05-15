@@ -169,7 +169,10 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
     # Radii
     if radius is None:
         rhoc = cosmo.critical_density(zs)
-        r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
+        #https://arxiv.org/pdf/1312.4629.pdf eq5
+        q = cosmo.Ode0/(cosmo.Ode0+cosmo.Om0*(1+zs)**3)
+        rhovir = (18*np.pi**2-82*q-39*q**2)*rhoc
+        r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*rhovir))**(1/3)).to('kpc')
     else:
         r200 = np.ones_like(zs) * radius
     # Ap
@@ -188,6 +191,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         Navg = np.cumsum(loX * dX)
         return zs, Navg
     else:
+        import pdb; pdb.set_trace()
         Navg = np.sum(loX * dX)
         return Navg
 
@@ -540,8 +544,11 @@ class ModifiedNFW(object):
             self.fb = cosmo.Ob0/cosmo.Om0
             self.H0 = cosmo.H0
         # Dark Matter
-        self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
-        self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
+        self.q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
+        #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
+        self.rhovir = (18*np.pi**2-82*self.q-39*self.q**2)*self.rhoc
+        self.r200 = (((3*self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
+        self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density
         # Baryons
         self.M_b = self.M_halo * self.fb
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
