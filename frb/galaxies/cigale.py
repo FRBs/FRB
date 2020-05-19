@@ -302,6 +302,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
     cigconf = Configuration(config_file)
     analysis_module = get_module(cigconf.configuration['analysis_method'])
+    embed(header='305 of cigale')
     analysis_module.process(cigconf.configuration)
     if plot:
         from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
