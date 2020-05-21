@@ -213,29 +213,28 @@ def pix2coord(sersic_tab, wcs, platescale):
 
 def read_fitlog(outfile, plate_scale, initfile):
     lines = [line.rstrip('\n') for line in open(outfile)]
-
     instance = []  # going to put all instances of use of input file here
     for kk, line in enumerate(lines):  # for all lines in fit.log
         if line == 'Init. par. file : ' + str(initfile) + ' ':  # if the it is from the input file used
-            #print('yes/')
+            print('yes/')
             for pp, item in enumerate(lines[kk:kk + 10]):
                 if item[1:7] == 'sersic':  # look for the sersic fit model
-                    #print(item, pp)
+                    print(item, pp)
                     instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
 
-    fit_out, where, err_out = instance[-1]  # only keep the latest one
+    fit_out, line, err_out = instance[-1]  # only keep the latest one
 
+    galfit = {} #initialize dictionary to store model output
 
-    galfit = {} #store values in dict
     #Store values
     prss = fit_out.split(' ')
     keepp = [obj for obj in prss if obj != '']  # Remove white spaces
     galfit['PA'] = float(keepp[-1])
     galfit['b/a'] = float(keepp[-2])
     galfit['n'] = float(keepp[-3])
-    galfit['reff_ang'] = float(keepp[-4]) * plate_scale
+    galfit['reff_ang'] = float(keepp[-4])*plate_scale
 
-    #Store errors
+    #Store error values
     prss = err_out.split(' ')
     keepp = [obj for obj in prss if obj != '']  # Remove white spaces
     galfit['PA_err'] = float(keepp[-1])
@@ -245,11 +244,7 @@ def read_fitlog(outfile, plate_scale, initfile):
 
     return galfit
 
-
-
-
-
-def surf_brightness(coord, sersic_tab):
+def surf_brightness(coord, sky_tab):
     """
     Estimates the surface brightness from
     the sersic model fit at the input
