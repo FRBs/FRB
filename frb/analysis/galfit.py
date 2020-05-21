@@ -17,6 +17,7 @@ import pandas as pd
 import sys, os, subprocess
 import warnings
 from astropy.io import fits
+from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from astropy.table import Table
 from astropy.wcs import WCS
@@ -28,7 +29,7 @@ def genconf(imgfile:str, psffile:str,
             region:tuple = None, convobox:tuple = (100,100),
             zeropoint:float = 25.0, platescale:float = 0.125,
             position:tuple = None, int_mag:float = None,
-            r_e:float = None, n:float = 1.0, axis_ratio:float = 0.5,
+            r_e:float = None, n:float = 1.0, b/a:float = 0.5,
             pa:float = 0, skip_sky:bool = False):
     """
     Creates a configuration file for GALFIT. Conventionally,
@@ -72,7 +73,7 @@ def genconf(imgfile:str, psffile:str,
         half the size of the fitting region by default.
     n (float, optional): initial guess for the Sersic
         index.
-    axis_ratio (float, optional): Initial guess for
+    b/a (float, optional): Initial guess for
         the ratio of minor to major axis of the fit model.
     PA (float, optional): Initial guess for the 
         angle of the major axis counter clockwise 
@@ -135,7 +136,7 @@ def genconf(imgfile:str, psffile:str,
         fstream.write("5) {:f} 1 # sersic index\n".format(n))
         for num in [6,7,8]:
             fstream.write("{:d}) 0.0000 0 # ----\n".format(num))
-        fstream.write("9) {:f} 1 # Axis ratio (b/a)\n".format(axis_ratio))
+        fstream.write("9) {:f} 1 # Axis ratio (b/a)\n".format(b/a))
         fstream.write("10) {:f} 1 # Position angle (PA) [deg: Up=0, left =90]\n".format(pa))
         fstream.write("Z) 0 # Skip this model? (yes=1,no=0)\n\n")
         if not skip_sky:
@@ -169,6 +170,8 @@ def pix2coord(sersic_tab, wcs, platescale):
         fit parameter table
     wcs (WCS): transformation to
         go from pixels to angular units
+    platescale (Quantity): angular size
+        per pixel.
     Returns
     -------
     sky_tab (Table): Sersic table
@@ -177,14 +180,17 @@ def pix2coord(sersic_tab, wcs, platescale):
     """
 
     sky_tab = Table()
+    platescale = platescale.to(u.arcsec)
 
     # First read the invariants
-    sky_tab['axis_ratio'] = sersic_tab['axis_ratio']
-    sky_tab['axis_ratio_err'] = sersic_tab['axis_ratio_err']
+    sky_tab['b/a'] = sersic_tab['b/a']
+    sky_tab['b/a_err'] = sersic_tab['b/a_err']
     sky_tab['n'] = sersic_tab['n']
     sky_tab['n_err'] = sersic_tab['n_err']
     sky_tab['PA'] = sersic_tab['PA']
     sky_tab['PA_err'] = sersic_tab['PA_err']
+    sky_tab['mag'] = sersic_tab['mag']
+    sky_tab['mag_err'] = sersic_tab['mag_err']
 
     # Read in centroids next
     xpix, ypix = sersic_tab['x']-1, sersic_tab['y']-1
@@ -196,54 +202,15 @@ def pix2coord(sersic_tab, wcs, platescale):
     sky_tab['dec_err'] = sersic_tab['y_err']*platescale
 
     # Read in r_e next.
-    sky_tab['r_e'] = sersic_tab['r_e']*platescale
-    sky_tab['r_e_err'] = sersic_tab['r_e_err']*platescale
+    sky_tab['reff_ang'] = sersic_tab['reff_ang']*platescale
+    sky_tab['reff_ang_err'] = sersic_tab['reff_ang_err']*platescale
 
     # Reorder columns
-    sky_tab = sky_tab['ra','ra_err', 'dec','dec_err', 'r_e', 'r_e_err', 'n', 'n_err','axis_ratio','axis_ratio_err','PA','PA_err']
+    sky_tab = sky_tab['ra','ra_err', 'dec','dec_err', 'mag','mag_err','reff_ang', 'reff_ang_err', 'n', 'n_err','b/a','b/a_err','PA','PA_err']
 
     return sky_tab
 
-
-def read_fitlog(outfile, plate_scale, initfile):
-    lines = [line.rstrip('\n') for line in open(outfile)]
-
-    instance = []  # going to put all instances of use of input file here
-    for kk, line in enumerate(lines):  # for all lines in fit.log
-        if line == 'Init. par. file : ' + str(initfile) + ' ':  # if the it is from the input file used
-            #print('yes/')
-            for pp, item in enumerate(lines[kk:kk + 10]):
-                if item[1:7] == 'sersic':  # look for the sersic fit model
-                    #print(item, pp)
-                    instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
-
-    fit_out, where, err_out = instance[-1]  # only keep the latest one
-
-
-    galfit = {} #store values in dict
-    #Store values
-    prss = fit_out.split(' ')
-    keepp = [obj for obj in prss if obj != '']  # Remove white spaces
-    galfit['PA'] = float(keepp[-1])
-    galfit['b/a'] = float(keepp[-2])
-    galfit['n'] = float(keepp[-3])
-    galfit['reff_ang'] = float(keepp[-4]) * plate_scale
-
-    #Store errors
-    prss = err_out.split(' ')
-    keepp = [obj for obj in prss if obj != '']  # Remove white spaces
-    galfit['PA_err'] = float(keepp[-1])
-    galfit['b/a_err'] = float(keepp[-2])
-    galfit['n_err'] = float(keepp[-3])
-    galfit['reff_ang_err'] = float(keepp[-4]) * plate_scale
-
-    return galfit
-
-
-
-
-
-def surf_brightness(coord, sersic_tab):
+def surf_brightness(coord, sky_tab):
     """
     Estimates the surface brightness from
     the sersic model fit at the input
@@ -251,7 +218,10 @@ def surf_brightness(coord, sersic_tab):
     Args
     ----
     coord (SkyCoord): Target coordinate
-    sersic_tab (Table): Table of best fit
-        sersic model parameters.
-    wcs ()
+    sky_tab (Table): Table of best fit
+        sersic model parameters in
+        angular coordinates.
+    Returns
+    ------
+    surf_brightness (m)
     """
