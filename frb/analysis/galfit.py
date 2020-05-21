@@ -18,6 +18,8 @@ import sys, os, subprocess
 import warnings
 from astropy.io import fits
 from astropy.stats import sigma_clipped_stats
+from astropy.table import Table
+from astropy.wcs import WCS
 
 def genconf(imgfile:str, psffile:str,
             configfile:str=None, outfile:str=None,
@@ -155,3 +157,67 @@ def run(imgfile, psffile,**kwargs):
     configfile = genconf(imgfile,psffile,**kwargs)
     os.system("galfit {:s}".format(configfile))
     return 0
+
+def pix2coord(sersic_tab, wcs, platescale):
+    """
+    Takes the output table from galfit's
+    fit.log file and converts all pixel
+    measurements to physical measurements.
+    Args
+    ----
+    sersic_tab (Table): Raw sersic
+        fit parameter table
+    wcs (WCS): transformation to
+        go from pixels to angular units
+    Returns
+    -------
+    sky_tab (Table): Sersic table
+        translated to angular units
+        on the sky.
+    """
+
+    sky_tab = Table()
+
+    # First read the invariants
+    sky_tab['axis_ratio'] = sersic_tab['axis_ratio']
+    sky_tab['axis_ratio_err'] = sersic_tab['axis_ratio_err']
+    sky_tab['n'] = sersic_tab['n']
+    sky_tab['n_err'] = sersic_tab['n_err']
+    sky_tab['PA'] = sersic_tab['PA']
+    sky_tab['PA_err'] = sersic_tab['PA_err']
+
+    # Read in centroids next
+    xpix, ypix = sersic_tab['x']-1, sersic_tab['y']-1
+    centr_coords = wcs.pixel_to_world(xpix, ypix)
+    sky_tab['ra'] = centr_coords.ra.value
+    sky_tab['dec'] = centr_coords.dec.value
+
+    sky_tab['ra_err'] = sersic_tab['x_err']*platescale
+    sky_tab['dec_err'] = sersic_tab['y_err']*platescale
+
+    # Read in r_e next.
+    sky_tab['r_e'] = sersic_tab['r_e']*platescale
+    sky_tab['r_e_err'] = sersic_tab['r_e_err']*platescale
+
+    # Reorder columns
+    sky_tab = sky_tab['ra','ra_err', 'dec','dec_err', 'r_e', 'r_e_err', 'n', 'n_err','axis_ratio','axis_ratio_err','PA','PA_err']
+
+    return sky_tab
+
+
+
+
+
+
+def surf_brightness(coord, sersic_tab):
+    """
+    Estimates the surface brightness from
+    the sersic model fit at the input
+    coordinate location.
+    Args
+    ----
+    coord (SkyCoord): Target coordinate
+    sersic_tab (Table): Table of best fit
+        sersic model parameters.
+    wcs ()
+    """
