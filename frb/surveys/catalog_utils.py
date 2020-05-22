@@ -317,8 +317,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
 
     #For all other photometry:
-    other_mags = np.setdiff1d(mag_cols,wisecols)
-    other_errs = np.setdiff1d(mag_errcols,wise_errcols)
+    other_mags = np.setdiff1d(mag_cols,wisecols+vistacols)
+    other_errs = np.setdiff1d(mag_errcols,wise_errcols+vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
         badmags = fluxtable[mag] < 0
