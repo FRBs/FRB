@@ -223,5 +223,5 @@ def surf_brightness(coord, sky_tab):
         angular coordinates.
     Returns
     ------
-    surf_brightness (m)
+    surf_brightness (mag/arcsec**2):
     """
