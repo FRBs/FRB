@@ -329,9 +329,6 @@ class FRBGalaxy(object):
         wait_for_input, plot, outdir, compare_obs_model, **kwargs)
         return
 
-
-        
-
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
         """
         Return the meta data and spectra for this FRBGalaxy
