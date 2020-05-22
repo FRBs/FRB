@@ -285,9 +285,10 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     fluxtable = photometry_table.copy()
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
     convert = units.mJy.to(fluxunits)
-    #If there's a "W" in the column name, it's from WISE 
-    wisecols = sorted([col for col in mag_cols if "W" in col])
-    wise_errcols = sorted([col for col in mag_errcols if "W" in col])
+    #If there's a "W" in the column name, it's from WISE
+    # TODO -- We need to deal with this hack
+    wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
+    wise_errcols = sorted([col for col in mag_errcols if ("W" in col and 'WFC3' not in col)])
 
     #Similarly define vista cols
     vistacols = sorted([col for col in mag_cols if "VISTA" in col])
@@ -301,7 +302,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
-        if "WISE" not in mag:
+        if "WISE" not in mag and 'WFC3' not in mag:
             fluxtable.rename_column(mag,mag.replace("W","WISE"))
             fluxtable.rename_column(err,err.replace("W","WISE"))
 
