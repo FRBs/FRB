@@ -294,11 +294,14 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     vistacols = sorted([col for col in mag_cols if "VISTA" in col])
     vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
 
-    wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-    for mag,err,fnu0 in zip(wisecols,wise_errcols,wise_fnu0):
+    wise_fnu0 = {'WISE_W1':309.54,
+                 'WISE_W2':171.787,
+                 'WISE_W3':31.674,
+                 'WISE_W4':8.363} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
+    for mag,err in zip(wisecols,wise_errcols):
         badmags = fluxtable[mag]<0
         fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        fluxtable[mag][~badmags] = wise_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
@@ -307,11 +310,14 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
             fluxtable.rename_column(err,err.replace("W","WISE"))
 
     #Convert VISTA fluxes to mJy
-    vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-    for mag,err,fnu0 in zip(vistacols,vista_errcols,vista_fnu0):
+    vista_fnu0 = {'VISTA_Y':2087.32,
+                  'VISTA_J':1554.03,
+                  'VISTA_H':1030.40,
+                  'VISTA_Ks':674.83} #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+    for mag,err in zip(vistacols,vista_errcols):
         badmags = fluxtable[mag]<0
         fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        fluxtable[mag][~badmags] = vista_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
