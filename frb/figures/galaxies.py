@@ -9,10 +9,84 @@ from matplotlib import pyplot as plt
 
 from astropy.io import fits
 from astropy.table import Table
+from astropy import units
+from astropy.nddata import Cutout2D
+from astropy.wcs import WCS
+from astropy.visualization.wcsaxes import SphericalCircle
 
 from frb.figures import utils
 
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
+
+
+def sub_image(fig, hdu, FRB, img_center=None,
+              imsize=30*units.arcsec, vmnx = (None,None),
+              xyaxis=(0.15, 0.15, 0.8, 0.8), fsz=15.,
+              tick_spacing=None, invert=False,
+              cmap='Blues', cclr='red'):
+    """
+
+    Args:
+        fig:
+        hdu:
+        FRB:
+        img_center:
+        imsize:
+        vmnx:
+        xyaxis:
+        fsz:
+        tick_spacing:
+        invert:
+        cmap:
+        cclr:
+
+    Returns:
+
+    """
+
+    header = hdu[0].header
+    hst_uvis = hdu[0].data
+
+    size = units.Quantity((imsize, imsize), units.arcsec)
+    if img_center is None:
+        img_center = FRB.coord
+
+    cutout = Cutout2D(hst_uvis, img_center, size, wcs=WCS(header))
+
+    axIMG = fig.add_axes(xyaxis, projection=cutout.wcs)
+
+    lon = axIMG.coords[0]
+    lat = axIMG.coords[1]
+    #lon.set_ticks(exclude_overlapping=True)
+    lon.set_major_formatter('hh:mm:ss.s')
+    if tick_spacing is not None:
+        lon.set_ticks(spacing=tick_spacing)
+        lat.set_ticks(spacing=tick_spacing)
+    lon.display_minor_ticks(True)
+    lat.display_minor_ticks(True)
+    #
+    blues = plt.get_cmap(cmap)
+    d = axIMG.imshow(cutout.data, cmap=blues, vmin=vmnx[0], vmax=vmnx[1])
+    plt.grid(color='gray', ls='dashed')
+    axIMG.set_xlabel(r'\textbf{Right Ascension (J2000)}', fontsize=fsz)
+    axIMG.set_ylabel(r'\textbf{Declination (J2000)}', fontsize=fsz, labelpad=-1.)
+    if invert:
+        axIMG.invert_xaxis()
+
+    c = SphericalCircle((FRB.coord.ra, FRB.coord.dec),
+                        FRB.eellipse['a']*units.arcsec, transform=axIMG.get_transform('icrs'),
+                        edgecolor=cclr, facecolor='none')
+    axIMG.add_patch(c)
+
+    '''
+    ylbl = 0.05
+    axHST.text(0.05, ylbl, r'\textbf{HST/UVIS}', transform=axIMG.transAxes,
+               fontsize=isz, ha='left', color='black')
+    '''
+    utils.set_fontsize(axIMG, 15.)
+
+    return cutout, axIMG
+
 
 def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
             show_legend=True, bptdat=None):

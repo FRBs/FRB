@@ -31,6 +31,33 @@ def frb_121102():
     frb121102.from_json('FRB121102.json')
 
 
+def frb_180916():
+    """
+     FRB 180916.J0158+65
+        All of the data currently comes from Marcote et al. 2020
+        https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
+    """
+    coord = SkyCoord("01h58m00.75017s 65d43m00.3152s", frame='icrs')
+    name = 'FRB180916'
+    frb180916 = frb.FRB(name, coord,
+                        348.76*units.pc / units.cm**3,
+                        z_frb=0.0337)
+    # Error ellipse
+    frb180916.set_ee(0.0023, 0.0023, 0., 68.)
+    # Error in DM
+    frb180916.DM_err = 0.10 * units.pc / units.cm**3
+    # NE2001
+    frb180916.set_DMISM()
+    #
+    #frb180924.fluence = 16 * units.Jy * units.ms
+    #frb180924.fluence_err = 1 * units.Jy * units.ms
+    #
+    # References
+    frb180916.refs = ['Marcote2020']
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb180916.write_to_json(path=path)
+
 def frb_180924():
     """
     FRB 180924
@@ -153,15 +180,16 @@ def frb_190523():
     frb190523.write_to_json(path=path)
 
 def frb_190608():
-    """Bhandari+20, ApJL --
+    """Bhandari+20, ApJL, Day+20, in prep. --
     Macquart al. Nature
     """
     fname = 'FRB190608'
-    frb190608 = frb.FRB(fname, "J221604.74-075353.6",  # Pulled from Slack on 2019 Sep 20
+    frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
                         339.8 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
-    frb190608.set_ee(0.1, 0.1, 0., 95.)
+    frb190608.set_ee(0.19315, 0.18, 0., 68.) # Statistsical
+    frb190608.set_ee(0.178292, 0.18, 0., 68., stat=False)  # Systematic
     # Error in DM
     frb190608.DM_err = 1 * units.pc / units.cm**3
 
@@ -172,7 +200,7 @@ def frb_190608():
     #frb190102.RM_err = 1 * units.rad / units.m**2
 
     # References
-    frb190608.refs = ['Bhandari2019']
+    frb190608.refs = ['Bhandari2020','Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -247,7 +275,7 @@ def main(inflg='all'):
         frb_121102()
 
     # 180924
-    if flg & (2**1):
+    if flg & (2**1):  # 2
         frb_180924()
 
     # 181112
@@ -273,6 +301,11 @@ def main(inflg='all'):
     # 190611
     if flg & (2**7):  # 128
         frb_190611()
+
+    # 180916
+    if flg & (2**8): # 256
+        frb_180916()
+
 
 
 # Command line execution
