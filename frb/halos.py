@@ -21,6 +21,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import constants
 from astropy.table import Table
+from astropy.utils import isiterable
 
 # Speed up calculations
 m_p = constants.m_p.cgs.value  # g
@@ -461,10 +462,10 @@ def halomass_from_stellarmass(log_mstar,z=0):
     """ Halo mass from Stellar mass (Moster+2013)
 
     Args:
-        log_mstar (float): log10 of the galaxy stellar mass (solar masses)
+        log_mstar (float or numpy.ndarray): log10 of the galaxy stellar mass (solar masses)
 
     Returns:
-        float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
+        float or numpy.ndarray: log_Mhalo, log10 of the galaxy halo mass (solar masses)
     """
     try:
         log_mstar*z
@@ -473,7 +474,10 @@ def halomass_from_stellarmass(log_mstar,z=0):
 
     f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
     guess = 2+log_mstar
-    return fsolve(f, guess)
+    if isiterable(log_mstar):
+        return fsolve(f, guess)
+    else:
+        return fsolve(f, guess)[0]
 
 
 class ModifiedNFW(object):
