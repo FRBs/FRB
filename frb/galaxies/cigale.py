@@ -342,6 +342,23 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     return
 
 def host_run(photom, host, cigale_file=None):
+    """
+    Run CIGALE on an FRBGalaxy's photometry
+    and store results in a folder with the
+    FRBGalaxy's name.
+    Args
+    ----
+    photom (astropy Table): Table containing
+        galaxy photometry. Table columns
+        must be in the format '<SOURCE>_<BAND>'
+        and '<SOURCE>_<BAND>_err'.
+        e.g. SDSS_u, SDSS_u_err, Pan-STARRS_g
+    host (FRBGalaxy): A host galaxy.
+    cigale_file (str, optional): Name of main
+        CIGALE output file. Must be in the format
+        `<something>_CIGALE.fits`. No file is
+        renamed if nothing is provided.
+    """
     cigale_tbl = photom.copy()
     cigale_tbl['z'] = host.z
     cigale_tbl['ID'] = host.name
@@ -356,4 +373,4 @@ def host_run(photom, host, cigale_file=None):
         os.system('cp -rp {:s}/{:s}_best_model.fits {:s}'.format(host.name, host.name, model_file))
         photo_file = cigale_file.replace('CIGALE.fits', 'CIGALE_photo.dat')
         os.system('cp -rp {:s}/photo_observed_model_{:s}.dat {:s}'.format(host.name, host.name, photo_file))
-
+    return
