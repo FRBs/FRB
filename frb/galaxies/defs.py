@@ -59,16 +59,39 @@ for band in WISE_bands:
     valid_filters.append('WISE_{:s}'.format(band))
 
 # GMOS
+#south
 GMOS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in GMOS_bands:
-    valid_filters.append('GMOS_{:s}'.format(band))
+    valid_filters.append('GMOS_S_{:s}'.format(band))
+#north
+for band in GMOS_bands:
+    valid_filters.append('GMOS_N_{:s}'.format(band))
+
+#NOT
+NOT_bands = ['z']
+for band in NOT_bands:
+    valid_filters.append('NOT_{:s}'.format(band))
+
+#NIRI
+NIRI_bands = ['J']
+for band in NIRI_bands:
+    valid_filters.append('NIRI_{:s}'.format(band))
+
+#LRIS
+LRISb_bands = ['U', 'G', 'V', 'B']
+for band in LRISb_bands:
+    valid_filters.append('LRISb_{:s}'.format(band))
+
+LRISr_bands = ['V', 'R', 'I']
+for band in LRISr_bands:
+    valid_filters.append('LRISr_{:s}'.format(band))
 
 # VISTA (VIRCAM)
 VISTA_bands = ['Y','J','H','Ks']
 for band in VISTA_bands:
     valid_filters.append('VISTA_{:s}'.format(band))
 
-valid_photom = valid_filters
+valid_photom = valid_filters + ['EBV']  # Galactic
 
 ##############################################################
 # Line measurements -- Use linetools naming only!!!
