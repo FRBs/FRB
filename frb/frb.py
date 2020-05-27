@@ -155,7 +155,6 @@ class GenericFRB(object):
             print("Need to set coord first!")
         self.DMISM = mw.ismDM(self.coord)
 
-
     def set_ee(self, a, b, theta, cl, stat=True):
         """
         Set an error ellipse for the FRB position

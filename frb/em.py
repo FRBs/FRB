@@ -62,7 +62,7 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
         Quantity: DM at the source;  correct for (1+z)^-1 at your liking
     """
     # DM at the source
-    DM_s = 387 * units.pc / units.cm**2 * np.sqrt(L.to('kpc').value) * np.sqrt(
+    DM_s = 387 * units.pc / units.cm**3 * np.sqrt(L.to('kpc').value) * np.sqrt(
         ff/(cloudcloud * (1+eps**2)/4)) * np.sqrt(EM.to('pc/cm**6').value/600)
     # Return
     return DM_s

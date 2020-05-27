@@ -2,19 +2,12 @@
 import numpy as np
 
 from astropy.coordinates import SkyCoord
+from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
 from frb.galaxies.defs import valid_filters
 
-# Import check
-try:
-    from astroquery.heasarc import Heasarc
-    #from astroquery.xmatch import XMatch
-except ImportError:
-    print("Warning: You need to install astroquery to use the survey tools...")
-else:
-    # Instantiate
-    heasarc = Heasarc()
+from IPython import embed
 
 
 def clean_heasarc(catalog):
@@ -166,6 +159,49 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     # Return
     return summary_list
 
+def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
+                     RACol1 = "ra", DecCol1 = "dec",
+                     RACol2 = "ra", DecCol2 = "dec"):
+    """
+    Cross matches two astronomical catalogs and returns
+    the matched tables.
+    Args:
+        cat1, cat2: astropy Tables
+            Two tables with sky coordinates to be
+            matched.
+        skydist: astropy Quantity, optional
+            Maximum separation for a valid match.
+            5 arcsec by default.
+        RACol1, RACol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain RA in degrees.
+        DecCol1, DecCol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain Dec in degrees.
+        zCol1, zCol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain redshift in degrees.
+            Matches in 3D if supplied. Both should be given.
+    returns:
+        match1, match2: astropy Table
+            Tables of matched rows from cat1 and cat2.
+    """
+
+    # TODO add assertion statements to test input validity.
+     
+    # Get corodinates
+    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit = "deg")
+    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit = "deg")
+
+    # Match 2D
+    idx, d2d, _ = cat1_coord.match_to_catalog_sky(cat2_coord)
+
+    # Get matched tables
+    match1 = cat1[d2d < skydist]
+    match2 = cat2[idx[d2d < skydist]]
+
+    return match1, match2
+
 def _detect_mag_cols(photometry_table):
     """
     Searches the column names of a 
@@ -191,7 +227,8 @@ def _detect_mag_cols(photometry_table):
     
     return photom_cols.tolist(), photom_errcols.tolist()
 
-def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
+
+def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     """
     Takes a table of photometric measurements
     in mags and converts it to flux units.
@@ -200,9 +237,9 @@ def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
         photometry_table (astropy.table.Table):
             A table containing photometric
             data from a catlog.
-        fluxunits (astropy PrefixUnit, optional):
+        fluxunits (str, optional):
             Flux units to convert the magnitudes
-            to. Default is mJy.
+            to, as parsed by astropy.units. Default is mJy.
         Returns:
             fluxtable: astropy Table
                 `photometry_table` but the magnitudes
@@ -240,17 +277,27 @@ def convert_mags_to_flux(photometry_table, fluxunits=units.mJy):
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+
     #For all other photometry:
     other_mags = np.setdiff1d(mag_cols,wisecols)
     other_errs = np.setdiff1d(mag_errcols,wise_errcols)
 
-    for mag,err in zip(other_mags,other_errs):
-        badmags = fluxtable[mag]<0
+
+
+    for mag, err in zip(other_mags, other_errs):
+        badmags = fluxtable[mag] < 0
         fluxtable[mag][badmags] = -99.0
         fluxtable[mag][~badmags] = 3630.7805*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
-        baderrs = fluxtable[err]<0
-        fluxtable[err][baderrs]=-99.0
+
+        baderrs = fluxtable[err] < 0
+        fluxtable[err][baderrs] = -99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+
+        # Upper limits -- Assume to have been recorded as 3 sigma
+        #   Arbitrarily set the value to 1/3 of the error (could even set to 0)
+        uplimit = photometry_table[err] == 999.
+        fluxtable[err][uplimit] = fluxtable[mag][uplimit] / 3.
+        fluxtable[mag][uplimit] = fluxtable[mag][uplimit] / 9.
     return fluxtable
     
     

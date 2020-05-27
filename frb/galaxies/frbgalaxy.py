@@ -229,7 +229,7 @@ class FRBGalaxy(object):
         SFR = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'], self.cosmo, AV=AV)
         self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
 
-    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True):
+    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True, EBV=None):
         """
         Parse photometry from an input table
 
@@ -239,6 +239,8 @@ class FRBGalaxy(object):
             phot_tbl (astropy.table.Table):
             max_off (Angle, optional):
             overwrite (bool, optional):
+            EBV (float, optional):  Galactic reddening.  If included, the photometry
+               has been corrected for this.  If not, who knows?!  :)
 
         Returns:
 
@@ -257,10 +259,17 @@ class FRBGalaxy(object):
                 if (filter in self.photom.keys()) and (not overwrite):
                     pass
                 else:
-                    self.photom[filter] = phot_tbl[filter][row]
-                    # Try error
-                    if filter+'_err' in phot_tbl.keys():
-                        self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+                    # -999. is used as empty fill value
+                    if phot_tbl[filter][row] < -990:
+                        pass
+                    else:
+                        self.photom[filter] = phot_tbl[filter][row]
+                        # Try error
+                        if filter+'_err' in phot_tbl.keys():
+                            self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+        # EBV
+        if EBV is not None:
+            self.photom['EBV'] = EBV
     
     def gen_cigale_data_in(self, ID=None, filename='data.fits', overwrite=False):
         """

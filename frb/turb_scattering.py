@@ -12,6 +12,8 @@ from astropy import constants
 from astropy import units
 from astropy.cosmology import Planck15
 
+from IPython import embed
+
 # Constants
 const_re = constants.alpha**2 * constants.a0
 
@@ -204,6 +206,7 @@ def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*un
         print("D_S", D_S.to('Gpc'))
         print("D_L", D_L.to('Gpc'))
         print("D_LS", D_LS.to('Gpc'))
+        embed(header='211 of turb_scattering')
 
     # Redshift
     z_scale = (1+zL)**(17/12) / zterm
