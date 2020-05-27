@@ -420,17 +420,13 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     https://doi.org/10.1093/mnras/sts261
 
     Args:
-        log_Mhalo:
-
+        log_Mhalo (float): log_10 halo mass
+            in solar mass units. 
+        z (float, optional): halo redshift.
+            Assumed to be 0 by default.
     Returns:
-
-
-    Args:
-      log_Mhalo: float
-        log10 of the galaxy halo mass (solar masses)
-
-    Returns:
-        float: log_mstar, log10 of the galaxy stellar mass (solar masses)
+        log_mstar (float): log_10 galaxy stellar mass
+            in solar mass units.
     """
         
     # Define model parameters from Table 1
@@ -462,13 +458,18 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
 
 
 def halomass_from_stellarmass(log_mstar,z=0):
-    """ Halo mass from Stellar mass (Moster+2013)
+    """ Halo mass from Stellar mass (Moster+2013).
+    Inverts the function `stellarmass_from_halomass`
+    numerically.
 
     Args:
-        log_mstar (float): log10 of the galaxy stellar mass (solar masses)
+        log_mstar (float): log_10 stellar mass
+            in solar mass units.
+        z (float, optional): galaxy redshift
 
     Returns:
-        float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
+        log_Mhalo (float): log_10 halo mass
+            in solar mass units. 
     """
     try:
         log_mstar*z
