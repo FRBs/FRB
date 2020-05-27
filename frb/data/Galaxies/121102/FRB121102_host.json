@@ -30,10 +30,10 @@
         "[OIII] 5007_err": 8.379935678693262e-18
     },
     "photom": {
-        "GMOS_i": 23.9,
-        "GMOS_i_err": 0.1,
-        "GMOS_r": 25.1,
-        "GMOS_r_err": 0.1
+        "GMOS_N_i": 23.9,
+        "GMOS_N_i_err": 0.1,
+        "GMOS_N_r": 25.1,
+        "GMOS_N_r_err": 0.1
     },
     "ra": 82.99450790537921,
     "redshift": {
