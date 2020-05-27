@@ -90,7 +90,7 @@ def frb_180924():
     frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.)
 
     # References
-    frb180924.refs = ['Bannister2019',, 'Day2020']
+    frb180924.refs = ['Bannister2019', 'Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
