@@ -11,7 +11,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import units
 
-from frb.halos import ModifiedNFW
+from frb.halos import ModifiedNFW, M31
 from frb import halos as frb_halos
 from frb import igm as frb_igm
 
@@ -20,7 +20,7 @@ from ne2001 import density
 
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
                 IGM_only=True, smin=0.1,
-                M31=None, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
+                show_M31=None, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
 
@@ -43,7 +43,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
             ymin, ymax values for the y-axis
         IGM_only (bool, optional):
             Use only the IGM for DM_Cosmic, i.e. ignore the presumed average halo contribution
-        M31 (bool, optional):
+        show_M31 (bool, optional):
             Include M31 in the calculation?
             NOT IMPLEMENTED RIGHT NOW
         fg_halos (dict or Table):
@@ -52,7 +52,10 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         smin (float, optional):
             Minimum value in axis2 (Gpc)
         dsmx (float, optional): Padding on the x-axis;  Gpc
+            Allows for host.  Set to 0 to ignore host
         FRB_DM (float): Observed value;  sets ymax = FRB_DM+50
+        yscl (float, optional):
+            Controls placement of labels
 
     """
     if halos:
@@ -96,7 +99,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
     DM_ISM_Halo = DM_cumul[-1]
 
-    if M31 is not None:
+    if show_M31:
         raise NotImplemented
         # M31
         m31 = M31()
@@ -178,13 +181,13 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
     ax1.text(0.15, max_y * yscl, r'\textbf{Galactic}'+'\n'+r'\textbf{ISM}', color='black', fontsize=lsz, ha='left', va='top')
     ax1.fill_between((10., mnfw_2.r200.value), 0, max_y, color='blue', alpha=0.4)  # Galactic Halo
     ax1.text(12., max_y * yscl, r'\textbf{Galactic}'+'\n'+r'\textbf{Halo}', color='black', fontsize=lsz, ha='left', va='top')
-    if M31:
+    if show_M31:
         ax1.fill_between((mnfw_2.r200.value, 2e3), 0, max_y, color='red', alpha=0.4)  # Galactic Halo
         ax1.text(300., max_y * yscl, r'\texgbf{M31}', color='black', fontsize=lsz, ha='left', va='top')
 
     ax1.set_xscale("log", nonposx='clip')
     # ax.set_yscale("log", nonposy='clip')
-    if M31:
+    if show_M31:
         ax1.set_xlim(0.1, 2e3)  # kpc
     else:
         ax1.set_xlim(0.1, mnfw_2.r200.value)  # kpc
@@ -203,6 +206,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
     ax2.set_xlabel(r'\textbf{Distance (Gpc)}')
 
     smax = cosmo.comoving_distance(zFRB).to('Gpc').value
+    #ax2.fill_between((0.1, smax-dsmx), 0, max_y, color='gray', alpha=0.4)  # Galactic Halo
     ax2.fill_between((smin, smax-dsmx), 0, max_y, color='gray', alpha=0.4)  # Cosmic
     ilbl = r'\textbf{Cosmic}'
     ax2.text(0.2, max_y * yscl, ilbl, color='black', fontsize=lsz, ha='left', va='top')
@@ -215,6 +219,6 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         ax2.set_xlim(smin, smax)  # Gpc
 
     if FRB_DM is not None:
-        ax1.axhline(y=FRB_DM, ls='--', color='black')
-        ax2.axhline(y=FRB_DM, ls='--', color='black')
+        ax1.axhline(y=FRB_DM, ls='--', color='black', lw=3)
+        ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
 
