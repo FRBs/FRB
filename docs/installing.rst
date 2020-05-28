@@ -60,6 +60,12 @@ The following are required to run spectral line analysis (e.g. frb.galaxies.nebu
 
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 
+The following are required to use our KCWI datacube handling tools:
+
+* `SEP <https://github.com/kbarbary/sep>`_ version 1.0 or later
+* `spectralcube <https://github.com/radio-astro-tools/spectral-cube>`_ version 0.4.5 or later
+* `pyregion <https://github.com/astropy/pyregion>`_ version 2.0 or later
+
 The following are required to run some of the halo codes:
 
 * `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
