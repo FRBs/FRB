@@ -24,9 +24,8 @@ def fukugita04_dict():
     """
     Data from Fukugita 2004, Table 1
 
-    Returns
-    -------
-    f04_dict: dict
+    Returns:
+      f04_dict (dict): data dict.
 
     """
     f04_dict = {}
@@ -48,15 +47,13 @@ def average_fHI(z, z_reion=7.):
     1 = neutral
     0 = fully ionized
 
+    Args:
+      z (float or ndarray): redshift
+      z_reion (float, optional): redshift
+        of reionization.
 
-    Parameters
-    ----------
-    z
-    z_reion
-
-    Returns
-    -------
-    fHI: float or ndarray
+    Returns:
+      fHI (float or ndarray): float or ndarray
     """
     z, flg_z = z_to_array(z)
     fHI = np.zeros_like(z)
@@ -78,16 +75,14 @@ def average_He_nume(z, z_HIreion=7.):
     Following Kulkarni, Worseck & Hennawi 2018
         https://arxiv.org/abs/1807.09774
 
+    Args:
+      z (float or ndarray): Redshift
+      z_HIreion (float, optional): Helium reionization
+        redshift.
 
-    Parameters
-    ----------
-    z: float or ndarray
-      Redshift
-
-    Returns
-    -------
-    neHe: ndarray
-      Number of free electrons per Helium nucelus
+    Returns:
+      neHe (float or ndarray): Number of free electrons
+        per Helium nucelus.
 
     """
     z, flg_z = z_to_array(z)
@@ -122,16 +117,15 @@ def z_from_DM(DM, cosmo = Planck15, coord=None, corr_nuisance=True):
     Any contributions from the Galaxy and/or host need to have been 'removed'
 
     Args:
-        DM (Quantity):
-        cosmo (astropy.cosmology, optional):
-        coord (astropy.coordinate.SkyCoord, optional):
-           If provided, use it to remove the ISM
-        corr_nuisance (bool, optional):
-            If True, correct for the MW Halo and the host with
-            100 DM units
-
+      DM (Quantity): Dispersion measure.
+      cosmo (Cosmology, optional): Cosmology
+        of the universe. LambdaCDM with Planck15 parameters
+        used by default.
+      coord (SkyCoord, optional): If provided, use it to remove the ISM
+      corr_nuisance (bool, optional): If True, correct for the MW Halo
+        and the host with 100 DM units.
     Returns:
-        float: Redshift
+        z (float): Redshift
 
     """
     if coord is not None:
@@ -161,20 +155,16 @@ def f_diffuse(z, cosmo = Planck15, return_rho = False):
   ionization state.
 
   Args:
-    z: float or ndarray
-      Redshift
-    cosmo: astropy Cosmology, optional
-      Cosmology of the universe.
-    return_rho: bool, optional
-      If true, the diffuse gas density
+    z (float or ndarray): Redshift
+    cosmo (Cosmology, optional): Cosmology of
+      the universe.
+    return_rho (bool, optional): If true, 
+      the diffuse gas density
       is returned too.
   Returns:
-    f_diffuse: float, ndarray
-      Diffuse gas baryon fraction.
-    rho_diffuse: astropy quantity
-      Physical diffuse gas density.
-      Returned if return_rho
-      is set to true.
+    f_diffuse (float, ndarray): Diffuse gas baryon fraction.
+    rho_diffuse (Quantity): Physical diffuse gas density.
+      Returned if return_rho is set to true.
   """
   # Get comoving baryon mass density
   rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
@@ -195,17 +185,13 @@ def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
   Calculate the average cosmic electron
   number density as a function of redshift.
   Args:
-    z: float or ndarray
-      Redshift
-    cosmo: astropy Cosmology, optional
-      Cosmology in which the calculations
-      are to be performed.
-    mu: float
-      Reduced mass
+    z (float or ndarray): Redshift
+    cosmo (Cosmology, optional): Cosmology in 
+      which the calculations are to be performed.
+    mu (float): Reduced mass
   Returns:
-    ne_cosmic: astropy Quantity
-      Average physical number density of
-      electrons in the unverse in cm^-3.
+    ne_cosmic (Quantity): Average physical number
+      density of electrons in the unverse in cm^-3.
   """
   # Get diffuse gas density
   _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
@@ -226,15 +212,16 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
     This includes both the IGM and galactic halos, i.e. any and all diffuse gas
 
     Args:
-        z: float
-          Redshift
-        mu: float
-          Reduced mass correction for He when calculating n_H
-        cumul: bool, optional
-          Return the DM as a function of z
+        z (float): Redshift
+        mu (float): Reduced mass correction for He when calculating n_H
+        cumul (bool, optional): Return the DM as a function of z
 
     Returns:
-        Quantity (cumul=False) or Quantity, ndarray (cumul=True): DM, zeval
+        DM (Quantity or Quantity array): DM values evaluated at
+          the required redshifts. An array is returned only if
+          cumul is True.
+        zeval (ndarray): evaluation redshifts. Only returned if
+          cumul is True.
     """
     # Init
     zeval, dz = np.linspace(0., z, neval,retstep=True)
@@ -260,31 +247,22 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, ne
     Average DM_halos term from halos along the sightline to an FRB
 
     Args:
-        z: float
-          Redshift of the FRB
-        cosmo: astropy Cosmology
-          Cosmology in which the calculations
+        z (float): Redshift of the FRB
+        cosmo (Cosmology): Cosmology in which the calculations
           are to be performed.
-        f_hot: float, optional
-          Fraction of the halo baryons in diffuse phase.
-        rmax: float, optional
-          Size of a halo in units of r200
-        logMmin: float, optional
-          Lowest mass halos to consider
+        f_hot (float, optional): Fraction of the halo baryons in diffuse phase.
+        rmax (float, optional): Size of a halo in units of r200
+        logMmin (float, optional): Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
           The code deals with h^-1 factors, i.e. do not impose it yourself
-        neval: int, optional
-          Number of redshift values between
+        neval (int, optional): Number of redshift values between
           0 and z the function is evaluated at.
-        cumul: bool, optional
-          Return a cumulative evaluation?
+        cumul (bool, optional): Return a cumulative evaluation?
 
     Returns:
-        DM_halos: Quantity or Quantity array
-          One value if cumul=False
+        DM_halos (Quantity or Quantity array): One value if cumul=False
           else evaluated at a series of z
-        zeval: ndarray, optional
-          Evaluation redshifts if cumul=True
+        zeval (ndarray): Evaluation redshifts if cumul=True
     """
 
     zeval, dz = np.linspace(0, z, neval, retstep = True)
@@ -320,30 +298,26 @@ def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neva
     Estimate DM_IGM in a cumulative fashion
 
     Args:
-        z: float
-          Redshift of the FRB
-        cosmo: astropy Cosmology
-          Cosmology in which the calculations
-          are to be performed.
-        f_hot: float, optional
-          Fraction of the halo baryons in diffuse phase.
-        rmax: float, optional
+        z (float): Redshift of the FRB
+        cosmo (Cosmology, optional): Cosmology in which 
+          the calculations are to be performed. LambdaCDM
+          with Planck15 parameters assumed by default.
+        f_hot (float, optional): Fraction of the halo
+          baryons in diffuse phase.
+        rmax (float, optional):
           Size of a halo in units of r200
-        logMmin: float, optional
-          Lowest mass halos to consider
-          Cannot be much below 10.3 or the Halo code barfs
-          The code deals with h^-1 factors, i.e. do not impose it yourself
-        neval: int, optional
-          Number of redshift values between
+        logMmin (float, optional):
+          Lowest mass halos to consider. Cannot be much below
+          10.3 or the Halo code barfs. The code deals with
+           h^-1 factors, i.e. do not impose it yourself
+        neval (int, optional): Number of redshift values between
           0 and z the function is evaluated at.
-        cumul: bool, optional
+        cumul (bool, optional):
           Return a cumulative evaluation?
     Returns:
-        DM: Quantity or Quantity array
-          One value if cumul=False
+        DM (Quantity or Quantity array): One value if cumul=False
           else evaluated at a series of z
-        zeval: ndarray, optional
-          Evaluation redshifts if cumul=True
+        zeval (ndarray, optional): Evaluation redshifts if cumul=True
     """
     # DM cosmic
     DM_cosmic, zeval = average_DM(z, cosmo = cosmo, cumul=True, neval=neval)
@@ -368,16 +342,11 @@ def avg_rhoISM(z):
     Assumes z=0 properties for z<1
     and otherwise M_ISM = M* for z>1
 
-    Parameters
-    ----------
-    z: float or ndarray
-      Redshift
+    Args:
+      z (float or ndarray): Redshift
 
-    Returns
-    -------
-    rhoISM : Quantity
-      Units of Msun/Mpc^3
-
+    Returns:
+      rhoISM (Quantity): Units of Msun/Mpc^3
     """
     # Init
     z, flg_z = z_to_array(z)
@@ -403,18 +372,12 @@ def avg_rhoMstar(z, remnants=True):
     Return mass density in stars as calculated by
     Madau & Dickinson (2014)
 
-    Parameters
-    ----------
-    z: float or ndarray
-      Redshift
-    remnants: bool, optional
-      Include remnants in the calculation?
+    Args:
+      z (float or ndarray): Redshift
+      remnants (bool, optional): Include remnants in the calculation?
 
-    Returns
-    -------
-    rho_Mstar: Quantity
-      Units of Msun/Mpc^3
-
+    Returns:
+      rho_Mstar (Quantity): Units of Msun/Mpc^3
     """
     # Init
     z, flg_z = z_to_array(z)

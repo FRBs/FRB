@@ -74,7 +74,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     return merge_tbl
 
 
-def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
+def extinction_correction(filter, EBV, RV=3.1, max_wave=None, required=True):
     """
     calculate MW extinction correction for given filter
 
@@ -91,6 +91,8 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
             If set, cut off the calculation at this maximum wavelength.
             A bit of a hack for the near-IR, in large part because the
             MW extinction curve ends at 1.4 microns.
+        required (bool, optional):
+            Crash out if the transmission curve is not present
 
     Returns:
              float: linear extinction correction
@@ -104,6 +106,13 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     else:
         _filter = filter
     filter_file = os.path.join(path_to_filters, _filter+'.dat')
+    if not os.path.isfile(filter_file):
+        msg = "Filter {} is not in the Repo.  Add it!!".format(filter_file)
+        if required:
+            raise IOError(msg)
+        else:
+            warnings.warn(msg)
+            return 1.
     filter_tbl = Table.read(filter_file, format='ascii')
 
     #get wave and transmission (file should have these headers in first row)
@@ -131,7 +140,7 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     return correction
 
 
-def correct_photom_table(photom, EBV, name, max_wave=None):
+def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     """
     Correct the input photometry table for Galactic extinction
     Table is modified in place
@@ -147,6 +156,8 @@ def correct_photom_table(photom, EBV, name, max_wave=None):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
         name (str):\
             Name of the object to correct
+        required (bool, optional):
+            Crash out if the transmission curve is not present
 
     """
     # Cut the table
@@ -180,7 +191,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None):
         else:
             _filter = filter
         # Do it
-        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave)
+        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
         cut_photom[key] += mag_dust
     # Add it back in

@@ -495,9 +495,20 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     host190523_S1.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
                                          'S1_190523_CIGALE.fits'))
 
+    # Nebular flux measured by a hand (Gaussian fit) by JXP on 2020-05-19
+    #   Corrected for Galactic extinction but not internal
+    neb_lines = {}
+    neb_lines['Hbeta'] = 3e-18
+    neb_lines['Hbeta_err'] = -999
+
+    host190523_S1.neb_lines = neb_lines
+
+    # SFR
+    host190523_S1.calc_nebular_SFR('Hb')
+
     # Derived quantities
-    host190523_S1.derived['SFR_nebular'] = 1.3
-    host190523_S1.derived['SFR_nebular_err'] = -999.
+    #host190523_S1.derived['SFR_nebular'] = 1.3
+    #host190523_S1.derived['SFR_nebular_err'] = -999.
 
     # Vet all
     host190523_S1.vet_all()
