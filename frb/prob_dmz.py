@@ -84,7 +84,6 @@ def grid_P_DMcosmic_z(beta=3., F=0.31):
         raise IOError("Not prepared for this beta value (yet)")
     # Load
     # sigma_DM
-    spl_sigma = grab_sigma_spline()
     f_C0_3 = grab_C0_spline()
 
     # Grid
