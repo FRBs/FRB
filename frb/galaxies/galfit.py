@@ -21,74 +21,82 @@ from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from astropy.table import Table
 from astropy.wcs import WCS
+import re
 
-def genconf(imgfile:str, psffile:str,
-            configfile:str=None, outfile:str=None,
+
+
+def _genconf(imgfile:str, psffile:str,
+            configfile:str=None, outdir:str=None, outfile:str=None,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
             region:tuple = None, convobox:tuple = (100,100),
             zeropoint:float = 25.0, platescale:float = 0.125,
             position:tuple = None, int_mag:float = None,
-            r_e:float = None, n:float = 1.0, b/a:float = 0.5,
+            r_e:float = None, n:float = 1.0, axis_ratio:float = 0.5,
             pa:float = 0, skip_sky:bool = False):
     """
     Creates a configuration file for GALFIT. Conventionally,
     GALFIT is run using the command: `galfit <config-file>`.
-    Args
-    ----
-    imgfile (str): path to the image fits file.
-    psffile (str): path to the PSF model fits file.
-    configfile (str, optional): path to configuration file to
-        be created via this function.
-    outfile (str, optional): path to GALFIT's output fits file.
-        Defaults to `out.fits`
-    finesample (int, optional): The PSF fine-sampling factor.
-        Assumes no fine-sampling (i.e. a factor of 1) by default.
-    badpix (str, optional): File containing a list of bad pixels.
-        Assumes all pixels a re fine by default.
-    constraints (str, optional): File containing fit parameter
-        bounds. Check out this example constraints file
-        https://users.obs.carnegiescience.edu/peng/work/galfit/EXAMPLE.CONSTRAINTS
-        to learn how to use one.
-    region (tuple, optional): Pixel coordinate bounds for the fitting.
-        Required format: (xmin, xmax, ymin, ymax). All of the
-        elements must be ints!
-    convobox (tuple, optional): Size of the convolution box
-        used to assess the model fit chi-squared value.
-        Required format: (x_box:int , y_box:int)
-    zeropoint (float, optional): Zeropoint of the image
-        to compute the model magnitude.
-    platescale (float, optional): Size of pixel in arcsec.
-        Assumes 0.125''/pixel by default.
-    position (tuple, optional): Guess for the centroid
-        of the model fit. Required format (x_cen:float, y_cen:float).
-        Assumes the center of the image is the initial guess by
-        default.
-    int_mag (float, optional): Initial guess for the 
-        integrated magnitude. Taken as the magnitude
-        corresponding to the sum of all counts in the
-        region to be fit.
-    r_e (float, optional): Initial guess for
-        the half light radius in pixels. Assumes
-        half the size of the fitting region by default.
-    n (float, optional): initial guess for the Sersic
-        index.
-    b/a (float, optional): Initial guess for
-        the ratio of minor to major axis of the fit model.
-    PA (float, optional): Initial guess for the 
-        angle of the major axis counter clockwise 
-        relative to the vertical.
-    skip_sky (bool, optional): Do you also want
-        to fit a constant sky background? Set to 
-        false if your sky background is 0.
-    Returns
-    -------
-    configfile (str): Path to the configuration
-        file.
+    Args:
+        imgfile (str): path to the image fits file.
+        psffile (str): path to the PSF model fits file.
+        outdir (str): Name of output directory. Default
+            value is 'galfit_out` in the current directory.
+        configfile (str, optional): path to configuration file to
+            be created via this function. Defaults to `<outdir>/galfit.feedme`.
+        outfile (str, optional): path to GALFIT's output fits file.
+            Defaults to `<outdir>/out.fits`
+        finesample (int, optional): The PSF fine-sampling factor.
+            Assumes no fine-sampling (i.e. a factor of 1) by default.
+        badpix (str, optional): File containing a list of bad pixels.
+            Assumes all pixels a re fine by default.
+        constraints (str, optional): File containing fit parameter
+            bounds. Check out this example constraints file
+            https://users.obs.carnegiescience.edu/peng/work/galfit/EXAMPLE.CONSTRAINTS
+            to learn how to use one.
+        region (tuple, optional): Pixel coordinate bounds for the fitting.
+            Required format: (xmin, xmax, ymin, ymax). All of the
+            elements must be ints!
+        convobox (tuple, optional): Size of the convolution box
+            used to assess the model fit chi-squared value.
+            Required format: (x_box:int , y_box:int)
+        zeropoint (float, optional): Zeropoint of the image
+            to compute the model magnitude.
+        platescale (float, optional): Size of pixel in arcsec.
+            Assumes 0.125''/pixel by default.
+        position (tuple, optional): Guess for the centroid
+            of the model fit. Required format (x_cen:float, y_cen:float).
+            Assumes the center of the image is the initial guess by
+            default.
+        int_mag (float, optional): Initial guess for the 
+            integrated magnitude. Taken as the magnitude
+            corresponding to the sum of all counts in the
+            region to be fit.
+        r_e (float, optional): Initial guess for
+            the half light radius in pixels. Assumes
+            half the size of the fitting region by default.
+        n (float, optional): initial guess for the Sersic
+            index.
+        axis_ratio (float, optional): Initial guess for
+            the ratio of minor to major axis of the fit model.
+        PA (float, optional): Initial guess for the 
+            angle of the major axis counter clockwise 
+            relative to the vertical.
+        skip_sky (bool, optional): Do you also want
+            to fit a constant sky background? Set to 
+            false if your sky background is 0.
+    Returns:
+        configfile (str): Path to the configuration
+            file.
     """
+    if outdir is None:
+        outdir = "galfit_out"
+    if not os.path.isdir(outdir):
+        os.mkdir(outdir)
     if configfile is None:
         warnings.warn("Creating a configuration file here")
-        configfile = "galfit.feedme"
+        configfile = os.path.join(outdir, "galfit.feedme")
+    
     with open(configfile,"w+") as fstream:
         #Image parameters.
         fstream.write("""===============================================================================\n
@@ -99,7 +107,7 @@ def genconf(imgfile:str, psffile:str,
         if outfile is None:
             warnings.warn("Creating output file here")
             outfile = "out.fits"
-        fstream.write("B) {:s}  # Output data image block\n".format(outfile))
+        fstream.write("B) {:s}  # Output data image block\n".format(os.path.join(outdir,outfile)))
         fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
         assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
         fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
@@ -136,7 +144,7 @@ def genconf(imgfile:str, psffile:str,
         fstream.write("5) {:f} 1 # sersic index\n".format(n))
         for num in [6,7,8]:
             fstream.write("{:d}) 0.0000 0 # ----\n".format(num))
-        fstream.write("9) {:f} 1 # Axis ratio (b/a)\n".format(b/a))
+        fstream.write("9) {:f} 1 # Axis ratio (b/a)\n".format(axis_ratio))
         fstream.write("10) {:f} 1 # Position angle (PA) [deg: Up=0, left =90]\n".format(pa))
         fstream.write("Z) 0 # Skip this model? (yes=1,no=0)\n\n")
         if not skip_sky:
@@ -150,101 +158,193 @@ def genconf(imgfile:str, psffile:str,
         fstream.write("================================================================================\n")
     return configfile
 
-def run(imgfile, psffile,**kwargs):
+def read_fitlog(outfile, initfile):
     """
-    Run galfit. The arguments are
-    the same as genconf.
+    Reads the output fit.log
+    file and returns the sersic fit parameters
     """
-    configfile = genconf(imgfile,psffile,**kwargs)
-    os.system("galfit {:s}".format(configfile))
-    return 0
-
-def pix2coord(sersic_tab, wcs, platescale):
-    """
-    Takes the output table from galfit's
-    fit.log file and converts all pixel
-    measurements to physical measurements.
-    Args
-    ----
-    sersic_tab (Table): Raw sersic
-        fit parameter table
-    wcs (WCS): transformation to
-        go from pixels to angular units
-    platescale (Quantity): angular size
-        per pixel.
-    Returns
-    -------
-    sky_tab (Table): Sersic table
-        translated to angular units
-        on the sky.
-    """
-
-    sky_tab = Table()
-    platescale = platescale.to(u.arcsec)
-
-    # First read the invariants
-    sky_tab['b/a'] = sersic_tab['b/a']
-    sky_tab['b/a_err'] = sersic_tab['b/a_err']
-    sky_tab['n'] = sersic_tab['n']
-    sky_tab['n_err'] = sersic_tab['n_err']
-    sky_tab['PA'] = sersic_tab['PA']
-    sky_tab['PA_err'] = sersic_tab['PA_err']
-    sky_tab['mag'] = sersic_tab['mag']
-    sky_tab['mag_err'] = sersic_tab['mag_err']
-
-    # Read in centroids next
-    xpix, ypix = sersic_tab['x']-1, sersic_tab['y']-1
-    centr_coords = wcs.pixel_to_world(xpix, ypix)
-    sky_tab['ra'] = centr_coords.ra.value
-    sky_tab['dec'] = centr_coords.dec.value
-
-    sky_tab['ra_err'] = sersic_tab['x_err']*platescale
-    sky_tab['dec_err'] = sersic_tab['y_err']*platescale
-
-    # Read in r_e next.
-    sky_tab['reff_ang'] = sersic_tab['reff_ang']*platescale
-    sky_tab['reff_ang_err'] = sersic_tab['reff_ang_err']*platescale
-
-    # Reorder columns
-    sky_tab = sky_tab['ra','ra_err', 'dec','dec_err', 'mag','mag_err','reff_ang', 'reff_ang_err', 'n', 'n_err','b/a','b/a_err','PA','PA_err']
-
-    return sky_tab
-
-
-def read_fitlog(outfile, plate_scale, initfile):
+    # TODO: create a regex expression to look for blocks
+    # in the fit.log file. Then create an expression
+    # to lock for model sub-blocks within each block. 
     lines = [line.rstrip('\n') for line in open(outfile)]
     instance = []  # going to put all instances of use of input file here
     for kk, line in enumerate(lines):  # for all lines in fit.log
-        if line == 'Init. par. file : ' + str(initfile) + ' ':  # if the it is from the input file used
-            print('yes/')
+        if 'Init. par. file : ' + str(initfile) in line:  # if the it is from the input file used
             for pp, item in enumerate(lines[kk:kk + 10]):
-                if item[1:7] == 'sersic':  # look for the sersic fit model
-                    print(item, pp)
+                if 'sersic' in item:  # look for the sersic fit model
+                    # This assumes each fitting had a single
+                    # sersic model fit.
+                    # TODO: accommodate more complex fits.
                     instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
 
     fit_out, line, err_out = instance[-1]  # only keep the latest one
 
-    galfit = {} #initialize dictionary to store model output
+    # Use regex to identify all floats in fit_out and err_out
+    float_regex = r"\d+\.\d+" # Any string of the form <int>.<int> (which is just a float)
+
+    # Find all instances of float in the strings and convert from string to float
+    fitparams = np.array(re.findall(float_regex, fit_out)).astype('float')
+    fiterrs = np.array(re.findall(float_regex, err_out)).astype('float')
 
     #Store values
-    prss = fit_out.split(' ')
-    keepp = [obj for obj in prss if obj != '']  # Remove white spaces
-    galfit['PA'] = float(keepp[-1])
-    galfit['b/a'] = float(keepp[-2])
-    galfit['n'] = float(keepp[-3])
-    galfit['reff_ang'] = float(keepp[-4])*plate_scale
+    pix_dict = {'x':fitparams[0], 'y':fitparams[1],
+              'mag':fitparams[2], 'reff':fitparams[3],
+              'n':fitparams[4], 'b/a':fitparams[5], 'PA':fitparams[6],
+              'x_err':fiterrs[0], 'y_err':fiterrs[1],
+              'mag_err':fiterrs[2], 'reff_err':fiterrs[3],
+              'n_err':fiterrs[4], 'b/a_err':fiterrs[5], 'PA_err':fiterrs[6],
+              }
 
-    #Store error values
-    prss = err_out.split(' ')
-    keepp = [obj for obj in prss if obj != '']  # Remove white spaces
-    galfit['PA_err'] = float(keepp[-1])
-    galfit['b/a_err'] = float(keepp[-2])
-    galfit['n_err'] = float(keepp[-3])
-    galfit['reff_ang_err'] = float(keepp[-4]) * plate_scale
+    return pix_dict
 
-    return galfit
+def pix2coord(pix_dict, wcs, platescale, table=False):
+    """
+    Takes the output table from galfit's
+    fit.log file and converts all pixel
+    measurements to physical measurements.
+    Args:
+        pix_dict (dict): Raw sersic
+            fit parameter dict from fit.log
+        wcs (WCS): Input image WCS.
+        platescale (float): angular size
+            per pixel in arcsec.
+        table (bool, optional): Return as
+            a table instead?
+    Returns:
+        sky_dict (dict/Table): pix_dict
+            translated to angular units
+            on the sky.
+    """
 
-def surf_brightness(coord, sky_tab):
+    sky_dict = {}
+
+    # Centroids
+    xpix, ypix = pix_dict['x']-1, pix_dict['y']-1
+    centr_coords = wcs.pixel_to_world(xpix, ypix)
+    sky_dict['ra'] = centr_coords.ra.value
+    sky_dict['dec'] = centr_coords.dec.value
+    sky_dict['ra_err'] = pix_dict['x_err']*platescale
+    sky_dict['dec_err'] = pix_dict['y_err']*platescale
+    # Magnitude
+    sky_dict['mag'] = pix_dict['mag']
+    sky_dict['mag_err'] = pix_dict['mag_err']
+    # Half-light radius
+    sky_dict['reff_ang'] = pix_dict['reff']*platescale
+    sky_dict['reff_ang_err'] = pix_dict['reff_err']*platescale
+    # Sersic index
+    sky_dict['n'] = pix_dict['n']
+    sky_dict['n_err'] = pix_dict['n_err']
+    # Axis ratio
+    sky_dict['b/a'] = pix_dict['b/a']
+    sky_dict['b/a_err'] = pix_dict['b/a_err']
+    # Sky position angle
+    sky_dict['PA'] = pix_dict['PA']
+    sky_dict['PA_err'] = pix_dict['PA_err']
+
+    if table:
+        sky_dict = Table([sky_dict])
+        # Reorder because dict-> Table messes it up
+        sky_dict = sky_dict['ra','ra_err','dec','dec_err','mag',
+                            'mag_err','reff_ang','reff_ang_err',
+                            'n','n_err','b/a','b/a_err','PA','PA_err']
+    return sky_dict
+
+def run(imgfile, psffile, platescale=0.125, **kwargs):
+    """
+    Run galfit. 
+    
+    Args:
+        imgfile (str): path to the image fits file.
+        psffile (str): path to the PSF model fits file.
+        platescale (float, optional): Size of pixel in arcsec.
+            Assumes 0.125''/pixel by default.
+
+    Valid kwargs:
+
+        configfile (str, optional): path to configuration file to
+            be created via this function. Defaults to `<outdir>/galfit.feedme`.
+        outfile (str, optional): path to GALFIT's output fits file.
+            Defaults to `<outdir>/out.fits`
+        finesample (int, optional): The PSF fine-sampling factor.
+            Assumes no fine-sampling (i.e. a factor of 1) by default.
+        badpix (str, optional): File containing a list of bad pixels.
+            Assumes all pixels a re fine by default.
+        constraints (str, optional): File containing fit parameter
+            bounds. Check out this example constraints file
+            https://users.obs.carnegiescience.edu/peng/work/galfit/EXAMPLE.CONSTRAINTS
+            to learn how to use one.
+        region (tuple, optional): Pixel coordinate bounds for the fitting.
+            Required format: (xmin, xmax, ymin, ymax). All of the
+            elements must be ints!
+        convobox (tuple, optional): Size of the convolution box
+            used to assess the model fit chi-squared value.
+            Required format: (x_box:int , y_box:int)
+        zeropoint (float, optional): Zeropoint of the image
+            to compute the model magnitude.
+        position (tuple, optional): Guess for the centroid
+            of the model fit. Required format (x_cen:float, y_cen:float).
+            Assumes the center of the image is the initial guess by
+            default.
+        int_mag (float, optional): Initial guess for the 
+            integrated magnitude. Taken as the magnitude
+            corresponding to the sum of all counts in the
+            region to be fit.
+        r_e (float, optional): Initial guess for
+            the half light radius in pixels. Assumes
+            half the size of the fitting region by default.
+        n (float, optional): initial guess for the Sersic
+            index.
+        axis_ratio (float, optional): Initial guess for
+            the ratio of minor to major axis of the fit model.
+        PA (float, optional): Initial guess for the 
+            angle of the major axis counter clockwise 
+            relative to the vertical.
+        skip_sky (bool, optional): Do you also want
+            to fit a constant sky background? Set to 
+            false if your sky background is 0.
+    Returns:
+        configfile (str): Path to the configuration
+            file.
+    """
+
+    # Generate Galfit config file
+    configfile = _genconf(imgfile,psffile,**kwargs)
+
+    # Go to the output directory
+    if 'outdir' not in kwargs:
+        kwargs['outdir'] = "galfit_out"
+    # Keep track of the original directory
+    curdir = os.path.abspath(os.path.curdir)
+    # Move to outdir
+    os.chdir(kwargs['outdir'])
+    # Run galfit
+    os.system("galfit {:s}".format(configfile))
+    # Read fit.log and get the fit results
+    pix_dict = read_fitlog("fit.log", configfile)
+    # Convert to sky angular units and stuff it into the output
+    # fits file
+    hdr = fits.getheader(imgfile)
+    wcs = WCS(hdr)
+    sky_tab = pix2coord(pix_dict,wcs, platescale, table=True)
+    if 'outfile' not in kwargs:
+        kwargs['outfile'] = 'out.fits'
+    fitloghdu = fits.BinTableHDU(sky_tab,name="FITPARAMS")
+    hdulist = fits.open(kwargs['outfile'])
+    # This needs to be done for some blackbox
+    # in astropy to not barf.
+    hdulist[2].header.insert('OBJECT',('PCOUNT',0))
+    hdulist[2].header.insert('OBJECT',('GCOUNT',1))
+    hdulist[3].header.insert('OBJECT',('PCOUNT',0))
+    hdulist[3].header.insert('OBJECT',('GCOUNT',1))
+
+    # Dump the table in the fits file
+    hdulist.append(fitloghdu)
+    # Overwrite
+    hdulist.writeto(kwargs['outfile'], overwrite=True)
+    os.chdir(curdir)
+    return 0
+
+def surf_brightness(coord, sky_dict):
     """
     Estimates the surface brightness from
     the sersic model fit at the input
@@ -252,7 +352,7 @@ def surf_brightness(coord, sky_tab):
     Args
     ----
     coord (SkyCoord): Target coordinate
-    sky_tab (Table): Table of best fit
+    sky_dict (Table): Table of best fit
         sersic model parameters in
         angular coordinates.
     Returns
