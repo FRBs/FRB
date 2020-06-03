@@ -332,10 +332,9 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     hdulist = fits.open(kwargs['outfile'])
     # This needs to be done for some blackbox
     # in astropy to not barf.
-    hdulist[2].header.insert('OBJECT',('PCOUNT',0))
-    hdulist[2].header.insert('OBJECT',('GCOUNT',1))
-    hdulist[3].header.insert('OBJECT',('PCOUNT',0))
-    hdulist[3].header.insert('OBJECT',('GCOUNT',1))
+    for idx in [2,3]:
+        hdulist[idx].header.insert('OBJECT',('PCOUNT',0))
+        hdulist[idx].header.insert('OBJECT',('GCOUNT',1))
 
     # Dump the table in the fits file
     hdulist.append(fitloghdu)
@@ -359,3 +358,4 @@ def surf_brightness(coord, sky_dict):
     ------
     surf_brightness (mag/arcsec**2):
     """
+    
