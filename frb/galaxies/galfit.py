@@ -369,7 +369,13 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     # Move to outdir
     os.chdir(kwargs['outdir'])
     # Run galfit
-    os.system("galfit {:s}".format(configfile))
+    return_value = os.system("galfit {:s}".format(configfile))
+
+    if return_value!=0:
+        # Something broken?
+        warnings.warn("Something went wrong with the fit. Check terminal output.")
+        os.chdir(curdir)
+        return return_value
     # Read fit.log and get the fit results
     pix_dict = read_fitlog("fit.log", configfile)
     # Convert to sky angular units and stuff it into the output
@@ -392,7 +398,7 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     # Overwrite
     hdulist.writeto(kwargs['outfile'], overwrite=True)
     os.chdir(curdir)
-    return 0
+    return return_value
 
 def surf_brightness(coord, sky_dict):
     """
