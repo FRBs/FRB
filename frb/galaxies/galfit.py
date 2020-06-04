@@ -23,7 +23,27 @@ from astropy.table import Table
 from astropy.wcs import WCS
 import re
 
-
+def write_cutout(cutout, filename = "cutout.fits", overwrite=False):
+    """
+    Takes an astropy Cutout2D
+    object and writes it to disk.
+    Args:
+        cutout (Cutout2D): Prefaerably
+            has WCS info in it.
+        filename (str, optional): FITS
+            file into which data is saved.
+            Defaults to "cutout.fits" in
+            the current working directory.
+        overwrite (bool, optional): Do you
+            want to overwrite filename if
+            it already exists?
+    Returns:
+    """
+    hdr = cutout.wcs.to_header()
+    imghdu = fits.PrimaryHDU(cutout.data, hdr)
+    hdulist = fits.HDUList([imghdu])
+    hdulist.writeto(filename, overwrite=overwrite)
+    return
 
 def _genconf(imgfile:str, psffile:str,
             configfile:str=None, outdir:str=None, outfile:str=None,
@@ -43,9 +63,10 @@ def _genconf(imgfile:str, psffile:str,
         outdir (str): Name of output directory. Default
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
-            be created via this function. Defaults to `<outdir>/galfit.feedme`.
-        outfile (str, optional): path to GALFIT's output fits file.
-            Defaults to `<outdir>/out.fits`
+            be created via this function. Defaults to `galfit.feedme`
+            in <outdir>.
+        outfile (str, optional): name of GALFIT's output fits file.
+            Defaults to `out.fits` in <outdir>.
         finesample (int, optional): The PSF fine-sampling factor.
             Assumes no fine-sampling (i.e. a factor of 1) by default.
         badpix (str, optional): File containing a list of bad pixels.
@@ -95,30 +116,36 @@ def _genconf(imgfile:str, psffile:str,
         os.mkdir(outdir)
     if configfile is None:
         warnings.warn("Creating a configuration file here")
-        configfile = os.path.join(outdir, "galfit.feedme")
+        configfile = "galfit.feedme"
     
-    with open(configfile,"w+") as fstream:
+    with open(os.path.join(outdir,configfile),"w+") as fstream:
         #Image parameters.
         fstream.write("""===============================================================================\n
         # IMAGE and GALFIT CONTROL PARAMETERS\n
         """)
-        assert os.path.isfile(imgfile), "Invalid image file path {:s}".format(imgfile)
+        img = fits.getdata(imgfile)
         fstream.write("A) {:s}  # Input data image (FITS file)\n".format(imgfile))
         if outfile is None:
             warnings.warn("Creating output file here")
             outfile = "out.fits"
-        fstream.write("B) {:s}  # Output data image block\n".format(os.path.join(outdir,outfile)))
+        fstream.write("B) {:s}  # Output data image block\n".format(outfile))
         fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
-        assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
         fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
         fstream.write("E) {:d}  # PSF fine sampling factor\n".format(finesample))
         fstream.write("F) {:s}  #Bad pixel mask\n".format(badpix))
         fstream.write("G) {:s}  # File with parameter constraints (ASCII file)\n".format(constraints))
         if region is None:
-            input_str = input("Input image region to fit (xmin xmax ymin ymax): ").split()
-            while len(input_str)!=4:
-                input_str = input("Invalid region input. Insert again (xmin xmax ymin ymax): ").split()
-            region = [int(bound) for bound in input_str]
+            input_str = input("Input image region to fit (xmin xmax ymin ymax) or use 'all' ").split()
+            #import pdb; pdb.set_trace()
+            if input_str == ['all']:
+                region = (0, img.shape[1]-1, 0, img.shape[0]-1)
+            elif len(input_str)==4:
+                try:
+                    region = [int(bound) for bound in input_str]
+                except:
+                    raise RuntimeError("Invalid region input")
+            else:
+                raise RuntimeError("Invalid region input")
         fstream.write("H) {:d} {:d} {:d} {:d}   # Image region to fit (xmin xmax ymin ymax)\n".format(region[0],region[1],region[2], region[3]))
         assert len(convobox)==2, "Only two integers specify convolution box dimensions"
         fstream.write("I) {:d} {:d} # Size of convolution box (x y)\n".format(convobox[0],convobox[1]))
@@ -129,16 +156,19 @@ def _genconf(imgfile:str, psffile:str,
         fstream.write("\n# INITIAL FITTING PARAMETERS\n")
         fstream.write("# Component number: 1\n")
         fstream.write("0) sersic # Component type\n")
-        img = fits.getdata(imgfile)
         if position is None:
-            pos_x, pos_y = img.shape/2 
+            pos_x, pos_y = int(img.shape[0]/2), int(img.shape[1]/2)  
         else:
             pos_x, pos_y = position
         fstream.write("1) {:d} {:d} 1 1 # position x y\n".format(pos_x,pos_y))
+
+        # What is the integrated magnitude?
         if int_mag is None:
+            warnings.warn("No guess given for integrated magnitude. Proceeding with sum within region.")
             int_mag = zeropoint-2.5*np.log10(np.sum(img[region[2]:region[3],region[0]:region[1]]))
         fstream.write("3) {:f} 1 # Integrated magnitude\n".format(int_mag))
         if r_e is None:
+            warnings.warn("Guess for r_e not given. This might not converge.")
             r_e = (region[3]-region[2]+region[1]-region[0])/2/3 #A third of the average region dimension
         fstream.write("4) {:f} 1 # effective radius (pix)\n".format(r_e))
         fstream.write("5) {:f} 1 # sersic index\n".format(n))
@@ -260,7 +290,8 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
             Assumes 0.125''/pixel by default.
 
     Valid kwargs:
-
+        outdir (str): Name of output directory. Default
+            value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
             be created via this function. Defaults to `<outdir>/galfit.feedme`.
         outfile (str, optional): path to GALFIT's output fits file.
@@ -307,8 +338,28 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
             file.
     """
 
+    # Check input paths first
+    assert os.path.isfile(imgfile), "Invalid image file path {:s}".format(imgfile)
+    assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
+
+    # Is a badpix map given?
+    if 'badpix' in kwargs.keys():
+        assert os.path.isfile(kwargs['badpix']), "Invalid bad pixel map path {:s}".format(kwargs['badpix'])
+        # Use absolute path henceforth
+        kwargs['badpix'] = os.path.abspath(kwargs['badpix'])
+    
+    # Is a constraints file given?
+    if 'constraints' in kwargs.keys():
+        assert os.path.isfile(kwargs['constraints']), "Invalid constraints file path {:s}".format(kwargs['constraints'])
+        # Use absolute path henceforth
+        kwargs['constraints'] = os.path.abspath(kwargs['constraints'])
+
+    # Abspaths for image and psf files too.
+    imgfile = os.path.abspath(imgfile)
+    psffile = os.path.abspath(psffile)
+    
     # Generate Galfit config file
-    configfile = _genconf(imgfile,psffile,**kwargs)
+    configfile = _genconf(imgfile, psffile, platescale=platescale,**kwargs)
 
     # Go to the output directory
     if 'outdir' not in kwargs:
