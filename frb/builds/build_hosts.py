@@ -119,7 +119,6 @@ def build_host_121102(build_photom=False, build_cigale=False):
     if build_cigale:
         cut_photom = photom.copy()
         # Run
-        embed(header='122 of build_hosts')
         cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
 
     host121102.parse_cigale(cigale_file)
@@ -665,10 +664,6 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
     if build_cigale:
         cut_photom = photom.copy()
-        # Remove WISE
-        #for column in cut_photom.keys():
-        #    if 'WISE' in column:
-        #        cut_photom.remove_column(column)
         # Run
         cigale.host_run(cut_photom, host180916, cigale_file=cigale_file)
 
