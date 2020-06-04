@@ -162,6 +162,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'VISTA_Ks': 'vista.vircam.Ks',
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
+        'WFC3_F110W': 'hst.wfc3.F110W',
         'WFC3_F160W': 'hst.wfc3.F160W',
     }
     for key in new_names:
@@ -170,21 +171,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
             # Try Error
             if key+'_err' in photom_cols:
                 cigtab.rename_column(key+'_err', new_names[key]+'_err')
-    '''
-    for col in photom_cols:
-        # Rename WISE_W to WISE
-        if "W" in col and "WISE" not in col:
-            cigtab.rename_column(col,col.replace("W","WISE"))
-        elif "WISE_W" in col:
-            cigtab.rename_column(col,col.replace("WISE_W","WISE"))
-            #DECaLS tables also have a DECaLS-WISE xmatch
-            if "DECaL" in col:
-                cigtab[col][cigtab[col].mask]= -99.0
-                cigtab.rename_column(col,col.replace("DECaL_",""))
-        # Renmae DECaL to DES because it's the same instrument
-        if "DECaL" in col:
-            cigtab.rename_column(col,col.replace("DECaL","DES"))
-    '''
+
     cigtab.write(infile,overwrite=overwrite)
     return
 
