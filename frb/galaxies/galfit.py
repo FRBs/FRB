@@ -16,14 +16,35 @@ import numpy as np
 import pandas as pd
 import sys, os, subprocess
 import warnings
+
 from astropy.io import fits
 from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from astropy.table import Table
 from astropy.wcs import WCS
+from astropy.nddata import Cutout2D
+
 import re
 
-def write_cutout(cutout, filename = "cutout.fits", overwrite=False):
+def get_platescale(wcs:WCS)->float:
+    """
+    Extract the plate-scale from
+    a WCS object
+    Args:
+        wcs (WCS): A celestial WCS object
+            extracted from a FITS header.
+    Returns:
+        platescale (float): arcsec/pixel
+    """
+    assert wcs.is_celestial or wcs.has_celestial, "Can't get a plate scale from a non-celestial WCS"
+
+    if not wcs.is_celestial:
+        wcs = wcs.celestial
+    
+    platescale = np.mean(np.sum(wcs.pixel_scale_matrix**2, axis=0)**0.5)*3600 #arcsec
+    return platescale
+
+def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=False):
     """
     Takes an astropy Cutout2D
     object and writes it to disk.
@@ -50,10 +71,10 @@ def _genconf(imgfile:str, psffile:str,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
             region:tuple = None, convobox:tuple = (100,100),
-            zeropoint:float = 25.0, platescale:float = 0.125,
+            zeropoint:float = 25.0,
             position:tuple = None, int_mag:float = None,
             r_e:float = None, n:float = 1.0, axis_ratio:float = 0.5,
-            pa:float = 0, skip_sky:bool = False):
+            pa:float = 0, skip_sky:bool = False)->str:
     """
     Creates a configuration file for GALFIT. Conventionally,
     GALFIT is run using the command: `galfit <config-file>`.
@@ -83,8 +104,6 @@ def _genconf(imgfile:str, psffile:str,
             Required format: (x_box:int , y_box:int)
         zeropoint (float, optional): Zeropoint of the image
             to compute the model magnitude.
-        platescale (float, optional): Size of pixel in arcsec.
-            Assumes 0.125''/pixel by default.
         position (tuple, optional): Guess for the centroid
             of the model fit. Required format (x_cen:float, y_cen:float).
             Assumes the center of the image is the initial guess by
@@ -127,7 +146,7 @@ def _genconf(imgfile:str, psffile:str,
         fstream.write("""===============================================================================\n
         # IMAGE and GALFIT CONTROL PARAMETERS\n
         """)
-        img = fits.getdata(imgfile)
+        img, hdr = fits.getdata(imgfile, header=True)
         # Image file
         fstream.write("A) {:s}  # Input data image (FITS file)\n".format(imgfile))
         if outfile is None:
@@ -159,7 +178,8 @@ def _genconf(imgfile:str, psffile:str,
         # Photometric zero point for the image
         fstream.write("J) {:f}  # Photometric zeropoint (mag)\n".format(zeropoint))
         # Platescale of the image
-        # TODO: read this info off the image header.s
+        # Assuming square pixels
+        platescale = get_platescale(WCS(hdr))
         fstream.write("K) {:f} {:f} # Plate scale (dx dy) [arcsec/pixel]\n".format(platescale,platescale))
         # Display type? Not sure what this is.
         fstream.write("O) regular   # Display type (regular, curses, both)\n")
@@ -224,7 +244,7 @@ def _genconf(imgfile:str, psffile:str,
     # Done.
     return configfile
 
-def read_fitlog(outfile, initfile):
+def read_fitlog(outfile:str, initfile:str)->dict:
     """
     Reads the output fit.log
     file and returns the sersic fit parameters
@@ -271,7 +291,7 @@ def read_fitlog(outfile, initfile):
 
     return pix_dict
 
-def pix2coord(pix_dict, wcs, platescale, table=False):
+def pix2coord(pix_dict:dict, wcs:WCS, table:Table=False)->dict:
     """
     Takes the output table from galfit's
     fit.log file and converts all pixel
@@ -280,8 +300,6 @@ def pix2coord(pix_dict, wcs, platescale, table=False):
         pix_dict (dict): Raw sersic
             fit parameter dict from fit.log
         wcs (WCS): Input image WCS.
-        platescale (float): angular size
-            per pixel in arcsec.
         table (bool, optional): Return as
             a table instead?
     Returns:
@@ -291,6 +309,7 @@ def pix2coord(pix_dict, wcs, platescale, table=False):
     """
 
     sky_dict = {}
+    platescale = get_platescale(wcs)
 
     # Centroids
     xpix, ypix = pix_dict['x']-1, pix_dict['y']-1
@@ -323,15 +342,13 @@ def pix2coord(pix_dict, wcs, platescale, table=False):
                             'n','n_err','b/a','b/a_err','PA','PA_err']
     return sky_dict
 
-def run(imgfile, psffile, platescale=0.125, **kwargs):
+def run(imgfile:str, psffile:str, **kwargs)->int:
     """
     Run galfit. 
     
     Args:
         imgfile (str): path to the image fits file.
         psffile (str): path to the PSF model fits file.
-        platescale (float, optional): Size of pixel in arcsec.
-            Assumes 0.125''/pixel by default.
 
     Valid kwargs:
         outdir (str): Name of output directory. Default
@@ -403,7 +420,7 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     psffile = os.path.abspath(psffile)
     
     # Generate Galfit config file
-    configfile = _genconf(imgfile, psffile, platescale=platescale,**kwargs)
+    configfile = _genconf(imgfile, psffile,**kwargs)
 
     # Go to the output directory
     if 'outdir' not in kwargs:
@@ -444,7 +461,7 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     # fits file
     hdr = fits.getheader(imgfile)
     wcs = WCS(hdr)
-    sky_tab = pix2coord(pix_dict,wcs, platescale, table=True)
+    sky_tab = pix2coord(pix_dict, wcs, table=True)
     if 'outfile' not in kwargs:
         kwargs['outfile'] = 'out.fits'
     fitloghdu = fits.BinTableHDU(sky_tab,name="FITPARAMS")
