@@ -43,7 +43,7 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 
-def build_host_121102(build_photom=False, build_cigale=False):
+def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     """
     Generate the JSON file for FRB 121102
 
@@ -97,11 +97,11 @@ def build_host_121102(build_photom=False, build_cigale=False):
         photom['WFC3_F160W_err'] = 0.03
 
         # Spitzer from Bassa (micro-Jy)
-        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03*units.mJy, flux_err=0.19*units.mJy)  # in micro-Jy
+        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03e-3*units.mJy, flux_err=0.19e-3*units.mJy)  # in micro-Jy
         photom['Spitzer_3.6'] = mag_3p6
         photom['Spitzer_3.6_err'] = err_mag_3p6
-        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
-        photom['Spitzer_4.5_err'] = -999  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
+        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9e-3*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999.  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
@@ -119,7 +119,6 @@ def build_host_121102(build_photom=False, build_cigale=False):
     if build_cigale:
         cut_photom = photom.copy()
         # Run
-        embed(header='122 of build_hosts')
         cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
 
     host121102.parse_cigale(cigale_file)
@@ -174,11 +173,12 @@ def build_host_121102(build_photom=False, build_cigale=False):
     host121102.morphology['b/a_err'] = 0.13
 
     # Derived quantities
-    host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
-    host121102.derived['M_r_err'] = 0.2  # Estimated by JXP
-    host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
-    host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
-    host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
+    if use_orig:
+        host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
+        host121102.derived['M_r_err'] = 0.2  # Estimated by JXP
+        host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
+        host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
+        host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
 
@@ -665,10 +665,6 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
     if build_cigale:
         cut_photom = photom.copy()
-        # Remove WISE
-        #for column in cut_photom.keys():
-        #    if 'WISE' in column:
-        #        cut_photom.remove_column(column)
         # Run
         cigale.host_run(cut_photom, host180916, cigale_file=cigale_file)
 
