@@ -110,6 +110,9 @@ def _genconf(imgfile:str, psffile:str,
         configfile (str): Path to the configuration
             file.
     """
+    
+    # Run checks for file paths and use default paths when
+    # none are given.
     if outdir is None:
         outdir = "galfit_out"
     if not os.path.isdir(outdir):
@@ -118,44 +121,58 @@ def _genconf(imgfile:str, psffile:str,
         warnings.warn("Creating a configuration file here")
         configfile = "galfit.feedme"
     
+    # Begin writing config file
     with open(os.path.join(outdir,configfile),"w+") as fstream:
         #Image parameters.
         fstream.write("""===============================================================================\n
         # IMAGE and GALFIT CONTROL PARAMETERS\n
         """)
         img = fits.getdata(imgfile)
+        # Image file
         fstream.write("A) {:s}  # Input data image (FITS file)\n".format(imgfile))
         if outfile is None:
             warnings.warn("Creating output file here")
             outfile = "out.fits"
+        # Output file
         fstream.write("B) {:s}  # Output data image block\n".format(outfile))
+        # Ignore any sigma image for now.
         fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
+        # PSF file
         fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
+        # PSF fine-sampling
         fstream.write("E) {:d}  # PSF fine sampling factor\n".format(finesample))
+        # Bad pixel map
         fstream.write("F) {:s}  #Bad pixel mask\n".format(badpix))
+        # Parameter constraints file
         fstream.write("G) {:s}  # File with parameter constraints (ASCII file)\n".format(constraints))
+        # Fit region in pixels
         if region is None:
-            input_str = input("Input image region to fit (xmin xmax ymin ymax) or use 'all' ").split()
-            #import pdb; pdb.set_trace()
-            if input_str == ['all']:
-                region = (0, img.shape[1]-1, 0, img.shape[0]-1)
-            elif len(input_str)==4:
-                try:
-                    region = [int(bound) for bound in input_str]
-                except:
-                    raise RuntimeError("Invalid region input")
-            else:
-                raise RuntimeError("Invalid region input")
+            # Fit full region by default
+            warnings.warn("Using full region to fit. May fail if other objects in the region aren't masked.")
+            region = (0, img.shape[1]-1, 0, img.shape[0]-1)
+
         fstream.write("H) {:d} {:d} {:d} {:d}   # Image region to fit (xmin xmax ymin ymax)\n".format(region[0],region[1],region[2], region[3]))
+
+        # Convolution box
         assert len(convobox)==2, "Only two integers specify convolution box dimensions"
         fstream.write("I) {:d} {:d} # Size of convolution box (x y)\n".format(convobox[0],convobox[1]))
+        # Photometric zero point for the image
         fstream.write("J) {:f}  # Photometric zeropoint (mag)\n".format(zeropoint))
+        # Platescale of the image
+        # TODO: read this info off the image header.s
         fstream.write("K) {:f} {:f} # Plate scale (dx dy) [arcsec/pixel]\n".format(platescale,platescale))
+        # Display type? Not sure what this is.
         fstream.write("O) regular   # Display type (regular, curses, both)\n")
+        # Only fit for now.
         fstream.write("P) 0 # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps\n")
+        ################################################################################3
+        # Fit parameters
         fstream.write("\n# INITIAL FITTING PARAMETERS\n")
+        # Only 1 sersic component for now.
         fstream.write("# Component number: 1\n")
         fstream.write("0) sersic # Component type\n")
+
+        # Centroid
         if position is None:
             pos_x, pos_y = int(img.shape[0]/2), int(img.shape[1]/2)  
         else:
@@ -165,19 +182,37 @@ def _genconf(imgfile:str, psffile:str,
         # What is the integrated magnitude?
         if int_mag is None:
             warnings.warn("No guess given for integrated magnitude. Proceeding with sum within region.")
-            int_mag = zeropoint-2.5*np.log10(np.sum(img[region[2]:region[3],region[0]:region[1]]))
+            cropped_img = img[region[2]:region[3],region[0]:region[1]]
+            # Better guess if other sources are masked out in badpix
+            if badpix !='none':
+                bad_pix = fits.getdata(badpix)
+                # Convert to boolean
+                bad_pix = np.where(bad_pix==0, True, False)
+                # Crop to region
+                bad_pix = bad_pix[region[2]:region[3],region[0]:region[1]]
+            else:
+                bad_pix = True
+            int_mag = zeropoint-2.5*np.log10(np.sum(cropped_img[bad_pix]))
         fstream.write("3) {:f} 1 # Integrated magnitude\n".format(int_mag))
+        # Effective radius
         if r_e is None:
             warnings.warn("Guess for r_e not given. This might not converge.")
             r_e = (region[3]-region[2]+region[1]-region[0])/2/3 #A third of the average region dimension
         fstream.write("4) {:f} 1 # effective radius (pix)\n".format(r_e))
+        # Sersic index
         fstream.write("5) {:f} 1 # sersic index\n".format(n))
+        # Blanks
         for num in [6,7,8]:
             fstream.write("{:d}) 0.0000 0 # ----\n".format(num))
+        # b/a
         fstream.write("9) {:f} 1 # Axis ratio (b/a)\n".format(axis_ratio))
+        # PA of the galaxy
         fstream.write("10) {:f} 1 # Position angle (PA) [deg: Up=0, left =90]\n".format(pa))
+        # Don't skip sersic fitting at any cost.
         fstream.write("Z) 0 # Skip this model? (yes=1,no=0)\n\n")
+        # Skip sky fitting though?
         if not skip_sky:
+            # Just a flat sky. No fancy gradients.
             fstream.write("# Component number: 2\n")
             fstream.write("0) sky # component type\n")
             _, median, _ = sigma_clipped_stats(img)
@@ -186,14 +221,22 @@ def _genconf(imgfile:str, psffile:str,
             fstream.write("3) 0 0 # dsky/dy\n")
             fstream.write("Z) 0 # Skip this model\n")
         fstream.write("================================================================================\n")
+    # Done.
     return configfile
 
 def read_fitlog(outfile, initfile):
     """
     Reads the output fit.log
     file and returns the sersic fit parameters
+    Args:
+        outfile (str): Path and name of the fit log
+            file.
+        initfile (str): Path to the config file
+            used to produce the log entry. This
+            is used to distinguish multiple
+            entried in the logfile.
     """
-    # TODO: create a regex expression to look for blocks
+    # TODO: create a regex string to look for blocks
     # in the fit.log file. Then create an expression
     # to lock for model sub-blocks within each block. 
     lines = [line.rstrip('\n') for line in open(outfile)]
@@ -207,7 +250,8 @@ def read_fitlog(outfile, initfile):
                     # TODO: accommodate more complex fits.
                     instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
 
-    fit_out, line, err_out = instance[-1]  # only keep the latest one
+    # only keep the latest one in case there are multiple runs
+    fit_out, line, err_out = instance[-1]
 
     # Use regex to identify all floats in fit_out and err_out
     float_regex = r"\d+\.\d+" # Any string of the form <int>.<int> (which is just a float)
@@ -417,20 +461,3 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     hdulist.writeto(kwargs['outfile'], overwrite=True)
     os.chdir(curdir)
     return return_value
-
-def surf_brightness(coord, sky_dict):
-    """
-    Estimates the surface brightness from
-    the sersic model fit at the input
-    coordinate location.
-    Args
-    ----
-    coord (SkyCoord): Target coordinate
-    sky_dict (Table): Table of best fit
-        sersic model parameters in
-        angular coordinates.
-    Returns
-    ------
-    surf_brightness (mag/arcsec**2):
-    """
-    
