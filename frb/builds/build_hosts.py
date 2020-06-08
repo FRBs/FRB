@@ -101,7 +101,7 @@ def build_host_121102(build_photom=False, build_cigale=False):
         photom['Spitzer_3.6'] = mag_3p6
         photom['Spitzer_3.6_err'] = err_mag_3p6
         photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
-        photom['Spitzer_4.5_err'] = -999  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
+        photom['Spitzer_4.5_err'] = -999.  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
