@@ -23,6 +23,8 @@ from frb.galaxies import utils as gutils
 from frb import utils
 from frb import frb
 
+from scipy.integrate import simps
+
 
 class FRBGalaxy(object):
     """
@@ -380,14 +382,15 @@ class FRBGalaxy(object):
         return meta, xspec
 
 
-    def parse_cigale(self, cigale_file, overwrite=True):
+    def parse_cigale(self, cigale_file, sfh_file=None, overwrite=True):
         """
         Parse the output file from CIGALE
 
         Read into self.derived
 
         Args:
-            cigale_file (str): Name of the CIGALE file
+            cigale_file (str): Name of the CIGALE results file
+            sfh_file (str, optional): Name of the best SFH model file.
             overwrite (bool, optional):  Over-write any previous values
 
         Returns:
@@ -425,6 +428,21 @@ class FRBGalaxy(object):
         for key, item in cigale.items():
             if (key not in self.derived.keys()) or (overwrite):
                 self.derived[key] = item
+        
+        # Compute mass weighted age?
+        if sfh_file is not None:
+            try:
+                sfh_tab = Table.read(sfh_file)
+            except:
+                warnings.warn("Invalid SFH file. Skipping mass-weighted age.")
+                return
+            mass = simps(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
+            # Computed mass weighted age
+            t_mass = simps(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
+            # Store
+            if ('age_mass' not in self.derived.keys()) or (overwrite):
+                cigale['age_mass'] = t_mass
+
 
     def parse_galfit(self, galfit_file, plate_scale, overwrite=True):
         """
