@@ -370,14 +370,32 @@ def run(imgfile, psffile, platescale=0.125, **kwargs):
     os.chdir(kwargs['outdir'])
     # Run galfit
     return_value = os.system("galfit {:s}".format(configfile))
-
     if return_value!=0:
+        # TODO: This doesn't work right now because
+        # Galfit is still returning 0 on crashing.
         # Something broken?
         warnings.warn("Something went wrong with the fit. Check terminal output.")
         os.chdir(curdir)
         return return_value
     # Read fit.log and get the fit results
-    pix_dict = read_fitlog("fit.log", configfile)
+    # Temporary fix for the crash:
+    try:
+        pix_dict = read_fitlog("fit.log", configfile)
+    except FileNotFoundError:
+        print("""
+            Doh!  GALFIT crashed because at least one of the model parameters 
+            is bad.  The most common causes are: effective radius too small/big,
+            component is too far outside of fitting region (also check fitting
+            region), model mag too faint, axis ratio too small, Sersic index
+            too small/big, Nuker powerlaw too small/big.  If frustrated or 
+            problem should persist, email for help or report problem to: 
+                                Chien.Y.Peng@gmail.com 
+
+
+            GALFIT Version 3.0.5 -- Apr. 23, 2013
+            """)
+        os.chdir(curdir)
+        return 1
     # Convert to sky angular units and stuff it into the output
     # fits file
     hdr = fits.getheader(imgfile)
