@@ -14,10 +14,8 @@ from pkg_resources import resource_filename
 
 from frb.galaxies.frbgalaxy import FRBHost
 
-try:
-    from frb.galaxies import galfit as glf
-except ImportError:
-    pass
+from frb.galaxies import galfit as glf
+
 
 def test_platescale():
     cutout_file = resource_filename('frb','data/analysis/GALFIT/cutout_DES_i.fits')
