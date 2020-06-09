@@ -287,7 +287,7 @@ def find_sources(imgfile, nsig = 1.5, minarea = 10., clean=True, deblend_cont = 
             to be considered a valid detection.
         clean (bool, optional): Perform cleaning?
         deblend_cont (float, optional): Minimum contrast ratio
-            used for object deblending. Default is 0.005.
+            used for object deblending. Default is 0.0001.
             To entirely disable deblending, set to 1.0.
         regfile (str, optional): A ds9 region file of
             areas to be masked out.
