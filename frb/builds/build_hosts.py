@@ -302,33 +302,40 @@ def build_host_181112(build_photom=False):
     # ############
     # Photometry
 
-    # DES
-    # Grab the table (requires internet)
-    search_r = 2 * units.arcsec
-    des_srvy = des.DES_Survey(Host_coord, search_r)
-    des_tbl = des_srvy.get_catalog(print_query=True)
 
-    host181112.parse_photom(des_tbl)
 
     # VLT -- Lochlan 2019-05-02
     # VLT -- Lochlan 2019-06-18
     photom_file = os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'prochaska2019_photom.ascii')
     if build_photom:
+        # DES
+        # Grab the table (requires internet)
+        search_r = 2 * units.arcsec
+        des_srvy = des.DES_Survey(Host_coord, search_r)
+        des_tbl = des_srvy.get_catalog(print_query=True)
+        host181112.parse_photom(des_tbl) # A hack of sorts
+
         photom = Table()
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host181112.coord.ra.value
         photom['dec'] = host181112.coord.dec.value
-        photom['VLT_g'] = 22.57
-        photom['VLT_g_err'] = 0.04
-        photom['VLT_I'] = 21.51
-        photom['VLT_I_err'] = 0.04
+        photom['VLT_FORS2_g'] = 22.57  # No extinction correction
+        photom['VLT_FORS2_g_err'] = 0.04
+        photom['VLT_FORS2_I'] = 21.51
+        photom['VLT_FORS2_I_err'] = 0.04
         # Add in DES
         for key in host181112.photom.keys():
             photom[key] = host181112.photom[key]
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    host181112.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(host181112.coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
+    # Parse
+    host181112.parse_photom(photom, EBV=EBV)
 
     # Nebular lines
     host181112.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_FORS2_ppxf.ecsv'))
@@ -345,6 +352,10 @@ def build_host_181112(build_photom=False):
 
     # CIGALE
     host181112.parse_cigale(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_CIGALE.fits'))
+
+    # Galfit
+    host181112.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG181112_VLT_i_galfit.fits'))
 
     # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
@@ -724,7 +735,7 @@ def main(inflg='all', options=None):
 
     # 181112
     if flg & (2**2):
-        build_host_181112(build_photom=build_photom)
+        build_host_181112(build_photom=build_photom)  # 4
 
     # 190523
     if flg & (2**3):  # 8

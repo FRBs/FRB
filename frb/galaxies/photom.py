@@ -180,8 +180,11 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
             print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filter))
             continue
         # -999? -- Not even measured
-        if cut_photom[filter] <= -999.:
-            continue
+        try:
+            if cut_photom[filter] <= -999.:
+                continue
+        except:
+            embed(header='187')
         # SDSS
         if 'SDSS' in filter:
             if 'extinction_{}'.format(filter[-1]) in photom.keys():
