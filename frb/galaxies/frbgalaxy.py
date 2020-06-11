@@ -444,7 +444,7 @@ class FRBGalaxy(object):
                 cigale['age_mass'] = t_mass
 
 
-    def parse_galfit(self, galfit_file, plate_scale, overwrite=True):
+    def parse_galfit(self, galfit_file, overwrite=True):
         """
         Parse an output GALFIT file
 
@@ -455,8 +455,6 @@ class FRBGalaxy(object):
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
             overwrite (bool, optional):
-
-        Returns:
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
