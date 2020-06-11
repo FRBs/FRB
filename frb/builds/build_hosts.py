@@ -393,18 +393,24 @@ def build_host_190102(run_ppxf=False, build_photom=False):
         photom['ra'] = [host190102.coord.ra.value]
         photom['dec'] = host190102.coord.dec.value
         photom['Name'] = host190102.name
-        photom['VLT_u'] = 23.   # Dust corrected
-        photom['VLT_u_err'] = -999.
-        photom['VLT_g'] = 21.8  # Dust corrected
-        photom['VLT_g_err'] = 0.1
-        photom['VLT_I'] = 20.71 # Dust corrected
-        photom['VLT_I_err'] = 0.05
-        photom['VLT_z'] = 20.5 # Dust corrected
-        photom['VLT_z_err'] = 0.2
+        photom['VLT_FORS2_u'] = 23.7   # Not dust corrected
+        photom['VLT_FORS2_u_err'] = -999.
+        photom['VLT_FORS2_g'] = 22.6
+        photom['VLT_FORS2_g_err'] = 0.1
+        photom['VLT_FORS2_I'] = 21.1
+        photom['VLT_FORS2_I_err'] = 0.05
+        photom['VLT_FORS2_z'] = 20.8
+        photom['VLT_FORS2_z_err'] = 0.2
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    host190102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, host190102.name)
+    # Parse
+    host190102.parse_photom(photom)
 
     # PPXF
     if run_ppxf:
@@ -438,6 +444,10 @@ def build_host_190102(run_ppxf=False, build_photom=False):
 
     # CIGALE
     host190102.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits'))
+
+    # Galfit
+    host190102.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190102_VLT_i_galfit.fits'))
 
     # Vet all
     host190102.vet_all()
@@ -526,6 +536,9 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     #host190523_S1.derived['SFR_nebular'] = 1.3
     #host190523_S1.derived['SFR_nebular_err'] = -999.
 
+    # Galfit
+    host190523_S1.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190523_LRIS_r_galfit.fits'))
     # Vet all
     host190523_S1.vet_all()
 
@@ -583,8 +596,13 @@ def build_host_190608(run_ppxf=False, build_photom=False):
         # Write
         photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
-    host190608.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    host190608.parse_photom(photom)
 
     # PPXF
     results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
@@ -606,6 +624,9 @@ def build_host_190608(run_ppxf=False, build_photom=False):
     # CIGALE
     host190608.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019',
                                          'HG190608_CIGALE.fits'))
+    # Galfit
+    host190608.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190608_SDSS_i_galfit.fits'))
     # Vet all
     host190608.vet_all()
 
@@ -702,6 +723,10 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     # SFR
     #host190608.calc_nebular_SFR('Ha')
     #host.derived['SFR_nebular_err'] = -999.
+    
+    # Galfit
+    host180916.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG180916_SDSS_i_galfit.fits'))
 
     # Vet all
     host180916.vet_all()
@@ -742,8 +767,8 @@ def main(inflg='all', options=None):
         build_host_190523(build_photom=build_photom)
 
     # 190608
-    if flg & (2**4):
-        build_host_190608(build_photom=build_photom)#, run_ppxf=True)
+    if flg & (2**4):  # 16
+        build_host_190608(build_photom=build_photom)
 
     # 190102
     if flg & (2**5):  # 32
