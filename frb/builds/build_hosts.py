@@ -214,28 +214,25 @@ def build_host_180924(build_photom=True):
     # Redshift -- JXP measured from multiple data sources
     host.set_z(0.3212, 'spec')
 
-    # Morphology
-    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Bannister2019',
-                                   'HG180924_DES_galfit.log'), 0.263)
-
     # Photometry
-    # DES
-    search_r = 2*units.arcsec
-    des_srvy = des.DES_Survey(gal_coord, search_r)
-    des_tbl = des_srvy.get_catalog(print_query=True)
-    host.parse_photom(des_tbl)
 
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
     if build_photom:
+        # DES
+        search_r = 2 * units.arcsec
+        des_srvy = des.DES_Survey(gal_coord, search_r)
+        des_tbl = des_srvy.get_catalog(print_query=True)
+        host.parse_photom(des_tbl)  # This is a bit of a hack!
+
         photom = Table()
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host.coord.ra.value
         photom['dec'] = host.coord.dec.value
-        photom['VLT_g'] = 21.38
-        photom['VLT_g_err'] = 0.04
-        photom['VLT_I'] = 20.10
-        photom['VLT_I_err'] = 0.02
+        photom['VLT_FORS2_g'] = 21.38  # No extinction correction
+        photom['VLT_FORS2_g_err'] = 0.04
+        photom['VLT_FORS2_I'] = 20.10
+        photom['VLT_FORS2_I_err'] = 0.02
         # Add in DES
         for key in host.photom.keys():
             photom[key] = host.photom[key]
@@ -243,9 +240,13 @@ def build_host_180924(build_photom=True):
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
 
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
-    host.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
-    #host.parse_photom(des_tbl)
+    host.parse_photom(photom, EBV=EBV)
 
     # PPXF
     host.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
@@ -262,6 +263,10 @@ def build_host_180924(build_photom=True):
     # CIGALE
     host.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bannister2019',
                                    'HG180924_CIGALE.fits'), 0.263)
+
+    # Galfit
+    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG180924_DES_i_galfit.fits'))
 
     # Vet all
     host.vet_all()
@@ -711,11 +716,11 @@ def main(inflg='all', options=None):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=build_photom, build_cigale=build_cigale) # 1
+        build_host_121102(build_photom=build_photom, build_cigale=build_cigale)  # 1
 
     # 180924
     if flg & (2**1):
-        build_host_180924(build_photom=build_photom)
+        build_host_180924(build_photom=build_photom)  # 2
 
     # 181112
     if flg & (2**2):
