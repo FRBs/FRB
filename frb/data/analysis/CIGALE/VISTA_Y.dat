@@ -1,7 +1,6 @@
- #VISTA Y
- #photon
- # http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
-
+#VISTA_Y
+#photon
+# http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
  500.00     0.0006
  501.00     0.0000
  502.00     0.0012
