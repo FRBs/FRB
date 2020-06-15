@@ -716,7 +716,6 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     #host190608.parse_ppxf(results_file)
 
     # Derived quantities
-
     # AV
     #host190608.calc_nebular_AV('Ha/Hb')
 
