@@ -165,10 +165,13 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     if not np.any(mt_name):
         print("No matches to input name={}.  Returning".format(name))
         return
-    cut_photom = photom[photom['Name'] == name]
+    elif np.sum(mt_name) > 1:
+        raise ValueError("More than 1 match to input name={}.  Bad idea!!".format(name))
+    idx = np.where(mt_name)[0][0]
+    cut_photom = photom[idx]  # This is a Row
 
     # Dust correct
-    for key in cut_photom.keys():
+    for key in photom.keys():
         if key in ['Name', 'ra', 'dec', 'extinction', 'SDSS_ID',
                    'run', 'rerun'] or 'err' in key:
             continue
@@ -177,11 +180,14 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
             print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filter))
             continue
         # -999? -- Not even measured
-        if cut_photom[filter] <= -999.:
-            continue
+        try:
+            if cut_photom[filter] <= -999.:
+                continue
+        except:
+            embed(header='187')
         # SDSS
         if 'SDSS' in filter:
-            if 'extinction_{}'.format(filter[-1]) in cut_photom.keys():
+            if 'extinction_{}'.format(filter[-1]) in photom.keys():
                 print("Appying SDSS-provided extinction correction")
                 cut_photom[key] -= cut_photom['extinction_{}'.format(filter[-1])]
                 continue
@@ -195,4 +201,4 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         mag_dust = 2.5 * np.log10(1. / dust_correct)
         cut_photom[key] += mag_dust
     # Add it back in
-    photom[mt_name] = cut_photom
+    photom[idx] = cut_photom

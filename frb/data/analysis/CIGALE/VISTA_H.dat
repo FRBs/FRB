@@ -1,7 +1,6 @@
-  #VISTA H
-  #photon
-  #VISTA H http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
-
+#VISTA_H
+#photon
+#VISTA H http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
   500.00   0.0004
   501.00   0.0004
   502.00   0.0004
