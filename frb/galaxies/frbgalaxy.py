@@ -444,7 +444,7 @@ class FRBGalaxy(object):
                 cigale['age_mass'] = t_mass
 
 
-    def parse_galfit(self, galfit_file, plate_scale, overwrite=True):
+    def parse_galfit(self, galfit_file, overwrite=True):
         """
         Parse an output GALFIT file
 
@@ -456,8 +456,6 @@ class FRBGalaxy(object):
                 a binary table with fit parameters.
             overwrite (bool, optional):
 
-        Returns:
-
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
         try:
@@ -465,6 +463,8 @@ class FRBGalaxy(object):
         except:
             raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
         for key in fit_tab.keys():
+            if 'mag' in key:
+                continue
             if (key not in self.morphology.keys()) or (overwrite):
                 self.morphology[key] = fit_tab[key][0] #Assumes single sersic profile in the fit params
         # reff kpc?
