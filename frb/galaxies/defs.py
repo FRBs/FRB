@@ -51,7 +51,7 @@ for band in PanSTARRS_bands:
 # VLT
 VLT_bands = ['u', 'g', 'I', 'z']
 for band in VLT_bands:
-    valid_filters.append('VLT_{:s}'.format(band))
+    valid_filters.append('VLT_FORS2_{:s}'.format(band))
 
 # GMOS
 #south

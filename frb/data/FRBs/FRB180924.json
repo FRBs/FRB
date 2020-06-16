@@ -1,24 +1,24 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 361.4
+        "value": 362.16
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 41.8941825193052
+        "value": 41.89419434074069
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.06
+        "value": 0.01
     },
     "FRB": "FRB180924",
     "RM": {
         "unit": "rad / m2",
-        "value": 14.0
+        "value": 22.0
     },
     "RM_err": {
         "unit": "rad / m2",
-        "value": 1.0
+        "value": 2.0
     },
     "cosmo": "Planck15",
     "dec": -40.90002777777778,
@@ -38,9 +38,10 @@
     },
     "lpol": 80.0,
     "lpol_err": 10.0,
-    "ra": 326.10524999999996,
+    "ra": 326.1052291666667,
     "refs": [
-        "Bannister2019"
+        "Bannister2019",
+        "Day2020"
     ],
     "z": 0.3212
 }
