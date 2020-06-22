@@ -2,14 +2,10 @@
 import numpy as np
 import os
 
-from pkg_resources import resource_filename
-
 from scipy.stats import norm, lognorm
-from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
-from astropy.table import Table
-
-from frb import igm
+from frb.dm import igm
+from frb.dm import cosmic
 
 from IPython import embed
 
@@ -75,7 +71,12 @@ def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
 def grid_P_DMcosmic_z(beta=3., F=0.31):
     """
     Generate a grid of P(DM_cosmic|z)
-    
+
+    Args:
+        beta (float, optional):
+        F (float, optional):
+            Feedback parameter (higher F means weaker feedback)
+
     Returns:
         tuple: z, DM_cosmic, P(DM_cosmic|z)
     """
@@ -84,7 +85,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31):
         raise IOError("Not prepared for this beta value (yet)")
     # Load
     # sigma_DM
-    f_C0_3 = grab_C0_spline()
+    f_C0_3 = cosmic.grab_C0_spline()
 
     # Grid
     zvals = np.linspace(0., 2., 200)
@@ -105,93 +106,10 @@ def grid_P_DMcosmic_z(beta=3., F=0.31):
         #  Delta
         Delta = DM_cosmics / avgDM
         # PDF time
-        PDF = DMcosmic_PDF(Delta, C0, sigma)
+        PDF = cosmic.DMcosmic_PDF(Delta, C0, sigma)
         # Normalize
         PDF_grid[:,kk] = PDF / np.sum(PDF)
 
     # Return
     return zvals, DM_cosmics, PDF_grid
-
-
-def grab_sigma_spline(redo=False):
-    """
-
-    Args:
-        redo:
-
-    Returns:
-
-    """
-    sigma_file = os.path.join(resource_filename('frb', 'data'),
-                              'DM', 'sigma_sigma.ascii')
-    if redo:
-        raise IOError("Not ready to redo")
-        npt = 200
-        sigma_DMps = np.linspace(0., 0.55, npt)
-        sigmas = []
-        for sigma_DMp in sigma_DMps:
-            res = minimize_scalar(deviate2, args=(f_C0, sigma_DMp))
-            sigmas.append(float(res.x))
-        # Write
-        tbl = Table()
-        tbl['sigma_DMp'] = sigma_DMps
-        tbl['sigma'] = sigmas
-        tbl.write(sigma_file, format='ascii.fixed_width', overwrite=True)
-    # Load me up
-    tbl = Table.read(sigma_file, format='ascii.fixed_width')
-    spl_sigma = IUS(tbl['sigma_DMp'], tbl['sigma'])
-    return spl_sigma
-
-def grab_C0_spline(max_log10_sigma=0., npt=100, ret_all=False,
-                    redo=False, beta=4., ifile=None):
-    """
-    Generate a spline of C0 vs sigma values for the
-    McQuinn formalism
-    """
-    if redo:
-        raise NotImplementedError('Not ready for this')
-        sigmas = 10 ** np.linspace(-2, max_log10_sigma, npt)
-        C0s = np.zeros_like(sigmas)
-        # Loop
-        for kk, sigma in enumerate(sigmas):
-            # Minimize
-            res = minimize_scalar(deviate1, args=(sigma,beta))
-            C0s[kk] = res.x
-    else:
-        # Load from file
-        if ifile is None:
-            ifile = os.path.join(resource_filename('frb', 'data'),
-                                 'DM', 'sigma_C0_beta3.ascii')
-        tbl = Table.read(ifile, format='ascii.fixed_width')
-        sigmas = tbl['sigma'].data
-        C0s = tbl['C0'].data
-    # Spline
-    f_C0 = IUS(sigmas, C0s)
-    # Return
-    if ret_all:
-        return f_C0, sigmas, C0s
-    else:
-        return f_C0
-    
-
-def DMcosmic_PDF(Delta, C0, sigma, A=1., alpha=3., beta=3.):
-    """
-    PDF(Delta) following the McQuinn formalism describing the DM_cosmic PDF
-
-    Args:
-        Delta (float or ndarray):
-            DM / averageDM values
-        C0 (float):
-            parameter
-        A:
-        alpha:
-        beta:
-        sigma (float):
-
-    Returns:
-
-    """
-    PDF = A*np.exp(-(Delta**(-alpha)-C0)**2 / (
-            2*alpha**2 * sigma**2))*Delta**(-beta)
-    return PDF
 
