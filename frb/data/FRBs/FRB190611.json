@@ -12,6 +12,14 @@
         "value": 1.0
     },
     "FRB": "FRB190611",
+    "RM": {
+        "unit": "rad / m2",
+        "value": 20.0
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 4.0
+    },
     "cosmo": "Planck15",
     "dec": -79.39758333333334,
     "eellipse": {
@@ -24,5 +32,6 @@
     "refs": [
         "MacQuart2019",
         "Day2020"
-    ]
+    ],
+    "z": 0.3778
 }

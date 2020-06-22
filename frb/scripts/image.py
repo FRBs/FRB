@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """
-Script to fuss a bit with FRB galaxies
-Requres the specDB
+Script generate an image of an FRB
 """
 from __future__ import (print_function, absolute_import, division, unicode_literals)
 

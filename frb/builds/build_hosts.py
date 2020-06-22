@@ -23,6 +23,7 @@ from frb.surveys import des
 from frb.surveys import sdss
 from frb.surveys import wise
 from frb.surveys import panstarrs
+from frb.surveys import catalog_utils
 
 try:
     import extinction
@@ -42,13 +43,16 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 
-def build_host_121102(build_photom=False):
+def build_host_121102(build_photom=False, build_cigale=False):
     """
     Generate the JSON file for FRB 121102
 
     Writes to 121102/FRB121102_host.json
 
-    All of the data currently comes from Tendulkar et al. 2017
+    The majority of data comes from Tendulkar et al. 2017
+
+    reff from Bassa+17 https://ui.adsabs.harvard.edu/abs/2017ApJ...843L...8B/abstract
+
 
     Args:
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
@@ -64,22 +68,61 @@ def build_host_121102(build_photom=False):
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
 
-    # Photometry -- Tendulkar 2017
-    photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
+    # Photometry
+    EBV = nebular.get_ebv(gal_coord)['meanValue']  #
+    print("EBV={} for the host {}".format(EBV, host121102.name))
+
+    # photom_file = os.path.join(db_path, 'Repeater', 'Tendulkar2017', 'tendulkar2017_photom.ascii')
+    photom_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'bassa2017_photom.ascii')
     if build_photom:
         photom = Table()
-        #photom['Name'] = ['HG121102']  DO NOT USE str columns!
+        photom['Name'] = ['HG121102']
         photom['ra'] = [host121102.coord.ra.value]
         photom['dec'] = host121102.coord.dec.value
         #
-        photom['GMOS_N_r'] = 25.1
-        photom['GMOS_N_r_err'] = 0.1
-        photom['GMOS_N_i'] = 23.9
-        photom['GMOS_N_i_err'] = 0.1
+        # GMOS-N photometry from Bassa+2017, different than Tendulkar+2017, see Bassa+17 for details (AB)
+        photom['GMOS_N_r'] = 25.46
+        photom['GMOS_N_r_err'] = 0.14
+        photom['GMOS_N_i'] = 24.75
+        photom['GMOS_N_i_err'] = 0.09
+        photom['GMOS_N_z'] = 24.30
+        photom['GMOS_N_z_err'] = 0.13
+        photom['GMOS_N_g'] = 25.85
+        photom['GMOS_N_g_err'] = 0.12
+
+        # HST from Bassa+2017 (AB)
+        photom['WFC3_F110W'] = 23.675
+        photom['WFC3_F110W_err'] = 0.012
+        photom['WFC3_F160W'] = 23.31
+        photom['WFC3_F160W_err'] = 0.03
+
+        # Spitzer from Bassa (micro-Jy)
+        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03*units.mJy, flux_err=0.19*units.mJy)  # in micro-Jy
+        photom['Spitzer_3.6'] = mag_3p6
+        photom['Spitzer_3.6_err'] = err_mag_3p6
+        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
+
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+
+    # Read
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    frbphotom.correct_photom_table(photom, EBV, 'HG121102')
+    # Parse
     host121102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+
+    # CIGALE
+    cigale_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'HG121102_CIGALE.fits')
+    if build_cigale:
+        cut_photom = photom.copy()
+        # Run
+        embed(header='122 of build_hosts')
+        cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
+
+    host121102.parse_cigale(cigale_file)
 
     # Nebular lines
     neb_lines = {}
@@ -120,10 +163,10 @@ def build_host_121102(build_photom=False):
             continue
         assert key in defs.valid_neb_lines
 
-    # Morphology
-    host121102.morphology['reff_ang'] = 0.41
-    host121102.morphology['reff_ang_err'] = 0.06
-    #
+    # Morphology : Bassa+2017 half-light
+    host121102.morphology['reff_ang'] = 0.20   # arcsec
+    host121102.morphology['reff_ang_err'] = 0.01
+    # Other
     host121102.morphology['n'] = 2.2
     host121102.morphology['n_err'] = 1.5
     #
@@ -138,6 +181,9 @@ def build_host_121102(build_photom=False):
     host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
+
+    # References
+    host121102.refs = ['Tendulkar2017, Bassa2017']
 
     # Vet
     assert host121102.vet_all()
@@ -403,29 +449,37 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
 
     """
     frbname = '190523'
-    gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')
+    S1_gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')  # Pan-STARRs; J134815.4392+722814.7216
 
     # Instantiate
-    host190523 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    host190523_S1 = frbgalaxy.FRBHost(S1_gal_coord.ra.value, S1_gal_coord.dec.value, frbname)
+    host190523_S1.name += '_S1'
 
     # Load redshift table
-    host190523.set_z(0.660, 'spec')
+    host190523_S1.set_z(0.660, 'spec')
 
     # Morphology
 
     # Photometry
+    EBV = nebular.get_ebv(S1_gal_coord)['meanValue']  #
+    print("EBV={} for the host of {}".format(EBV, frbname))
 
     # PanStarrs
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'ravi2019_photom.ascii')
     if build_photom:
         search_r = 1 * units.arcsec
-        ps_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        ps_srvy = panstarrs.Pan_STARRS_Survey(S1_gal_coord, search_r)
         ps_tbl = ps_srvy.get_catalog(print_query=True)
+        ps_tbl['Name'] = host190523_S1.name
         photom = frbphotom.merge_photom_tables(ps_tbl, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Read
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    frbphotom.correct_photom_table(photom, EBV, 'HG190523_S1')
     # Parse
-    host190523.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    host190523_S1.parse_photom(photom)
 
     # PPXF
     '''
@@ -438,19 +492,30 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     '''
 
     # CIGALE -- PanStarrs photometry but our own CIGALE analysis
-    host190523.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
+    host190523_S1.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
                                          'S1_190523_CIGALE.fits'))
 
+    # Nebular flux measured by a hand (Gaussian fit) by JXP on 2020-05-19
+    #   Corrected for Galactic extinction but not internal
+    neb_lines = {}
+    neb_lines['Hbeta'] = 3e-18
+    neb_lines['Hbeta_err'] = -999
+
+    host190523_S1.neb_lines = neb_lines
+
+    # SFR
+    host190523_S1.calc_nebular_SFR('Hb')
+
     # Derived quantities
-    host190523.derived['SFR_nebular'] = 1.3
-    host190523.derived['SFR_nebular_err'] = -999.
+    #host190523_S1.derived['SFR_nebular'] = 1.3
+    #host190523_S1.derived['SFR_nebular_err'] = -999.
 
     # Vet all
-    host190523.vet_all()
+    host190523_S1.vet_all()
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
-    host190523.write_to_json(path=path)
+    host190523_S1.write_to_json(path=path)
 
 
 def build_host_190608(run_ppxf=False, build_photom=False):
@@ -589,10 +654,10 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
         photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
         # Write
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    # Parse
+    # Read
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correction
-    frbphotom.correct_photom_table(photom, EBV)
+    frbphotom.correct_photom_table(photom, EBV, 'HG180916')
     # Parse
     host180916.parse_photom(photom)
 
@@ -650,7 +715,7 @@ def main(inflg='all', options=None):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=build_photom) # 1
+        build_host_121102(build_photom=build_photom, build_cigale=build_cigale) # 1
 
     # 180924
     if flg & (2**1):
@@ -661,7 +726,7 @@ def main(inflg='all', options=None):
         build_host_181112(build_photom=build_photom)
 
     # 190523
-    if flg & (2**3):
+    if flg & (2**3):  # 8
         build_host_190523(build_photom=build_photom)
 
     # 190608
@@ -669,7 +734,7 @@ def main(inflg='all', options=None):
         build_host_190608(build_photom=build_photom)#, run_ppxf=True)
 
     # 190102
-    if flg & (2**5):
+    if flg & (2**5):  # 32
         build_host_190102(build_photom=build_photom)
 
     # 180916

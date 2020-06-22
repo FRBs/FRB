@@ -63,28 +63,34 @@ def frb_180924():
     FRB 180924
         All of the data currently comes from Bannister et al. 2019
         https://ui.adsabs.harvard.edu/abs/2019Sci...365..565B/abstract
+        Now including updated values on FRB position, DM, pulse width 
+        and scattering time from Day et al. 2020
     """
-    frb180924 = frb.FRB('FRB180924', 'J214425.26-405400.1',
-                        361.4*units.pc / units.cm**3,
+    frb180924 = frb.FRB('FRB180924', 'J214425.255-405400.10',
+                        362.16*units.pc / units.cm**3,
                         z_frb=0.3212)
-    # Error in DM (Bannister 2019)
-    frb180924.DM_err = 0.06 * units.pc / units.cm**3
+    # Error in DM (Day 2019)
+    frb180924.DM_err = 0.01 * units.pc / units.cm**3
 
     # NE2001
     frb180924.set_DMISM()
 
-    # Bannister 2019
-    frb180924.fluence = 16 * units.Jy * units.ms
-    frb180924.fluence_err = 1 * units.Jy * units.ms
-    frb180924.RM = 14 * units.rad / units.m**2
-    frb180924.RM_err = 1 * units.rad / units.m**2
+    # FRB properties
+    frb180924.fluence = 16 * units.Jy * units.ms    # From Bhandari+20
+    frb180924.fluence_err = 1 * units.Jy * units.ms # -- //-- 
+    frb180924.RM = 22 * units.rad / units.m**2 
+    frb180924.RM_err = 2 * units.rad / units.m**2
+    frb180924.width = 0.09 * units.ms
+    frb180924.width_err = 0.04 * units.ms
+    frb180924.tau = 0.68 * units.ms
+    frb180924.tau_err = 0.03 * units.ms
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
     # Error ellipse
     frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.)
 
     # References
-    frb180924.refs = ['Bannister2019']
+    frb180924.refs = ['Bannister2019', 'Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -94,7 +100,6 @@ def frb_181112():
     """
     Generate the JSON file for FRB 181112
         All of the data comes from Prochaska+2019, Science, in press
-
     Returns:
 
     """
@@ -121,27 +126,36 @@ def frb_181112():
 
 def frb_190102():
     """Bhandari+20, ApJL --
+    Now including updated values on FRB position, DM, pulse width 
+    and scattering time from Day et al. 2020
     """
     fname = 'FRB190102'
-    wv_oiii = 6466.48
-    z_OIII = wv_oiii / 5008.239 - 1
-    frb190102 = frb.FRB(fname, 'J212939.7-792832.3', # Pulled from Slack 26-03-2019
-                        362 * units.pc / units.cm**3,
-                        z_frb=z_OIII)
+    #wv_oiii = 6466.48
+    #z_OIII = wv_oiii / 5008.239 - 1
+    frb190102 = frb.FRB(fname, 'J212939.76-792832.5', # Day+20
+                        364.545 * units.pc / units.cm**3,
+                        z_frb=0.2912) # Updated redshift
     # Error ellipse [REQUIRED]
     frb190102.set_ee(0.1, 0.1, 0., 95.)
 
     # Error in DM
-    frb190102.DM_err = 1 * units.pc / units.cm**3
+    frb190102.DM_err = 0.004 * units.pc / units.cm**3
 
     # NE2001
     frb190102.set_DMISM()
-    # RM
-    #frb190102.RM = 10 * units.rad / units.m**2
-    #frb190102.RM_err = 1 * units.rad / units.m**2
-
+    
+     # FRB properties
+    frb190102.fluence = 14 * units.Jy * units.ms    # From Bhandari+20
+    frb190102.fluence_err = 1 * units.Jy * units.ms # -- //-- 
+    frb190102.RM = -105 * units.rad / units.m**2
+    frb190102.RM_err = 1 * units.rad / units.m**2
+    frb190102.width = 0.053 * units.ms
+    frb190102.width_err = 0.002 * units.ms
+    frb190102.tau = 0.041 * units.ms
+    frb190102.tau_err = 0.003 * units.ms
+    
     # References
-    frb190102.refs = ['Bhandari2019']
+    frb190102.refs = ['Bhandari2020', 'Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -157,7 +171,7 @@ def frb_190523():
                         760.8 * units.pc / units.cm**3,
                         z_frb=0.660)
     # Error ellipse [REQUIRED]
-    frb190523.set_ee(5, 2, 0., 340) # JXP eyeball
+    frb190523.set_ee(4, 1.5, 0., 340) # Halfing the 3x8'' at 95% reported by Ravi et al.
     # Error in DM
     frb190523.DM_err = 0.6 * units.pc / units.cm**3
 
@@ -185,19 +199,26 @@ def frb_190608():
     """
     fname = 'FRB190608'
     frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
-                        339.8 * units.pc / units.cm**3,
+                        340.05 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
     frb190608.set_ee(0.19315, 0.18, 0., 68.) # Statistsical
     frb190608.set_ee(0.178292, 0.18, 0., 68., stat=False)  # Systematic
     # Error in DM
-    frb190608.DM_err = 1 * units.pc / units.cm**3
+    frb190608.DM_err = 0.6 * units.pc / units.cm**3
 
     # NE2001
     frb190608.set_DMISM()
-    # RM
-    #frb190102.RM = 10 * units.rad / units.m**2
-    #frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # FRB properties
+    frb190608.fluence = 26 * units.Jy * units.ms    # From Bhandari+20
+    frb190608.fluence_err = 4 * units.Jy * units.ms # -- //-- 
+    frb190608.RM = 353 * units.rad / units.m**2
+    frb190608.RM_err = 2 * units.rad / units.m**2
+    frb190608.width = 1.1 * units.ms
+    frb190608.width_err = 0.2 * units.ms
+    frb190608.tau = 3.3 * units.ms
+    frb190608.tau_err = 0.2 * units.ms
 
     # References
     frb190608.refs = ['Bhandari2020','Day2020']
@@ -215,20 +236,26 @@ def frb_190611():
     FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
                                 unit=(units.hourangle, units.deg))
     frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
-                        332.6 * units.pc / units.cm**3)
+                        332.63 * units.pc / units.cm**3,
+                        z_frb=0.3778)  # Bright
     # Error ellipse [REQUIRED]
     frb190611.set_ee(0.7, 0.7, 0., 68.)
     # Error in DM
-    frb190611.DM_err = 1 * units.pc / units.cm**3
+    frb190611.DM_err = 0.04 * units.pc / units.cm**3
 
     # NE2001
     frb190611.set_DMISM()
-    # RM
-    #frb190611.RM = 20 * units.rad / units.m**2
-    #frb190611.RM_err = 4 * units.rad / units.m**2
+    
+    # FRB properties
+    frb190611.RM = 20 * units.rad / units.m**2
+    frb190611.RM_err = 4 * units.rad / units.m**2
+    frb190611.width = 0.09 * units.ms
+    frb190611.width_err = 0.02 * units.ms
+    frb190611.tau = 0.18 * units.ms
+    frb190611.tau_err = 0.02 * units.ms
 
     # References
-    frb190611.refs = ['MacQuart2019', 'Day2020']
+    frb190611.refs = ['MacQuart2020', 'Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -256,7 +283,7 @@ def frb_190711():
     frb190711.RM_err = 2 * units.rad / units.m**2
 
     # References
-    frb190711.refs = ['MacQuart2019', 'Day+2020']
+    frb190711.refs = ['MacQuart2020', 'Day2020']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -298,14 +325,13 @@ def main(inflg='all'):
     if flg & (2**6): # 64
         frb_190711()
 
-    # 190611
-    if flg & (2**7):  # 128
-        frb_190611()
-
     # 180916
-    if flg & (2**8): # 256
+    if flg & (2**7): # 128
         frb_180916()
 
+    # 190611
+    if flg & (2**8):  # 256
+        frb_190611()
 
 
 # Command line execution
