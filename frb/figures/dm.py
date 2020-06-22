@@ -352,12 +352,18 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
     s_other = 90
 
     if not gold_only:
+        labeled = False
         for kk, ifrb in enumerate(frbs):
             if ifrb.frb_name in gold_frbs:
                 continue
+            if not labeled:
+                lbl = "Others"
+                labeled = True
+            else:
+                lbl = None
             ax.scatter([ifrb.z], [ifrb.DM.value -
                                       ifrb.DMISM.value - DM_MW_host(ifrb.z)],
-                   label=ifrb.frb_name, marker='o', s=s_other, color=bias_clr)
+                   label=lbl, marker='o', s=s_other, color=bias_clr)
 
 
     legend = ax.legend(loc='upper left', scatterpoints=1, borderpad=0.2,
