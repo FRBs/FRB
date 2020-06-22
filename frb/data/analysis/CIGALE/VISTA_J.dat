@@ -1,7 +1,6 @@
-    #VISTA_J
-    #photon
-    #VISTA J band http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
-
+#VISTA_J
+#photon
+#VISTA J band http://www.eso.org/sci/facilities/paranal/instruments/vircam/inst.html
      500.00     0.0001
      501.00     0.0001
      502.00     0.0001
