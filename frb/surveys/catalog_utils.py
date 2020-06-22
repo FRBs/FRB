@@ -50,6 +50,7 @@ def clean_cat(catalog, pdict, fill_mask=None):
             catalog = catalog.filled(fill_mask)
     return catalog
 
+
 def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     """
     Sort an input catalog by separation from input coordinate
@@ -83,6 +84,7 @@ def sort_by_separation(catalog, coord, radec=('ra','dec'), add_sep=True):
     srt_catalog = catalog[isrt]
     # Return
     return srt_catalog
+
 
 def match_ids(IDs, match_IDs, require_in_match=True):
     """ Match input IDs to another array of IDs (usually in a table)
@@ -159,6 +161,7 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     # Return
     return summary_list
 
+
 def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
                      RACol1 = "ra", DecCol1 = "dec",
                      RACol2 = "ra", DecCol2 = "dec"):
@@ -202,6 +205,7 @@ def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
 
     return match1, match2
 
+
 def _detect_mag_cols(photometry_table):
     """
     Searches the column names of a 
@@ -228,6 +232,39 @@ def _detect_mag_cols(photometry_table):
     return photom_cols.tolist(), photom_errcols.tolist()
 
 
+def mag_from_flux(flux, flux_err=None):
+    """
+    Get the AB magnitude from a flux
+
+    Parameters
+    ----------
+    flux : Quantity
+        Flux
+    flux_err : Quantity
+        Error in flux (optional)
+
+    Returns
+    -------
+    mag, mag_err : float, float
+        AB magnitude and its error (if flux_err is given)
+        AB magnitude and `None` (if flux_err is `None`)
+    """
+    # convert flux to Jansky
+    flux_Jy = flux.to('Jy').value
+
+    # get mag
+    mag_AB = -2.5*np.log10(flux_Jy) + 8.9
+
+    # get error
+    if flux_err is not None:
+        flux_Jy_err = flux_err.to('Jy').value
+        err_mag2 = (-2.5/np.log(10.) / flux_Jy)**2 * flux_Jy_err**2
+        err_mag = np.sqrt(err_mag2)
+    else:
+        err_mag = None
+    return mag_AB, err_mag
+
+
 def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     """
     Takes a table of photometric measurements
@@ -248,41 +285,46 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     fluxtable = photometry_table.copy()
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
     convert = units.mJy.to(fluxunits)
-    #If there's a "W" in the column name, it's from WISE 
-    wisecols = sorted([col for col in mag_cols if "W" in col])
-    wise_errcols = sorted([col for col in mag_errcols if "W" in col])
+    #If there's a "W" in the column name, it's from WISE
+    # TODO -- We need to deal with this hack
+    wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
+    wise_errcols = sorted([col for col in mag_errcols if ("W" in col and 'WFC3' not in col)])
 
     #Similarly define vista cols
     vistacols = sorted([col for col in mag_cols if "VISTA" in col])
     vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
 
-    wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-    for mag,err,fnu0 in zip(wisecols,wise_errcols,wise_fnu0):
+    wise_fnu0 = {'WISE_W1':309.54,
+                 'WISE_W2':171.787,
+                 'WISE_W3':31.674,
+                 'WISE_W4':8.363} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
+    for mag,err in zip(wisecols,wise_errcols):
         badmags = fluxtable[mag]<0
         fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        fluxtable[mag][~badmags] = wise_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
-        if "WISE" not in mag:
+        if "WISE" not in mag and 'WFC3' not in mag:
             fluxtable.rename_column(mag,mag.replace("W","WISE"))
             fluxtable.rename_column(err,err.replace("W","WISE"))
 
     #Convert VISTA fluxes to mJy
-    vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-    for mag,err,fnu0 in zip(vistacols,vista_errcols,vista_fnu0):
+    vista_fnu0 = {'VISTA_Y':2087.32,
+                  'VISTA_J':1554.03,
+                  'VISTA_H':1030.40,
+                  'VISTA_Ks':674.83} #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+    for mag,err in zip(vistacols,vista_errcols):
         badmags = fluxtable[mag]<0
         fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = fnu0*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
+        fluxtable[mag][~badmags] = vista_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
         baderrs = fluxtable[err]<0
         fluxtable[err][baderrs]=-99.0
         fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
 
     #For all other photometry:
-    other_mags = np.setdiff1d(mag_cols,wisecols)
-    other_errs = np.setdiff1d(mag_errcols,wise_errcols)
-
-
+    other_mags = np.setdiff1d(mag_cols,wisecols+vistacols)
+    other_errs = np.setdiff1d(mag_errcols,wise_errcols+vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
         badmags = fluxtable[mag] < 0

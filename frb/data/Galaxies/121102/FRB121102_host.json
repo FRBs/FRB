@@ -16,8 +16,8 @@
         "b/a_err": 0.13,
         "n": 2.2,
         "n_err": 1.5,
-        "reff_ang": 0.41,
-        "reff_ang_err": 0.06
+        "reff_ang": 0.2,
+        "reff_ang_err": 0.01
     },
     "neb_lines": {
         "Halpha": 2.6082162461507154e-16,
@@ -30,10 +30,22 @@
         "[OIII] 5007_err": 8.379935678693262e-18
     },
     "photom": {
-        "GMOS_N_i": 23.9,
-        "GMOS_N_i_err": 0.1,
-        "GMOS_N_r": 25.1,
-        "GMOS_N_r_err": 0.1
+        "GMOS_N_g": 25.85,
+        "GMOS_N_g_err": 0.12,
+        "GMOS_N_i": 24.75,
+        "GMOS_N_i_err": 0.09,
+        "GMOS_N_r": 25.46,
+        "GMOS_N_r_err": 0.14,
+        "GMOS_N_z": 24.3,
+        "GMOS_N_z_err": 0.13,
+        "Spitzer_3.6": 16.36790693823707,
+        "Spitzer_3.6_err": 0.20028143582916952,
+        "Spitzer_4.5": 16.51439372640169,
+        "Spitzer_4.5_err": -999,
+        "WFC3_F110W": 23.675,
+        "WFC3_F110W_err": 0.012,
+        "WFC3_F160W": 23.31,
+        "WFC3_F160W_err": 0.03
     },
     "ra": 82.99450790537921,
     "redshift": {

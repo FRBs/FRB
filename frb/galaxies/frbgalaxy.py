@@ -271,7 +271,8 @@ class FRBGalaxy(object):
         if EBV is not None:
             self.photom['EBV'] = EBV
     
-    def gen_cigale_data_in(self, ID=None, filename='data.fits', overwrite=False):
+    def run_cigale(self, data_file="cigale_in.fits", config_file="pcigale.ini",
+        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
         """
         Generates the input data file for CIGALE
         given the photometric points and redshift
@@ -280,95 +281,53 @@ class FRBGalaxy(object):
         Args:
             ID: str, optional
                 An ID for the galaxy. If none, "GalaxyA" is assigned.
-            filename: str, optional
-                Name of fits file (with path if needed) to store data in.
-                Default value is 'data.fits'
-            overwrite = bool, optional
-                If true, previously written fits files will be
-                overwritten
+            data_file (str, optional):
+                Root name for the photometry data file generated used as input to CIGALE
+            config_file (str, optional):
+                Root name for the file where CIGALE's configuration is generated
+            wait_for_input (bool, optional):
+                If true, waits for the user to finish editing the auto-generated config file
+                before running.
+            plot (bool, optional):
+                Plots the best fit SED if true
+            cores (int, optional):
+                Number of CPU cores to be used. Defaults
+                to all cores on the system.
+            outdir (str, optional):
+                Path to the many outputs of CIGALE
+                If not supplied, the outputs will appear in a folder named out/
+            compare_obs_model (bool, optional):
+                If True compare the input observed fluxes with the model fluxes
+                This writes a Table to outdir named 'photo_observed_model.dat'
+
+        kwargs:  These are passed into gen_cigale_in() and _initialise()
+            sed_modules (list of 'str', optional):
+                A list of SED modules to be used in the 
+                PDF analysis. If this is being input, there
+                should be a corresponding correct dict
+                for sed_modules_params.
+            sed_module_params (dict, optional):
+                A dict containing parameter values for
+                the input SED modules. Better not use this
+                unless you know exactly what you're doing.
         """
+        # Adding import statement here in case CIGALE is
+        # not installed.
+        from .cigale import run
+
         assert (len(self.photom) > 0 ),"No photometry found. CIGALE cannot be run."
         assert (len(self.redshift) > 0),"No redshift found. CIGALE cannot be run"
         new_photom = Table([self.photom])
-        if ID is None and self.name !='':
-            ID = self.name
-        elif self.name=='':
-            ID = 'GalaxyA'
-        new_photom['id'] = ID
         new_photom['redshift'] = self.z
-        
-        # Convert DES and SDSS fluxes to mJy
-        ABmagbands = ["DES_"+band for band in defs.DES_bands]
-        ABmagbands += ["SDSS_"+band for band in defs.SDSS_bands]
-        ABmagbands += ['VLT_'+band for band in defs.VLT_bands]
-        ABmagbands += ['Pan-STARRS_'+band for band in defs.PanSTARRS_bands]
-        for band in ABmagbands:
-            if band not in self.photom.keys():
-                print("{:s} not found in the data; skipping".format(band))
-                continue
-            elif new_photom[band]<0:
-                print("{:s} doesn't have a measurement; skipping".format(band))
-                new_photom.remove_columns([band,band+'_err'])
-                continue
-            new_photom[band] = 3630780.5*10**(new_photom[band]/-2.5)
-            if new_photom[band+'_err']<0:
-                new_photom[band+'_err']=-99
-            else:
-                new_photom[band+"_err"] = new_photom[band]*(10**(new_photom[band+"_err"]/2.5)-1)
-        
-        #REname VLT to FORS2
-        for band in defs.VLT_bands:
-            try:
-                new_photom.rename_column('VLT_'+band,'FORS2_'+band.lower())
-                new_photom.rename_column('VLT_'+band+"_err","FORS2_"+band.lower()+'_err')
-            except KeyError:
-                continue
-        
-        #Rename Pan-STARRS to PAN-STARRS
-        for band in defs.PanSTARRS_bands:
-            try:
-                new_photom.rename_column("Pan-STARRS_"+band,'PAN-STARRS_'+band)
-                new_photom.rename_column("Pan-STARRS_"+band+"_err","PAN-STARRS_"+band+"_err")
-            except KeyError:
-                continue
-        # Convert WISE fluxes to mJy
-        #TODO: Make this a function.
-        wise_fnu0 = [309.54,171.787,31.674,8.363] #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-        for band,zpt in zip(defs.WISE_bands,wise_fnu0):
-            # Data exists??
-            bandname = "WISE_"+band
-            if bandname not in self.photom.keys():
-                print("{:s} not found in the data; skipping".format(bandname))
-                continue
-            #
-            new_photom[bandname] = zpt*10**(-new_photom[bandname]/2.5)*1000 #mJy
-            errname = bandname+"_err"
-            if new_photom[errname] < 0:
-                new_photom[errname] = -99.0
-            else:
-                new_photom[errname] = new_photom[bandname]*(10**(new_photom[errname]/2.5)-1)
-            new_photom.rename_column(bandname,bandname.replace("WISE_W","WISE"))
-            new_photom.rename_column(bandname+'_err',bandname.replace("WISE_W","WISE")+"_err")
-        #Convert VISTA fluxes to mJy
-        vista_fnu0 = [2087.32,1554.03,1030.40,674.83] #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-        for band, zpt in zip(defs.VISTA_bands,vista_fnu0):
-            # Data exists??
-            if 'VISTA_'+band not in self.photom.keys():
-                print("{:s} not found in the data; skipping".format(band))
-                continue
-            #
-            new_photom['VISTA_'+band] = zpt*10**(-new_photom['VISTA_'+band]/2.5)*1000 #mJy
-            errname = 'VISTA_'+band+"_err"
-            if new_photom[errname] < 0:
-                new_photom[errname] = -99.0
-            else:
-                new_photom[errname] = new_photom['VISTA_'+band]*(10**(new_photom[errname]/2.5)-1)
-        
-        # Write to file
-        try:
-            new_photom.write(filename, format="fits", overwrite=overwrite)
-        except OSError:
-            warnings.warn("File exists;  use overwrite=True if you wish")
+        if self.name != '':
+            new_photom['ID'] = self.name
+        else:
+            new_photom['ID'] = 'FRBGalaxy'
+
+
+        run(new_photom, 'redshift', data_file, config_file,
+        wait_for_input, plot, outdir, compare_obs_model, **kwargs)
+        return
 
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
         """
@@ -865,7 +824,7 @@ def list_of_hosts():
     return frbs, hosts
 
 
-def build_table_of_hosts():
+def build_table_of_hosts(hosts=None):
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object
@@ -880,7 +839,8 @@ def build_table_of_hosts():
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
 
     """
-    _, hosts = list_of_hosts()
+    if hosts is None:
+        _, hosts = list_of_hosts()
     nhosts = len(hosts)
 
     # Table

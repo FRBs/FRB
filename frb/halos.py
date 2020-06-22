@@ -21,6 +21,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import constants
 from astropy.table import Table
+from astropy.utils import isiterable
 
 # Speed up calculations
 m_p = constants.m_p.cgs.value  # g
@@ -463,7 +464,7 @@ def halomass_from_stellarmass(log_mstar,z=0):
     numerically.
 
     Args:
-        log_mstar (float): log_10 stellar mass
+        log_mstar (float or numpy.ndarray): log_10 stellar mass
             in solar mass units.
         z (float, optional): galaxy redshift
 
@@ -478,7 +479,10 @@ def halomass_from_stellarmass(log_mstar,z=0):
 
     f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
     guess = 2+log_mstar
-    return fsolve(f, guess)
+    if isiterable(log_mstar):
+        return fsolve(f, guess)
+    else:
+        return fsolve(f, guess)[0]
 
 
 class ModifiedNFW(object):
