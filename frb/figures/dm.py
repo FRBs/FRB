@@ -232,10 +232,9 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
 
 
-def fig_cosmic(outfile='fig_cosmic.pdf', multi_model=False, no_curves=False,
+def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=False,
                widen=False, show_nuisance=True, no_error=False, mcquinn=False,
-               show_sigmaDM=False, cl=(16,84), beta=3., gold_only=False,
-               min_chisq=False):
+               show_sigmaDM=False, cl=(16,84), beta=3., gold_only=False):
     """
 
     Args:
