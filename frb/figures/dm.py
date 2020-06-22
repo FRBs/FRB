@@ -15,7 +15,8 @@ from astropy import units
 
 from frb.halos import ModifiedNFW, M31
 from frb import halos as frb_halos
-from frb import igm as frb_igm
+from frb.dm import igm as frb_igm
+from frb.dm import cosmic
 from frb.figures import utils as ff_utils
 
 from ne2001 import density
@@ -232,9 +233,9 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
 
 
-def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=False,
-               widen=False, show_nuisance=True, no_error=False, mcquinn=False,
-               show_sigmaDM=False, cl=(16,84), beta=3., gold_only=False):
+def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
+               widen=False, show_nuisance=False, no_error=False, mcquinn=False,
+               show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
     Args:
@@ -243,6 +244,11 @@ def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=Fa
     Returns:
 
     """
+    # Init
+    if gold_frbs is None:
+        gold_frbs = cosmic.gold_frbs
+
+    # Plotting
     ff_utils.set_mplrc()
 
     bias_clr = 'darkgray'
@@ -275,7 +281,7 @@ def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=Fa
 
     if show_sigmaDM:
         #f_C0 = frb_cosmology.build_C0_spline()
-        f_C0_3 = frb_cosmology.build_C0_spline(ifile='../Analysis/sigma_C0_beta3.ascii')
+        f_C0_3 = cosmic.grab_C0_spline(beta=3.)
         # Updated
         F = 0.2
         nstep=50
@@ -291,13 +297,12 @@ def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=Fa
             sigmas.append(isigma)
             C0s.append(float(f_C0_3(isigma)))
             # PDF
-            PDF = frb_cosmology.mcquinn_DM_PDF(Delta_values, C0s[-1], sigma=sigmas[-1],
-                                               beta=beta)
+            PDF = cosmic.DMcosmic_PDF(cosmic.Delta_values, C0s[-1], sigma=sigmas[-1], beta=beta)
             cumsum = np.cumsum(PDF) / np.sum(PDF)
             #if sub_DM[kk] > 200.:
             #    embed(header='131')
             # DO it
-            DM = Delta_values * sub_DM[kk]
+            DM = cosmic.Delta_values * sub_DM[kk]
             sigma_lo.append(DM[np.argmin(np.abs(cumsum-cl[0]/100))])
             sigma_hi.append(DM[np.argmin(np.abs(cumsum-cl[1]/100))])
         # Plot
@@ -331,84 +336,32 @@ def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=Fa
         else:
             return 50. + 50./(1+z)
 
-    # ASKAP FRBs
+    # Gold FRBs
     for kk,ifrb in enumerate(frbs):
-        if no_error:
-            yerr = None
-        elif mcquinn:
-            avgDM = frb_igm.average_DM(ifrb.z).value
-            sigma_DM = frb_cosmology.mcquinn_sigmaDM(ifrb.z)
-            #DM_cl = frb_cosmology.cl_mcquinn_PDF(avgDM, sigma=sigma_z)
-            yerr = sigma_DM #[[avgDM-DM_cl[0], DM_cl[1]-avgDM]]
-            print(avgDM, yerr)
-        else:
-            yerr=frb_tbl['sigma_DM'][kk]
-        if ifrb.frb_name == 'FRB190523':
-            clr = bias_clr
+        if ifrb.frb_name not in gold_frbs:
+            continue
+        if clrs is not None:
+            clr = clrs[kk]
         else:
             clr = None
-        if no_error:
-            ax.scatter([ifrb.z], [DM_subs[kk]-DM_MW_host(ifrb.z)],
+        ax.scatter([ifrb.z], [DM_subs[kk]-DM_MW_host(ifrb.z)],
                         label=ifrb.frb_name, marker='s', s=90, color=clr)
-        else:
-            ax.errorbar([ifrb.z], [DM_subs[kk]-DM_MW_host(ifrb.z)], yerr=yerr,
-                    label=ifrb.frb_name, marker='s', ms=10, color=clr)
-        #ax.scatter(ifrb.z, DM_subs[kk]-DM_MW_host, label=ifrb.frb_name, marker='s', s=60)
 
     # ################################
     # Other FRBs
     s_other = 90
 
     if not gold_only:
-        # Add the Repeater
-        repeater = frb.FRB.by_name('FRB121102')
-        if no_error:
-            ax.scatter([repeater.z], [repeater.DM.value -
-                                      repeater.DMISM.value - DM_MW_host(repeater.z)],
-                   label=repeater.frb_name, marker='*', s=s_other, color=bias_clr)
-        else:
-            ax.errorbar([repeater.z], [repeater.DM.value -
-                                       repeater.DMISM.value - DM_MW_host(repeater.z)],
-                    yerr=frb_cosmology.mcquinn_sigmaDM(repeater.z),
-                    label=repeater.frb_name, marker='*', ms=10, color=bias_clr)
-
-        # Add FRB 190523
-        frb190523 = frb.FRB.by_name('FRB190523')
-        if no_error:
-            ax.scatter([frb190523.z], [frb190523.DM.value - frb190523.DMISM.value -
-                                       DM_MW_host(frb190523.z)],
-                        label=frb190523.frb_name, marker='o', s=s_other, color=bias_clr)
-        else:
-            ax.errorbar([frb190523.z], [frb190523.DM.value - frb190523.DMISM.value
-                                        - DM_MW_host(frb190523.z)],
-                    yerr=frb_cosmology.mcquinn_sigmaDM(frb190523.z),
-                   label=frb190523.frb_name, marker='o', ms=10, color=bias_clr)
-
-        '''
-        # Add FRB 190611
-        frb190611 = frb.FRB.by_name('FRB190611')
-        if no_error:
-            ax.scatter([frb190611.z], [frb190611.DM.value -
-                                       frb190611.DMISM.value - DM_MW_host(frb190611.z)],
-                        label=frb190611.frb_name, marker='s', s=s_other, color=bias_clr)
-        else:
-            ax.errorbar([frb190611.z], [frb190611.DM.value -
-                                        frb190611.DMISM.value - DM_MW_host(frb190611.z)],
-                    yerr=frb_cosmology.mcquinn_sigmaDM(frb190611.z),
-                    label=frb190611.frb_name, marker='s', ms=10, color=bias_clr)
-        '''
-        # Add FRB 191001
-        frb191001 = frb.FRB.by_name('FRB191001')
-        ax.scatter([frb191001.z], [frb191001.DM.value -
-                                  frb191001.DMISM.value - DM_MW_host(frb191001.z)],
-                       label=frb191001.frb_name, marker='^', s=s_other, color=bias_clr)
-
+        for kk, ifrb in enumerate(frbs):
+            if ifrb.frb_name in gold_frbs:
+                continue
+            ax.scatter([ifrb.z], [ifrb.DM.value -
+                                      ifrb.DMISM.value - DM_MW_host(ifrb.z)],
+                   label=ifrb.frb_name, marker='o', s=s_other, color=bias_clr)
 
 
     legend = ax.legend(loc='upper left', scatterpoints=1, borderpad=0.2,
-                        handletextpad=handletextpad, fontsize=19)
-    #ax.set_yscale("log", nonposy='clip')
-    #ax.set_xscale("log", nonposx='clip')
+                        handletextpad=0.3, fontsize=19)
     ax.set_xlim(0, 0.7)
     ax.set_ylim(0, 1000.)
     #ax.set_xlabel(r'$z_{\rm FRB}$', fontname='DejaVu Sans')
@@ -420,11 +373,14 @@ def fig_cosmic(frbs, outfile='fig_macquart.pdf', multi_model=False, no_curves=Fa
         ax.text(0.05, 0.60, r'$\rm DM_{MW,halo} + DM_{host} = $'+' {:02d} pc '.format(int(DM_MW_host))+r'cm$^{-3}$',
             transform=ax.transAxes, fontsize=23, ha='left', color='black')
 
-    set_fontsize(ax, 23.)
+    ff_utils.set_fontsize(ax, 23.)
 
     # Layout and save
-    plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.1)
-    plt.savefig(outfile, dpi=400)
-    plt.close()
-    print('Wrote {:s}'.format(outfile))
+    if outfile is not None:
+        plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.1)
+        plt.savefig(outfile, dpi=400)
+        print('Wrote {:s}'.format(outfile))
+        plt.close()
+    else:
+        plt.show()
 
