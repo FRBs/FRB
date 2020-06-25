@@ -48,6 +48,10 @@ for data that may be associated to an FRB:
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
+The following package(s) is/are required to access FRB galaxy spectra:
+
+* `specdb <https://github.com/specdb/specdb.git>`_  no versioning (yet)
+
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
 * `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
@@ -56,8 +60,15 @@ The following are required to run spectral line analysis (e.g. frb.galaxies.nebu
 
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 
+The following are required to use our KCWI datacube handling tools:
+
+* `SEP <https://github.com/kbarbary/sep>`_ version 1.0 or later
+* `spectralcube <https://github.com/radio-astro-tools/spectral-cube>`_ version 0.4.5 or later
+* `pyregion <https://github.com/astropy/pyregion>`_ version 2.0 or later
+
 The following are required to run some of the halo codes:
 
+* `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
 * `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
@@ -66,6 +77,7 @@ The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
 * `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
+* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
@@ -109,6 +121,25 @@ Here are the steps to update CIGALE:
 * Add any desired filter into your CIGALE code base with:  `pcigale-filters add file.dat`
 
 Note that DECaLs uses the BASS and MzLS data files.
+
+EAZY setup
+==========
+
+In order to perform photo-z estimation
+with EAZY using our wrappers, the following
+changes need to be made.
+
+* Add an environment variable `EAZYDIR` that points to your EAZY installation. Add this to your `bashrc`::
+
+	export EAZYDIR="/path/to/eazy-photoz/"
+
+* Locate the `templates` folder in `$EAZYDIR` and edit the paths present in `*.spectra.param`. Replace all SED file paths with the absolute paths. For instance, in `$EAZYDIR/templates/eazy_v1.3.spectra.param`, replace::
+
+	templates/EAZY_v1.1_lines/eazy_v1.1_sed1.dat
+
+with::
+
+	/path/to/eazy-photoz/templates/EAZY_v1.1_lines/eazy_v1.1_sed1.dat
 
 
 .. _download-public:

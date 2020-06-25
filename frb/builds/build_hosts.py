@@ -4,6 +4,7 @@ FRB host galaxies"""
 from pkg_resources import resource_filename
 import os
 import sys
+import warnings
 
 from IPython import embed
 
@@ -22,6 +23,16 @@ from frb.surveys import des
 from frb.surveys import sdss
 from frb.surveys import wise
 from frb.surveys import panstarrs
+
+try:
+    import extinction
+except ImportError:
+    print("extinction package not loaded.  Extinction corrections will fail")
+
+try:
+    from frb.galaxies import cigale
+except ModuleNotFoundError:
+    warnings.warn("You haven't installed pcigale and won't be able to do that analysis")
 
 from linetools.spectra.xspectrum1d import XSpectrum1D
 
@@ -342,9 +353,10 @@ def build_host_190102(run_ppxf=False, build_photom=False):
         R = meta['R']
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(host190102.coord)['meanValue'])
-        alAV = nebular.load_extinction('MW')
         AV = ebv * 3.1  # RV
-        Al = alAV(spectrum.wavelength.value) * AV
+        #alAV = nebular.load_extinction('MW')
+        #Al = alAV(spectrum.wavelength.value) * AV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
         # New spec
         new_flux = spectrum.flux * 10**(Al/2.5)
         new_sig = spectrum.sig * 10**(Al/2.5)
@@ -516,11 +528,120 @@ def build_host_190608(run_ppxf=False, build_photom=False):
     # Vet all
     host190608.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190608.write_to_json(path=path)
 
-def main(inflg='all', build_photom=False):
+
+def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
+    """ Build the host galaxy data for FRB 180916
+
+    All of the data currently comes from Marcote et al. 2020
+    https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
+
+    CIGALE will be published in Kasper et al. 2020
+
+    Args:
+        build_photom (bool, optional):
+    """
+    frbname = '180916'
+    gal_coord = SkyCoord('J015800.28+654253.0',
+                         unit=(units.hourangle, units.deg))
+
+    # Instantiate
+    host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+
+    # Load redshift table
+    #ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+    #                  format='ascii.fixed_width')
+    #z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    #idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    #if np.min(d2d) > 0.5*units.arcsec:
+    #    embed(header='190608')
+    # Redshift -- SDSS
+    #host180916.set_z(ztbl[idx]['ZEM'], 'spec')
+
+    # Redshift
+    host180916.set_z(0.0337, 'spec')
+
+    # Morphology
+    #host190608.parse_galfit(os.path.join(photom_path, 'CRAFT', 'Bannister2019',
+    #                               'HG180924_galfit_DES.log'), 0.263)
+
+    # Photometry
+    EBV = nebular.get_ebv(gal_coord)['meanValue']  #
+    print("EBV={} for the host of {}".format(EBV, frbname))
+
+    # SDSS
+    # Grab the table (requires internet)
+    photom_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'marcote2020_photom.ascii')
+    if build_photom:
+        # SDSS
+        search_r = 1 * units.arcsec
+        sdss_srvy = sdss.SDSS_Survey(gal_coord, search_r)
+        sdss_tbl = sdss_srvy.get_catalog(print_query=True)
+        sdss_tbl['Name'] = host180916.name
+        photom = frbphotom.merge_photom_tables(sdss_tbl, photom_file)
+        # WISE
+        wise_srvy = wise.WISE_Survey(gal_coord, search_r)
+        wise_tbl = wise_srvy.get_catalog(print_query=True)
+        wise_tbl['Name'] = host180916.name
+        photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
+        # Write
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Parse
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    frbphotom.correct_photom_table(photom, EBV)
+    # Parse
+    host180916.parse_photom(photom)
+
+    # CIGALE
+    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
+    if build_cigale:
+        cut_photom = photom.copy()
+        # Remove WISE
+        #for column in cut_photom.keys():
+        #    if 'WISE' in column:
+        #        cut_photom.remove_column(column)
+        # Run
+        cigale.host_run(cut_photom, host180916, cigale_file=cigale_file)
+
+    host180916.parse_cigale(cigale_file)
+
+    # PPXF
+    #results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
+    #if run_ppxf:
+    #    meta, spectrum = host190608.get_metaspec(instr='SDSS')
+    #    spec_fit = None
+    #    ppxf.run(spectrum, 2000., host190608.z, results_file=results_file, spec_fit=spec_fit, chk=True)
+    #host190608.parse_ppxf(results_file)
+
+    # Derived quantities
+
+    # AV
+    #host190608.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    #host190608.calc_nebular_SFR('Ha')
+    #host.derived['SFR_nebular_err'] = -999.
+
+    # Vet all
+    host180916.vet_all()
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host180916.write_to_json(path=path)
+
+
+def main(inflg='all', options=None):
+    # Options
+    build_photom, build_cigale = False, False
+    if options is not None:
+        if 'photom' in options:
+            build_photom = True
+        if 'cigale' in options:
+            build_cigale = True
 
     if inflg == 'all':
         flg = np.sum(np.array( [2**ii for ii in range(25)]))
@@ -550,6 +671,10 @@ def main(inflg='all', build_photom=False):
     # 190102
     if flg & (2**5):
         build_host_190102(build_photom=build_photom)
+
+    # 180916
+    if flg & (2**6):  # 64
+        build_host_180916(build_photom=build_photom, build_cigale=build_cigale)
 
 
 # Command line execution
