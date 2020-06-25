@@ -3,7 +3,9 @@
 from pkg_resources import resource_filename
 
 import numpy as np
+
 from astropy import units
+from astropy.coordinates import SkyCoord
 
 from frb import frb
 
@@ -28,6 +30,33 @@ def frb_121102():
     # Test
     frb121102.from_json('FRB121102.json')
 
+
+def frb_180916():
+    """
+     FRB 180916.J0158+65
+        All of the data currently comes from Marcote et al. 2020
+        https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
+    """
+    coord = SkyCoord("01h58m00.75017s 65d43m00.3152s", frame='icrs')
+    name = 'FRB180916'
+    frb180916 = frb.FRB(name, coord,
+                        348.76*units.pc / units.cm**3,
+                        z_frb=0.0337)
+    # Error ellipse
+    frb180916.set_ee(0.0023, 0.0023, 0., 68.)
+    # Error in DM
+    frb180916.DM_err = 0.10 * units.pc / units.cm**3
+    # NE2001
+    frb180916.set_DMISM()
+    #
+    #frb180924.fluence = 16 * units.Jy * units.ms
+    #frb180924.fluence_err = 1 * units.Jy * units.ms
+    #
+    # References
+    frb180916.refs = ['Marcote2020']
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb180916.write_to_json(path=path)
 
 def frb_180924():
     """
@@ -152,6 +181,7 @@ def frb_190523():
 
 def frb_190608():
     """Bhandari+20, ApJL, Day+20, in prep. --
+    Macquart al. Nature
     """
     fname = 'FRB190608'
     frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
@@ -175,6 +205,34 @@ def frb_190608():
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb190608.write_to_json(path=path)
+
+
+def frb_190611():
+    """
+    Macquart al. Nature
+    Day et al. 2020
+    """
+    FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
+                                unit=(units.hourangle, units.deg))
+    frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
+                        332.6 * units.pc / units.cm**3)
+    # Error ellipse [REQUIRED]
+    frb190611.set_ee(0.7, 0.7, 0., 68.)
+    # Error in DM
+    frb190611.DM_err = 1 * units.pc / units.cm**3
+
+    # NE2001
+    frb190611.set_DMISM()
+    # RM
+    #frb190611.RM = 20 * units.rad / units.m**2
+    #frb190611.RM_err = 4 * units.rad / units.m**2
+
+    # References
+    frb190611.refs = ['MacQuart2019', 'Day2020']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190611.write_to_json(path=path)
 
 
 def frb_190711():
@@ -217,7 +275,7 @@ def main(inflg='all'):
         frb_121102()
 
     # 180924
-    if flg & (2**1):
+    if flg & (2**1):  # 2
         frb_180924()
 
     # 181112
@@ -239,6 +297,15 @@ def main(inflg='all'):
     # 190711
     if flg & (2**6): # 64
         frb_190711()
+
+    # 190611
+    if flg & (2**7):  # 128
+        frb_190611()
+
+    # 180916
+    if flg & (2**8): # 256
+        frb_180916()
+
 
 
 # Command line execution

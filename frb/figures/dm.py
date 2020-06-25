@@ -52,7 +52,10 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         smin (float, optional):
             Minimum value in axis2 (Gpc)
         dsmx (float, optional): Padding on the x-axis;  Gpc
+            Allows for host.  Set to 0 to ignore host
         FRB_DM (float): Observed value;  sets ymax = FRB_DM+50
+        yscl (float, optional):
+            Controls placement of labels
 
     """
     if halos:
@@ -216,6 +219,6 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         ax2.set_xlim(smin, smax)  # Gpc
 
     if FRB_DM is not None:
-        ax1.axhline(y=FRB_DM, ls='--', color='black')
-        ax2.axhline(y=FRB_DM, ls='--', color='black')
+        ax1.axhline(y=FRB_DM, ls='--', color='black', lw=3)
+        ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
 
