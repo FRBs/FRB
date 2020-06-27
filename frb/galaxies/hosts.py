@@ -126,11 +126,11 @@ def read_r_mags(data_table_path):
     r_mask = np.concatenate((np.where(data['Filtername'] == 'r')[0],
                              np.where(data['Filtername'] == 'F606W')[0]))
     _magbin = data['MagBinCentre'][r_mask]
-    args = _magbin.argsort()
-    magbin = _magbin[args]
+    indexes = _magbin.argsort()
+    magbin = _magbin[indexes]
 
-    r_band_data = data['N(m)'][r_mask][args]
-    cv = data['CosmicVariance'][r_mask][args]
+    r_band_data = data['N(m)'][r_mask][indexes]
+    cv = data['CosmicVariance'][r_mask][indexes]
     mag_uniq = np.unique(magbin)
 
     cvs = []
