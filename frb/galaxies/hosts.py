@@ -96,13 +96,14 @@ def get_R(R_frb, R_0=0.2, R_h=0.25):
     Based on Bloom et al 2002 and Eftekhari et al 2017
     
     Args:
-        R_frb: The 1 sigma localization radius of the FRB
-        R_0: Radial angular separation between the FRB position and a presumed host
-        R_h: Galaxy half light radius
+        R_frb (float): The 1 sigma localization radius of the FRB
+        R_0 (float): Radial angular separation between the FRB position and a presumed host
+        R_h (float): Galaxy half light radius
     
     Returns:
         float: radius (in arcseconds)
     """
+
     return np.max([2*R_frb, np.sqrt(R_0**2 + 4*R_h**2)])
 
 
@@ -112,7 +113,7 @@ def read_r_mags(data_table_path):
     https://iopscience.iop.org/article/10.3847/0004-637X/827/2/108
 
     Args:
-        data_table_path: Path to the fits file with data 
+        data_table_path (string): Path to the fits file with data 
 
     Returns:
         array: r band magnitudes
@@ -157,11 +158,11 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
         Section 2 of https://ui.adsabs.harvard.edu/abs/2017ApJ...849..162E/abstract
 
     Args:
-        R_frb: The 1 sigma localization radius of the FRB
-        m: r band magnitude of the galaxy
-        R_0: Radial angular separation between the FRB position and a presumed host
-        R_h: Galaxy half light radius
-        ret_numgal: to return the number of galaxies along with the chance coincidence probability
+        R_frb (float): The 1 sigma localization radius of the FRB
+        m (float): r band magnitude of the galaxy
+        R_0 (float): Radial angular separation between the FRB position and a presumed host
+        R_h (float): Galaxy half light radius
+        ret_numgal (bool): to return the number of galaxies along with the chance coincidence probability
     
     Returns:
         float: Probability of chance coincidence
