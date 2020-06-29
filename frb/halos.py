@@ -191,7 +191,6 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         Navg = np.cumsum(loX * dX)
         return zs, Navg
     else:
-        import pdb; pdb.set_trace()
         Navg = np.sum(loX * dX)
         return Navg
 
