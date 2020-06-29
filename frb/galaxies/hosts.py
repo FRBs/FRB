@@ -158,7 +158,7 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
         Section 2 of https://ui.adsabs.harvard.edu/abs/2017ApJ...849..162E/abstract
 
     Args:
-        R_frb (float): The 1 sigma localization radius of the FRB
+        R_frb (float): The 1 sigma localization radius of the FRB in arcsec
         m (float): r band magnitude of the galaxy
         R_0 (float): Radial angular separation between the FRB position and a presumed host
         R_h (float): Galaxy half light radius
