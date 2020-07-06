@@ -32,7 +32,7 @@ def test_frac_in_halos():
     zvals = np.array([0., 0.1, 0.5, 1.])
     ratios = halos.frac_in_halos(zvals, 1e11, 1e15)
     # Test
-    np.testing.assert_allclose(ratios, np.array([0.4625856 , 0.44314829, 0.36691686, 0.28180253]))
+    np.testing.assert_allclose(ratios, np.array([0.4625856 , 0.44314829, 0.36691686, 0.28180253]),rtol=1e-5)
 
 def test_halo_incidence():
     # Imported (unlikely)?
@@ -41,22 +41,22 @@ def test_halo_incidence():
         return
     # Run
     Navg = halos.halo_incidence(1e12, 1., Mhigh=3e12)
-    assert np.isclose(Navg, 0.8540985206)
+    assert np.isclose(Navg, 1.1079098177338418)
     # Cumulative now
     zeval, Ncumul = halos.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
     assert zeval.size == 20
-    assert np.isclose(Ncumul[-1], 0.42638425981)
+    assert np.isclose(Ncumul[-1], 0.5578253455474869)
 
 def test_YF17():
     yf17 = halos.YF17()
     ne = yf17.ne((0.,0.,20.))
-    assert np.isclose(ne, 0.0008810111443709797)
+    assert np.isclose(ne, 0.000881,atol=1e-6)
 
 def test_MB04():
     mb04 = halos.MB04()
     ne = mb04.ne((0.,0.,20.))
     # Test
-    assert np.isclose(ne, 0.0006035175125538989)
+    assert np.isclose(ne, 0.0003934132009332686)
 
 def test_MB15():
     mb15 = halos.MB15()
@@ -79,7 +79,7 @@ def test_modified_NFW():
     assert rho.size == 100
     xyz0 = [100., 0., 0.]
     nH0 = mNFW.nH(xyz0)
-    assert np.isclose(nH0, 0.00020454, rtol=1e-3)
+    assert np.isclose(nH0, 0.00018175, rtol=1e-3)
     # ne
     ne = mNFW.ne(xyz)
     assert np.all(ne > nH)
@@ -95,7 +95,7 @@ def test_m31():
     coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
     DM = M31.DM_from_Galactic(coord)
     assert DM.unit == u.pc/u.cm**3
-    assert np.isclose(DM.value, 126.34957194)
+    assert np.isclose(DM.value, 80.53133498)
 
 def test_satellites():
     smc = halos.SMC()
@@ -106,4 +106,4 @@ def test_ICM():
     icm = halos.ICM(log_Mhalo=14.5)
     ne = icm.ne(dummy_xyz)
     #
-    assert np.isclose(ne, 0.02900411)
+    assert np.isclose(ne, 0.01296222)
