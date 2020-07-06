@@ -699,7 +699,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     host180916.parse_photom(photom)
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180916_CIGALE.fits')
     if build_cigale:
         cut_photom = photom.copy()
         # Run
