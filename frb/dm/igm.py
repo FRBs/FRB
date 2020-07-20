@@ -339,8 +339,8 @@ def avg_rhoISM(z, cosmo=Planck15):
     """
     Co-moving Mass density of the ISM
 
-    Assumes z=0 properties for z<1
-    and otherwise M_ISM = M* for z>1
+    Interpolates from z=0 values to z=1 where
+    we assume M_ISM = M* and also for z>1
 
     Args:
         z (float or ndarray): Redshift
