@@ -371,7 +371,7 @@ def avg_rhoISM(z, cosmo=Planck15):
     tval = Planck15.age(z).to('Gyr').value
 
     # Interpolate
-    f_ISM = interp1d([t0, t1_2, t1], [f_ISM_0, 0.5, f_ISM_1], kind='quadratic',
+    f_ISM = interp1d([t0, t1_2, t1], [f_ISM_0, 0.58, f_ISM_1], kind='quadratic',
                      bounds_error=False, fill_value=1.)
 
     # Calculate
