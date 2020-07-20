@@ -353,6 +353,7 @@ def avg_rhoISM(z, cosmo=Planck15):
     """
     # Init
     z, flg_z = z_to_array(z)
+
     # Mstar
     rhoMstar = avg_rhoMstar(z, remnants=False)
 
