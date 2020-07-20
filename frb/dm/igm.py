@@ -111,7 +111,7 @@ def average_He_nume(z, z_HIreion=7.):
         return neHe[0]
 
 
-def z_from_DM(DM, cosmo = Planck15, coord=None, corr_nuisance=True):
+def z_from_DM(DM, cosmo=Planck15, coord=None, corr_nuisance=True):
     """
     Report back an estimated redshift from an input IGM DM
     Any contributions from the Galaxy and/or host need to have been 'removed'
@@ -147,7 +147,7 @@ def z_from_DM(DM, cosmo = Planck15, coord=None, corr_nuisance=True):
     # Return
     return z
 
-def f_diffuse(z, cosmo = Planck15, return_rho = False):
+def f_diffuse(z, cosmo=Planck15, return_rho = False):
   """
   Calculate the cosmic fraction of baryons
   in diffuse gas phase based on our empirical
@@ -171,7 +171,7 @@ def f_diffuse(z, cosmo = Planck15, return_rho = False):
 
   # Dense components
   rho_Mstar = avg_rhoMstar(z, remnants=True)
-  rho_ISM = avg_rhoISM(z)
+  rho_ISM = avg_rhoISM(z, cosmo=cosmo)
 
   # Diffuse gas fraction
   f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
@@ -335,7 +335,7 @@ def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neva
     else:
         return DM_IGM[-1]
 
-def avg_rhoISM(z):
+def avg_rhoISM(z, cosmo=Planck15):
     """
     Co-moving Mass density of the ISM
 
@@ -343,24 +343,40 @@ def avg_rhoISM(z):
     and otherwise M_ISM = M* for z>1
 
     Args:
-      z (float or ndarray): Redshift
+        z (float or ndarray): Redshift
+        cosmo (Cosmology, optional): Cosmology in which
+          the calculations are to be performed. LambdaCDM
+          with Planck15 parameters assumed by default.
 
     Returns:
       rhoISM (Quantity): Units of Msun/Mpc^3
     """
     # Init
     z, flg_z = z_to_array(z)
-    rhoISM_unitless = np.zeros_like(z)
     # Mstar
     rhoMstar = avg_rhoMstar(z, remnants=False)
-    # z<1
+
+    # z=0 (Fukugita+ 2004)
     f04_dict = fukugita04_dict()
     M_ISM = f04_dict['M_HI'] + f04_dict['M_H2']
-    f_ISM = M_ISM/(f04_dict['M_sphere']+f04_dict['M_disk'])
-    lowz = z<1
-    rhoISM_unitless[lowz] = f_ISM * rhoMstar[lowz].value
-    # z>1
-    rhoISM_unitless[~lowz] = rhoMstar[~lowz].value
+    f_ISM_0 = M_ISM/(f04_dict['M_sphere']+f04_dict['M_disk'])
+
+    # Assume M_ISM = M* at z=1
+    f_ISM_1 = 1.
+
+    # Ages
+    t0 = Planck15.age(0.).to('Gyr').value
+    t1 = Planck15.age(1.).to('Gyr').value
+    t1_2 = (t0+t1)/2.
+    tval = Planck15.age(z).to('Gyr').value
+
+    # Interpolate
+    f_ISM = interp1d([t0, t1_2, t1], [f_ISM_0, 0.5, f_ISM_1], kind='quadratic',
+                     bounds_error=False, fill_value=1.)
+
+    # Calculate
+    rhoISM_unitless = f_ISM(tval) * rhoMstar.value
+
     # Finish
     rhoISM = rhoISM_unitless * units.Msun / units.Mpc**3
     #
