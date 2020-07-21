@@ -43,7 +43,7 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 
-def build_host_121102(build_photom=False, build_cigale=False):
+def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     """
     Generate the JSON file for FRB 121102
 
@@ -97,11 +97,11 @@ def build_host_121102(build_photom=False, build_cigale=False):
         photom['WFC3_F160W_err'] = 0.03
 
         # Spitzer from Bassa (micro-Jy)
-        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03*units.mJy, flux_err=0.19*units.mJy)  # in micro-Jy
+        mag_3p6, err_mag_3p6 = catalog_utils.mag_from_flux(flux=1.03e-3*units.mJy, flux_err=0.19e-3*units.mJy)  # in micro-Jy
         photom['Spitzer_3.6'] = mag_3p6
         photom['Spitzer_3.6_err'] = err_mag_3p6
-        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
-        photom['Spitzer_4.5_err'] = -999  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
+        photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9e-3*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
+        photom['Spitzer_4.5_err'] = -999.  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
@@ -119,7 +119,6 @@ def build_host_121102(build_photom=False, build_cigale=False):
     if build_cigale:
         cut_photom = photom.copy()
         # Run
-        embed(header='122 of build_hosts')
         cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
 
     host121102.parse_cigale(cigale_file)
@@ -174,11 +173,12 @@ def build_host_121102(build_photom=False, build_cigale=False):
     host121102.morphology['b/a_err'] = 0.13
 
     # Derived quantities
-    host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
-    host121102.derived['M_r_err'] = 0.2  # Estimated by JXP
-    host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
-    host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
-    host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
+    if use_orig:
+        host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
+        host121102.derived['M_r_err'] = 0.2  # Estimated by JXP
+        host121102.derived['SFR_nebular'] = 0.23  # MSun/yr; Tendulkar+17
+        host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
+        host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
 
@@ -214,28 +214,25 @@ def build_host_180924(build_photom=True):
     # Redshift -- JXP measured from multiple data sources
     host.set_z(0.3212, 'spec')
 
-    # Morphology
-    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Bannister2019',
-                                   'HG180924_DES_galfit.log'), 0.263)
-
     # Photometry
-    # DES
-    search_r = 2*units.arcsec
-    des_srvy = des.DES_Survey(gal_coord, search_r)
-    des_tbl = des_srvy.get_catalog(print_query=True)
-    host.parse_photom(des_tbl)
 
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'CRAFT', 'Bannister2019', 'bannister2019_photom.ascii')
     if build_photom:
+        # DES
+        search_r = 2 * units.arcsec
+        des_srvy = des.DES_Survey(gal_coord, search_r)
+        des_tbl = des_srvy.get_catalog(print_query=True)
+        host.parse_photom(des_tbl)  # This is a bit of a hack!
+
         photom = Table()
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host.coord.ra.value
         photom['dec'] = host.coord.dec.value
-        photom['VLT_g'] = 21.38
-        photom['VLT_g_err'] = 0.04
-        photom['VLT_I'] = 20.10
-        photom['VLT_I_err'] = 0.02
+        photom['VLT_FORS2_g'] = 21.38  # No extinction correction
+        photom['VLT_FORS2_g_err'] = 0.04
+        photom['VLT_FORS2_I'] = 20.10
+        photom['VLT_FORS2_I_err'] = 0.02
         # Add in DES
         for key in host.photom.keys():
             photom[key] = host.photom[key]
@@ -243,9 +240,13 @@ def build_host_180924(build_photom=True):
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
 
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
-    host.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
-    #host.parse_photom(des_tbl)
+    host.parse_photom(photom, EBV=EBV)
 
     # PPXF
     host.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
@@ -262,6 +263,10 @@ def build_host_180924(build_photom=True):
     # CIGALE
     host.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bannister2019',
                                    'HG180924_CIGALE.fits'), 0.263)
+
+    # Galfit
+    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG180924_DES_i_galfit.fits'))
 
     # Vet all
     host.vet_all()
@@ -297,33 +302,40 @@ def build_host_181112(build_photom=False):
     # ############
     # Photometry
 
-    # DES
-    # Grab the table (requires internet)
-    search_r = 2 * units.arcsec
-    des_srvy = des.DES_Survey(Host_coord, search_r)
-    des_tbl = des_srvy.get_catalog(print_query=True)
 
-    host181112.parse_photom(des_tbl)
 
     # VLT -- Lochlan 2019-05-02
     # VLT -- Lochlan 2019-06-18
     photom_file = os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'prochaska2019_photom.ascii')
     if build_photom:
+        # DES
+        # Grab the table (requires internet)
+        search_r = 2 * units.arcsec
+        des_srvy = des.DES_Survey(Host_coord, search_r)
+        des_tbl = des_srvy.get_catalog(print_query=True)
+        host181112.parse_photom(des_tbl) # A hack of sorts
+
         photom = Table()
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host181112.coord.ra.value
         photom['dec'] = host181112.coord.dec.value
-        photom['VLT_g'] = 22.57
-        photom['VLT_g_err'] = 0.04
-        photom['VLT_I'] = 21.51
-        photom['VLT_I_err'] = 0.04
+        photom['VLT_FORS2_g'] = 22.57  # No extinction correction
+        photom['VLT_FORS2_g_err'] = 0.04
+        photom['VLT_FORS2_I'] = 21.51
+        photom['VLT_FORS2_I_err'] = 0.04
         # Add in DES
         for key in host181112.photom.keys():
             photom[key] = host181112.photom[key]
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    host181112.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(host181112.coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
+    # Parse
+    host181112.parse_photom(photom, EBV=EBV)
 
     # Nebular lines
     host181112.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_FORS2_ppxf.ecsv'))
@@ -340,6 +352,10 @@ def build_host_181112(build_photom=False):
 
     # CIGALE
     host181112.parse_cigale(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_CIGALE.fits'))
+
+    # Galfit
+    host181112.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG181112_VLT_i_galfit.fits'))
 
     # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
@@ -377,18 +393,24 @@ def build_host_190102(run_ppxf=False, build_photom=False):
         photom['ra'] = [host190102.coord.ra.value]
         photom['dec'] = host190102.coord.dec.value
         photom['Name'] = host190102.name
-        photom['VLT_u'] = 23.   # Dust corrected
-        photom['VLT_u_err'] = -999.
-        photom['VLT_g'] = 21.8  # Dust corrected
-        photom['VLT_g_err'] = 0.1
-        photom['VLT_I'] = 20.71 # Dust corrected
-        photom['VLT_I_err'] = 0.05
-        photom['VLT_z'] = 20.5 # Dust corrected
-        photom['VLT_z_err'] = 0.2
+        photom['VLT_FORS2_u'] = 23.7   # Not dust corrected
+        photom['VLT_FORS2_u_err'] = -999.
+        photom['VLT_FORS2_g'] = 22.6
+        photom['VLT_FORS2_g_err'] = 0.1
+        photom['VLT_FORS2_I'] = 21.1
+        photom['VLT_FORS2_I_err'] = 0.05
+        photom['VLT_FORS2_z'] = 20.8
+        photom['VLT_FORS2_z_err'] = 0.2
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    host190102.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, host190102.name)
+    # Parse
+    host190102.parse_photom(photom)
 
     # PPXF
     if run_ppxf:
@@ -422,6 +444,10 @@ def build_host_190102(run_ppxf=False, build_photom=False):
 
     # CIGALE
     host190102.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits'))
+
+    # Galfit
+    host190102.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190102_VLT_i_galfit.fits'))
 
     # Vet all
     host190102.vet_all()
@@ -510,6 +536,9 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     #host190523_S1.derived['SFR_nebular'] = 1.3
     #host190523_S1.derived['SFR_nebular_err'] = -999.
 
+    # Galfit
+    host190523_S1.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190523_LRIS_r_galfit.fits'))
     # Vet all
     host190523_S1.vet_all()
 
@@ -567,8 +596,13 @@ def build_host_190608(run_ppxf=False, build_photom=False):
         # Write
         photom = frbphotom.merge_photom_tables(wise_tbl, photom, debug=True)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    # Load
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correction
+    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
-    host190608.parse_photom(Table.read(photom_file, format=frbphotom.table_format))
+    host190608.parse_photom(photom)
 
     # PPXF
     results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
@@ -590,6 +624,9 @@ def build_host_190608(run_ppxf=False, build_photom=False):
     # CIGALE
     host190608.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019',
                                          'HG190608_CIGALE.fits'))
+    # Galfit
+    host190608.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG190608_SDSS_i_galfit.fits'))
     # Vet all
     host190608.vet_all()
 
@@ -662,13 +699,9 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     host180916.parse_photom(photom)
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180619_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180916_CIGALE.fits')
     if build_cigale:
         cut_photom = photom.copy()
-        # Remove WISE
-        #for column in cut_photom.keys():
-        #    if 'WISE' in column:
-        #        cut_photom.remove_column(column)
         # Run
         cigale.host_run(cut_photom, host180916, cigale_file=cigale_file)
 
@@ -683,13 +716,16 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     #host190608.parse_ppxf(results_file)
 
     # Derived quantities
-
     # AV
     #host190608.calc_nebular_AV('Ha/Hb')
 
     # SFR
     #host190608.calc_nebular_SFR('Ha')
     #host.derived['SFR_nebular_err'] = -999.
+    
+    # Galfit
+    host180916.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                   'HG180916_SDSS_i_galfit.fits'))
 
     # Vet all
     host180916.vet_all()
@@ -715,23 +751,23 @@ def main(inflg='all', options=None):
 
     # 121102
     if flg & (2**0):
-        build_host_121102(build_photom=build_photom, build_cigale=build_cigale) # 1
+        build_host_121102(build_photom=build_photom, build_cigale=build_cigale)  # 1
 
     # 180924
     if flg & (2**1):
-        build_host_180924(build_photom=build_photom)
+        build_host_180924(build_photom=build_photom)  # 2
 
     # 181112
     if flg & (2**2):
-        build_host_181112(build_photom=build_photom)
+        build_host_181112(build_photom=build_photom)  # 4
 
     # 190523
     if flg & (2**3):  # 8
         build_host_190523(build_photom=build_photom)
 
     # 190608
-    if flg & (2**4):
-        build_host_190608(build_photom=build_photom)#, run_ppxf=True)
+    if flg & (2**4):  # 16
+        build_host_190608(build_photom=build_photom)
 
     # 190102
     if flg & (2**5):  # 32

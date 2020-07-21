@@ -4,9 +4,13 @@ Warning: Might get chopped up into pieces sommeday
 import numpy as np
 import pdb
 
+import os
 from astropy import units
+from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
-
+from scipy import interpolate
+from scipy.integrate import quad
+from pkg_resources import resource_filename
 
 def chance_coincidence(rmag, r_i):
     """
@@ -84,3 +88,103 @@ def random_separation(catalog, wcs, npix, trim=1*units.arcmin, ntrial=100):
     idx, d2d, d3d = match_coordinates_sky(grid_coord, cat_coord, nthneighbor=1)
 
     return d2d
+
+
+def get_R(R_frb, R_0=0.2, R_h=0.25):
+    """
+    Calculates Radius of localisation region in arcsecond
+    Based on Bloom et al 2002 and Eftekhari et al 2017
+    
+    Args:
+        R_frb (float): The 1 sigma localization radius of the FRB
+        R_0 (float): Radial angular separation between the FRB position and a presumed host
+        R_h (float): Galaxy half light radius
+    
+    Returns:
+        float: radius (in arcseconds)
+    """
+
+    return np.max([2*R_frb, np.sqrt(R_0**2 + 4*R_h**2)])
+
+
+def read_r_mags(data_table_path):
+    """
+    Reads data used in Driver et al (2016).
+    https://iopscience.iop.org/article/10.3847/0004-637X/827/2/108
+
+    Args:
+        data_table_path (string): Path to the fits file with data 
+
+    Returns:
+        array: r band magnitudes
+        array: magnitude bin
+        array: cosmic variance
+
+    """
+    table = fits.open(data_table_path)
+    data = table[1].data
+    r_mask = np.concatenate((np.where(data['Filtername'] == 'r')[0],
+                             np.where(data['Filtername'] == 'F606W')[0]))
+    _magbin = data['MagBinCentre'][r_mask]
+    indexes = _magbin.argsort()
+    magbin = _magbin[indexes]
+
+    r_band_data = data['N(m)'][r_mask][indexes]
+    cv = data['CosmicVariance'][r_mask][indexes]
+    mag_uniq = np.unique(magbin)
+
+    cvs = []
+    r_dat = []
+    for mag in mag_uniq:
+        loc = np.where(magbin == mag)[0]
+        if len(loc) > 1:
+            cv_s = cv[loc]
+            min_cv_loc = np.where(cv_s == cv_s.min())
+            r_dat.append(r_band_data[loc[min_cv_loc]][0])
+            cvs.append(cv_s[min_cv_loc][0])
+        else:
+            cvs.append(cv[loc][0])
+            r_dat.append(r_band_data[loc][0])
+    cvs = np.array(cvs)
+    r_dat = np.array(r_dat)
+    
+    return r_dat, mag_uniq, cvs
+
+
+def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
+    """
+    Calculates chance association probability of a galaxy to an FRB
+    Taken from: 
+        Section 2 of https://ui.adsabs.harvard.edu/abs/2017ApJ...849..162E/abstract
+
+    Args:
+        R_frb (float): The 1 sigma localization radius of the FRB in arcsec
+        m (float): r band magnitude of the galaxy
+        R_0 (float): Radial angular separation between the FRB position and a presumed host
+        R_h (float): Galaxy half light radius
+        ret_numgal (bool): to return the number of galaxies along with the chance coincidence probability
+    
+    Returns:
+        float: Probability of chance coincidence
+
+    """
+    r_dat, mag_uniq, cvs = read_r_mags(resource_filename('frb',os.path.join('data','Galaxies','driver2016_t3data.fits')))
+
+    spl = interpolate.UnivariateSpline(x=mag_uniq,
+                                       y=np.log10(r_dat),
+                                       bbox=[-100, 100],
+                                       k=3)
+
+    def n_gal(m_r):
+        return 10 ** spl(m_r)
+
+    num_dens_gal = quad(n_gal, 0, m)[0]
+    R = get_R(R_frb, R_0, R_h)
+
+    deg2arcsec = 60 * 60
+    num_gals = np.pi * (R / deg2arcsec) ** 2 * num_dens_gal
+
+    if ret_numgal:
+        return 1 - np.exp(-1 * num_gals), num_gals
+    else:
+        return 1 - np.exp(-1 * num_gals)
