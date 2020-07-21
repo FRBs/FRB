@@ -21,17 +21,37 @@
         "u-r": 1.9531768136045813,
         "u-r_err": 0.1932605048375288
     },
+    "morphology": {
+        "PA": 18.83,
+        "PA_err": 6.36,
+        "b/a": 0.69,
+        "b/a_err": 0.05,
+        "dec": 72.47065141347403,
+        "dec_err": 0.011200000000000002,
+        "n": 1.71,
+        "n_err": 0.42,
+        "ra": 207.06429376567363,
+        "ra_err": 0.011200000000000002,
+        "reff_ang": 0.45640000000000003,
+        "reff_ang_err": 0.0252,
+        "reff_kpc": 3.2765338744354646,
+        "reff_kpc_err": 0.18091291331238762
+    },
     "neb_lines": {
         "Hbeta": 3e-18,
         "Hbeta_err": -999
     },
     "photom": {
-        "Pan-STARRS_i": 21.0578,
-        "Pan-STARRS_i_err": 0.0574,
-        "Pan-STARRS_y": 20.0666,
-        "Pan-STARRS_y_err": 0.1505,
-        "Pan-STARRS_z": 20.6865,
-        "Pan-STARRS_z_err": 0.0995
+        "Pan-STARRS_g": 22.909190101410033,
+        "Pan-STARRS_g_err": 0.16809199750423431,
+        "Pan-STARRS_i": 21.135413820868127,
+        "Pan-STARRS_i_err": 0.058139000087976456,
+        "Pan-STARRS_r": 22.007129443850875,
+        "Pan-STARRS_r_err": 0.1003049984574318,
+        "Pan-STARRS_y": 20.581878987475587,
+        "Pan-STARRS_y_err": 0.10481999814510345,
+        "Pan-STARRS_z": 20.79110546023427,
+        "Pan-STARRS_z_err": 0.06288400292396545
     },
     "ra": 207.06433,
     "redshift": {

@@ -16,5 +16,5 @@ from frb.galaxies import photom
 def test_dust_correct():
 
     correct = photom.extinction_correction('GMOS_S_r', 0.138)
-    pytest.set_trace()
+    assert np.isclose(correct, 1.3818590723917497)
 
