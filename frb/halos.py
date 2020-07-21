@@ -21,6 +21,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.cosmology import z_at_value
 from astropy import constants
 from astropy.table import Table
+from astropy.utils import isiterable
 
 # Speed up calculations
 m_p = constants.m_p.cgs.value  # g
@@ -169,7 +170,10 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
     # Radii
     if radius is None:
         rhoc = cosmo.critical_density(zs)
-        r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
+        #https://arxiv.org/pdf/1312.4629.pdf eq5
+        q = cosmo.Ode0/(cosmo.Ode0+cosmo.Om0*(1+zs)**3)
+        rhovir = (18*np.pi**2-82*q-39*q**2)*rhoc
+        r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*rhovir))**(1/3)).to('kpc')
     else:
         r200 = np.ones_like(zs) * radius
     # Ap
@@ -416,17 +420,13 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     https://doi.org/10.1093/mnras/sts261
 
     Args:
-        log_Mhalo:
-
+        log_Mhalo (float): log_10 halo mass
+            in solar mass units. 
+        z (float, optional): halo redshift.
+            Assumed to be 0 by default.
     Returns:
-
-
-    Args:
-      log_Mhalo: float
-        log10 of the galaxy halo mass (solar masses)
-
-    Returns:
-        float: log_mstar, log10 of the galaxy stellar mass (solar masses)
+        log_mstar (float): log_10 galaxy stellar mass
+            in solar mass units.
     """
         
     # Define model parameters from Table 1
@@ -458,13 +458,18 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
 
 
 def halomass_from_stellarmass(log_mstar,z=0):
-    """ Halo mass from Stellar mass (Moster+2013)
+    """ Halo mass from Stellar mass (Moster+2013).
+    Inverts the function `stellarmass_from_halomass`
+    numerically.
 
     Args:
-        log_mstar (float): log10 of the galaxy stellar mass (solar masses)
+        log_mstar (float or numpy.ndarray): log_10 stellar mass
+            in solar mass units.
+        z (float, optional): galaxy redshift
 
     Returns:
-        float: log_Mhalo, log10 of the galaxy halo mass (solar masses)
+        log_Mhalo (float): log_10 halo mass
+            in solar mass units. 
     """
     try:
         log_mstar*z
@@ -473,7 +478,10 @@ def halomass_from_stellarmass(log_mstar,z=0):
 
     f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
     guess = 2+log_mstar
-    return fsolve(f, guess)
+    if isiterable(log_mstar):
+        return fsolve(f, guess)
+    else:
+        return fsolve(f, guess)[0]
 
 
 class ModifiedNFW(object):
@@ -540,8 +548,11 @@ class ModifiedNFW(object):
             self.fb = cosmo.Ob0/cosmo.Om0
             self.H0 = cosmo.H0
         # Dark Matter
-        self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
-        self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
+        self.q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
+        #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
+        self.rhovir = (18*np.pi**2-82*self.q-39*self.q**2)*self.rhoc
+        self.r200 = (((3*self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
+        self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density
         # Baryons
         self.M_b = self.M_halo * self.fb
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs

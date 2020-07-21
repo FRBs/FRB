@@ -51,7 +51,7 @@ for band in PanSTARRS_bands:
 # VLT
 VLT_bands = ['u', 'g', 'I', 'z']
 for band in VLT_bands:
-    valid_filters.append('VLT_{:s}'.format(band))
+    valid_filters.append('VLT_FORS2_{:s}'.format(band))
 
 # GMOS
 #south
@@ -88,7 +88,7 @@ for band in VISTA_bands:
 
 # HST instruments
 # WFC3
-WFC3_bands = ['F110W', 'F160W']
+WFC3_bands = ['F300X', 'F110W', 'F160W']
 for band in WFC3_bands:
     valid_filters.append('WFC3_{:s}'.format(band))
 

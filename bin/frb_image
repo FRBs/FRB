@@ -6,7 +6,7 @@
 
 
 """
-This script shows an FRB related spectrum
+This script generates an FRB image
 """
 
 from frb.scripts import image

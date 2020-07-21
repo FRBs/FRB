@@ -163,6 +163,8 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
         'WFC3_F160W': 'hst.wfc3.F160W',
+        'Spitzer_3.6': 'spitzer.irac.ch1',
+        'Spitzer_4.5': 'spitzer.irac.ch2',
     }
     for key in new_names:
         if key in photom_cols:
@@ -170,21 +172,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
             # Try Error
             if key+'_err' in photom_cols:
                 cigtab.rename_column(key+'_err', new_names[key]+'_err')
-    '''
-    for col in photom_cols:
-        # Rename WISE_W to WISE
-        if "W" in col and "WISE" not in col:
-            cigtab.rename_column(col,col.replace("W","WISE"))
-        elif "WISE_W" in col:
-            cigtab.rename_column(col,col.replace("WISE_W","WISE"))
-            #DECaLS tables also have a DECaLS-WISE xmatch
-            if "DECaL" in col:
-                cigtab[col][cigtab[col].mask]= -99.0
-                cigtab.rename_column(col,col.replace("DECaL_",""))
-        # Renmae DECaL to DES because it's the same instrument
-        if "DECaL" in col:
-            cigtab.rename_column(col,col.replace("DECaL","DES"))
-    '''
+
     cigtab.write(infile,overwrite=overwrite)
     return
 
@@ -348,15 +336,21 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
 
 def host_run(photom, host, cigale_file=None):
     """
-    Wrapper to faciliate running CIGALE on a FRBGalaxy
-
-    Args:
-        photom (astropy.table.Table):
-        host (frb.galaxies.frbgalaxy.FRBGalaxy):
-        cigale_file (str, optional):
-
-    Returns:
-
+    Run CIGALE on an FRBGalaxy's photometry
+    and store results in a folder with the
+    FRBGalaxy's name.
+    Args
+    ----
+    photom (astropy Table): Table containing
+        galaxy photometry. Table columns
+        must be in the format '<SOURCE>_<BAND>'
+        and '<SOURCE>_<BAND>_err'.
+        e.g. SDSS_u, SDSS_u_err, Pan-STARRS_g
+    host (FRBGalaxy): A host galaxy.
+    cigale_file (str, optional): Name of main
+        CIGALE output file. Must be in the format
+        `<something>_CIGALE.fits`. No file is
+        renamed if nothing is provided.
     """
     cigale_tbl = photom.copy()
     cigale_tbl['z'] = host.z
@@ -372,4 +366,4 @@ def host_run(photom, host, cigale_file=None):
         os.system('cp -rp {:s}/{:s}_best_model.fits {:s}'.format(host.name, host.name, model_file))
         photo_file = cigale_file.replace('CIGALE.fits', 'CIGALE_photo.dat')
         os.system('cp -rp {:s}/photo_observed_model_{:s}.dat {:s}'.format(host.name, host.name, photo_file))
-
+    return
