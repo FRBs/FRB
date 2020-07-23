@@ -1,15 +1,15 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 332.6
+        "value": 332.63
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 57.19521072989397
+        "value": 57.195210729893994
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 1.0
+        "value": 0.04
     },
     "FRB": "FRB190611",
     "RM": {
@@ -24,13 +24,17 @@
     "dec": -79.39758333333334,
     "eellipse": {
         "a": 0.7,
+        "a_sys": 0.4,
         "b": 0.7,
+        "b_sys": 0.3,
         "cl": 68.0,
-        "theta": 0.0
+        "cl_sys": 68,
+        "theta": 0.0,
+        "theta_sys": 0.0
     },
     "ra": 320.7454583333333,
     "refs": [
-        "MacQuart2019",
+        "MacQuart2020",
         "Day2020"
     ],
     "z": 0.3778
