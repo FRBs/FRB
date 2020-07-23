@@ -87,7 +87,8 @@ def frb_180924():
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
     # Error ellipse
-    frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.)
+    frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.) #statistical
+    frb180924.set_ee(a=0.09, b=0.09, theta=0, cl=68., stat=False) #systematic
 
     # References
     frb180924.refs = ['Bannister2019', 'Day2020']
@@ -110,6 +111,7 @@ def frb_181112():
     frb181112.DM_err = 0.03 * units.pc / units.cm**3
     # Error ellipse
     frb181112.set_ee(a=555.30/1e3, b=152.93/1e3, theta=120.15, cl=68.)
+
     # RM
     frb181112.RM = 10.9 * units.rad / units.m**2
     frb181112.RM_err = 0.9 * units.rad / units.m**2
@@ -136,7 +138,8 @@ def frb_190102():
                         364.545 * units.pc / units.cm**3,
                         z_frb=0.2912) # Updated redshift
     # Error ellipse [REQUIRED]
-    frb190102.set_ee(0.1, 0.1, 0., 95.)
+    frb190102.set_ee(0.1, 0.1, 0., 95.) #statistical
+    frb190102.set_ee(0.4, 0.5, 0., 95., stat=False) #systematic
 
     # Error in DM
     frb190102.DM_err = 0.004 * units.pc / units.cm**3
@@ -239,7 +242,8 @@ def frb_190611():
                         332.63 * units.pc / units.cm**3,
                         z_frb=0.3778)  # Bright
     # Error ellipse [REQUIRED]
-    frb190611.set_ee(0.7, 0.7, 0., 68.)
+    frb190611.set_ee(0.7, 0.7, 0., 68.) #statistical
+    frb190611.set_ee(0.4, 0.3, 0., 68, stat=False ) #systematic
     # Error in DM
     frb190611.DM_err = 0.04 * units.pc / units.cm**3
 
@@ -306,19 +310,19 @@ def main(inflg='all'):
         frb_180924()
 
     # 181112
-    if flg & (2**2):
+    if flg & (2**2): #4
         frb_181112()
 
     # 195023
-    if flg & (2**3):
+    if flg & (2**3): #8
         frb_190523()
 
     # 190608
-    if flg & (2**4):
+    if flg & (2**4): #16
         frb_190608()
 
     # 190102
-    if flg & (2**5):
+    if flg & (2**5): #32
         frb_190102()
 
     # 190711

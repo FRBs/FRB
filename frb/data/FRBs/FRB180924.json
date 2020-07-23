@@ -24,9 +24,13 @@
     "dec": -40.90002777777778,
     "eellipse": {
         "a": 0.1,
+        "a_sys": 0.09,
         "b": 0.1,
+        "b_sys": 0.09,
         "cl": 68.0,
-        "theta": 0.0
+        "cl_sys": 68.0,
+        "theta": 0.0,
+        "theta_sys": 0
     },
     "fluence": {
         "unit": "Jy ms",
