@@ -715,14 +715,24 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     #    ppxf.run(spectrum, 2000., host190608.z, results_file=results_file, spec_fit=spec_fit, chk=True)
     #host190608.parse_ppxf(results_file)
 
+    # Nebular lines
+    host180916.neb_lines['Halpha'] = 6.57e-16  # Not corrected for Galactic extinction
+    host180916.neb_lines['Halpha_err'] = 0.04e-16
+
+    # Correct for extinction
+    RV = 3.1
+    AV = EBV * RV
+    Alambda = extinction.fm07(np.array([6564*(1+host180916.z)]), AV)[0]
+    host180916.neb_lines['Halpha'] *= 10**(Alambda/2.5)
+    host180916.neb_lines['Halpha_err'] *= 10**(Alambda/2.5)
+
     # Derived quantities
     # AV
     #host190608.calc_nebular_AV('Ha/Hb')
 
     # SFR
-    #host190608.calc_nebular_SFR('Ha')
-    #host.derived['SFR_nebular_err'] = -999.
-    
+    host180916.calc_nebular_SFR('Ha')
+
     # Galfit
     host180916.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
                                    'HG180916_SDSS_i_galfit.fits'))
