@@ -334,7 +334,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             
     return
 
-def host_run(photom, host, cigale_file=None):
+def host_run(host, cut_photom=None, cigale_file=None):
     """
     Run CIGALE on an FRBGalaxy's photometry
     and store results in a folder with the
@@ -352,9 +352,17 @@ def host_run(photom, host, cigale_file=None):
         `<something>_CIGALE.fits`. No file is
         renamed if nothing is provided.
     """
-    cigale_tbl = photom.copy()
-    cigale_tbl['z'] = host.z
+    cigale_tbl = Table()
+    cigale_tbl['z'] = [host.z]
     cigale_tbl['ID'] = host.name
+
+    # Deal with photometry
+    if cut_photom is not None:
+        photom_obj = cut_photom
+    else:
+        photom_obj = host.photom
+    for key in photom_obj.keys():
+        cigale_tbl[key] = photom_obj[key]
 
     # Run
     run(cigale_tbl, 'z', outdir=host.name, compare_obs_model=True, idcol='ID')
@@ -366,4 +374,7 @@ def host_run(photom, host, cigale_file=None):
         os.system('cp -rp {:s}/{:s}_best_model.fits {:s}'.format(host.name, host.name, model_file))
         photo_file = cigale_file.replace('CIGALE.fits', 'CIGALE_photo.dat')
         os.system('cp -rp {:s}/photo_observed_model_{:s}.dat {:s}'.format(host.name, host.name, photo_file))
+        # SFH
+        sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+        os.system('mv {:s}/{:s}_SFH.fits {:s}'.format(host.name, host.name, sfh_file))
     return

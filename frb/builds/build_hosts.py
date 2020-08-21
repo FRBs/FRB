@@ -101,7 +101,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
         photom['Spitzer_3.6'] = mag_3p6
         photom['Spitzer_3.6_err'] = err_mag_3p6
         photom['Spitzer_4.5'] = catalog_utils.mag_from_flux(0.9e-3*units.mJy/2.)[0]   # upper limit (6sigma/2 = ~3sigma) in micro-Jy
-        photom['Spitzer_4.5_err'] = -999.  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
+        photom['Spitzer_4.5_err'] = 999.  # the flux is un upper limit, note it is 3sigma (estimated by dividing the 6sigma/2)
 
         # Write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
@@ -116,12 +116,12 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
 
     # CIGALE
     cigale_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'HG121102_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
-        cut_photom = photom.copy()
         # Run
-        cigale.host_run(cut_photom, host121102, cigale_file=cigale_file)
+        cigale.host_run(host121102, cigale_file=cigale_file)
 
-    host121102.parse_cigale(cigale_file)
+    host121102.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Nebular lines
     neb_lines = {}
@@ -653,16 +653,6 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     # Instantiate
     host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
 
-    # Load redshift table
-    #ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
-    #                  format='ascii.fixed_width')
-    #z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
-    #idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
-    #if np.min(d2d) > 0.5*units.arcsec:
-    #    embed(header='190608')
-    # Redshift -- SDSS
-    #host180916.set_z(ztbl[idx]['ZEM'], 'spec')
-
     # Redshift
     host180916.set_z(0.0337, 'spec')
 
@@ -700,12 +690,12 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
 
     # CIGALE
     cigale_file = os.path.join(db_path, 'CHIME', 'Marcote2020', 'HG180916_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
-        cut_photom = photom.copy()
         # Run
-        cigale.host_run(cut_photom, host180916, cigale_file=cigale_file)
+        cigale.host_run(host180916, cigale_file=cigale_file)
 
-    host180916.parse_cigale(cigale_file)
+    host180916.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # PPXF
     #results_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190608_SDSS_ppxf.ecsv')
@@ -738,7 +728,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
                                    'HG180916_SDSS_i_galfit.fits'))
 
     # Vet all
-    host180916.vet_all()
+    assert host180916.vet_all()
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
