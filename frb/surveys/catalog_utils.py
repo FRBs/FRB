@@ -249,7 +249,7 @@ def mag_from_flux(flux, flux_err=None):
         AB magnitude and its error (if flux_err is given)
         AB magnitude and `None` (if flux_err is `None`)
     """
-    # convert flux to Jansky
+    # convert flux to micro Jansky
     flux_Jy = flux.to('Jy').value
 
     # get mag
