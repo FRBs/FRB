@@ -710,6 +710,10 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     host180916.neb_lines['Halpha_err'] = 0.04e-16
     host180916.neb_lines['[OIII] 5007'] = 4.76e-16  # Not corrected for Galactic extinction
     host180916.neb_lines['[OIII] 5007_err'] = 0.04e-16
+    host180916.neb_lines['[NII] 6584'] = 2.51e-16  # Not corrected for Galactic extinction
+    host180916.neb_lines['[NII] 6584_err'] = 0.04e-16
+    host180916.neb_lines['[OIII] 4959'] = 0.38e-16  # Not corrected for Galactic extinction
+    host180916.neb_lines['[OIII] 4959_err'] = 0.04e-16
 
     # Correct for extinction
     RV = 3.1
@@ -720,6 +724,12 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     Alambda = extinction.fm07(np.array([5007*(1+host180916.z)]), AV)[0]
     host180916.neb_lines['[OIII] 5007'] *= 10**(Alambda/2.5)
     host180916.neb_lines['[OIII] 5007_err'] *= 10**(Alambda/2.5)
+    Alambda = extinction.fm07(np.array([6584*(1+host180916.z)]), AV)[0]
+    host180916.neb_lines['[NII] 6584'] *= 10**(Alambda/2.5)
+    host180916.neb_lines['[NII] 6584_err'] *= 10**(Alambda/2.5)
+    Alambda = extinction.fm07(np.array([4959*(1+host180916.z)]), AV)[0]
+    host180916.neb_lines['[OIII] 4959'] *= 10**(Alambda/2.5)
+    host180916.neb_lines['[OIII] 4959_err'] *= 10**(Alambda/2.5)
 
     # Derived quantities
     # AV
@@ -780,8 +790,8 @@ def main(inflg='all', options=None):
 
     # 180916
     if flg & (2**6):  # 64
-        #build_host_180916(build_photom=build_photom, build_cigale=build_cigale)
-        build_host_180916(build_photom=build_photom)
+        build_host_180916(build_photom=build_photom, build_cigale=build_cigale)
+        #build_host_180916(build_photom=build_photom)
 
 # Command line execution
 if __name__ == '__main__':
