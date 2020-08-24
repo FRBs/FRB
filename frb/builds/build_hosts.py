@@ -577,7 +577,7 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     host190523_S1.write_to_json(path=path)
 
 
-def build_host_190608(run_ppxf=False, build_photom=False):
+def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 190608
 
     All of the data comes from Bhandrari+2020, ApJL, in press
@@ -629,7 +629,7 @@ def build_host_190608(run_ppxf=False, build_photom=False):
     # Load
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correction
-    EBV = nebular.get_ebv(gal_coord)['meanValue']
+    EBV = nebular.get_ebv(gal_coord, definition=ebv_method)['meanValue']
     frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
     host190608.parse_photom(photom, EBV=EBV)
@@ -652,8 +652,13 @@ def build_host_190608(run_ppxf=False, build_photom=False):
     #host.derived['SFR_nebular_err'] = -999.
 
     # CIGALE
-    host190608.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019',
-                                         'HG190608_CIGALE.fits'))
+    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG190608_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        cigale.host_run(host190608, cigale_file=cigale_file)
+    # Parse
+    host190608.parse_cigale(cigale_file, sfh_file=sfh_file)
+
     # Galfit
     host190608.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
                                    'HG190608_SDSS_i_galfit.fits'))
@@ -814,7 +819,7 @@ def main(inflg='all', options=None):
 
     # 190608
     if flg & (2**4):  # 16
-        build_host_190608(build_photom=build_photom)
+        build_host_190608(build_photom=build_photom, build_cigale=build_cigale)
 
     # 190102
     if flg & (2**5):  # 32
