@@ -264,7 +264,6 @@ def build_host_180924(build_photom=False, build_cigale=False):
     # CIGALE
     cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG180924_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
-
     if build_cigale:
         cut_photom = Table()
         for key in host.photom.keys():
@@ -287,7 +286,7 @@ def build_host_180924(build_photom=False, build_cigale=False):
     host.write_to_json(path=path)
 
 
-def build_host_181112(build_photom=False):
+def build_host_181112(build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 181112
 
     All of the data comes from Prochaska+2019, Science
@@ -312,7 +311,6 @@ def build_host_181112(build_photom=False):
 
     # ############
     # Photometry
-
 
 
     # VLT -- Lochlan 2019-05-02
@@ -362,7 +360,17 @@ def build_host_181112(build_photom=False):
     #host.calc_nebular_SFR('Ha')
 
     # CIGALE
-    host181112.parse_cigale(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'HG181112_CIGALE.fits'))
+    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG181112_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        cut_photom = Table()
+        for key in host181112.photom.keys():
+            if 'DES' not in key: #and 'WISE' not in key:
+                continue
+            cut_photom[key] = [host181112.photom[key]]
+        cigale.host_run(host181112, cut_photom=cut_photom, cigale_file=cigale_file)
+    # Parse
+    host181112.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Galfit
     host181112.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
@@ -793,8 +801,8 @@ def main(inflg='all', options=None):
         build_host_180924(build_photom=build_photom, build_cigale=build_cigale)  # 2
 
     # 181112
-    if flg & (2**2):
-        build_host_181112(build_photom=build_photom)  # 4
+    if flg & (2**2): # 4
+        build_host_181112(build_photom=build_photom, build_cigale=build_cigale)  # 4
 
     # 190523
     if flg & (2**3):  # 8
