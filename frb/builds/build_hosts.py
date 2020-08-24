@@ -428,7 +428,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     # Load
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correction
-    EBV = nebular.get_ebv(gal_coord, definition='SandF')['meanValue']
+    EBV = nebular.get_ebv(gal_coord, definition=ebv_method)['meanValue']
     frbphotom.correct_photom_table(photom, EBV, host190102.name)
     # Parse
     host190102.parse_photom(photom, EBV=EBV)
