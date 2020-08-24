@@ -68,9 +68,12 @@ def _sed_default_params(module):
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
         params['E_BVs_old_factor'] = 1.0 # Reduction of E(B-V) for the old population w.r.t. young
         params['uv_bump_wavelength'] = 217.5 #central wavelength of UV bump (nm)
-        params['uv_bump_width'] = 35.0 #UV bump FWHM (nm)
-        params['uv_bump_amplitude'] = 0.0 # Amplitude of the UV bump. For the Milky Way: 3.
-        params['powerlaw_slope'] = 0.0 # Slope delta of the power law modifying the attenuation curve.
+        params['uv_bump_width'] = 35.6 #UV bump FWHM (nm)
+        params['uv_bump_amplitude'] = 1.3 # Amplitude of the UV bump. For the Milky Way: 3.
+        # The following parameter can have a significant affect on stellar mass
+        #  We use the recommendation in Lo Faro+2017
+        params['powerlaw_slope'] = -0.13  # Slope delta of the power law modifying the attenuation curve.
+        # These filters have no effect
         params['filters'] = 'B_B90 & V_B90 & FUV'
     elif module is 'dale2014':
         params['fracAGN'] = [0.0,0.05,0.1,0.2]
