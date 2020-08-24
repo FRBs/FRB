@@ -341,7 +341,7 @@ def build_host_181112(build_photom=False, build_cigale=False):
     # Load
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correction
-    EBV = nebular.get_ebv(host181112.coord)['meanValue']
+    EBV = nebular.get_ebv(host181112.coord, definition=ebv_method)['meanValue']
     frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
     host181112.parse_photom(photom, EBV=EBV)
@@ -483,7 +483,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     host190102.write_to_json(path=path)
 
 
-def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False):
+def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False, build_photom=False):
     """
     Build the host galaxy data for FRB 190523
 
@@ -513,7 +513,7 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     # Morphology
 
     # Photometry
-    EBV = nebular.get_ebv(S1_gal_coord)['meanValue']  #
+    EBV = nebular.get_ebv(S1_gal_coord, definition=ebv_method)['meanValue']  #
     print("EBV={} for the host of {}".format(EBV, frbname))
 
     # PanStarrs
@@ -544,8 +544,12 @@ def build_host_190523(build_photom=False):  #:run_ppxf=False, build_photom=False
     '''
 
     # CIGALE -- PanStarrs photometry but our own CIGALE analysis
-    host190523_S1.parse_cigale(os.path.join(db_path, 'DSA', 'Ravi2019',
-                                         'S1_190523_CIGALE.fits'))
+    cigale_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'S1_190523_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        cigale.host_run(host190523_S1, cigale_file=cigale_file)
+    # Parse
+    host190523_S1.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Nebular flux measured by a hand (Gaussian fit) by JXP on 2020-05-19
     #   Corrected for Galactic extinction but not internal
@@ -806,7 +810,7 @@ def main(inflg='all', options=None):
 
     # 190523
     if flg & (2**3):  # 8
-        build_host_190523(build_photom=build_photom)
+        build_host_190523(build_photom=build_photom, build_cigale=build_cigale)
 
     # 190608
     if flg & (2**4):  # 16
