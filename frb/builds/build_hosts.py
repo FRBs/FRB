@@ -362,7 +362,7 @@ def build_host_181112(build_photom=False):
     host181112.write_to_json(path=path)
 
 
-def build_host_190102(run_ppxf=False, build_photom=False):
+def build_host_190102(run_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 190102
 
     All of the data comes from Bhandrari+2020, ApJL, in press
@@ -443,6 +443,12 @@ def build_host_190102(run_ppxf=False, build_photom=False):
     host190102.calc_nebular_SFR('Ha')
 
     # CIGALE
+    cigale_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+
+    if build_cigale:
+        cigale.host_run(host190102, cigale_file=cigale_file)
+
     host190102.parse_cigale(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_CIGALE.fits'))
 
     # Galfit
@@ -786,7 +792,7 @@ def main(inflg='all', options=None):
 
     # 190102
     if flg & (2**5):  # 32
-        build_host_190102(build_photom=build_photom)
+        build_host_190102(build_photom=build_photom, build_cigale=build_cigale)
 
     # 180916
     if flg & (2**6):  # 64
