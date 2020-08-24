@@ -696,7 +696,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     #                               'HG180924_galfit_DES.log'), 0.263)
 
     # Photometry
-    EBV = nebular.get_ebv(gal_coord)['meanValue']  #
+    EBV = nebular.get_ebv(gal_coord, definition=ebv_method)['meanValue']  #
     print("EBV={} for the host of {}".format(EBV, frbname))
 
     # SDSS
