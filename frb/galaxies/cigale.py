@@ -35,7 +35,7 @@ _DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "da
 
 def _sed_default_params(module):
     """
-    Set the default SED
+    Set the default parameters for CIGALE
 
     Args:
         module (str):
