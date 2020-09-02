@@ -23,7 +23,8 @@ except ImportError:
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
-
+fill_values_list = [('-999', '0'), ('-999.0', '0')]
+fill_value = -999.
 
 def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
@@ -40,6 +41,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
             Merged tables
 
     """
+    fill_value = -999.
     # File or tbl?
     if isinstance(old_file, str):
         # New file?
@@ -67,11 +69,40 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     elif np.sum(match) == 0:
         merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
     else:
-        embed(header='50 of photom')  # Needs testing
-        merge_tbl = hstack([old_tbl, new_tbl[match]])
-        merge_tbl = hstack([merge_tbl, new_tbl[~match]])
+        embed(header='50 of photom')  # Best to avoid!!  Use photom_by_name
     # Return
     return merge_tbl
+
+def photom_by_name(name, filelist):
+    """
+    Generate a Table for a given galaxy from a list of photom files
+
+    Warning:  Order matters!  Use best data last
+
+    Args:
+        name (str):
+        filelist (list):
+
+    Returns:
+        astropy.table.Table:
+
+    """
+    # Loop on tables
+    final_tbl = None
+    for ifile in filelist:
+        # Load an insure it is a masked Table
+        tbl = Table(Table.read(ifile, format=table_format, fill_values=fill_values_list), masked=True)
+        idx = tbl['Name'] == name
+        if np.sum(idx) == 1:
+            sub_tbl = tbl[idx]
+            if final_tbl is None:
+                final_tbl = sub_tbl
+            else:
+                for key in sub_tbl.keys():
+                    if sub_tbl[key].mask != True:  # Cannot use "is"
+                        final_tbl[key] = sub_tbl[key]
+    # Return
+    return final_tbl.filled(fill_value)
 
 
 def extinction_correction(filter, EBV, RV=3.1, max_wave=None, required=True):
