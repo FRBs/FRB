@@ -405,10 +405,12 @@ def build_host_190102(build_photom=False, build_cigale=False,
     z_OIII = wv_oiii / 5008.239 - 1
     host190102.set_z(z_OIII, 'spec')
 
-    photom_file = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'bhandari2019_photom.ascii')
+    photom_file1 = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'bhandari2019_photom.ascii')
+    photom_file2 = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
     # VLT/FORS2 -- Pulled from draft on 2019-06-23
     # VLT/FORS2 -- Pulled from spreadsheet 2019-06-23
     if build_photom:
+        '''   Bhandari2020
         photom = Table()
         photom['ra'] = [host190102.coord.ra.value]
         photom['dec'] = host190102.coord.dec.value
@@ -421,15 +423,20 @@ def build_host_190102(build_photom=False, build_cigale=False,
         photom['VLT_FORS2_I_err'] = 0.05
         photom['VLT_FORS2_z'] = 20.8
         photom['VLT_FORS2_z_err'] = 0.2
-        # Photometry from Wen-fai, 02/09-2020
+        '''
+        # Photometry from Mannings et al. 2020-09-02
+        photom = Table()
+        photom['ra'] = [host190102.coord.ra.value]
+        photom['dec'] = host190102.coord.dec.value
+        photom['Name'] = host190102.name
         photom['WFC3_F160W'] = 20.550
         photom['WFC3_F160W_err'] = 0.006
         # LCOGT?
         # Write
-        photom = frbphotom.merge_photom_tables(photom, photom_file)
-        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        photom = frbphotom.merge_photom_tables(photom, photom_file2)
+        photom.write(photom_file2, format=frbphotom.table_format, overwrite=True)
     # Load
-    photom = Table.read(photom_file, format=frbphotom.table_format)
+    photom = frbphotom.photom_by_name(host190102.name, [photom_file1, photom_file2])
     # Dust correction
     EBV = nebular.get_ebv(gal_coord, definition=ebv_method)['meanValue']
     frbphotom.correct_photom_table(photom, EBV, host190102.name)
