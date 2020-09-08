@@ -129,6 +129,9 @@ valid_morphology = [
     'n',          # Sersic index; Galfit
     'PA',         # Position angle (deg); Galfit
     'b/a',        # Ellipticity; Galfit
+    'ra',         # RA centroid inferred from Galfit
+    'dec',        # DEC centroid inferred from Galfit
+    'n',          # Sersic index from Galfit
 ]
 
 ##############################################################
@@ -141,6 +144,7 @@ valid_derived_photom = [
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
+    'age_mass',        # Age weighted mass from CIGALE
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
