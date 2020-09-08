@@ -424,11 +424,6 @@ class FRBGalaxy(object):
             cigale['M_r'] = -2.5*np.log10(cigale['Lnu_r']) + 34.1
             cigale['M_r_err'] = 2.5*(cigale['Lnu_r_err']/cigale['Lnu_r']) / np.log(10)
 
-        # Fill Derived
-        for key, item in cigale.items():
-            if (key not in self.derived.keys()) or (overwrite):
-                self.derived[key] = item
-        
         # Compute mass weighted age?
         if sfh_file is not None:
             try:
@@ -443,6 +438,11 @@ class FRBGalaxy(object):
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
 
+        # Fill Derived
+        for key, item in cigale.items():
+            if (key not in self.derived.keys()) or (overwrite):
+                self.derived[key] = item
+        
 
     def parse_galfit(self, galfit_file, overwrite=True):
         """
