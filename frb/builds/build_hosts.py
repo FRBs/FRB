@@ -686,7 +686,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     All of the data currently comes from Marcote et al. 2020
     https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
 
-    CIGALE will be published in Kasper et al. 2020
+    CIGALE and galfit will be published in Kasper et al. 2020
 
     Args:
         build_photom (bool, optional):
