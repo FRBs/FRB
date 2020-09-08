@@ -34,7 +34,7 @@ def offset_frb(sigR, rstate, nFRB, max_sig=5.):
 
 
 def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
-          seed=12345, edge_buff=20*units.arcsec):
+          seed=12345, edge_buff=20*units.arcsec, rmag_mnx=(19., 22.)):
 
     # Random numbers
     rstate = np.random.RandomState(seed)
@@ -43,7 +43,7 @@ def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
     zval = rstate.uniform(size=nSand, low=zmnx[0], high=zmnx[1])
 
     # Convert z to r_mag from Lmnx.  Cheating for now
-    rmags = rstate.uniform(size=nSand, low=19., high=22.)
+    rmags = rstate.uniform(size=nSand, low=rmag_mnx[0], high=rmag_mnx[1])
 
     # Sandbox edge
     field_coord = SkyCoord(ra=field[0], dec=field[1], unit='deg')
@@ -106,11 +106,39 @@ def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
 
 # Command line execution
 if __name__ == '__main__':
-    # Test
-    source_tbl = Table.read('dev/tst_DES_180924.fits')
-    field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
-    #theta = dict(method='rcore', max=2., core=0.1)
-    theta = dict(method='uniform', max=2.)
-    frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25)
-    frb_tbl.write('dev/tst_FRB_180924.fits', overwrite=True)
+    if False:  # Bright
+        # Test
+        source_tbl = Table.read('dev/tst_DES_180924.fits')
+        field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
+        #theta = dict(method='rcore', max=2., core=0.1)
+        theta = dict(method='uniform', max=2.)
+        frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25,
+                        rmag_mnx = (19., 22.))
+        frb_tbl.write('dev/tst_FRB_180924.fits', overwrite=True)
 
+    if False:  # Faint
+        # Test
+        source_tbl = Table.read('dev/tst_DES_180924.fits')
+        field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
+        theta = dict(method='uniform', max=2.)
+        frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25,
+                        rmag_mnx=(21., 24.))
+        frb_tbl.write('dev/tst_FRB_180924_faint.fits', overwrite=True)
+
+    if False:  # Faint + theta_max = 3.5
+        # Test
+        source_tbl = Table.read('dev/tst_DES_180924.fits')
+        field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
+        theta = dict(method='uniform', max=3.5)
+        frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25,
+                        rmag_mnx=(21., 24.))
+        frb_tbl.write('dev/tst_FRB_180924_faint_theta3.5.fits', overwrite=True)
+
+    if True:  # Faint + sigR=0.75"
+        # Test
+        source_tbl = Table.read('dev/tst_DES_180924.fits')
+        field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
+        theta = dict(method='uniform', max=2.)
+        frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.75,
+                        rmag_mnx=(21., 24.))
+        frb_tbl.write('dev/tst_FRB_180924_faint_sigR0.75.fits', overwrite=True)
