@@ -74,7 +74,7 @@ def renorm_priors(raw_Mi, raw_S):
     return raw_Mi/raw_sum, raw_S/raw_sum
 
 
-def mock_run(sky, frbs, sigR, theta, fov):
+def mock_run(sky, frbs, sigR, theta, fov, scale_rhalf=2., nsigma=2.):
     # Coords
     obj_coord = SkyCoord(ra=sky['ra'], dec=sky['dec'], unit='deg')
     frb_coord = SkyCoord(ra=frbs['ra'], dec=frbs['dec'], unit='deg')
@@ -98,7 +98,7 @@ def mock_run(sky, frbs, sigR, theta, fov):
         # Raw P(Mi)
         raw_prior_Mi = prior_Mi_n(cand_gal['DES_r'].data, cand_sep.to('arcsec').value,
                                            cand_gal['r_half'].data, sigR.to('arcsec').value,
-                                           scale_rhalf=2., nsigma=2.)
+                                           scale_rhalf=scale_rhalf, nsigma=nsigma)
         # Raw P(S)
         raw_prior_S = 1. - np.max(raw_prior_Mi)
         # Normalize priors
