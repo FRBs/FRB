@@ -107,10 +107,10 @@ def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
 # Command line execution
 if __name__ == '__main__':
     # Test
-    source_tbl = Table.read('tst_DES_180924.fits')
+    source_tbl = Table.read('dev/tst_DES_180924.fits')
     field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
     #theta = dict(method='rcore', max=2., core=0.1)
     theta = dict(method='uniform', max=2.)
     frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25)
-    frb_tbl.write('tst_FRB_180924.fits', overwrite=True)
+    frb_tbl.write('dev/tst_FRB_180924.fits', overwrite=True)
 
