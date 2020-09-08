@@ -10,24 +10,21 @@ from frb import frb
 
 from IPython import embed
 
-def theta_uniform(theta_max, rstate, ntheta):
-    dtheta = rstate.uniform(size=ntheta, low=0., high=theta_max)
-    rdir = rstate.uniform(size=ntheta, low=0., high=2*np.pi)
-    #
-    theta_ra = dtheta * np.cos(rdir)
-    theta_dec = dtheta * np.sin(rdir)
+def theta_rcore(theta, rstate, ntheta):
+    rand = rstate.uniform(size=ntheta)
+    dtheta = np.exp(np.log(theta['core']) + rand) - theta['core']
+    embed(header='16 of sandbox')
+    pa = rstate.uniform(size=ntheta, low=0., high=360.)
     # Return
-    return theta_ra, theta_dec
+    return dtheta*units.arcsec, pa*units.deg
 
 def offset_frb(sigR, rstate, nFRB, max_sig=5.):
     roff = rstate.normal(scale=sigR, size=nFRB)
-    rdir = rstate.uniform(size=nFRB, low=0., high=2*np.pi)
+    pa = rstate.uniform(size=nFRB, low=0., high=360.)
     # Turn into ra, dec
-    roff = np.minimum(roff, max_sig*sigR)  # Note this includes negative values
-    frb_ra = roff * np.cos(rdir)
-    frb_dec = roff * np.sin(rdir)
+    roff = np.abs(np.minimum(roff, max_sig*sigR))  # Note this includes negative values
     # Return
-    return frb_ra, frb_dec
+    return roff*units.arcsec, pa*units.deg
 
 
 def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
@@ -69,27 +66,32 @@ def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
     objs = np.array(objs)
 
     # Offset
-    if theta['method'] == 'uniform':
-        thetas_ra, thetas_dec = theta_uniform(theta['max'], rstate, nSand)
+    if theta['method'] == 'rcore':
+        thetas_off, thetas_pa = theta_rcore(theta, rstate, nSand)
     else:
         embed(header='45')
 
     # FRB offset
-    frb_off_ra, frb_off_dec = offset_frb(sigR, rstate, nSand)
+    frb_off, frb_pa = offset_frb(sigR, rstate, nSand)
 
     # Apply
     frb_coords = obj_coord[objs]
-    frb_ra = frb_coords.ra.value + thetas_ra/3600. + frb_off_ra/3600.
-    frb_dec = frb_coords.dec.value + thetas_dec/3600. + frb_off_dec/3600.
+    obs_coords = []
+    for kk, frb_coord in enumerate(frb_coords):
+        obs_coord = frb_coord.directional_offset_by(thetas_pa[kk], thetas_off[kk])
+        obs_coord = obs_coord.directional_offset_by(frb_pa[kk], frb_off[kk])
+        obs_coords.append(obs_coord)
+    frb_coords = SkyCoord(obs_coords)
 
     # Final table
     frb_tbl = Table()
     frb_tbl[phot_col] = rmags
-    frb_tbl['ra'] = frb_ra
-    frb_tbl['dec'] = frb_dec
+    frb_tbl['ra'] = frb_coords.ra.value
+    frb_tbl['dec'] = frb_coords.dec.value
     frb_tbl['iobj'] = objs
     frb_tbl['obj_ra'] = obj_coord[objs].ra.value
     frb_tbl['obj_dec'] = obj_coord[objs].dec.value
+    frb_tbl['theta'] = thetas_off.value
 
     # Return
     return frb_tbl
@@ -99,7 +101,7 @@ if __name__ == '__main__':
     # Test
     source_tbl = Table.read('tst_DES_180924.fits')
     field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
-    theta = dict(method='uniform', max=2.)
+    theta = dict(method='rcore', max=2., core=0.1)
     frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25)
     frb_tbl.write('tst_FRB_180924.fits', overwrite=True)
 
