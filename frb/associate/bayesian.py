@@ -159,7 +159,7 @@ def mock_run(sky, frbs, sigR, theta, fov, scale_rhalf=2., nsigma=2.,
 
 def parse_model(model_dict, scale=1000, mag_lim=25.5):
     """
-    
+
     Args:
         model_dict:
         scale:
