@@ -18,6 +18,12 @@ def theta_rcore(theta, rstate, ntheta):
     # Return
     return dtheta*units.arcsec, pa*units.deg
 
+def theta_uniform(theta, rstate, ntheta):
+    dtheta = rstate.uniform(size=ntheta, low=0., high=theta['max'])
+    pa = rstate.uniform(size=ntheta, low=0., high=360.)
+    # Return
+    return dtheta*units.arcsec, pa*units.deg
+
 def offset_frb(sigR, rstate, nFRB, max_sig=5.):
     roff = rstate.normal(scale=sigR, size=nFRB)
     pa = rstate.uniform(size=nFRB, low=0., high=360.)
@@ -68,6 +74,8 @@ def build(source_tbl, field, phot_col, zmnx, Lmnx, theta, sigR, nSand=100,
     # Offset
     if theta['method'] == 'rcore':
         thetas_off, thetas_pa = theta_rcore(theta, rstate, nSand)
+    elif theta['method'] == 'uniform':
+        thetas_off, thetas_pa = theta_uniform(theta, rstate, nSand)
     else:
         embed(header='45')
 
@@ -101,7 +109,8 @@ if __name__ == '__main__':
     # Test
     source_tbl = Table.read('tst_DES_180924.fits')
     field = source_tbl.meta['RA'], source_tbl.meta['DEC'], source_tbl.meta['RSEARCH']
-    theta = dict(method='rcore', max=2., core=0.1)
+    #theta = dict(method='rcore', max=2., core=0.1)
+    theta = dict(method='uniform', max=2.)
     frb_tbl = build(source_tbl, field, 'DES_r', (0.2, 0.4), (0.1, 1.), theta, 0.25)
     frb_tbl.write('tst_FRB_180924.fits', overwrite=True)
 

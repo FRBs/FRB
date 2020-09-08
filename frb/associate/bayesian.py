@@ -12,9 +12,13 @@ def bloom_sigma(rmag):
 def prior_uniform():
     pass
 
-def prior_Mi_n(rmag, theta_max):
+def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
+    # Reff - More conservative than usual
+    Rs = np.stack([3 * r_half, np.ones_like(r_half)* nsigma * sigR,
+                   np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
+    reff = np.max(Rs, axis=0)
     # Nbar
-    Nbar = np.pi * theta_max ** 2 * bloom_sigma(rmag)
+    Nbar = np.pi * reff ** 2 * bloom_sigma(rmag)
     # Return
     return np.exp(-Nbar)
 
@@ -28,11 +32,8 @@ def prior_S_n(rlim, theta_max, rmax=30.):
     # Return
     return P_S
 
-def px_Mi(frb_coord, cand_coords, theta, sigR):
-    if theta['method'] == 'rcore':
-        calc_box = 2*theta['max'] + 10*sigR  # arcsec
-    #
-    x = np.linspace(-calc_box, calc_box, 100)
+def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
+    x = np.linspace(-box_radius, box_radius, nsamp)
     xcoord, ycoord = np.meshgrid(x,x)
     r_w = np.sqrt(xcoord**2 + ycoord**2)
     p_xMis = []
@@ -50,6 +51,9 @@ def px_Mi(frb_coord, cand_coords, theta, sigR):
         if theta['method'] == 'rcore':
             ok_w = r_w < theta['max']
             p_wMi[ok_w] = 1./(r_w + theta['core'])
+        elif theta['method'] == 'uniform':
+            ok_w = r_w < theta['max']
+            p_wMi[ok_w] = 1.
         else:
             raise IOError("Bad theta method")
         # Product
