@@ -197,7 +197,8 @@ def frb_190523():
     frb190523.write_to_json(path=path)
 
 def frb_190608():
-    """Bhandari+20, ApJL, Day+20, in prep. --
+    """Bhandari+20, ApJL,
+    Day+20  https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     Macquart al. Nature
     """
     fname = 'FRB190608'
@@ -234,7 +235,7 @@ def frb_190608():
 def frb_190611():
     """
     Macquart al. Nature
-    Day et al. 2020
+    Day et al. 2020  https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
     FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
                                 unit=(units.hourangle, units.deg))
@@ -292,8 +293,10 @@ def frb_190614():
     path = resource_filename('frb', 'data/FRBs')
     frb190614.write_to_json(path=path)
 
+
 def frb_190711():
     """MacQuart+20, Day+2020
+      https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
     fname = 'FRB190711'
     frb190711 = frb.FRB(fname, 'J215740.68-802128.8',  # MacQuarter+2020, Day+2020
@@ -319,9 +322,10 @@ def frb_190711():
     path = resource_filename('frb', 'data/FRBs')
     frb190711.write_to_json(path=path)
 
+
 def frb_190714():
     """
-    Day+2020
+    Day+2020 https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     Heintz+2020
 
 
@@ -350,6 +354,7 @@ def frb_190714():
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb190714.write_to_json(path=path)
+
 
 def frb_191001():
     """
