@@ -197,7 +197,8 @@ def frb_190523():
     frb190523.write_to_json(path=path)
 
 def frb_190608():
-    """Bhandari+20, ApJL, Day+20, in prep. --
+    """Bhandari+20, ApJL,
+    Day+20  https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     Macquart al. Nature
     """
     fname = 'FRB190608'
@@ -234,7 +235,7 @@ def frb_190608():
 def frb_190611():
     """
     Macquart al. Nature
-    Day et al. 2020
+    Day et al. 2020  https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
     FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
                                 unit=(units.hourangle, units.deg))
@@ -265,9 +266,37 @@ def frb_190611():
     path = resource_filename('frb', 'data/FRBs')
     frb190611.write_to_json(path=path)
 
+def frb_190614():
+    """
+    Law+2020 https://ui.adsabs.harvard.edu/abs/2020ApJ...899..161L/abstract
+
+    """
+    fname = 'FRB190614'
+    FRB_190614_coord = SkyCoord(ra=65.07552, dec=73.70674, unit='deg')
+    frb190614 = frb.FRB(fname, FRB_190614_coord,
+                        959 * units.pc / units.cm ** 3)
+    # Error ellipse [REQUIRED]
+    frb190614.set_ee(a=0.8, b=0.4, theta=67., cl=68.)
+    # Error in DM
+    frb190614.DM_err = 1 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb190614.set_DMISM()
+    # RM
+    # frb190102.RM = 10 * units.rad / units.m**2
+    # frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb190614.refs = ['Law2020']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190614.write_to_json(path=path)
+
 
 def frb_190711():
     """MacQuart+20, Day+2020
+      https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
     fname = 'FRB190711'
     frb190711 = frb.FRB(fname, 'J215740.68-802128.8',  # MacQuarter+2020, Day+2020
@@ -292,6 +321,80 @@ def frb_190711():
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb190711.write_to_json(path=path)
+
+
+def frb_190714():
+    """
+    Day+2020 https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
+    Heintz+2020
+
+
+    """
+    # Taken from Slack; Cherie posted on 19 June 2020
+    FRB_190714_coord = SkyCoord('J121555.12-130115.7',
+                                unit=(units.hourangle, units.deg))
+    frb190714 = frb.FRB('FRB190714', FRB_190714_coord,
+                        504.13 * units.pc / units.cm ** 3,
+                        z_frb=0.2365)
+    # Error ellipse
+    frb190714.set_ee(0.011, 0.1, 0., 68.)
+    frb190714.set_ee(0.022, 0.2, 0., 68., stat=False)  # Systematic
+
+    # Error in DM
+    frb190714.DM_err = 0.1 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb190714.set_DMISM()
+
+    # RM
+
+    # References
+    frb190714.refs = ['Heintz2020']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb190714.write_to_json(path=path)
+
+
+def frb_191001():
+    """
+    Bhandari+2020b  https://ui.adsabs.harvard.edu/abs/2020arXiv200812488B/abstract
+
+    """
+    # Taken from Bhandari, Table 1
+    FRB_191001_coord = SkyCoord("21h33m24.373s -54d44m51.86s", frame='icrs')
+    frb191001 = frb.FRB('FRB191001', FRB_191001_coord,
+                        507.90 * units.pc / units.cm ** 3,
+                        z_frb=0.2340)
+    # Error ellipse [REQUIRED]
+    frb191001.set_ee(0.006, 0.13, 90., 68.)  # This is statistical + systematic in quadrature
+    # Error in DM
+    frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb191001.set_DMISM()
+    # RM
+    frb191001.RM = 54.86 * units.rad / units.m**2
+    frb191001.RM_err = 0.50 * units.rad / units.m**2
+    # Fluence
+    frb191001.Fluence = 143 * units.Jy * units.ms
+    frb191001.Fluence_err = 15 * units.Jy * units.ms
+    # Spectral energy density
+
+    # Scattering time at 1 GHz
+    frb191001.tau = 2.19 * units.ms
+    frb191001.tau_err = 0.23 *units.ms
+    # Pulse width
+    frb191001.width = 4.2 * units.ms
+    frb191001.width_err = 0.2 * units.ms
+
+    # References
+    frb191001.refs = ['Bhandari2020b']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb191001.write_to_json(path=path)
+
 
 
 def main(inflg='all'):
@@ -336,6 +439,18 @@ def main(inflg='all'):
     # 190611
     if flg & (2**8):  # 256
         frb_190611()
+
+    # FRB 190614      # 512
+    if flg & (2**9):
+        frb_190614()
+
+    # FRB 190714      # 1024
+    if flg & (2**10):
+        frb_190714()
+
+    # FRB 191001      # 2048
+    if flg & (2**11):
+        frb_191001()
 
 
 # Command line execution
