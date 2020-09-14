@@ -136,6 +136,7 @@ class FRBGalaxy(object):
 
         # Angular offset
         self.offsets['angular'] = self.coord.separation(self.frb.coord).to('arcsec').value
+        # ADD ERROR HERE!  AND DO FOR PHYSICAL TOO
 
     @property
     def z(self):
