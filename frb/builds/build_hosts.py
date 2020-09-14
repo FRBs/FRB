@@ -15,9 +15,13 @@ from astropy import units
 from astropy.table import Table
 from astropy.coordinates import match_coordinates_sky
 
+from frb.frb import FRB
 from frb.galaxies import frbgalaxy, defs
 from frb.galaxies import photom as frbphotom
-from frb.galaxies import ppxf
+try:
+    from frb.galaxies import ppxf
+except:
+    print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
 from frb.surveys import des
 from frb.surveys import sdss
@@ -69,7 +73,8 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
 
     # Instantiate
-    host121102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, '121102')
+    frb121102 = FRB.by_name('FRB121102')
+    host121102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb121102)
 
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
