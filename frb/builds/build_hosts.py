@@ -70,6 +70,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     """
     FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
     # Eyeball Tendulkar+17 PA
+    # UPDATE THIS!
     gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
 
     # Instantiate
