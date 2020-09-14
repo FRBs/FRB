@@ -21,10 +21,18 @@ def frb_121102():
                         z_frb=0.19273)
     # NE2001
     frb121102.set_DMISM()
+
+    # FRB properties
+    frb121102.Fluence = 0.1 * units.Jy * units.ms    # Lower limit from Chatterjee+17/Bhandari+20
+    frb121102.Fluence_err = -999. * units.Jy * units.ms # -- //-- 
+    frb121102.RM = 1.e5 * units.rad / units.m**2
+    frb121102.width = 3.0 * units.ms
+    frb121102.width_err = 0.5 * units.ms
+ 
     # Error ellipse
     frb121102.set_ee(0.1, 0.1, 0., 95.)
     # References
-    frb121102.refs = ['Tendulkar2017']
+    frb121102.refs = ['Chatterjee2017','Tendulkar2017']
     # Write
     frb121102.write_to_json()
     # Test
@@ -48,10 +56,15 @@ def frb_180916():
     frb180916.DM_err = 0.10 * units.pc / units.cm**3
     # NE2001
     frb180916.set_DMISM()
-    #
-    #frb180924.fluence = 16 * units.Jy * units.ms
-    #frb180924.fluence_err = 1 * units.Jy * units.ms
-    #
+    
+    # FRB properties
+    frb180916.Fluence = 2.53 * units.Jy * units.ms    
+    frb180916.RM = -114.6 * units.rad / units.m**2
+    frb180916.RM_err = 0.6 * units.rad / units.m**2
+    frb180916.width = 1.66 * units.ms
+    frb180916.width_err = 0.05 * units.ms
+    frb180916.tau = 0.003 * units.ms
+
     # References
     frb180916.refs = ['Marcote2020']
     # Write
@@ -76,8 +89,8 @@ def frb_180924():
     frb180924.set_DMISM()
 
     # FRB properties
-    frb180924.fluence = 16 * units.Jy * units.ms    # From Bhandari+20
-    frb180924.fluence_err = 1 * units.Jy * units.ms # -- //-- 
+    frb180924.Fluence = 16 * units.Jy * units.ms    # From Bhandari+20
+    frb180924.Fluence_err = 1 * units.Jy * units.ms # -- //-- 
     frb180924.RM = 22 * units.rad / units.m**2 
     frb180924.RM_err = 2 * units.rad / units.m**2
     frb180924.width = 0.09 * units.ms
@@ -115,6 +128,8 @@ def frb_181112():
     # RM
     frb181112.RM = 10.9 * units.rad / units.m**2
     frb181112.RM_err = 0.9 * units.rad / units.m**2
+    frb181112.width = 2.1 * units.ms
+    frb181112.width_err = 0.2 * units.ms
 
     # NE2001
     frb181112.set_DMISM()
@@ -147,9 +162,9 @@ def frb_190102():
     # NE2001
     frb190102.set_DMISM()
     
-     # FRB properties
-    frb190102.fluence = 14 * units.Jy * units.ms    # From Bhandari+20
-    frb190102.fluence_err = 1 * units.Jy * units.ms # -- //-- 
+    # FRB properties
+    frb190102.Fluence = 14 * units.Jy * units.ms    # From Bhandari+20
+    frb190102.Fluence_err = 1 * units.Jy * units.ms # -- //-- 
     frb190102.RM = -105 * units.rad / units.m**2
     frb190102.RM_err = 1 * units.rad / units.m**2
     frb190102.width = 0.053 * units.ms
@@ -179,15 +194,19 @@ def frb_190523():
     frb190523.DM_err = 0.6 * units.pc / units.cm**3
 
     # Fluence
-    frb190523.fluence = 280 * units.Jy * units.ms
-    #frb180924.fluence_err = 1 * units.Jy * units.ms
+    frb190523.Fluence = 280 * units.Jy * units.ms
+    #frb180924.Fluence_err = 1 * units.Jy * units.ms
 
     # NE2001
     frb190523.set_DMISM()
 
-    # RM
-    #frb190102.RM = 10 * units.rad / units.m**2
-    #frb190102.RM_err = 1 * units.rad / units.m**2
+    # FRB properties
+    frb190523.Fluence = 280 * units.Jy * units.ms    # Lower limit from Ravi+19
+    frb190523.width = 0.42 * units.ms
+    frb190523.width_err = 0.05 * units.ms
+    frb190523.tau = 1.4 * units.ms
+    frb190523.tau_err = 0.2 * units.ms
+
 
     # References
     frb190523.refs = ['Ravi2019']
@@ -215,8 +234,8 @@ def frb_190608():
     frb190608.set_DMISM()
 
     # FRB properties
-    frb190608.fluence = 26 * units.Jy * units.ms    # From Bhandari+20
-    frb190608.fluence_err = 4 * units.Jy * units.ms # -- //-- 
+    frb190608.Fluence = 26 * units.Jy * units.ms    # From Bhandari+20
+    frb190608.Fluence_err = 4 * units.Jy * units.ms # -- //-- 
     frb190608.RM = 353 * units.rad / units.m**2
     frb190608.RM_err = 2 * units.rad / units.m**2
     frb190608.width = 1.1 * units.ms
@@ -374,12 +393,11 @@ def frb_191001():
     # NE2001
     frb191001.set_DMISM()
     # RM
-    frb191001.RM = 54.86 * units.rad / units.m**2
-    frb191001.RM_err = 0.50 * units.rad / units.m**2
+    frb191001.RM = 55.5 * units.rad / units.m**2
+    frb191001.RM_err = 0.9 * units.rad / units.m**2
     # Fluence
     frb191001.Fluence = 143 * units.Jy * units.ms
     frb191001.Fluence_err = 15 * units.Jy * units.ms
-    # Spectral energy density
 
     # Scattering time at 1 GHz
     frb191001.tau = 2.19 * units.ms
