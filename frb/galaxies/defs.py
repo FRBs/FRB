@@ -138,6 +138,7 @@ valid_morphology = [
 # Offsets
 valid_offsets = [
     'angular',    # Angular offset in arcsec
+    'physical',   # Physical offset in kpc
     ]
 
 ##############################################################

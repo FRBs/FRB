@@ -573,6 +573,11 @@ class FRBGalaxy(object):
             if err is not None:
                 self.redshift['z_err'] = err
 
+        # Physical offset
+        if origin == 'spec':
+            self.offsets['physical'] = (self.offsets['angular'] * units.arcsec *
+                                        self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+
     def vet_one(self, attr):
         """
         Vette one of the main_attr
