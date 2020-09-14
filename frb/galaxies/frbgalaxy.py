@@ -117,14 +117,15 @@ class FRBGalaxy(object):
             self.cosmo = cosmo
 
         # Main attributes
-        self.eellipse = {}  # Error ellipse
         self.redshift = {}
         self.photom = {}
         self.morphology = {}
         self.neb_lines = {}
         self.kinematics = {}
         self.derived = {}
-        self.main_attr = ('eellipse', 'photom', 'redshift', 'morphology', 'neb_lines', 'kinematics', 'derived')
+        self.offsets = {}
+        self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
+                          'kinematics', 'derived', 'offsets')
 
     @property
     def z(self):
@@ -585,8 +586,6 @@ class FRBGalaxy(object):
             defs_list = defs.valid_derived
         elif attr == 'redshift':
             defs_list = defs.valid_z
-        elif attr == 'eellipse':
-            defs_list = defs.valid_e
         else:
             return True
         # Vet

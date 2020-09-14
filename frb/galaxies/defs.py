@@ -135,6 +135,12 @@ valid_morphology = [
 ]
 
 ##############################################################
+# Offsets
+valid_offsets = [
+    'ang',        # Angular offset in arcsec
+    ]
+
+##############################################################
 # Derived quantities
 
 valid_derived_photom = [
