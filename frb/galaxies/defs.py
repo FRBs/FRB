@@ -137,7 +137,7 @@ valid_morphology = [
 ##############################################################
 # Offsets
 valid_offsets = [
-    'ang',        # Angular offset in arcsec
+    'angular',    # Angular offset in arcsec
     ]
 
 ##############################################################
