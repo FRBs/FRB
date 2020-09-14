@@ -712,9 +712,6 @@ class FRBHost(FRBGalaxy):
 
     """
     @classmethod
-    def by_name(cls, frb, **kwargs):
-        pass
-    @classmethod
     def by_frb(cls, frb, **kwargs):
         """
         
@@ -741,8 +738,12 @@ class FRBHost(FRBGalaxy):
         # Instantiate
         super(FRBHost, self).__init__(ra, dec, frb, **kwargs)
 
-        # Load up FRB info from name
-        self.name = 'HG{}'.format(self.frb)
+        # Name
+        if frb.frb_name[0:3] == 'FRB':
+            name = frb.frb_name[3:]
+        else:
+            name = frb.frb_name
+        self.name = 'HG{}'.format(name)
 
         # Optional
         if z_frb is not None:
