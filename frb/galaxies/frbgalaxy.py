@@ -21,7 +21,6 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
 from frb import utils
-from frb import frb
 
 from scipy.integrate import simps
 
@@ -38,7 +37,7 @@ class FRBGalaxy(object):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        frb (str): Nomiker of the FRB, e.g. 121102
+        frb (frb.FRB): FRB object
         cosmo (astropy.cosmology): Cosmology, e.g. Planck15
 
     Attributes:
@@ -51,11 +50,12 @@ class FRBGalaxy(object):
 
     """
     @classmethod
-    def from_dict(cls, idict, **kwargs):
+    def from_dict(cls, frb, idict, **kwargs):
         """
         Instantiate from a dict
 
         Args:
+            frb (frb.FRB):
             idict (dict):
             **kwargs: Passed to the __init__ call
 
@@ -63,7 +63,7 @@ class FRBGalaxy(object):
 
         """
         # Init
-        slf = cls(idict['ra'], idict['dec'], idict['FRB'], **kwargs)
+        slf = cls(idict['ra'], idict['dec'], frb, **kwargs)
 
         # FRB coord
         if 'ra_FRB' in idict.keys():
@@ -81,10 +81,11 @@ class FRBGalaxy(object):
         return slf
 
     @classmethod
-    def from_json(cls, json_file, **kwargs):
+    def from_json(cls, frb, json_file, **kwargs):
         """
 
         Args:
+            frb (frb.FRB):
             json_file:
             **kwargs:
 
@@ -97,16 +98,22 @@ class FRBGalaxy(object):
         except FileNotFoundError:
             warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
             return None
-        slf = cls.from_dict(idict, **kwargs)
+        slf = cls.from_dict(frb, idict, **kwargs)
         return slf
 
     def __init__(self, ra, dec, frb, cosmo=None):
+        """
+
+        Args:
+            ra:
+            dec:
+            frb (frb.FRB) :
+            cosmo:
+        """
 
         # Init
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
-        self.frb = frb # Name, not coord
-
-        self.frb_coord = None
+        self.frb = frb  # FRB object
         #
         self.name = ''
 
@@ -126,6 +133,9 @@ class FRBGalaxy(object):
         self.offsets = {}
         self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
                           'kinematics', 'derived', 'offsets')
+
+        # Angular offset
+        self.offsets['angular'] = self.coord.separation(self.frb.coord).to('arcsec').value
 
     @property
     def z(self):
@@ -586,6 +596,8 @@ class FRBGalaxy(object):
             defs_list = defs.valid_derived
         elif attr == 'redshift':
             defs_list = defs.valid_z
+        elif attr == 'offsets':
+            defs_list = defs.valid_offsets
         else:
             return True
         # Vet
@@ -654,10 +666,10 @@ class FRBGalaxy(object):
         # Basics
         frbgal_dict['ra'] = self.coord.ra.value
         frbgal_dict['dec'] = self.coord.dec.value
-        frbgal_dict['FRB'] = self.frb
-        if self.frb_coord is not None:
-            frbgal_dict['ra_FRB'] = self.frb_coord.ra.value
-            frbgal_dict['dec_FRB'] = self.frb_coord.dec.value
+        frbgal_dict['FRB'] = self.frb.frb_name
+        if self.frb.coord is not None:
+            frbgal_dict['ra_FRB'] = self.frb.coord.ra.value
+            frbgal_dict['dec_FRB'] = self.frb.coord.dec.value
         frbgal_dict['cosmo'] = self.cosmo.name
 
         # Main attributes
@@ -756,7 +768,7 @@ class FRBHost(FRBGalaxy):
             str:  Name of the default outfile
 
         """
-        outfile = self._make_outfile(self.frb)
+        outfile = self._make_outfile(self.frb.frb_name)
         return outfile
 
     def set_z(self, z, origin, err=None):
