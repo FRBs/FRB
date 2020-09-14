@@ -15,6 +15,7 @@ from astropy.table import Table
 from linetools.spectra import xspectrum1d
 
 from frb.galaxies import frbgalaxy, defs, utils
+from frb.frb import FRB
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -24,7 +25,10 @@ def data_path(filename):
 def test_frbhost():
     repeater_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')  # Use as host here
     # Instantiate
-    host121102 = frbgalaxy.FRBHost(repeater_coord.ra.value, repeater_coord.dec.value, '121102')
+    frb121102 = FRB.by_name('FRB121102')
+    host121102 = frbgalaxy.FRBHost(repeater_coord.ra.value, repeater_coord.dec.value, frb121102)
+    # Redshift
+    host121102.set_z(0.19273, 'spec', err=0.00008)
     # Add a few nebular lines  (Tendulkar+17)
     neb_lines = {}
     neb_lines['Halpha'] = 0.652e-16
@@ -69,21 +73,16 @@ def test_frbhost():
 
 def test_read_frbhost():
     # This test will fail if the previous failed
-    host121102 = frbgalaxy.FRBHost.from_json(data_path('test_frbhost.json'))
+    frb121102 = FRB.by_name('FRB121102')
+    host121102 = frbgalaxy.FRBHost.from_json(frb121102, data_path('test_frbhost.json'))
     # Test
-    assert host121102.frb == '121102'
+    assert host121102.frb.frb_name == 'FRB121102'
     assert np.isclose(host121102.morphology['b/a'], 0.25)
     assert host121102.vet_all()
 
-def test_by_name():
-    host121102 = frbgalaxy.FRBHost.by_name('121102')
-    assert host121102.frb == '121102'
-    assert np.isclose(host121102.morphology['b/a'], 0.25)
-    # with FRB
-    host121102 = frbgalaxy.FRBHost.by_name('FRB121102')
-
 def test_luminosity():
-    host121102 = frbgalaxy.FRBHost.by_name('121102')
+    frb121102 = FRB.by_name('FRB121102')
+    host121102 = frbgalaxy.FRBHost.from_json(frb121102, data_path('test_frbhost.json'))
     Lum_Ha, Lum_Ha_err = host121102.calc_nebular_lum('Halpha')
     # Test
     assert Lum_Ha.unit == units.erg/units.s
@@ -106,7 +105,8 @@ def test_get_spectra():
         assert True
         return
     # Do it!
-    host180924 = frbgalaxy.FRBHost.by_name('180924')
+    frb180924 = FRB.by_name('FRB180924')
+    host180924 = frb180924.grab_host()
     meta, xspec = host180924.get_metaspec()
     # Test
     assert isinstance(meta, Table)
@@ -120,3 +120,9 @@ def test_get_spectra():
     #
     meta, xspecs = host180924.get_metaspec(return_all=True)
     assert xspecs.nspec == 2
+
+
+def test_table():
+    frbs, hosts = utils.list_of_hosts()
+
+    host_tbl, host_units = utils.build_table_of_hosts()
