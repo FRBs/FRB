@@ -68,11 +68,12 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
 
     """
-    FRB_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
+    #FRB_coord = SkyCoord('05h31m58.6980s +33d8m52.671s', frame='icrs') # Updated coords from Bassa+17
     # Eyeball Tendulkar+17 PA
     # UPDATE THIS!
-    gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
-
+    #gal_coord = FRB_coord.directional_offset_by(-45 * units.deg, 286e-3 * units.arcsec)
+    gal_coord = SkyCoord('05h31m58.6980s +33d8m52.671s', frame='icrs') # Updated coords from Bassa+17
+    
     # Instantiate
     frb121102 = FRB.by_name('FRB121102')
     host121102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb121102)
@@ -221,10 +222,11 @@ def build_host_180924(build_photom=False, build_cigale=False):
     gal_coord = SkyCoord('J214425.25-405400.81', unit=(units.hourangle, units.deg))
 
     # Instantiate
-    host = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, '180924')
+    frb180924 = FRB.by_name('FRB180924')
+    host180924 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180924)
 
     # Redshift -- JXP measured from multiple data sources
-    host.set_z(0.3212, 'spec')
+    host180924.set_z(0.3212, 'spec')
 
     # Photometry
 
@@ -239,8 +241,8 @@ def build_host_180924(build_photom=False, build_cigale=False):
 
         photom = Table()
         photom['Name'] = ['HG{}'.format(frbname)]
-        photom['ra'] = host.coord.ra.value
-        photom['dec'] = host.coord.dec.value
+        photom['ra'] = host180924.coord.ra.value
+        photom['dec'] = host180924.coord.dec.value
         photom['VLT_FORS2_g'] = 21.38  # No extinction correction
         photom['VLT_FORS2_g_err'] = 0.04
         photom['VLT_FORS2_I'] = 20.10
@@ -258,19 +260,19 @@ def build_host_180924(build_photom=False, build_cigale=False):
     EBV = nebular.get_ebv(gal_coord, definition=ebv_method)['meanValue']
     frbphotom.correct_photom_table(photom, EBV, 'HG{}'.format(frbname))
     # Parse
-    host.parse_photom(photom, EBV=EBV)
+    host180924.parse_photom(photom, EBV=EBV)
 
     # PPXF
-    host.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
+    host180924.parse_ppxf(os.path.join(db_path, 'CRAFT', 'Bannister2019', 'HG180924_MUSE_ppxf.ecsv'))
 
     # Derived quantities
 
     # AV
-    host.calc_nebular_AV('Ha/Hb')
+    host180924.calc_nebular_AV('Ha/Hb')
 
     # SFR
-    host.calc_nebular_SFR('Ha')
-    host.derived['SFR_nebular_err'] = -999.
+    host180924.calc_nebular_SFR('Ha')
+    host180924.derived['SFR_nebular_err'] = -999.
 
     # CIGALE
     cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG180924_CIGALE.fits')
@@ -283,18 +285,18 @@ def build_host_180924(build_photom=False, build_cigale=False):
             cut_photom[key] = [host.photom[key]]
         cigale.host_run(host, cut_photom=cut_photom, cigale_file=cigale_file)
     # Parse
-    host.parse_cigale(cigale_file, sfh_file=sfh_file)
+    host180924.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Galfit
-    host.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    host180924.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
                                    'HG180924_DES_i_galfit.fits'))
 
     # Vet all
-    host.vet_all()
+    host180924.vet_all()
 
     # Write
     path = resource_filename('frb', 'data/Galaxies/180924')
-    host.write_to_json(path=path)
+    host180924.write_to_json(path=path)
 
 
 def build_host_181112(build_photom=False, build_cigale=False):
@@ -310,11 +312,12 @@ def build_host_181112(build_photom=False, build_cigale=False):
     FRB_coord = SkyCoord('J214923.63-525815.39',
                          unit=(units.hourangle, units.deg))  # Cherie;  2019-04-17 (Slack)
     # Coord from DES
-    Host_coord = SkyCoord('J214923.66-525815.28',
+    gal_coord = SkyCoord('J214923.66-525815.28',
                           unit=(units.hourangle, units.deg))  # from DES
 
     # Instantiate
-    host181112 = frbgalaxy.FRBHost(Host_coord.ra.value, Host_coord.dec.value, frbname)
+    frb181112 = FRB.by_name('FRB181112')
+    host181112 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb181112)
     host181112.frb_coord = FRB_coord
 
     # Redshift
@@ -407,7 +410,8 @@ def build_host_190102(build_photom=False, build_cigale=False,
     gal_coord = SkyCoord('J212939.60-792832.4',
                          unit=(units.hourangle, units.deg))  # Cherie;  07-Mar-2019
     # Instantiate
-    host190102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb190102 = FRB.by_name('FRB190102')
+    host190102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190102)
 
     # Redshift -- Gaussian fit to [OIII 5007] in MagE
     #  Looks great on the other lines
@@ -525,7 +529,8 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     S1_gal_coord = SkyCoord(ra=207.06433, dec=72.470756, unit='deg')  # Pan-STARRs; J134815.4392+722814.7216
 
     # Instantiate
-    host190523_S1 = frbgalaxy.FRBHost(S1_gal_coord.ra.value, S1_gal_coord.dec.value, frbname)
+    frb190523 = FRB.by_name('FRB190523')
+    host190523_S1 = frbgalaxy.FRBHost(S1_gal_coord.ra.value, S1_gal_coord.dec.value, frb190523)
     host190523_S1.name += '_S1'
 
     # Load redshift table
@@ -611,7 +616,8 @@ def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
                          unit=(units.hourangle, units.deg))  # Cherie;  07-Mar-2019
 
     # Instantiate
-    host190608 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb190608 = FRB.by_name('FRB190608')
+    host190608 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190608)
 
     # Load redshift table
     ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
@@ -707,7 +713,8 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
                          unit=(units.hourangle, units.deg))
 
     # Instantiate
-    host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb180916 = FRB.by_name('FRB180916')
+    host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180916)
 
     # Redshift
     host180916.set_z(0.0337, 'spec')
@@ -826,7 +833,8 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
         gal_coord = bright_coord
 
     # Instantiate
-    host190611 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb190611 = FRB.by_name('FRB190611')
+    host190611 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190611)
 
     # Redshift
     if source == 'faint':
@@ -1224,7 +1232,8 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
     print("EBV={} for the host of {}".format(EBV, frbname))
 
     # Instantiate
-    host190711 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb190711 = FRB.by_name('FRB190711')
+    host190711 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190711)
 
     '''
     # Load redshift table
@@ -1342,7 +1351,8 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
 
     # Instantiate
-    host190714 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb190714 = FRB.by_name('FRB190714')
+    host190714 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190714)
 
     # Load redshift table
     ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Heintz2020', 'z_hand.ascii'),
@@ -1464,7 +1474,8 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
                          unit='deg')
 
     # Instantiate
-    host191001 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb191001 = FRB.by_name('FRB191001')
+    host191001 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb191001)
 
     '''
     # Load redshift table
@@ -1581,7 +1592,8 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
 
     # Instantiate
-    host200430 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+    frb200430 = FRB.by_name('FRB200430')
+    host200430 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb200430)
 
     # Load redshift table
     #ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Heintz2020', 'z_hand.ascii'),
