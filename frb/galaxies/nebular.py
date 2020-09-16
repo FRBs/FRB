@@ -90,20 +90,30 @@ def calc_logOH(neb_lines, method):
     """ 
     Estimate the oxygen abundance based on the input nebular emission line fluxes
     For now based on the O3N2 calibration from https://ui.adsabs.harvard.edu/abs/2018AJ....155...82H/abstract
+
     Args:
         neb_lines (dict):  Line fluxes
         method (str): Name of the method
           O3N2 -- Use the O3N2 calibration from Hirschauer+18
 
     Returns:
-        float: 12+log(O/H) 
+        tuple: 12+log(O/H), sigma+, sigma-
     """
 
     if method == 'O3N2':
+        # Check for all lines
+        req_lines = ['[NII] 6584','Halpha','[OIII] 5007','Hbeta']
+        for iline in req_lines:
+            if iline not in neb_lines.keys():
+                print("One or more lines missing for logOH calculation.  Returning None's")
+                return None, None, None
+        # Proceed
         x0 = neb_lines['[NII] 6584'] / neb_lines['Halpha']
         y0 = neb_lines['[OIII] 5007'] / neb_lines['Hbeta']
         x0_err = x0 * np.sqrt((neb_lines['[NII] 6584_err'] / neb_lines['[NII] 6584'])**2 + (neb_lines['Halpha_err'] / neb_lines['Halpha'])**2)
         y0_err = y0 * np.sqrt((neb_lines['[OIII] 5007_err'] / neb_lines['[OIII] 5007'])**2 + (neb_lines['Hbeta_err'] / neb_lines['Hbeta'])**2)
+    else:
+        raise IOError("Not ready for this method for logOH")
         
     # Calculate O3N2 (linear)
     o3n2 = y0 / x0
