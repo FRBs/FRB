@@ -86,6 +86,43 @@ def calc_dust_extinct(neb_lines, method):
     return AV
 
 
+def calc_logOH(neb_lines, method):
+    """ 
+    Estimate the oxygen abundance based on the input nebular emission line fluxes
+    For now based on the O3N2 calibration from https://ui.adsabs.harvard.edu/abs/2018AJ....155...82H/abstract
+    Args:
+        neb_lines (dict):  Line fluxes
+        method (str): Name of the method
+          O3N2 -- Use the O3N2 calibration from Hirschauer+18
+
+    Returns:
+        float: 12+log(O/H) 
+    """
+
+    if method == 'O3N2':
+        x0 = neb_lines['[NII] 6584'] / neb_lines['Halpha']
+        y0 = neb_lines['[OIII] 5007'] / neb_lines['Hbeta']
+        x0_err = x0 * np.sqrt((neb_lines['[NII] 6584_err'] / neb_lines['[NII] 6584'])**2 + (neb_lines['Halpha_err'] / neb_lines['Halpha'])**2)
+        y0_err = y0 * np.sqrt((neb_lines['[OIII] 5007_err'] / neb_lines['[OIII] 5007'])**2 + (neb_lines['Hbeta_err'] / neb_lines['Hbeta'])**2)
+        
+    # Calculate O3N2 (linear)
+    o3n2 = y0 / x0
+    o3n2_err = o3n2 * np.sqrt((x0_err/x0)**2 + (y0_err/y0)**2)
+
+    # Log it
+    log_o3n2 = np.log10(o3n2)
+    log_03n2_errp = np.log10(o3n2 + o3n2_err) - log_o3n2
+    log_03n2_errm = log_o3n2 - np.log10(o3n2 - o3n2_err)
+
+    # Hirschauer+18 O3N2 calibration
+    logOH = 8.987 - 0.297*log_o3n2 - 0.0592*(log_o3n2)**2 - 0.009*(log_o3n2)**3
+    logOH_errp = log_03n2_errp
+    logOH_errm = log_03n2_errm      
+ 
+    # Return 
+    return logOH, logOH_errp, logOH_errm
+
+
 def calc_lum(neb_lines, line, z, cosmo, AV=None):
     """
     Calculate the line luminosity (and error) from input nebular line emission
