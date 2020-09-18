@@ -80,8 +80,8 @@ class FRBGalaxy(object):
 
         # Physical Offset -- remove this when these get into JSON files
         if 'z_spec' in slf.redshift.keys() and 'physical' not in slf.offsets.keys():
-            slf.offsets['physical'] = (slf.offsets['angular']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
-            slf.offsets['physical_err'] = (slf.offsets['angular_err']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+            slf.offsets['physical'] = (slf.offsets['ang_best']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+            slf.offsets['physical_err'] = (slf.offsets['ang_best_err']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
 
         # Return
         return slf
@@ -141,7 +141,9 @@ class FRBGalaxy(object):
                           'kinematics', 'derived', 'offsets')
 
         # Angular offset
-        self.offsets['angular'], self.offsets['angular_err'] = offsets.angular_offset(frb, self)
+        self.offsets['ang_avg'], self.offsets['ang_avg_err'], \
+                self.offsets['ang_best'], self.offsets['ang_best_err'] \
+                    = offsets.angular_offset(frb, self)
 
     @property
     def z(self):
