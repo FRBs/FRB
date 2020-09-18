@@ -76,6 +76,8 @@ class FRBGalaxy(object):
         for attr in slf.main_attr:
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
+        # Offset
+        slf.offsets['physical'] = (slf.offsets['angular']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
         # Return
         return slf
 
@@ -134,7 +136,7 @@ class FRBGalaxy(object):
                           'kinematics', 'derived', 'offsets')
 
         # Angular offset
-        #self.offsets['angular'] = self.coord.separation(self.frb.coord).to('arcsec').value
+        self.offsets['angular'] = self.coord.separation(self.frb.coord).to('arcsec').value
         #self.offsets['angular_err'] = self.frb.sigma_R0.to('arcsec').value
         # ADD ERROR HERE!  AND DO FOR PHYSICAL TOO
 
