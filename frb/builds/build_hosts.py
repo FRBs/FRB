@@ -203,6 +203,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
         host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
+    #host121102.derived['logOH'] = 8.69 # Test    
 
     # References
     host121102.refs = ['Tendulkar2017, Bassa2017']
