@@ -592,6 +592,9 @@ class FRBGalaxy(object):
         """
         Vette one of the main_attr
 
+        Parameters:
+            attr (str):
+
         Returns:
             bool: True = passed
 
