@@ -19,6 +19,7 @@ from astropy.table import Table
 from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
+from frb.galaxies import offsets
 from frb import utils
 
 from scipy.integrate import simps
@@ -76,8 +77,12 @@ class FRBGalaxy(object):
         for attr in slf.main_attr:
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
-        # Offset
-        slf.offsets['physical'] = (slf.offsets['angular']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+
+        # Physical Offset -- remove this when these get into JSON files
+        if 'z_spec' in slf.redshift.keys() and 'physical' not in slf.offsets.keys():
+            slf.offsets['physical'] = (slf.offsets['angular']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+            slf.offsets['physical_err'] = (slf.offsets['angular_err']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+
         # Return
         return slf
 
@@ -136,9 +141,7 @@ class FRBGalaxy(object):
                           'kinematics', 'derived', 'offsets')
 
         # Angular offset
-        self.offsets['angular'] = self.coord.separation(self.frb.coord).to('arcsec').value
-        #self.offsets['angular_err'] = self.frb.sigma_R0.to('arcsec').value
-        # ADD ERROR HERE!  AND DO FOR PHYSICAL TOO
+        self.offsets['angular'], self.offsets['angular_err'] = offsets.angular_offset(frb, self)
 
     @property
     def z(self):
@@ -579,6 +582,8 @@ class FRBGalaxy(object):
         # Physical offset
         if origin == 'spec':
             self.offsets['physical'] = (self.offsets['angular'] * units.arcsec *
+                                        self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+            self.offsets['physical_err'] = (self.offsets['angular_err'] * units.arcsec *
                                         self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
 
     def vet_one(self, attr):
