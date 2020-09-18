@@ -583,9 +583,9 @@ class FRBGalaxy(object):
 
         # Physical offset
         if origin == 'spec':
-            self.offsets['physical'] = (self.offsets['angular'] * units.arcsec *
+            self.offsets['physical'] = (self.offsets['ang_best'] * units.arcsec *
                                         self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
-            self.offsets['physical_err'] = (self.offsets['angular_err'] * units.arcsec *
+            self.offsets['physical_err'] = (self.offsets['ang_best_err'] * units.arcsec *
                                         self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
 
     def vet_one(self, attr):
