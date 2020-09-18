@@ -110,8 +110,8 @@ def build_table_of_hosts(hosts=None):
     tbl_units['RA_host'] = 'deg'
     tbl_units['DEC_host'] = 'deg'
 
-    # Loop on the 3 main dicts
-    for attr in ['derived', 'photom', 'neb_lines']:
+    # Loop on all the main dicts
+    for attr in ['derived', 'photom', 'neb_lines','offsets','morphology','redshift']:
         # Load up the dicts
         dicts = [getattr(host, attr) for host in hosts]
 
