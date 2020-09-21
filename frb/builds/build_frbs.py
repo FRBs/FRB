@@ -261,7 +261,7 @@ def frb_190611():
     frb190611.tau = 0.18 * units.ms
     frb190611.tau_err = 0.02 * units.ms
     frb190611.fluence = 10 * units.Jy * units.ms
-    frb190611.fluence = 2 * units.Jy * units.ms    
+    frb190611.fluence_err = 2 * units.Jy * units.ms    
 
     # References
     frb190611.refs = ['MacQuart2020', 'Day2020']
@@ -319,7 +319,7 @@ def frb_190711():
     frb190711.RM = 9 * units.rad / units.m**2
     frb190711.RM_err = 2 * units.rad / units.m**2
     frb190711.fluence = 34 * units.Jy * units.ms
-    frb190711.fluence = 3 * units.Jy * units.ms
+    frb190711.fluence_err = 3 * units.Jy * units.ms
 
     # References
     frb190711.refs = ['MacQuart2020', 'Day2020']

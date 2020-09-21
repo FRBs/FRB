@@ -198,12 +198,11 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     if use_orig:
         host121102.derived['M_r'] = -17.0  # AB; Tendulkar+17
         host121102.derived['M_r_err'] = 0.2  # Estimated by JXP
-        host121102.derived['SFR_nebular'] = 0.15  # MSun/yr from new dust-corrected H-alpha; (0.23 from Tendulkar+17)
+        host121102.derived['SFR_nebular'] = 0.23  # from Tendulkar+17
         host121102.derived['Mstar'] = 5.5e7  # Msun; Tendulkar+17
         host121102.derived['Mstar_err'] = 1.5e7  # Msun; Tendulkar+17
     host121102.derived['Z_spec'] = -0.16  # Tendulkar+17 on a scale with Solar O/H = 8.86
     host121102.derived['Z_spec_err'] = -999.  # Tendulkar+17
-    #host121102.derived['logOH'] = 8.69 # Test    
 
     # References
     host121102.refs = ['Tendulkar2017, Bassa2017']
