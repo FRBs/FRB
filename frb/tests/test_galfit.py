@@ -18,17 +18,17 @@ from frb.galaxies import galfit as glf
 
 
 def test_platescale():
-    cutout_file = resource_filename('frb','data/analysis/GALFIT/cutout_DES_i.fits')
+    cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
     _, hdr = fits.getdata(cutout_file, header=True)
     wcs = WCS(hdr)
     platescale = glf.get_platescale(wcs)
     assert np.isclose(platescale, 0.263)
 
 def test_run():
-    cutout_file = resource_filename('frb','data/analysis/GALFIT/cutout_DES_i.fits')
-    psf_file = resource_filename('frb', 'data/analysis/GALFIT/avg_DES_psf_i.fits')
-    badpix = resource_filename('frb', 'data/analysis/GALFIT/badpix.fits')
-    outdir = resource_filename('frb', 'data/analysis/GALFIT/galfit_out')
+    cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
+    psf_file = resource_filename('frb', 'tests/files/avg_DES_psf_i.fits')
+    badpix = resource_filename('frb', 'tests/files/badpix.fits')
+    outdir = resource_filename('frb', 'tests/files/galfit_out')
     return_val = glf.run(cutout_file, psf_file, outdir=outdir, badpix=badpix, r_e=4, n=2, pa=0, finesample=4)
     assert return_val==0
     assert os.path.isdir(outdir)
