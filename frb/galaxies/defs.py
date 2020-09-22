@@ -135,6 +135,14 @@ valid_morphology = [
 ]
 
 ##############################################################
+# Offsets
+valid_offsets = [
+    'ang_best',   # Angular offset in arcsec from localization centroid to galaxy
+    'ang_avg',    # Angular offset in arcsec averaging over localization
+    'physical',   # Physical offset in kpc;  Uses ang_best
+    ]
+
+##############################################################
 # Derived quantities
 
 valid_derived_photom = [
