@@ -16,6 +16,7 @@ from frb.galaxies.frbgalaxy import FRBHost
 
 from frb.galaxies import galfit as glf
 
+remote_data = pytest.mark.remote_data
 
 def test_platescale():
     cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
@@ -24,6 +25,7 @@ def test_platescale():
     platescale = glf.get_platescale(wcs)
     assert np.isclose(platescale, 0.263)
 
+@remote_data
 def test_run():
     cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
     psf_file = resource_filename('frb', 'tests/files/avg_DES_psf_i.fits')
