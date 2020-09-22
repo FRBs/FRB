@@ -493,7 +493,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     # Vet all
     host190102.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write 
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190102.write_to_json(path=path)
 
@@ -587,7 +587,7 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     # Vet all
     host190523_S1.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write 
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190523_S1.write_to_json(path=path)
 
@@ -795,7 +795,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     # Vet all
     assert host180916.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write 
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host180916.write_to_json(path=path)
 
@@ -907,7 +907,7 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
     # Vet all
     assert host190611.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190611.write_to_json(path=path)
 
@@ -1437,7 +1437,7 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     # Vet all
     assert host190714.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host190714.write_to_json(path=path)
 
@@ -1554,7 +1554,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     # Vet all
     assert host191001.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host191001.write_to_json(path=path)
 
@@ -1587,10 +1587,6 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 
     # Redshift -- JXP measured from NOT
     host200430.set_z(0.16, 'spec')
-
-    # Morphology
-    #host190714.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
-    #                               'HG190714_galfit_FORS2_I.log'), 0.252)
 
     # Photometry
     # Grab the table (requires internet)
@@ -1654,6 +1650,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 
     # SFR
     #host190714.calc_nebular_SFR('Ha')
+    
     # Galfit
     host200430.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
                                          'HG200430_SDSS_i_galfit.fits'))
@@ -1661,7 +1658,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     # Vet all
     assert host200430.vet_all()
 
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write 
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host200430.write_to_json(path=path)
 
