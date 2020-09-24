@@ -111,10 +111,10 @@ class FRBGalaxy(object):
         """
 
         Args:
-            ra:
-            dec:
+            ra (float):
+            dec (float):
             frb (frb.FRB) :
-            cosmo:
+            cosmo (astropy.cosmology, optional):
         """
 
         # Init
