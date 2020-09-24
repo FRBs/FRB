@@ -23,7 +23,8 @@ except ImportError:
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
-
+fill_values_list = [('-999', '0'), ('-999.0', '0')]
+fill_value = -999.
 
 def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
@@ -40,6 +41,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
             Merged tables
 
     """
+    fill_value = -999.
     # File or tbl?
     if isinstance(old_file, str):
         # New file?
@@ -67,14 +69,43 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     elif np.sum(match) == 0:
         merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
     else:
-        embed(header='50 of photom')  # Needs testing
-        merge_tbl = hstack([old_tbl, new_tbl[match]])
-        merge_tbl = hstack([merge_tbl, new_tbl[~match]])
+        embed(header='50 of photom')  # Best to avoid!!  Use photom_by_name
     # Return
     return merge_tbl
 
+def photom_by_name(name, filelist):
+    """
+    Generate a Table for a given galaxy from a list of photom files
 
-def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
+    Warning:  Order matters!  Use best data last
+
+    Args:
+        name (str):
+        filelist (list):
+
+    Returns:
+        astropy.table.Table:
+
+    """
+    # Loop on tables
+    final_tbl = None
+    for ifile in filelist:
+        # Load an insure it is a masked Table
+        tbl = Table(Table.read(ifile, format=table_format, fill_values=fill_values_list), masked=True)
+        idx = tbl['Name'] == name
+        if np.sum(idx) == 1:
+            sub_tbl = tbl[idx]
+            if final_tbl is None:
+                final_tbl = sub_tbl
+            else:
+                for key in sub_tbl.keys():
+                    if sub_tbl[key].mask != True:  # Cannot use "is"
+                        final_tbl[key] = sub_tbl[key]
+    # Return
+    return final_tbl.filled(fill_value)
+
+
+def extinction_correction(filter, EBV, RV=3.1, max_wave=None, required=True):
     """
     calculate MW extinction correction for given filter
 
@@ -91,6 +122,8 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
             If set, cut off the calculation at this maximum wavelength.
             A bit of a hack for the near-IR, in large part because the
             MW extinction curve ends at 1.4 microns.
+        required (bool, optional):
+            Crash out if the transmission curve is not present
 
     Returns:
              float: linear extinction correction
@@ -104,6 +137,13 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     else:
         _filter = filter
     filter_file = os.path.join(path_to_filters, _filter+'.dat')
+    if not os.path.isfile(filter_file):
+        msg = "Filter {} is not in the Repo.  Add it!!".format(filter_file)
+        if required:
+            raise IOError(msg)
+        else:
+            warnings.warn(msg)
+            return 1.
     filter_tbl = Table.read(filter_file, format='ascii')
 
     #get wave and transmission (file should have these headers in first row)
@@ -131,7 +171,7 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None):
     return correction
 
 
-def correct_photom_table(photom, EBV, max_wave=None):
+def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     """
     Correct the input photometry table for Galactic extinction
     Table is modified in place
@@ -145,8 +185,21 @@ def correct_photom_table(photom, EBV, max_wave=None):
         photom (astropy.table.Table):
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
+        name (str):\
+            Name of the object to correct
+        required (bool, optional):
+            Crash out if the transmission curve is not present
 
     """
+    # Cut the table
+    mt_name = photom['Name'] == name
+    if not np.any(mt_name):
+        print("No matches to input name={}.  Returning".format(name))
+        return
+    elif np.sum(mt_name) > 1:
+        raise ValueError("More than 1 match to input name={}.  Bad idea!!".format(name))
+    idx = np.where(mt_name)[0][0]
+    cut_photom = photom[idx]  # This is a Row
 
     # Dust correct
     for key in photom.keys():
@@ -157,20 +210,26 @@ def correct_photom_table(photom, EBV, max_wave=None):
         if filter not in defs.valid_filters:
             print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filter))
             continue
+        # -999? -- Not even measured
+        try:
+            if cut_photom[filter] <= -999.:
+                continue
+        except:
+            embed(header='187')
         # SDSS
         if 'SDSS' in filter:
             if 'extinction_{}'.format(filter[-1]) in photom.keys():
                 print("Appying SDSS-provided extinction correction")
-                photom[key] -= photom['extinction_{}'.format(filter[-1])]
+                cut_photom[key] -= cut_photom['extinction_{}'.format(filter[-1])]
                 continue
         # Hack for LRIS
         if 'LRIS' in filter:
             _filter = 'LRIS_{}'.format(filter[-1])
         else:
             _filter = filter
-        try:
-            dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave)
-            mag_dust = 2.5 * np.log10(1. / dust_correct)
-            photom[key] += mag_dust
-        except:
-            embed(header='145 of photom; bad filter?')
+        # Do it
+        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, required=required)
+        mag_dust = 2.5 * np.log10(1. / dust_correct)
+        cut_photom[key] += mag_dust
+    # Add it back in
+    photom[idx] = cut_photom
