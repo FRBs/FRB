@@ -17,6 +17,7 @@ def parser(options=None):
     parser.add_argument("--cat", default=False, action="store_true", help="Only show data from the catalog (not meta)")
     parser.add_argument("--specdb", type=str, help="specDB file; defaults to $SPECDB/FRB_specdb.hdf5")
     parser.add_argument("-p","--plot", default=False, action="store_true", help="Launch a plotting GUI?")
+    parser.add_argument("--dust", default=False, action="store_true", help="Dust correct the spectrum?")
 
     if options is None:
         pargs = parser.parse_args()
@@ -24,14 +25,28 @@ def parser(options=None):
         pargs = parser.parse_args(options)
     return pargs
 
-def plot_spec(specDB, meta, frb=None):
+def plot_spec(specDB, meta, frb, dust_correct=False):
     import numpy as np
     from astropy.coordinates import SkyCoord
     from linetools import utils as ltu
+    from frb.galaxies import nebular
 
     """ Plot galaxy spectra """
     # Grab spectra
     spec = specDB.spectra_from_meta(meta)
+
+    # Dust?
+    if dust_correct:
+        import extinction
+        EBV = nebular.get_ebv(frb.coord)['meanValue']  #
+        AV = EBV * 3.1  # RV
+
+        for kk in range(spec.nspec):
+            spec.select = kk
+            Al = extinction.fm07(spec.wavelength.value, AV)#, 3.1)
+            spec.flux = spec.flux * 10 ** (Al / 2.5)
+            spec.sig = spec.sig * 10 ** (Al / 2.5)
+
     # Add labels
     lbls = ['None']*len(meta)
     ugroups = np.unique(meta['GROUP'])
@@ -55,6 +70,7 @@ def plot_spec(specDB, meta, frb=None):
     spec.stypes = ['Galaxy']*len(lbls)
     # Add redshift
     spec.z = meta['zem_GROUP']
+
     # Plot
     spec.plot(xspec=True)#, scale=1.5)
 
@@ -119,6 +135,6 @@ def main(pargs):
         if pargs.cat:
             print("Cannot mix --plot with --cat.  Try again!")
             return
-        plot_spec(specDB, meta, frb=frb)
+        plot_spec(specDB, meta, frb, dust_correct=pargs.dust)
 
 

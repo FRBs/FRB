@@ -51,12 +51,7 @@ for band in PanSTARRS_bands:
 # VLT
 VLT_bands = ['u', 'g', 'I', 'z']
 for band in VLT_bands:
-    valid_filters.append('VLT_{:s}'.format(band))
-
-# WISE
-WISE_bands = ['W1', 'W2', 'W3', 'W4']
-for band in WISE_bands:
-    valid_filters.append('WISE_{:s}'.format(band))
+    valid_filters.append('VLT_FORS2_{:s}'.format(band))
 
 # GMOS
 #south
@@ -91,6 +86,23 @@ VISTA_bands = ['Y','J','H','Ks']
 for band in VISTA_bands:
     valid_filters.append('VISTA_{:s}'.format(band))
 
+# HST instruments
+# WFC3
+WFC3_bands = ['F300X', 'F110W', 'F160W']
+for band in WFC3_bands:
+    valid_filters.append('WFC3_{:s}'.format(band))
+
+# WISE
+WISE_bands = ['W1', 'W2', 'W3', 'W4']
+for band in WISE_bands:
+    valid_filters.append('WISE_{:s}'.format(band))
+
+# Spitzer
+Spitzer_bands = ['3.6', '4.5']
+for band in Spitzer_bands:
+    valid_filters.append('Spitzer_{:s}'.format(band))
+
+
 valid_photom = valid_filters + ['EBV']  # Galactic
 
 ##############################################################
@@ -117,7 +129,18 @@ valid_morphology = [
     'n',          # Sersic index; Galfit
     'PA',         # Position angle (deg); Galfit
     'b/a',        # Ellipticity; Galfit
+    'ra',         # RA centroid inferred from Galfit
+    'dec',        # DEC centroid inferred from Galfit
+    'n',          # Sersic index from Galfit
 ]
+
+##############################################################
+# Offsets
+valid_offsets = [
+    'ang_best',   # Angular offset in arcsec from localization centroid to galaxy
+    'ang_avg',    # Angular offset in arcsec averaging over localization
+    'physical',   # Physical offset in kpc;  Uses ang_best
+    ]
 
 ##############################################################
 # Derived quantities
@@ -129,6 +152,7 @@ valid_derived_photom = [
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
+    'age_mass',        # Age weighted mass from CIGALE
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
