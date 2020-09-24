@@ -10,10 +10,14 @@ from collections import OrderedDict
 
 from astropy.table import Table
 
-from pcigale.session.configuration import Configuration
-from pcigale.analysis_modules import get_module
-from pcigale.data import Database
-from pcigale.utils import read_table
+try:
+    from pcigale.session.configuration import Configuration
+except ImportError:
+    print("You will need to install pcigale to use the cigale.py module")
+else:
+    from pcigale.analysis_modules import get_module
+    from pcigale.data import Database
+    from pcigale.utils import read_table
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
@@ -31,7 +35,7 @@ _DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "da
 
 def _sed_default_params(module):
     """
-    Set the default SED
+    Set the default parameters for CIGALE
 
     Args:
         module (str):
@@ -64,9 +68,12 @@ def _sed_default_params(module):
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
         params['E_BVs_old_factor'] = 1.0 # Reduction of E(B-V) for the old population w.r.t. young
         params['uv_bump_wavelength'] = 217.5 #central wavelength of UV bump (nm)
-        params['uv_bump_width'] = 35.0 #UV bump FWHM (nm)
-        params['uv_bump_amplitude'] = 0.0 # Amplitude of the UV bump. For the Milky Way: 3.
-        params['powerlaw_slope'] = 0.0 # Slope delta of the power law modifying the attenuation curve.
+        params['uv_bump_width'] = 35.6 #UV bump FWHM (nm)
+        params['uv_bump_amplitude'] = 1.3 # Amplitude of the UV bump. For the Milky Way: 3.
+        # The following parameter can have a significant affect on stellar mass
+        #  We use the recommendation in Lo Faro+2017
+        params['powerlaw_slope'] = -0.13  # Slope delta of the power law modifying the attenuation curve.
+        # These filters have no effect
         params['filters'] = 'B_B90 & V_B90 & FUV'
     elif module is 'dale2014':
         params['fracAGN'] = [0.0,0.05,0.1,0.2]
@@ -157,7 +164,10 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'VISTA_H': 'vista.vircam.H',
         'VISTA_Ks': 'vista.vircam.Ks',
         'LRISr_I': 'LRIS_I',
-        'LRISb_V': 'LRIS_V'
+        'LRISb_V': 'LRIS_V',
+        'WFC3_F160W': 'hst.wfc3.F160W',
+        'Spitzer_3.6': 'spitzer.irac.ch1',
+        'Spitzer_4.5': 'spitzer.irac.ch2',
     }
     for key in new_names:
         if key in photom_cols:
@@ -165,21 +175,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
             # Try Error
             if key+'_err' in photom_cols:
                 cigtab.rename_column(key+'_err', new_names[key]+'_err')
-    '''
-    for col in photom_cols:
-        # Rename WISE_W to WISE
-        if "W" in col and "WISE" not in col:
-            cigtab.rename_column(col,col.replace("W","WISE"))
-        elif "WISE_W" in col:
-            cigtab.rename_column(col,col.replace("WISE_W","WISE"))
-            #DECaLS tables also have a DECaLS-WISE xmatch
-            if "DECaL" in col:
-                cigtab[col][cigtab[col].mask]= -99.0
-                cigtab.rename_column(col,col.replace("DECaL_",""))
-        # Renmae DECaL to DES because it's the same instrument
-        if "DECaL" in col:
-            cigtab.rename_column(col,col.replace("DECaL","DES"))
-    '''
+
     cigtab.write(infile,overwrite=overwrite)
     return
 
@@ -341,7 +337,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             
     return
 
-def host_run(photom, host, cigale_file=None):
+def host_run(host, cut_photom=None, cigale_file=None):
     """
     Run CIGALE on an FRBGalaxy's photometry
     and store results in a folder with the
@@ -359,9 +355,17 @@ def host_run(photom, host, cigale_file=None):
         `<something>_CIGALE.fits`. No file is
         renamed if nothing is provided.
     """
-    cigale_tbl = photom.copy()
-    cigale_tbl['z'] = host.z
+    cigale_tbl = Table()
+    cigale_tbl['z'] = [host.z]
     cigale_tbl['ID'] = host.name
+
+    # Deal with photometry
+    if cut_photom is not None:
+        photom_obj = cut_photom
+    else:
+        photom_obj = host.photom
+    for key in photom_obj.keys():
+        cigale_tbl[key] = photom_obj[key]
 
     # Run
     run(cigale_tbl, 'z', outdir=host.name, compare_obs_model=True, idcol='ID')
@@ -373,4 +377,7 @@ def host_run(photom, host, cigale_file=None):
         os.system('cp -rp {:s}/{:s}_best_model.fits {:s}'.format(host.name, host.name, model_file))
         photo_file = cigale_file.replace('CIGALE.fits', 'CIGALE_photo.dat')
         os.system('cp -rp {:s}/photo_observed_model_{:s}.dat {:s}'.format(host.name, host.name, photo_file))
+        # SFH
+        sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+        os.system('mv {:s}/{:s}_SFH.fits {:s}'.format(host.name, host.name, sfh_file))
     return

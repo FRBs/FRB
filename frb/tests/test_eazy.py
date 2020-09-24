@@ -76,7 +76,8 @@ def test_eazy(host_obj):
                                           CACHE_FILE='Same', binaries=None, get_prior=True)
     
     zphot, sig_zphot = frbeazy.eazy_stats(zgrid, pzi)
-    assert np.isclose(zphot, 0.5929259648750858)
+    assert np.isclose(zphot, 0.5929259648750858, rtol=1e-4)
 
     # Remove
+    pytest.set_trace()
     shutil.rmtree(data_path('eazy'))

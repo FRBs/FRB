@@ -31,7 +31,7 @@ class GenericFRB(object):
         nu_c : Quantity
           Centre frequency
         DM : Quantity
-        coord : multi-format, optional
+        coord (astropy.coordinates.SkyCoord): multi-format, optional
           RA/DEC in one of many formats (see utils.radec_to_coord)
         cosmo:
 
@@ -370,7 +370,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        frbHost = frbgalaxy.FRBHost.by_frb(self)
         return frbHost
 
     def __repr__(self):
@@ -386,7 +386,7 @@ class FRB(GenericFRB):
         return (txt)
 
 
-def build_table_of_frbs(fattrs=None):
+def build_table_of_frbs(frbs=None, fattrs=None):
     """
     Generate a Pandas table of FRB data
 
@@ -403,15 +403,16 @@ def build_table_of_frbs(fattrs=None):
 
     """
     if fattrs is None:
-        fattrs = ['DM', 'fluence', 'RM', 'lpol', 'z']
+        fattrs = ['DM', 'fluence', 'RM', 'lpol', 'z', 'DMISM']
     # Grab the files
     frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
     frb_files.sort()
     # Load up the FRBs
-    frbs = []
-    for frb_file in frb_files:
-        frb_name = os.path.basename(frb_file).split('.')[0]
-        frbs.append(FRB.by_name(frb_name))
+    if frbs is None:
+        frbs = []
+        for frb_file in frb_files:
+            frb_name = os.path.basename(frb_file).split('.')[0]
+            frbs.append(FRB.by_name(frb_name))
 
     # Table
     frb_tbl = pd.DataFrame({'FRB': [ifrb.frb_name for ifrb in frbs]})
