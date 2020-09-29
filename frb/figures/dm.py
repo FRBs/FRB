@@ -234,12 +234,32 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
 
 def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
-               widen=False, show_nuisance=False, no_error=False, mcquinn=False,
+               widen=False, show_nuisance=False,
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
     Args:
-        outfile:
+        frbs (list):
+            list of FRB objects
+        clrs (list, optional):
+        outfile (str, optional):
+        multi_model (deprecated):
+        no_curves (bool, optional):
+            If True, just show the data
+        widen (bool, optional):
+            If True, make the plot wide
+        show_nuisance (bool, optional):
+            if True, add a label giving the Nuiscance value
+        show_sigmaDM (bool, optional):
+            If True, show a model estimate of the scatter in the DM relation
+        cl (tuple, optional):
+            Confidence limits for the scatter
+        beta (float, optional):
+            Parameter to the DM scatter estimation
+        gold_only (bool, optional):
+            If True, limit to the gold standard sample
+        gold_frbs (list, optional):
+            List of gold standard FRBs
 
     Returns:
 
