@@ -16,12 +16,12 @@ env:
         # overridden underneath. They are defined here in order to save having
         # to repeat them for all configurations.
         - FOLDERNAME='frb'
-        - PYTHON_VERSION=3.6
+        - PYTHON_VERSION=3.7
         - ASTROPY_VERSION=stable
         - NUMPY_VERSION=stable
         - MAIN_CMD='python setup.py'
         - SETUP_CMD='test'
-        - CONDA_DEPENDENCIES='scipy h5py pyyaml matplotlib astroquery pillow requests healpy IPython pandas'
+        - CONDA_DEPENDENCIES='scipy h5py pyyaml matplotlib astroquery pillow requests healpy IPython pandas extinction'
         - PIP_DEPENDENCIES='datalab-client pyvo linetools'
         - EVENT_TYPE='pull_request push'
         - TASK='test'
@@ -47,7 +47,7 @@ env:
       #- EXTRA_CONTEXT="package_name=AstropyProject" FOLDERNAME='AstropyProject'
       #- EXTRA_CONTEXT='_parent_project=sunpy'
       #- TASK='render' EXTRA_CONTEXT='include_example_cython_code=y initialize_git_repo=n'
-      - PYTHON_VERSION=3.6 SETUP_CMD='egg_info'
+      - PYTHON_VERSION=3.7 SETUP_CMD='egg_info'
 
 matrix:
 
@@ -89,9 +89,11 @@ matrix:
         #- os: linux
         #  env: PYTHON_VERSION=3.5 NUMPY_VERSION=1.10
         - os: linux
-          env: NUMPY_VERSION=1.16
-        - os: linux
           env: NUMPY_VERSION=1.17
+        - os: linux
+          env: NUMPY_VERSION=1.18
+        - os: linux
+          env: NUMPY_VERSION=1.19
 
         # Try numpy pre-release
         - os: linux

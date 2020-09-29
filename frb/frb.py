@@ -372,7 +372,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        frbHost = frbgalaxy.FRBHost.by_frb(self)
         return frbHost
 
     def __repr__(self):
