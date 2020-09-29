@@ -44,7 +44,7 @@ def get_platescale(wcs:WCS)->float:
     platescale = np.mean(np.sum(wcs.pixel_scale_matrix**2, axis=0)**0.5)*3600 #arcsec
     return platescale
 
-def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=False):
+def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=False, exptime:float=None):
     """
     Takes an astropy Cutout2D
     object and writes it to disk.
@@ -58,16 +58,27 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
         overwrite (bool, optional): Do you
             want to overwrite filename if
             it already exists?
+        exptime (float, optional): exposure
+            time in seconds. If given, this
+            is inserted as a header keyword
+            EXPTIME. 
     Returns:
     """
     hdr = cutout.wcs.to_header()
+    if exptime is not None:
+        assert type(exptime)==float, "exposure time should be a float"
+        hdr['EXPTIME'] = exptime
+        # Note to user: Make sure the image is not normalized when
+        # inserting an exposure time. i.e. if the reduced image is normalised,
+        # multiply it by the EXPTIME and then pass on the EXPTIME to
+        # write_cutout.
     imghdu = fits.PrimaryHDU(cutout.data, hdr)
     hdulist = fits.HDUList([imghdu])
     hdulist.writeto(filename, overwrite=overwrite)
     return
 
 def _genconf(imgfile:str, psffile:str,
-            configfile:str=None, outdir:str=None, outfile:str=None,
+            configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
             region:tuple = None, convobox:tuple = (100,100),
@@ -86,6 +97,9 @@ def _genconf(imgfile:str, psffile:str,
         configfile (str, optional): path to configuration file to
             be created via this function. Defaults to `galfit.feedme`
             in <outdir>.
+        cdkfile (str, optional): Path to the charge diffusion kernel
+            file. Useful is you have oversampled HST PSFs from 
+            Tiny Tim.
         outfile (str, optional): name of GALFIT's output fits file.
             Defaults to `out.fits` in <outdir>.
         finesample (int, optional): The PSF fine-sampling factor.
@@ -140,6 +154,15 @@ def _genconf(imgfile:str, psffile:str,
         warnings.warn("Creating a configuration file here")
         configfile = "galfit.feedme"
     
+    # Copy PSF file to outdir
+    os.system("cp {:s} {:s}".format(psffile, os.path.join(outdir,"psffile.fits")))
+    psffile = "psffile.fits"
+    # If CDK file exists, do the same
+    if cdkfile is not None:
+        os.system("cp {:s} {:s}".format(cdkfile, os.path.join(outdir,"cdkfile.txt")))
+        cdkfile = "cdkfile.txt" 
+    
+    
     # Begin writing config file
     with open(os.path.join(outdir,configfile),"w+") as fstream:
         #Image parameters.
@@ -157,7 +180,10 @@ def _genconf(imgfile:str, psffile:str,
         # Ignore any sigma image for now.
         fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
         # PSF file
-        fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
+        if cdkfile is None:
+            fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
+        else:
+            fstream.write("D) {:s}  # Input PSF file\n".format(psffile+" "+cdkfile))
         # PSF fine-sampling
         fstream.write("E) {:d}  # PSF fine sampling factor\n".format(finesample))
         # Bad pixel map
@@ -255,6 +281,10 @@ def read_fitlog(outfile:str, initfile:str)->dict:
             used to produce the log entry. This
             is used to distinguish multiple
             entried in the logfile.
+    Returns:
+        pix_dict (dict): A dict containing
+            the GALFIT best fit parameters
+            and their uncertainties.
     """
     # TODO: create a regex string to look for blocks
     # in the fit.log file. Then create an expression
@@ -288,10 +318,9 @@ def read_fitlog(outfile:str, initfile:str)->dict:
               'mag_err':fiterrs[2], 'reff_err':fiterrs[3],
               'n_err':fiterrs[4], 'b/a_err':fiterrs[5], 'PA_err':fiterrs[6],
               }
-
     return pix_dict
 
-def pix2coord(pix_dict:dict, wcs:WCS, table:Table=False)->dict:
+def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False)->dict:
     """
     Takes the output table from galfit's
     fit.log file and converts all pixel
@@ -355,6 +384,9 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
             be created via this function. Defaults to `<outdir>/galfit.feedme`.
+        cdkfile (str, optional): Path to the charge diffusion kernel
+            file. Useful is you have oversampled HST PSFs from 
+            Tiny Tim.
         outfile (str, optional): path to GALFIT's output fits file.
             Defaults to `<outdir>/out.fits`
         finesample (int, optional): The PSF fine-sampling factor.
@@ -395,13 +427,23 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
             to fit a constant sky background? Set to 
             false if your sky background is 0.
     Returns:
-        configfile (str): Path to the configuration
-            file.
+        fit_outcome (int): An int encoding the success/failure
+            of the fitting procedure. 0 corresponds
+            to a successful fit. See GALFIT documentation
+            to learn what other values stand for.
     """
 
     # Check input paths first
     assert os.path.isfile(imgfile), "Invalid image file path {:s}".format(imgfile)
+
     assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
+    psffile = os.path.abspath(psffile)
+
+    # Is a CDK file given?
+    if 'cdkfile' in kwargs.keys():
+        assert os.path.isfile(kwargs['cdkfile']), "Invalid CDK file path {:s}".format(kwargs['cdkfile'])
+        # Use absolute path henceforth
+        kwargs['cdkfile'] = os.path.abspath(kwargs['cdkfile'])
 
     # Is a badpix map given?
     if 'badpix' in kwargs.keys():
@@ -417,7 +459,7 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
 
     # Abspaths for image and psf files too.
     imgfile = os.path.abspath(imgfile)
-    psffile = os.path.abspath(psffile)
+    
     
     # Generate Galfit config file
     configfile = _genconf(imgfile, psffile,**kwargs)
@@ -430,14 +472,14 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
     # Move to outdir
     os.chdir(kwargs['outdir'])
     # Run galfit
-    return_value = os.system("galfit {:s}".format(configfile))
-    if return_value!=0:
+    fit_outcome = os.system("galfit {:s}".format(configfile))
+    if fit_outcome!=0:
         # TODO: This doesn't work right now because
         # Galfit is still returning 0 on crashing.
         # Something broken?
         warnings.warn("Something went wrong with the fit. Check terminal output.")
         os.chdir(curdir)
-        return return_value
+        return fit_outcome
     # Read fit.log and get the fit results
     # Temporary fix for the crash:
     try:
@@ -477,4 +519,4 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
     # Overwrite
     hdulist.writeto(kwargs['outfile'], overwrite=True)
     os.chdir(curdir)
-    return return_value
+    return fit_outcome
