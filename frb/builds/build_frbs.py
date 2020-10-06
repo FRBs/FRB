@@ -80,8 +80,6 @@ def frb_180924():
     frb180924.fluence_err = 1 * units.Jy * units.ms # -- //-- 
     frb180924.RM = 22 * units.rad / units.m**2 
     frb180924.RM_err = 2 * units.rad / units.m**2
-    frb180924.width = 0.09 * units.ms
-    frb180924.width_err = 0.04 * units.ms
     frb180924.tau = 0.68 * units.ms
     frb180924.tau_err = 0.03 * units.ms
     frb180924.lpol = 80.  # %
@@ -115,6 +113,8 @@ def frb_181112():
     # RM
     frb181112.RM = 10.9 * units.rad / units.m**2
     frb181112.RM_err = 0.9 * units.rad / units.m**2
+    frb181112.fluence = 26. * units.Jy * units.ms
+    frb181112.fluence_err = 3. * units.Jy * units.ms    
 
     # NE2001
     frb181112.set_DMISM()
@@ -152,8 +152,6 @@ def frb_190102():
     frb190102.fluence_err = 1 * units.Jy * units.ms # -- //-- 
     frb190102.RM = -105 * units.rad / units.m**2
     frb190102.RM_err = 1 * units.rad / units.m**2
-    frb190102.width = 0.053 * units.ms
-    frb190102.width_err = 0.002 * units.ms
     frb190102.tau = 0.041 * units.ms
     frb190102.tau_err = 0.003 * units.ms
     
@@ -219,8 +217,6 @@ def frb_190608():
     frb190608.fluence_err = 4 * units.Jy * units.ms # -- //-- 
     frb190608.RM = 353 * units.rad / units.m**2
     frb190608.RM_err = 2 * units.rad / units.m**2
-    frb190608.width = 1.1 * units.ms
-    frb190608.width_err = 0.2 * units.ms
     frb190608.tau = 3.3 * units.ms
     frb190608.tau_err = 0.2 * units.ms
 
@@ -254,10 +250,10 @@ def frb_190611():
     # FRB properties
     frb190611.RM = 20 * units.rad / units.m**2
     frb190611.RM_err = 4 * units.rad / units.m**2
-    frb190611.width = 0.09 * units.ms
-    frb190611.width_err = 0.02 * units.ms
     frb190611.tau = 0.18 * units.ms
     frb190611.tau_err = 0.02 * units.ms
+    frb190611.fluence = 10 * units.Jy * units.ms
+    frb190611.fluence_err = 2 * units.Jy * units.ms    
 
     # References
     frb190611.refs = ['MacQuart2020', 'Day2020']
@@ -314,6 +310,8 @@ def frb_190711():
     # RM -- Day+2020
     frb190711.RM = 9 * units.rad / units.m**2
     frb190711.RM_err = 2 * units.rad / units.m**2
+    frb190711.fluence = 34 * units.Jy * units.ms
+    frb190711.fluence_err = 3 * units.Jy * units.ms
 
     # References
     frb190711.refs = ['MacQuart2020', 'Day2020']
@@ -377,16 +375,13 @@ def frb_191001():
     frb191001.RM = 54.86 * units.rad / units.m**2
     frb191001.RM_err = 0.50 * units.rad / units.m**2
     # Fluence
-    frb191001.Fluence = 143 * units.Jy * units.ms
-    frb191001.Fluence_err = 15 * units.Jy * units.ms
+    frb191001.fluence = 143 * units.Jy * units.ms
+    frb191001.fluence_err = 15 * units.Jy * units.ms
     # Spectral energy density
 
     # Scattering time at 1 GHz
     frb191001.tau = 2.19 * units.ms
     frb191001.tau_err = 0.23 *units.ms
-    # Pulse width
-    frb191001.width = 4.2 * units.ms
-    frb191001.width_err = 0.2 * units.ms
 
     # References
     frb191001.refs = ['Bhandari2020b']
