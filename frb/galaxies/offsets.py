@@ -6,7 +6,8 @@ from astropy import units
 
 from IPython import embed
 
-def angular_offset(frb, galaxy, nsigma=5., nsamp=2000):
+def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
+                   gal_sig=None):
     """
 
     Warning: All calculations in arcsec -- Do not use for *large* localization error
@@ -25,14 +26,23 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000):
     # Error ellipse
     sig_a = frb.eellipse['a']  # arcsec
     sig_b = frb.eellipse['b']  # arcsec
+    pa_ee = frb.eellipse['theta'] # deg
 
     # If systematic exists, add in quadrature
     if 'a_sys' in frb.eellipse.keys():
         sig_a = np.sqrt(frb.eellipse['a_sys']**2 + sig_a**2)
         sig_b = np.sqrt(frb.eellipse['b_sys']**2 + sig_b**2)
 
+    # Add in Galaxy error : THIS TREATMENT IS APPROXIMATE
+    if gal_sig is not None:
+        # Project
+        sig2_gal_a = gal_sig[1]**2 * np.cos(pa_ee)**2 + gal_sig[0]**2 * np.sin(pa_ee)**2
+        sig2_gal_b = gal_sig[0]**2 * np.cos(pa_ee)**2 + gal_sig[1]**2 * np.sin(pa_ee)**2
+        # Add em in
+        sig_a = np.sqrt(sig_a**2 + sig2_gal_a)
+        sig_b = np.sqrt(sig_b**2 + sig2_gal_b)
+
     # FRB is the reference frame
-    pa_ee = frb.eellipse['theta'] # deg
     dtheta = 90. - pa_ee  # Place a of ellipse along the x-axis
 
     # Build the grid around the FRB (orient a on our x axis)
