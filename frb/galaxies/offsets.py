@@ -16,7 +16,8 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
         frb (frb.frb.FRB):
         galaxy (frb.galaxies.FRBGalaxy):
         nisgma: Number of sigma around the FRB uncertainty ellipse from which the grid is build
-        nsamp: Grid sample points for each 1D Gaussian (one in RA and Dec) 
+        nsamp: Grid sample points for each 1D Gaussian (one in RA and Dec)
+        gal_sig (tuple): RA, DEC errors in arcsec as floats
 
     Returns:
         tuple: float, float, float, float
