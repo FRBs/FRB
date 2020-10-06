@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-from IPython import embed
 import warnings
 import glob
 
@@ -25,6 +24,7 @@ from frb import frb
 
 from scipy.integrate import simps
 
+from IPython import embed
 
 class FRBGalaxy(object):
     """
