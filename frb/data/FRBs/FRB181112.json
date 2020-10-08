@@ -32,6 +32,14 @@
         "theta": 120.15,
         "theta_sys": 120.15
     },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 26.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 3.0
+    },
     "ra": 327.34845833333327,
     "refs": [
         "Prochaska2019"
