@@ -85,8 +85,8 @@ def frb_180924():
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
     # Error ellipse
-    frb180924.set_ee(a=0.06, b=0.07, theta=0., cl=68.) # Statistical (Day+2020)
-    frb180924.set_ee(a=0.07, b=0.09, theta=0., cl=68.,stat=False) # Systematic
+    frb180924.set_ee(a=0.06, b=0.07, theta=90., cl=68.) # Statistical (Day+2020)
+    frb180924.set_ee(a=0.07, b=0.09, theta=90., cl=68.,stat=False) # Systematic
 
     # References
     frb180924.refs = ['Bannister2019', 'Day2020']
@@ -139,8 +139,8 @@ def frb_190102():
                         364.545 * units.pc / units.cm**3,
                         z_frb=0.2912) # Updated redshift
     # Error ellipse [REQUIRED]
-    frb190102.set_ee(0.16, 0.2, 0., 68.) # Statistical (Day+2020)
-    frb190102.set_ee(0.44, 0.5, 0., 68., stat=False) # Systematic
+    frb190102.set_ee(0.16, 0.2, 90., 68.) # Statistical (Day+2020)
+    frb190102.set_ee(0.44, 0.5, 90., 68., stat=False) # Systematic
 
     # Error in DM
     frb190102.DM_err = 0.004 * units.pc / units.cm**3
@@ -242,7 +242,7 @@ def frb_190611():
                         z_frb=0.3778)  # Bright
     # Error ellipse [REQUIRED]
     frb190611.set_ee(0.30, 0.3, 0., 68.) # Statistical (Day+2020)
-    frb190611.set_ee(0.63, 0.6, 0., 68., stat=False) # Systematic    
+    frb190611.set_ee(0.60, 0.6, 0., 68., stat=False) # Systematic    
 
     # Error in DM
     frb190611.DM_err = 0.04 * units.pc / units.cm**3
@@ -302,8 +302,8 @@ def frb_190711():
                         587.9 * units.pc / units.cm ** 3,    # Day+2020
                         z_frb=0.52172)
     # Error ellipse
-    frb190711.set_ee(0.12, 0.07, 0., 68.)  # Statistical (Day+2020)
-    frb190711.set_ee(0.38, 0.3, 0., 68., stat=False) # Systematic
+    frb190711.set_ee(0.12, 0.07, 90., 68.)  # Statistical (Day+2020)
+    frb190711.set_ee(0.38, 0.3, 90., 68., stat=False) # Systematic
 
     # Error in DM
     frb190711.DM_err = 1 * units.pc / units.cm ** 3
@@ -338,8 +338,8 @@ def frb_190714():
                         504.13 * units.pc / units.cm ** 3,
                         z_frb=0.2365)
     # Error ellipse
-    frb190714.set_ee(0.16, 0.1, 0., 68.) # Statistical
-    frb190714.set_ee(0.32, 0.2, 0., 68., stat=False)  # Systematic
+    frb190714.set_ee(0.16, 0.1, 90., 68.) # Statistical
+    frb190714.set_ee(0.32, 0.2, 90., 68., stat=False)  # Systematic
 
     # Error in DM
     frb190714.DM_err = 0.1 * units.pc / units.cm ** 3
