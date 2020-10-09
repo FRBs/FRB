@@ -29,8 +29,8 @@
         "b_sys": 0.44,
         "cl": 68.0,
         "cl_sys": 68.0,
-        "theta": 90.0,
-        "theta_sys": 90.0
+        "theta": 0.0,
+        "theta_sys": 0.0
     },
     "fluence": {
         "unit": "Jy ms",
