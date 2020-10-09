@@ -168,6 +168,8 @@ class GenericFRB(object):
                 If True, fill in statistical error
                 if False, fill in systematic
         """
+        if a < b:
+            raise IOError("For the ellipse, a must be greater than or equal to b")
         if stat:
             self.eellipse['a'] = a
             self.eellipse['b'] = b
