@@ -26,9 +26,10 @@ def frb_121102():
     # References
     frb121102.refs = ['Tendulkar2017']
     # Write
-    frb121102.write_to_json()
+    path = resource_filename('frb', 'data/FRBs')
+    frb121102.write_to_json(path=path)
     # Test
-    frb121102.from_json('FRB121102.json')
+    #frb121102.from_json('FRB121102.json')
 
 
 def frb_180916():
