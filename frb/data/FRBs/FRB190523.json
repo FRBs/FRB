@@ -18,7 +18,7 @@
         "a": 4,
         "b": 1.5,
         "cl": 68.0,
-        "theta": 0.0
+        "theta": 340.0
     },
     "fluence": {
         "unit": "Jy ms",
