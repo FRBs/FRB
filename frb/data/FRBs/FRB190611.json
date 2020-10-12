@@ -23,14 +23,22 @@
     "cosmo": "Planck15",
     "dec": -79.39758333333334,
     "eellipse": {
-        "a": 0.7,
-        "a_sys": 0.4,
-        "b": 0.7,
-        "b_sys": 0.3,
+        "a": 0.3,
+        "a_sys": 0.6,
+        "b": 0.3,
+        "b_sys": 0.6,
         "cl": 68.0,
-        "cl_sys": 68,
+        "cl_sys": 68.0,
         "theta": 0.0,
         "theta_sys": 0.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 10.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 2.0
     },
     "ra": 320.7454583333333,
     "refs": [

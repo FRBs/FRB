@@ -22,13 +22,14 @@ def frb_121102():
     # NE2001
     frb121102.set_DMISM()
     # Error ellipse
-    frb121102.set_ee(0.1, 0.1, 0., 95.)
+    frb121102.set_ee(0.1, 0.1, theta=0., cl=95.)
     # References
     frb121102.refs = ['Tendulkar2017']
     # Write
-    frb121102.write_to_json()
+    path = resource_filename('frb', 'data/FRBs')
+    frb121102.write_to_json(path=path)
     # Test
-    frb121102.from_json('FRB121102.json')
+    #frb121102.from_json('FRB121102.json')
 
 
 def frb_180916():
@@ -43,7 +44,7 @@ def frb_180916():
                         348.76*units.pc / units.cm**3,
                         z_frb=0.0337)
     # Error ellipse
-    frb180916.set_ee(0.0023, 0.0023, 0., 68.)
+    frb180916.set_ee(0.0023, 0.0023, theta=0., cl=68.)
     # Error in DM
     frb180916.DM_err = 0.10 * units.pc / units.cm**3
     # NE2001
@@ -85,8 +86,8 @@ def frb_180924():
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
     # Error ellipse
-    frb180924.set_ee(a=100./1e3, b=100./1e3, theta=0., cl=68.) #statistical
-    frb180924.set_ee(a=0.09, b=0.09, theta=0, cl=68., stat=False) #systematic
+    frb180924.set_ee(a=0.07, b=0.06, theta=0., cl=68.) # Statistical (Day+2020)
+    frb180924.set_ee(a=0.09, b=0.07, theta=0., cl=68.,stat=False) # Systematic
 
     # References
     frb180924.refs = ['Bannister2019', 'Day2020']
@@ -108,7 +109,8 @@ def frb_181112():
     # Error in DM
     frb181112.DM_err = 0.03 * units.pc / units.cm**3
     # Error ellipse
-    frb181112.set_ee(a=555.30/1e3, b=152.93/1e3, theta=120.15, cl=68.)
+    frb181112.set_ee(a=555.30/1e3, b=152.93/1e3, theta=120.15, cl=68.) # Statistical (Prochaska+2019)
+    frb181112.set_ee(a=3.2, b=0.8, theta=120.15, cl=68.,stat=False) # Systematic
 
     # RM
     frb181112.RM = 10.9 * units.rad / units.m**2
@@ -138,8 +140,8 @@ def frb_190102():
                         364.545 * units.pc / units.cm**3,
                         z_frb=0.2912) # Updated redshift
     # Error ellipse [REQUIRED]
-    frb190102.set_ee(0.1, 0.1, 0., 95.) #statistical
-    frb190102.set_ee(0.4, 0.5, 0., 95., stat=False) #systematic
+    frb190102.set_ee(0.2, 0.16, theta=0., cl=68.) # Statistical (Day+2020)
+    frb190102.set_ee(0.5, 0.44, theta=0., cl=68., stat=False) # Systematic
 
     # Error in DM
     frb190102.DM_err = 0.004 * units.pc / units.cm**3
@@ -172,7 +174,7 @@ def frb_190523():
                         760.8 * units.pc / units.cm**3,
                         z_frb=0.660)
     # Error ellipse [REQUIRED]
-    frb190523.set_ee(4, 1.5, 0., 340) # Halfing the 3x8'' at 95% reported by Ravi et al.
+    frb190523.set_ee(4, 1.5, cl=68., theta=340.) # Halfing the 3x8'' at 95% reported by Ravi et al.
     # Error in DM
     frb190523.DM_err = 0.6 * units.pc / units.cm**3
 
@@ -204,8 +206,9 @@ def frb_190608():
                         340.05 * units.pc / units.cm**3,
                         z_frb=0.1177805)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
-    frb190608.set_ee(0.19315, 0.18, 0., 68.) # Statistsical
-    frb190608.set_ee(0.178292, 0.18, 0., 68., stat=False)  # Systematic
+    frb190608.set_ee(0.19, 0.18, theta=90., cl=68.) # Statistsical (Day+2020)
+    frb190608.set_ee(0.18, 0.18, theta=90., cl=68., stat=False) # Systematic    
+    
     # Error in DM
     frb190608.DM_err = 0.6 * units.pc / units.cm**3
 
@@ -239,8 +242,9 @@ def frb_190611():
                         332.63 * units.pc / units.cm**3,
                         z_frb=0.3778)  # Bright
     # Error ellipse [REQUIRED]
-    frb190611.set_ee(0.7, 0.7, 0., 68.) #statistical
-    frb190611.set_ee(0.4, 0.3, 0., 68, stat=False ) #systematic
+    frb190611.set_ee(0.30, 0.3, theta=0., cl=68.) # Statistical (Day+2020)
+    frb190611.set_ee(0.60, 0.6, theta=0., cl=68., stat=False) # Systematic    
+
     # Error in DM
     frb190611.DM_err = 0.04 * units.pc / units.cm**3
 
@@ -299,8 +303,8 @@ def frb_190711():
                         587.9 * units.pc / units.cm ** 3,    # Day+2020
                         z_frb=0.52172)
     # Error ellipse
-    frb190711.set_ee(0.3, 0.3, 0., 68.)  # (Statistical)
-    frb190711.set_ee(0.38, 0.3, 0., 68., stat=False)  # Systematic
+    frb190711.set_ee(0.12, 0.07, theta=90., cl=68.)  # Statistical (Day+2020)
+    frb190711.set_ee(0.38, 0.3, theta=90., cl=68., stat=False) # Systematic
 
     # Error in DM
     frb190711.DM_err = 1 * units.pc / units.cm ** 3
@@ -335,8 +339,8 @@ def frb_190714():
                         504.13 * units.pc / units.cm ** 3,
                         z_frb=0.2365)
     # Error ellipse
-    frb190714.set_ee(0.011, 0.1, 0., 68.)
-    frb190714.set_ee(0.022, 0.2, 0., 68., stat=False)  # Systematic
+    frb190714.set_ee(0.16, 0.1, theta=90., cl=68.) # Statistical
+    frb190714.set_ee(0.32, 0.2, theta=90., cl=68., stat=False)  # Systematic
 
     # Error in DM
     frb190714.DM_err = 0.1 * units.pc / units.cm ** 3
@@ -365,7 +369,7 @@ def frb_191001():
                         507.90 * units.pc / units.cm ** 3,
                         z_frb=0.2340)
     # Error ellipse [REQUIRED]
-    frb191001.set_ee(0.006, 0.13, 90., 68.)  # This is statistical + systematic in quadrature
+    frb191001.set_ee(0.17, 0.13, theta=90., cl=68.)  # This is statistical + systematic in quadrature
     # Error in DM
     frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
 
