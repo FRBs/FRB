@@ -144,6 +144,17 @@ def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
 
 
 def renorm_priors(raw_Mi, raw_S):
+    """
+    Simple method to normalize the Priors
+
+    Args:
+        raw_Mi (np.ndarray):
+        raw_S (float):
+
+    Returns:
+        tuple: Normalized prilors
+
+    """
     raw_sum = np.sum(raw_Mi) + raw_S
     return raw_Mi/raw_sum, raw_S/raw_sum
 
