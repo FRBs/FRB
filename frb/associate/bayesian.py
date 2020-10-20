@@ -34,6 +34,16 @@ def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
 
 
 def bloom_sigma(rmag):
+    """
+    Estimated incidence of galaxies per sq arcsec with r > rmag
+
+    Args:
+        rmag (float or np.ndarray):
+
+    Returns:
+        float or np.ndarray:  Galaxy density
+
+    """
     # Sigma(m)
     sigma = 1. / (3600. ** 2 * 0.334 * np.log(10)) * 10 ** (0.334 * (rmag - 22.963) + 4.320)
     return sigma
@@ -43,6 +53,22 @@ def prior_uniform():
     pass
 
 def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
+    """
+    Prior for a given galaxy
+
+    Args:
+        rmag (np.ndarray):
+        sep (np.ndarray):
+        r_half (np.ndarray):
+            Half light radius of the galaxy
+        sigR (float):
+            1 sigma error in FRB localization; assumed symmetric
+        scale_rhalf:
+        nsigma:
+
+    Returns:
+
+    """
     # Reff - More conservative than usual
     Rs = np.stack([scale_rhalf * r_half, np.ones_like(r_half)* nsigma * sigR,
                    np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
