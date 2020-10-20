@@ -54,7 +54,7 @@ def prior_uniform():
 
 def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
     """
-    Prior for a given galaxy
+    Prior for a given set of galaxies
 
     Args:
         rmag (np.ndarray):
@@ -67,6 +67,7 @@ def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
         nsigma:
 
     Returns:
+        np.ndarray:
 
     """
     # Reff - More conservative than usual
@@ -91,11 +92,30 @@ def prior_S_n(rlim, theta_max, rmax=30.):
 
 
 def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
+    """
+    Calculate p(x|M_i)
+
+    Args:
+        box_radius (float):
+            Maximum radius for theta prior
+        frb_coord (SkyCoord):
+        cand_coords (SkyCoord):
+            Coordinates of the candidate hosts
+        theta (dict):
+            Parameters for theta prior
+        sigR (float):
+            1 sigma error in FRB localization; assumed symmetric
+        nsamp (int, optional):
+
+    Returns:
+        np.ndarray:
+
+    """
     x = np.linspace(-box_radius, box_radius, nsamp)
     xcoord, ycoord = np.meshgrid(x,x)
     r_w = np.sqrt(xcoord**2 + ycoord**2)
     p_xMis = []
-    for cand_coord in cand_coords:
+    for icand, cand_coord in enumerate(cand_coords):
         # Center on the galaxy
         # Calculate observed FRB location
         dra, ddec = cand_coord.spherical_offsets_to(frb_coord)
@@ -108,7 +128,8 @@ def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
         p_wMi = np.zeros_like(xcoord)
         if theta['method'] == 'rcore':
             ok_w = r_w < theta['max']
-            p_wMi[ok_w] = 1./(r_w + theta['core'])
+            if np.any(ok_w):
+                p_wMi[ok_w] = theta['r_half'][icand]/(r_w[ok_w] + theta['r_half'][icand])
         elif theta['method'] == 'uniform':
             ok_w = r_w < theta['max']
             p_wMi[ok_w] = 1.
