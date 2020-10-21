@@ -180,6 +180,7 @@ def f_diffuse(z, cosmo=Planck15, return_rho = False):
   else:
     return f_diffuse, rho_b*f_diffuse*(1+z)**3
 
+
 def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
   """
   Calculate the average cosmic electron
