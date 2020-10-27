@@ -61,6 +61,20 @@ def chance_dx(rmag):
     return dx
 
 def random_separation(catalog, wcs, npix, trim=1*units.arcmin, ntrial=100):
+    """
+    Find random offsets to
+
+    Args:
+        catalog (astropy.table.Table):
+        wcs (astropy.WCS.WCS):
+        npix (int):
+        trim (astropy.units.Quantity, optional):
+        ntrial (int, optional):
+
+    Returns:
+        astropy.units.Quantity: angular distances
+
+    """
 
     # Catalog
     cat_coord = SkyCoord(ra=catalog['ra'], dec=catalog['dec'], unit='deg')
