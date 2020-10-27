@@ -252,6 +252,7 @@ if __name__ == '__main__':
     frbA_180924.calc_pMx()
 
     final_cands = frbA_180924.P_Mix > 0.01
-    print(frbA_180924.candidates[['id', 'r', 'half_light', 'separation', 'P_M', 'P_Mix']][final_cands])
+    print(frbA_180924.candidates[['id', 'r', 'half_light',
+                                  'separation', 'P_M', 'P_Mix']][final_cands])
 
     embed(header='180 of frbassociate')
