@@ -1,6 +1,7 @@
 import numpy as np
 from matplotlib import pyplot as plt
 
+from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import gaussian_fwhm_to_sigma
@@ -8,6 +9,8 @@ from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
+
+from frb.associate import bayesian
 
 import photutils
 
@@ -22,9 +25,11 @@ class FRBAssociate():
         # Attributes
         self.hdu = None
         self.wcs = None
+        self.theta_max = None
 
     @property
     def sigR(self):
+        return np.sqrt(self.frb.sig_a * self.frb.sig_b) * units.arcsec
 
     def load_image(self):
 
@@ -32,6 +37,50 @@ class FRBAssociate():
             raise IOError("Set image_file before calling this method")
         self.hdu = fits.open(self.image_file)[0]
         self.wcs = astropy_wcs.WCS(self.hdu.header)
+
+    def calc_priors(self, prior_S):
+
+        # Raw priors
+        self.raw_prior_Mi = bayesian.prior_Mi_n(self.candidates[self.filter].data,
+                                           self.candidates['separation'].to('arcsec').value,
+                                           self.candidates['half_light'].value,
+                                           self.sigR.to('arcsec').value)
+        self.raw_prior_S = prior_S  # Arbitrary!
+
+        # Normalize
+        self.prior_Mi, self.prior_S = bayesian.renorm_priors(self.raw_prior_Mi,
+                                                             self.raw_prior_S)
+
+        # Add to table
+        self.candidates['P_M'] = self.prior_Mi
+
+    def calc_pMx(self):
+
+        # Intermediate steps
+        self.calc_pxM()
+        self.calc_pxS()
+        self.calc_px()
+
+        # Finish
+        self.P_Mix = self.prior_Mi * self.p_xMi / self.p_x
+        self.candidates['P_Mix'] = self.P_Mix
+
+    def calc_pxM(self):
+        self.p_xMi = bayesian.px_Mi(self.theta_max.to('arcsec').value,
+                              self.frb.coord,
+                              self.candidates['coords'],
+                              self.theta_prior,
+                              self.sigR.to('arcsec').value)
+
+    def calc_pxS(self):
+        self.p_xS = bayesian.px_Mi(theta_max.to('arcsec').value,
+                                   self.frb.coord,
+                                   SkyCoord([self.frb.coord]),
+                                   self.theta_prior,
+                                   self.sigR.to('arcsec').value)[0]
+
+    def calc_px(self):
+        self.p_x = self.prior_S * self.p_xS + np.sum(self.prior_Mi * self.p_xMi)
 
     def cut_candidates(self, plate_scale, bright_cut=None):
 
@@ -145,6 +194,10 @@ class FRBAssociate():
             if show:
                 plt.show()
 
+    def set_theta_prior(self, theta_max, theta_dict):
+        self.theta_max = theta_max
+        self.theta_prior = theta_dict
+
     def threshold(self, nsig=1.5):
 
         if self.hdu is None:
@@ -186,5 +239,19 @@ if __name__ == '__main__':
 
     # #########################
     # Bayesian time
+
+    # Priors
+    frbA_180924.calc_priors(0.01)
+    # Theta
+    theta_u = dict(method='uniform', max=4.)
+    theta_max = 10 * units.arcsec  # This eliminates most of the candidates;  could do case-by-case
+    frbA_180924.set_theta_prior(theta_max, theta_u)
+    #print(frbA_180924.candidates[['id', 'r', 'half_light', 'separation', 'P_M']][8:15])
+
+    # Calcuate p(M_i|x)
+    frbA_180924.calc_pMx()
+
+    final_cands = frbA_180924.P_Mix > 0.01
+    print(frbA_180924.candidates[['id', 'r', 'half_light', 'separation', 'P_M', 'P_Mix']][final_cands])
 
     embed(header='180 of frbassociate')

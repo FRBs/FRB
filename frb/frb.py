@@ -185,6 +185,23 @@ class GenericFRB(object):
         #
         return
 
+    @property
+    def sig_a(self):
+        if len(self.eellipse) == 0:
+            return None
+        siga = self.eellipse['a']  # arcsec
+        if 'a_sys' in self.eellipse.keys():
+            siga = np.sqrt(self.eellipse['a_sys']**2 + siga**2)
+        return siga
+
+    @property
+    def sig_b(self):
+        if len(self.eellipse) == 0:
+            return None
+        sigb = self.eellipse['b']  # arcsec
+        if 'b_sys' in self.eellipse.keys():
+            sigb = np.sqrt(self.eellipse['b_sys']**2 + sigb**2)
+        return sigb
 
     def set_width(self, wtype, value, overwrite=False):
         """ Set a Width value
