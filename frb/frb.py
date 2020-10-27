@@ -19,6 +19,8 @@ from frb import utils
 from frb import mw
 from frb.galaxies import frbgalaxy
 
+from IPython import embed
+
 
 class GenericFRB(object):
     """
@@ -168,6 +170,8 @@ class GenericFRB(object):
                 If True, fill in statistical error
                 if False, fill in systematic
         """
+        if a < b:
+            raise IOError("For the ellipse, a must be greater than or equal to b")
         if stat:
             self.eellipse['a'] = a
             self.eellipse['b'] = b
@@ -370,7 +374,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        frbHost = frbgalaxy.FRBHost.by_frb(self)
         return frbHost
 
     def __repr__(self):
@@ -425,6 +429,14 @@ def build_table_of_frbs(frbs=None, fattrs=None):
     frb_tbl['DEC'] = coords.dec.value
     tbl_units['RA'] = 'deg'
     tbl_units['DEC'] = 'deg'
+
+    # Error ellipses
+    ee_attrs = ['a', 'b', 'a_sys', 'b_sys', 'theta']
+    ee_units = ['arcsec', 'arcsec', 'arcsec', 'arcsec', 'deg']
+    for ss, ee_attr in enumerate(ee_attrs):
+        alist = [ifrb.eellipse[ee_attr] if ee_attr in ifrb.eellipse.keys() else np.nan for ifrb in frbs]
+        frb_tbl['ee_'+ee_attr] = alist
+        tbl_units['ee_'+ee_attr] = ee_units[ss]
 
     # Float Attributes on an Object
     for fattr in fattrs:
