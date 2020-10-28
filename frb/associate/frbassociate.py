@@ -37,6 +37,7 @@ class FRBAssociate():
             raise IOError("Set image_file before calling this method")
         self.hdu = fits.open(self.image_file)[0]
         self.wcs = astropy_wcs.WCS(self.hdu.header)
+        self.header = self.hdu.header
 
     def calc_priors(self, prior_S):
 
@@ -82,11 +83,11 @@ class FRBAssociate():
     def calc_px(self):
         self.p_x = self.prior_S * self.p_xS + np.sum(self.prior_Mi * self.p_xMi)
 
-    def cut_candidates(self, plate_scale, bright_cut=None):
+    def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
 
         # Zero point
         if isinstance(plate_scale, str):
-            plate_scale = self.hdu.header[plate_scale]
+            plate_scale = self.header[plate_scale]
 
         if self.photom is None:
             raise ValueError("photom table not built!")
@@ -115,6 +116,11 @@ class FRBAssociate():
         seps = self.frb.coord.separation(self.candidates['coords'])
         self.candidates['separation'] = seps.to('arcsec')
 
+        # Cut on separation?
+        if separation is not None:
+            cut_seps = seps < separation
+            self.candidates = self.candidates[cut_seps]
+
         # Half light
         self.candidates['half_light'] = self.candidates['semimajor_axis_sigma'].value * plate_scale
 
@@ -128,9 +134,12 @@ class FRBAssociate():
 
         # Zero point
         if isinstance(ZP, str):
-            ZP = self.hdu.header[ZP]
+            ZP = self.header[ZP]
 
-        self.cat = photutils.source_properties(self.hdu.data, self.segm, filter_kernel=self.kernel)
+        self.cat = photutils.source_properties(self.hdu.data - self.bkg.background,
+                                               self.segm,
+                                               background=self.bkg.background,
+                                               filter_kernel=self.kernel)
 
         # Apertures
         apertures = []
@@ -233,7 +242,7 @@ if __name__ == '__main__':
     frbA_180924.photometry('MAGZERO', 'r')#, show=True, outfile='dev/FRB180924_aper.png')
 
     # Candidates
-    plate_scale = frbA_180924.hdu.header['CD2_2'] * 3600. * units.arcsec  # arcsec
+    plate_scale = frbA_180924.header['CD2_2'] * 3600. * units.arcsec  # arcsec
     frbA_180924.cut_candidates(plate_scale, bright_cut=18.1)
 
 
