@@ -74,7 +74,7 @@ class FRBAssociate():
                               self.sigR.to('arcsec').value)
 
     def calc_pxS(self):
-        self.p_xS = bayesian.px_Mi(theta_max.to('arcsec').value,
+        self.p_xS = bayesian.px_Mi(self.theta_max.to('arcsec').value,
                                    self.frb.coord,
                                    SkyCoord([self.frb.coord]),
                                    self.theta_prior,
@@ -107,6 +107,8 @@ class FRBAssociate():
             self.candidates['xcentroid'].value,
             self.candidates['ycentroid'].value,
             self.wcs)
+        # Insist on ICRS
+        coords = coords.transform_to('icrs')
 
         self.candidates['ra'] = coords.ra.value
         self.candidates['dec'] = coords.dec.value

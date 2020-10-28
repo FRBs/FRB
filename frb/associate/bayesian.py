@@ -111,6 +111,9 @@ def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
         np.ndarray:
 
     """
+    # Set Equinox (for spherical offsets)
+    frb_coord.equinox = cand_coords[0].equinox
+    #
     x = np.linspace(-box_radius, box_radius, nsamp)
     xcoord, ycoord = np.meshgrid(x,x)
     r_w = np.sqrt(xcoord**2 + ycoord**2)
