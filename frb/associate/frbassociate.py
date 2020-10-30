@@ -27,6 +27,7 @@ class FRBAssociate():
         self.hdu = None
         self.wcs = None
         self.theta_max = None
+        self.Pchance = None
 
     @property
     def sigR(self):
@@ -40,18 +41,25 @@ class FRBAssociate():
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
 
-    def calc_priors(self, prior_S):
+    def calc_pchance(self, ndens_eval='bloom'):
+        self.Pchance = bayesian.pchance(self.candidates[self.filter].data,
+                                        self.candidates['separation'].to('arcsec').value,
+                                        self.candidates['half_light'].value,
+                                        self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
+        # Add to table
+        self.candidates['P_c'] = self.Pchance
 
+    def calc_priors(self, prior_S, method='linear'):
+
+        if self.Pchance is None:
+            raise IOError("Set Pchance before calling this method")
+
+        self.prior_S = prior_S
         # Raw priors
-        self.raw_prior_Mi = bayesian.prior_Mi_n(self.candidates[self.filter].data,
-                                           self.candidates['separation'].to('arcsec').value,
-                                           self.candidates['half_light'].value,
-                                           self.sigR.to('arcsec').value)
-        self.raw_prior_S = prior_S  # Arbitrary!
+        self.raw_prior_Mi = bayesian.raw_prior_Mi(self.Pchance, method)
 
         # Normalize
-        self.prior_Mi, self.prior_S = bayesian.renorm_priors(self.raw_prior_Mi,
-                                                             self.raw_prior_S)
+        self.prior_Mi = bayesian.renorm_priors(self.raw_prior_Mi, self.prior_S)
 
         # Add to table
         self.candidates['P_M'] = self.prior_Mi
@@ -178,9 +186,10 @@ class FRBAssociate():
 
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None):
         """
+        Generate the segment image
 
         Args:
-            nsig:
+            nsig (float):
             xy_kernel:
             npixels:
             show:
@@ -265,6 +274,10 @@ if __name__ == '__main__':
 
     # #########################
     # Bayesian time
+
+    # Pchance
+    frbA_180924.calc_pchance()
+    embed(header='280 of frbas')
 
     # Priors
     frbA_180924.calc_priors(0.01)

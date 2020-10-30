@@ -1,11 +1,27 @@
 """Methods related to Bayesian association analysis"""
 
 import numpy as np
+import os
+from pkg_resources import resource_filename
 
 import copy
 
 from astropy import units
 from astropy.coordinates import SkyCoord
+
+from frb.galaxies import hosts
+
+from IPython import embed
+
+# Globals -- to speed up calculations
+r_dat, mag_uniq, _ = hosts.read_r_mags(
+    resource_filename('frb', os.path.join('data', 'Galaxies', 'driver2016_t3data.fits')))
+eb17_spl = hosts.interpolate.UnivariateSpline(x=mag_uniq,
+                                   y=np.log10(r_dat),
+                                   bbox=[-100, 100],
+                                   k=3)
+def n_gal(m_r):
+    return 10 ** eb17_spl(m_r)
 
 
 def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
@@ -52,9 +68,9 @@ def bloom_sigma(rmag):
 def prior_uniform():
     pass
 
-def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
+
+def pchance(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3., ndens_eval='bloom'):
     """
-    Prior for a given set of galaxies
 
     Args:
         rmag (np.ndarray):
@@ -67,17 +83,53 @@ def prior_Mi_n(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3.):
         nsigma:
 
     Returns:
-        np.ndarray:
 
     """
+
     # Reff - More conservative than usual
     Rs = np.stack([scale_rhalf * r_half, np.ones_like(r_half)* nsigma * sigR,
                    np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
     reff = np.max(Rs, axis=0)
+
+    # Number density
+    if ndens_eval =='bloom':
+        nden = bloom_sigma(rmag)
+    elif ndens_eval =='eb17':
+        embed(header='83 of pchance')
+        # SPEED UP THE FOLLOWING!  SPLINE IT TOO
+        ndens = hosts.quad(n_gal, 0, rmag)[0]
+    else:
+        raise IOError("Bad ndens evaluation")
+
     # Nbar
-    Nbar = np.pi * reff ** 2 * bloom_sigma(rmag)
-    # Return
-    return np.exp(-Nbar)
+    Nbar = np.pi * reff ** 2 * nden
+
+    # Return Pchance
+    return 1. - np.exp(-Nbar)
+
+
+def raw_prior_Mi(Pchance, method):
+    """
+    Raw prior for a given set of Pchance values
+
+    Proper normalization requires P(S) so that is done below
+
+    Args:
+        Pchance (np.ndarray):
+        method (str):
+
+    Returns:
+        np.ndarray:
+
+    """
+    if method == 'linear':
+        return 1 - Pchance
+    elif method == 'inverse':
+        return 1./Pchance
+    elif method == 'uniform':
+        return np.ones_like(Pchance)
+    else:
+        raise IOError("Bad method for prior_Mi")
 
 
 def prior_S_n(rlim, theta_max, rmax=30.):
@@ -89,6 +141,7 @@ def prior_S_n(rlim, theta_max, rmax=30.):
     P_S = np.sum(sigma * np.exp(-Nbar)) / np.sum(sigma)
     # Return
     return P_S
+
 
 def pw_Mi(r_w, r_half, theta_prior):
     """
@@ -168,7 +221,7 @@ def px_Mi(box_radius, frb_coord, cand_coords, theta_prior, sigR, nsamp=1000):
     return np.array(p_xMis)
 
 
-def renorm_priors(raw_Mi, raw_S):
+def renorm_priors(raw_Mi, S):
     """
     Simple method to normalize the Priors
 
@@ -177,11 +230,11 @@ def renorm_priors(raw_Mi, raw_S):
         raw_S (float):
 
     Returns:
-        tuple: Normalized prilors
+        tuple: Normalized priors
 
     """
-    raw_sum = np.sum(raw_Mi) + raw_S
-    return raw_Mi/raw_sum, raw_S/raw_sum
+    raw_sum = np.sum(raw_Mi)
+    return (1.-S) * raw_Mi/raw_sum
 
 
 def mock_run(sky, frbs, sigR, theta, fov, scale_rhalf=2., nsigma=2.,
