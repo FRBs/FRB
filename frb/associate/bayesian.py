@@ -90,18 +90,49 @@ def prior_S_n(rlim, theta_max, rmax=30.):
     # Return
     return P_S
 
+def pw_Mi(r_w, r_half, theta_prior):
+    """
 
-def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
+    Args:
+        r_w (np.ndarray):
+            offset from galaxy center in arcsec
+        r_half (float):
+            Half-light radius of this galaxy in arcsec
+        theta_prior (dict):
+            Parameters for theta prior
+
+    Returns:
+        np.ndarray: Probability values; un-normalized
+
+    """
+    p = np.zeros_like(r_w)
+    ok_w = r_w < theta_prior['max']*r_half
+    if theta_prior['method'] == 'rcore':
+        if np.any(ok_w):
+            p[ok_w] = r_half / (r_w[ok_w] + r_half)
+    elif theta_prior['method'] == 'uniform':
+        if np.any(ok_w):
+            p[ok_w] = 1.
+    elif theta_prior['method'] == 'exp':
+        if np.any(ok_w):
+            p[ok_w] = (r_w[ok_w] / r_half) * np.exp(-r_w[ok_w]/r_half)
+    else:
+        raise IOError("Bad theta method")
+    #
+    return p
+
+
+def px_Mi(box_radius, frb_coord, cand_coords, theta_prior, sigR, nsamp=1000):
     """
     Calculate p(x|M_i)
 
     Args:
         box_radius (float):
-            Maximum radius for theta prior
+            Maximum radius for analysis, in arcsec
         frb_coord (SkyCoord):
         cand_coords (SkyCoord):
             Coordinates of the candidate hosts
-        theta (dict):
+        theta_prior (dict):
             Parameters for theta prior
         sigR (float):
             1 sigma error in FRB localization; assumed symmetric
@@ -128,16 +159,7 @@ def px_Mi(box_radius, frb_coord, cand_coords, theta, sigR, nsamp=1000):
         r_wsq = (xcoord-xFRB)**2 + (ycoord-yFRB)**2
         l_w = np.exp(-r_wsq/(2*sigR**2)) / sigR / np.sqrt(2*np.pi)
         # p(w|M_i)
-        p_wMi = np.zeros_like(xcoord)
-        if theta['method'] == 'rcore':
-            ok_w = r_w < theta['max']
-            if np.any(ok_w):
-                p_wMi[ok_w] = theta['r_half'][icand]/(r_w[ok_w] + theta['r_half'][icand])
-        elif theta['method'] == 'uniform':
-            ok_w = r_w < theta['max']
-            p_wMi[ok_w] = 1.
-        else:
-            raise IOError("Bad theta method")
+        p_wMi = pw_Mi(r_w, theta_prior['r_half'][icand], theta_prior)
         # Product
         grid_p = l_w * p_wMi
         # Average
