@@ -18,9 +18,10 @@ from IPython import embed
 
 class FRBAssociate():
 
-    def __init__(self, frb, image_file=None):
+    def __init__(self, frb, image_file=None, max_radius=1e9):
         self.frb = frb
         self.image_file = image_file
+        self.max_radius = max_radius
 
         # Attributes
         self.hdu = None
@@ -67,14 +68,14 @@ class FRBAssociate():
         self.candidates['P_Mix'] = self.P_Mix
 
     def calc_pxM(self):
-        self.p_xMi = bayesian.px_Mi(self.theta_max.to('arcsec').value,
+        self.p_xMi = bayesian.px_Mi(self.max_radius,
                               self.frb.coord,
                               self.candidates['coords'],
                               self.theta_prior,
                               self.sigR.to('arcsec').value)
 
     def calc_pxS(self):
-        self.p_xS = bayesian.px_Mi(self.theta_max.to('arcsec').value,
+        self.p_xS = bayesian.px_Mi(self.max_radius,
                                    self.frb.coord,
                                    SkyCoord([self.frb.coord]),
                                    self.theta_prior,
@@ -232,7 +233,9 @@ if __name__ == '__main__':
     frb180924 = frb.FRB.by_name('FRB180924')
 
     # Instantiate
-    frbA_180924 = FRBAssociate(frb180924, image_file='dev/FRB180924_DESr.fits')
+    max_radius = 10.  # in arcseconds
+    frbA_180924 = FRBAssociate(frb180924, image_file='dev/FRB180924_DESr.fits',
+                               max_radius=max_radius)
 
     # Threshold
     frbA_180924.threshold()
@@ -254,10 +257,9 @@ if __name__ == '__main__':
     # Priors
     frbA_180924.calc_priors(0.01)
     # Theta
-    theta_u = dict(method='uniform', max=4.)
-    theta_max = 10 * units.arcsec  # This eliminates most of the candidates;  could do case-by-case
+    theta_max = 10.  # in half-light units
+    theta_u = dict(method='uniform', r_half=frbA_180924.candidates['half_light'].data, max=theta_max)
     frbA_180924.set_theta_prior(theta_max, theta_u)
-    #print(frbA_180924.candidates[['id', 'r', 'half_light', 'separation', 'P_M']][8:15])
 
     # Calcuate p(M_i|x)
     frbA_180924.calc_pMx()
@@ -266,4 +268,3 @@ if __name__ == '__main__':
     print(frbA_180924.candidates[['id', 'r', 'half_light',
                                   'separation', 'P_M', 'P_Mix']][final_cands])
 
-    embed(header='180 of frbassociate')
