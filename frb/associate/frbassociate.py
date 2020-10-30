@@ -177,6 +177,18 @@ class FRBAssociate():
                 plt.show()
 
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None):
+        """
+
+        Args:
+            nsig:
+            xy_kernel:
+            npixels:
+            show:
+            outfile:
+
+        Returns:
+
+        """
 
         if self.thresh_img is None:
             raise ValueError("Threshold image not set!")
