@@ -6,6 +6,7 @@ from astropy import units
 
 from IPython import embed
 
+
 def angular_offset(frb, galaxy, nsigma=5., nsamp=2000):
     """
 
