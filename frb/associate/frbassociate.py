@@ -184,7 +184,8 @@ class FRBAssociate():
             if show:
                 plt.show()
 
-    def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None):
+    def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None,
+                deblend=False):
         """
         Generate the segment image
 
@@ -194,6 +195,8 @@ class FRBAssociate():
             npixels:
             show:
             outfile:
+            deblend (bool, optional):
+                Run deblend algorithm too
 
         Returns:
 
@@ -212,6 +215,17 @@ class FRBAssociate():
         # Segment
         self.segm = photutils.detect_sources(self.hdu.data, self.thresh_img,
                                              npixels=npixels, filter_kernel=self.kernel)
+
+        # Debelnd?
+        if deblend:
+            segm_deblend = photutils.deblend_sources(self.hdu.data, self.segm,
+                                                     npixels=npixels,
+                                                     filter_kernel=self.kernel,
+                                                     nlevels=32,
+                                                     contrast=0.001)
+            self.orig_segm = self.segm.copy()
+            self.segm = segm_deblend
+
 
         # Show?
         if show or outfile is not None:
