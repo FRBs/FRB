@@ -175,46 +175,69 @@ def pw_Mi(r_w, r_half, theta_prior):
     return p
 
 
-def px_Mi(box_radius, frb_coord, cand_coords, theta_prior, sigR, nsamp=1000):
+def px_Mi(box_radius, frb_coord, eellipse, cand_coords,
+          theta_prior, nsamp=1000):
     """
     Calculate p(x|M_i)
 
     Args:
         box_radius (float):
             Maximum radius for analysis, in arcsec
+        eellipse (dict):
+            Error ellipse for the FRB
+            a, b, theta
         frb_coord (SkyCoord):
         cand_coords (SkyCoord):
             Coordinates of the candidate hosts
         theta_prior (dict):
             Parameters for theta prior
-        sigR (float):
-            1 sigma error in FRB localization; assumed symmetric
         nsamp (int, optional):
 
     Returns:
         np.ndarray:
 
     """
+    # Error ellipse
+    pa_ee = eellipse['theta'] # deg
+    dtheta = 90. - pa_ee  # Place a of ellipse along the x-axis
     # Set Equinox (for spherical offsets)
     frb_coord.equinox = cand_coords[0].equinox
     #
     x = np.linspace(-box_radius, box_radius, nsamp)
     xcoord, ycoord = np.meshgrid(x,x)
-    r_w = np.sqrt(xcoord**2 + ycoord**2)
+
+    # Build the grid around the FRB (orient a on our x axis)
+    l_w = np.exp(-xcoord ** 2 / (2 * eellipse['a'] ** 2)) * np.exp(-ycoord ** 2 / (2 * eellipse['b'] ** 2))
+
     p_xMis = []
     for icand, cand_coord in enumerate(cand_coords):
-        # Center on the galaxy
+
         # Calculate observed FRB location
-        dra, ddec = cand_coord.spherical_offsets_to(frb_coord)
-        xFRB = -dra.to('arcsec').value
-        yFRB = ddec.to('arcsec').value
-        # l(w) -- Gaussian
-        r_wsq = (xcoord-xFRB)**2 + (ycoord-yFRB)**2
-        l_w = np.exp(-r_wsq/(2*sigR**2)) / sigR / np.sqrt(2*np.pi)
+        #dra, ddec = cand_coord.spherical_offsets_to(frb_coord)
+        #xFRB = -dra.to('arcsec').value
+        #yFRB = ddec.to('arcsec').value
+
+        # #####################
+        # l(w) -- 2D Gaussian
+
+        # Rotate the galaxy
+        r = frb_coord.separation(cand_coord).to('arcsec')
+        pa_gal = frb_coord.position_angle(cand_coord).to('deg')
+        new_pa_gal = pa_gal + dtheta * units.deg
+
+        #r_wsq = (xcoord-xFRB)**2 + (ycoord-yFRB)**2
+        #l_w = np.exp(-r_wsq/(2*sigR**2)) / sigR / np.sqrt(2*np.pi)
+
         # p(w|M_i)
+        # x, y gal
+        x_gal = -r.value * np.sin(new_pa_gal).value
+        y_gal = r.value * np.cos(new_pa_gal).value
+        r_w = np.sqrt((xcoord-x_gal)**2 + (ycoord-y_gal)**2)
         p_wMi = pw_Mi(r_w, theta_prior['r_half'][icand], theta_prior)
+
         # Product
         grid_p = l_w * p_wMi
+
         # Average
         p_xMis.append(np.mean(grid_p))
     # Return

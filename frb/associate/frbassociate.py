@@ -33,6 +33,12 @@ class FRBAssociate():
     def sigR(self):
         return np.sqrt(self.frb.sig_a * self.frb.sig_b) * units.arcsec
 
+    @property
+    def frb_eellipse(self):
+        return dict(a=self.frb.sig_a,
+                    b=self.frb.sig_b,
+                    theta=self.frb.eellipse['theta'])
+
     def load_image(self):
 
         if self.image_file is None:
@@ -68,6 +74,16 @@ class FRBAssociate():
         self.candidates['P_M'] = self.prior_Mi
 
     def calc_PMx(self):
+        """
+        Calculate p(M|x) by running through
+        the series of:
+            self.calc_pxM()
+            self.calc_pxS()
+            self.calc_px()
+
+        Values are stored in self.P_Mix
+        and the candidates table as P_Mx
+        """
 
         # Intermediate steps
         self.calc_pxM()
@@ -79,18 +95,23 @@ class FRBAssociate():
         self.candidates['P_Mx'] = self.P_Mix
 
     def calc_pxM(self):
+        """
+        Calculate p(x|M) and assign to p_xMi
+        """
         self.p_xMi = bayesian.px_Mi(self.max_radius,
-                              self.frb.coord,
+                              self.frb.coord, self.frb_eellipse,
                               self.candidates['coords'],
-                              self.theta_prior,
-                              self.sigR.to('arcsec').value)
+                              self.theta_prior)
 
     def calc_pxS(self):
+        """
+        Calculate p(x|S) and assign to p_xS
+        """
         self.p_xS = bayesian.px_Mi(self.max_radius,
                                    self.frb.coord,
+                                   self.frb_eellipse,
                                    SkyCoord([self.frb.coord]),
-                                   self.theta_prior,
-                                   self.sigR.to('arcsec').value)[0]
+                                   self.theta_prior)[0]
 
     def calc_px(self):
         self.p_x = self.prior_S * self.p_xS + np.sum(self.prior_Mi * self.p_xMi)
@@ -303,6 +324,7 @@ if __name__ == '__main__':
 
     # Priors
     frbA_180924.calc_priors(0.01)
+
     # Theta
     theta_max = 10.  # in half-light units
     theta_u = dict(method='uniform',
@@ -313,7 +335,23 @@ if __name__ == '__main__':
     # Calcuate p(M_i|x)
     frbA_180924.calc_PMx()
 
-    final_cands = frbA_180924.P_Mx > 0.01
+    final_cands = frbA_180924.P_Mix > 0.01
     print(frbA_180924.candidates[['id', 'r', 'half_light',
                                   'separation', 'P_M', 'P_Mx']][final_cands])
+    frbA_180924.candidates['P_Mx_u'] = frbA_180924.P_Mix.copy()
+
+    # Now Linear prior
+    # Theta
+    theta_max = 10.  # in half-light units
+    theta_c = dict(method='rcore', max=theta_max)
+    theta_c['r_half'] = frbA_180924.candidates['half_light'].value
+    frbA_180924.set_theta_prior(theta_c)
+
+    # Calcuate p(M_i|x)
+    frbA_180924.calc_PMx()
+
+    final_cands = frbA_180924.P_Mix > 0.01
+    print(frbA_180924.candidates[['id', 'r', 'half_light',
+                                  'separation', 'P_M', 'P_Mx']][final_cands])
+    frbA_180924.candidates['P_Mx_c'] = frbA_180924.P_Mix.copy()
 
