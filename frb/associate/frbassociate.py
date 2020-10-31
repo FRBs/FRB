@@ -54,7 +54,10 @@ class FRBAssociate():
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
-        self.prior_S = prior_S
+        if prior_S < 0.:
+            self.prior_S = np.product(self.candidates['P_c'])
+        else:
+            self.prior_S = prior_S
         # Raw priors
         self.raw_prior_Mi = bayesian.raw_prior_Mi(self.Pchance, method)
 
@@ -64,7 +67,7 @@ class FRBAssociate():
         # Add to table
         self.candidates['P_M'] = self.prior_Mi
 
-    def calc_pMx(self):
+    def calc_PMx(self):
 
         # Intermediate steps
         self.calc_pxM()
@@ -73,7 +76,7 @@ class FRBAssociate():
 
         # Finish
         self.P_Mix = self.prior_Mi * self.p_xMi / self.p_x
-        self.candidates['P_Mix'] = self.P_Mix
+        self.candidates['P_Mx'] = self.P_Mix
 
     def calc_pxM(self):
         self.p_xMi = bayesian.px_Mi(self.max_radius,
@@ -241,8 +244,8 @@ class FRBAssociate():
             if show:
                 plt.show()
 
-    def set_theta_prior(self, theta_max, theta_dict):
-        self.theta_max = theta_max
+    def set_theta_prior(self, theta_dict):
+        self.theta_max = theta_dict['max']
         self.theta_prior = theta_dict
 
     def threshold(self, nsig=1.5):
@@ -257,6 +260,12 @@ class FRBAssociate():
 
         # Threshold
         self.thresh_img = self.bkg.background + (nsig * self.bkg.background_rms)
+
+    def __repr__(self):
+        txt = '<{:s}: {}'.format(self.__class__.__name__, self.frb.frb_name)
+        # Finish
+        txt = txt + '>'
+        return (txt)
 
 if __name__ == '__main__':
     from frb import frb
@@ -291,19 +300,20 @@ if __name__ == '__main__':
 
     # Pchance
     frbA_180924.calc_pchance()
-    embed(header='280 of frbas')
 
     # Priors
     frbA_180924.calc_priors(0.01)
     # Theta
     theta_max = 10.  # in half-light units
-    theta_u = dict(method='uniform', r_half=frbA_180924.candidates['half_light'].data, max=theta_max)
-    frbA_180924.set_theta_prior(theta_max, theta_u)
+    theta_u = dict(method='uniform',
+                   r_half=frbA_180924.candidates['half_light'].data,
+                   max=theta_max)
+    frbA_180924.set_theta_prior(theta_u)
 
     # Calcuate p(M_i|x)
-    frbA_180924.calc_pMx()
+    frbA_180924.calc_PMx()
 
-    final_cands = frbA_180924.P_Mix > 0.01
+    final_cands = frbA_180924.P_Mx > 0.01
     print(frbA_180924.candidates[['id', 'r', 'half_light',
-                                  'separation', 'P_M', 'P_Mix']][final_cands])
+                                  'separation', 'P_M', 'P_Mx']][final_cands])
 
