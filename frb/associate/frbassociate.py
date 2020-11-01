@@ -15,6 +15,7 @@ from astropy import wcs as astropy_wcs
 
 from frb import frb
 from frb.associate import bayesian
+from frb.associate import chance
 
 import photutils
 
@@ -52,9 +53,9 @@ class FRBAssociate():
         self.header = self.hdu.header
 
     def calc_pchance(self, ndens_eval='bloom'):
-        self.Pchance = bayesian.pchance(self.candidates[self.filter].data,
-                                        self.candidates['separation'].to('arcsec').value,
-                                        self.candidates['half_light'].value,
+        self.Pchance = chance.pchance(self.candidates[self.filter],
+                                        self.candidates['separation'],
+                                        self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
         # Add to table
         self.candidates['P_c'] = self.Pchance
@@ -107,7 +108,7 @@ class FRBAssociate():
         """
         self.p_xMi = bayesian.px_Mi(self.max_radius,
                               self.frb.coord, self.frb_eellipse,
-                              self.candidates['coords'],
+                              self.candidates['coords'].values,
                               self.theta_prior)
 
     def calc_pxS(self):
@@ -124,6 +125,19 @@ class FRBAssociate():
         self.p_x = self.prior_S * self.p_xS + np.sum(self.prior_Mi * self.p_xMi)
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
+        """
+        Cut down to candidates
+
+        self.candidates is made in place
+
+        Args:
+            plate_scale:
+            bright_cut:
+            separation:
+
+        Returns:
+
+        """
 
         # Zero point
         if isinstance(plate_scale, str):
@@ -144,18 +158,18 @@ class FRBAssociate():
 
         # Add coords
         coords = astropy_wcs.utils.pixel_to_skycoord(
-            self.candidates['xcentroid'].value,
-            self.candidates['ycentroid'].value,
+            self.candidates['xcentroid'],
+            self.candidates['ycentroid'],
             self.wcs)
         # Insist on ICRS
         coords = coords.transform_to('icrs')
 
-        self.candidates['ra'] = coords.ra.value
-        self.candidates['dec'] = coords.dec.value
+        self.candidates['ra'] = coords.ra
+        self.candidates['dec'] = coords.dec
         self.candidates['coords'] = coords
 
         # Separation
-        seps = self.frb.coord.separation(self.candidates['coords'])
+        seps = self.frb.coord.separation(coords)
         self.candidates['separation'] = seps.to('arcsec')
 
         # Cut on separation?
@@ -164,9 +178,23 @@ class FRBAssociate():
             self.candidates = self.candidates[cut_seps]
 
         # Half light
-        self.candidates['half_light'] = self.candidates['semimajor_axis_sigma'].value * plate_scale
+        self.candidates['half_light'] = self.candidates['semimajor_axis_sigma'] * plate_scale
 
-    def photometry(self, ZP, filter, radius=3., show=False, outfile=None):
+    def photometry(self, ZP, ifilter, radius=3., show=False, outfile=None):
+        """
+        Perform photometry
+
+        Args:
+            ZP (float):
+                Zero point magnitude
+            ifilter (str):
+            radius:
+            show:
+            outfile:
+
+        Returns:
+
+        """
 
         # Init
         if self.segm is None:
@@ -191,11 +219,12 @@ class FRBAssociate():
             b = obj.semiminor_axis_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
             apertures.append(photutils.EllipticalAperture(position, a, b, theta=theta))
+        self.apertures = apertures
 
         # Magnitudes
-        self.filter = filter
-        self.photom = self.cat.to_table()
-        self.photom[filter] = -2.5 * np.log10(self.photom['source_sum']) + ZP
+        self.filter = ifilter
+        self.photom = self.cat.to_table().to_pandas()
+        self.photom[ifilter] = -2.5 * np.log10(self.photom['source_sum']) + ZP
 
         # Plot?
         if show or outfile is not None:
@@ -334,7 +363,8 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
         print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
     # Candidates
-    frbA.cut_candidates(config['plate_scale'], separation=config['cand_separation'])
+    frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
+                        separation=config['cand_separation'])
 
     # Chance probability
     frbA.calc_pchance()
@@ -344,6 +374,8 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     # Return here?
     if skip_bayesian:
         return frbA
+
+    # BAYESIAN GOES HERE....
 
     # Finish
     return frbA

@@ -1,27 +1,13 @@
 """Methods related to Bayesian association analysis"""
 
 import numpy as np
-import os
-from pkg_resources import resource_filename
 
 import copy
 
 from astropy import units
 from astropy.coordinates import SkyCoord
 
-from frb.galaxies import hosts
-
 from IPython import embed
-
-# Globals -- to speed up calculations
-r_dat, mag_uniq, _ = hosts.read_r_mags(
-    resource_filename('frb', os.path.join('data', 'Galaxies', 'driver2016_t3data.fits')))
-eb17_spl = hosts.interpolate.UnivariateSpline(x=mag_uniq,
-                                   y=np.log10(r_dat),
-                                   bbox=[-100, 100],
-                                   k=3)
-def n_gal(m_r):
-    return 10 ** eb17_spl(m_r)
 
 
 def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
@@ -49,63 +35,9 @@ def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
     return cand_gal, cand_coord
 
 
-def bloom_sigma(rmag):
-    """
-    Estimated incidence of galaxies per sq arcsec with r > rmag
-
-    Args:
-        rmag (float or np.ndarray):
-
-    Returns:
-        float or np.ndarray:  Galaxy density
-
-    """
-    # Sigma(m)
-    sigma = 1. / (3600. ** 2 * 0.334 * np.log(10)) * 10 ** (0.334 * (rmag - 22.963) + 4.320)
-    return sigma
-
-
 def prior_uniform():
     pass
 
-
-def pchance(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3., ndens_eval='bloom'):
-    """
-
-    Args:
-        rmag (np.ndarray):
-        sep (np.ndarray):
-        r_half (np.ndarray):
-            Half light radius of the galaxy
-        sigR (float):
-            1 sigma error in FRB localization; assumed symmetric
-        scale_rhalf:
-        nsigma:
-
-    Returns:
-
-    """
-
-    # Reff - More conservative than usual
-    Rs = np.stack([scale_rhalf * r_half, np.ones_like(r_half)* nsigma * sigR,
-                   np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
-    reff = np.max(Rs, axis=0)
-
-    # Number density
-    if ndens_eval =='bloom':
-        nden = bloom_sigma(rmag)
-    elif ndens_eval =='eb17':
-        embed(header='83 of pchance')
-        # SPEED UP THE FOLLOWING!  SPLINE IT TOO
-        ndens = hosts.quad(n_gal, 0, rmag)[0]
-    else:
-        raise IOError("Bad ndens evaluation")
-
-    # Nbar
-    Nbar = np.pi * reff ** 2 * nden
-
-    # Return Pchance
-    return 1. - np.exp(-Nbar)
 
 
 def raw_prior_Mi(Pchance, method):
@@ -132,6 +64,7 @@ def raw_prior_Mi(Pchance, method):
         raise IOError("Bad method for prior_Mi")
 
 
+'''
 def prior_S_n(rlim, theta_max, rmax=30.):
     rval = np.linspace(rlim, rmax, 100)
     # Nbar
@@ -141,6 +74,7 @@ def prior_S_n(rlim, theta_max, rmax=30.):
     P_S = np.sum(sigma * np.exp(-Nbar)) / np.sum(sigma)
     # Return
     return P_S
+'''
 
 
 def pw_Mi(r_w, r_half, theta_prior):
