@@ -1,6 +1,9 @@
+import os
 import numpy as np
 from matplotlib import pyplot as plt
 
+from astropy.wcs import WCS
+from astropy.nddata import Cutout2D
 from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel
@@ -10,6 +13,7 @@ from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
+from frb import frb
 from frb.associate import bayesian
 
 import photutils
@@ -291,70 +295,55 @@ class FRBAssociate():
         txt = txt + '>'
         return (txt)
 
-if __name__ == '__main__':
-    from frb import frb
 
-    # Testing
+def run_individual(config, show=False, skip_bayesian=False, verbose=False):
+    """
 
-    # #########################
-    # Prep
-    frb180924 = frb.FRB.by_name('FRB180924')
+    Returns:
+        FRBAssociate:
 
-    # Instantiate
-    max_radius = 10.  # in arcseconds
-    frbA_180924 = FRBAssociate(frb180924, image_file='dev/FRB180924_DESr.fits',
-                               max_radius=max_radius)
+    """
+    # FRB
+    FRB = frb.FRB.by_name(config['name'])
 
-    # Threshold
-    frbA_180924.threshold()
+    # FRB Associate
+    frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
 
-    # Segment
-    frbA_180924.segment()#show=True, outfile='dev/FRB180924_segm.png')
+    # Image
+    hdul = fits.open(config['image_file'])
+    hdu_full = hdul[0]
+
+    if config['cut_size'] is not None:
+        size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
+        cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+        frbA.wcs = cutout.wcs
+        frbA.hdu = cutout  # not really an HDU
+    else:
+        frbA.hdu = hdu_full  # not really an HDU
+        frbA.wcs = WCS(hdu_full.header)
+
+    frbA.header = hdu_full.header
+
+    # Threshold + Segment
+    frbA.threshold()
+    frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
 
     # Photometry
-    frbA_180924.photometry('MAGZERO', 'r')#, show=True, outfile='dev/FRB180924_aper.png')
+    frbA.photometry(config['ZP'], config['filter'], show=show)
+    if verbose:
+        print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
     # Candidates
-    plate_scale = frbA_180924.header['CD2_2'] * 3600. * units.arcsec  # arcsec
-    frbA_180924.cut_candidates(plate_scale, bright_cut=18.1)
+    frbA.cut_candidates(config['plate_scale'], separation=config['cand_separation'])
 
+    # Chance probability
+    frbA.calc_pchance()
+    if verbose:
+        print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
-    # #########################
-    # Bayesian time
+    # Return here?
+    if skip_bayesian:
+        return frbA
 
-    # Pchance
-    frbA_180924.calc_pchance()
-
-    # Priors
-    frbA_180924.calc_priors(0.01)
-
-    # Theta
-    theta_max = 10.  # in half-light units
-    theta_u = dict(method='uniform',
-                   r_half=frbA_180924.candidates['half_light'].data,
-                   max=theta_max)
-    frbA_180924.set_theta_prior(theta_u)
-
-    # Calcuate p(M_i|x)
-    frbA_180924.calc_PMx()
-
-    final_cands = frbA_180924.P_Mix > 0.01
-    print(frbA_180924.candidates[['id', 'r', 'half_light',
-                                  'separation', 'P_M', 'P_Mx']][final_cands])
-    frbA_180924.candidates['P_Mx_u'] = frbA_180924.P_Mix.copy()
-
-    # Now Linear prior
-    # Theta
-    theta_max = 10.  # in half-light units
-    theta_c = dict(method='rcore', max=theta_max)
-    theta_c['r_half'] = frbA_180924.candidates['half_light'].value
-    frbA_180924.set_theta_prior(theta_c)
-
-    # Calcuate p(M_i|x)
-    frbA_180924.calc_PMx()
-
-    final_cands = frbA_180924.P_Mix > 0.01
-    print(frbA_180924.candidates[['id', 'r', 'half_light',
-                                  'separation', 'P_M', 'P_Mx']][final_cands])
-    frbA_180924.candidates['P_Mx_c'] = frbA_180924.P_Mix.copy()
-
+    # Finish
+    return frbA
