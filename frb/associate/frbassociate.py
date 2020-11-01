@@ -94,6 +94,9 @@ class FRBAssociate():
         self.P_Mix = self.prior_Mi * self.p_xMi / self.p_x
         self.candidates['P_Mx'] = self.P_Mix
 
+        # P(S|x)
+        self.P_Sx = self.prior_S * self.p_xS / self.p_x
+
     def calc_pxM(self):
         """
         Calculate p(x|M) and assign to p_xMi
