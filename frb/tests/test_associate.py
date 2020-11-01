@@ -1,9 +1,16 @@
+from pkg_resources import resource_filename
 
 from astropy import units
 
 from frb.associate import frbassociate
+from frb.associate import frbs
 
 import pytest
+
+def test_individual():
+    config = getattr(frbs, 'FRB180924'.lower())
+    frbA = frbassociate.run_individual(config)
+
 
 def test_step_by_step():
     from frb import frb
@@ -16,8 +23,9 @@ def test_step_by_step():
 
     # Instantiate
     max_radius = 10.  # in arcseconds
-    frbA_180924 = frbassociate.FRBAssociate(frb180924, image_file='dev/FRB180924_DESr.fits',
-                               max_radius=max_radius)
+    frbA_180924 = frbassociate.FRBAssociate(frb180924,
+                                            image_file=resource_filename('frb', 'associate/dev/FRB180924_DESr.fits'),
+                                            max_radius=max_radius)
 
     # Threshold
     frbA_180924.threshold()
@@ -45,7 +53,7 @@ def test_step_by_step():
     # Theta
     theta_max = 10.  # in half-light units
     theta_u = dict(method='uniform',
-                   r_half=frbA_180924.candidates['half_light'].data,
+                   r_half=frbA_180924.candidates['half_light'].values,
                    max=theta_max)
     frbA_180924.set_theta_prior(theta_u)
 
@@ -61,7 +69,7 @@ def test_step_by_step():
     # Theta
     theta_max = 10.  # in half-light units
     theta_c = dict(method='rcore', max=theta_max)
-    theta_c['r_half'] = frbA_180924.candidates['half_light'].value
+    theta_c['r_half'] = frbA_180924.candidates['half_light'].values
     frbA_180924.set_theta_prior(theta_c)
 
     # Calcuate p(M_i|x)
