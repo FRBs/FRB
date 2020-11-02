@@ -16,6 +16,27 @@ base_config = dict(
 )
 
 # ##############################
+# FRB 180916
+""" 
+Notes:  
+   Still work in progress!
+"""
+updates = dict(
+    name='FRB180916',
+    image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB180916_GMOS_r.fits'),
+    cut_size = 30.,
+    filter = 'r',
+    ZP = 34.5,
+    deblend=True,
+    npixels=9,
+    cand_bright=18.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.1616 * units.arcsec,
+)
+frb180916 = {**base_config, **updates}  # Use | in 3.9
+
+
+# ##############################
 # FRB 180924
 updates = dict(
     name='FRB180924',
