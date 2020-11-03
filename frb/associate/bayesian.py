@@ -40,7 +40,7 @@ def prior_uniform():
 
 
 
-def raw_prior_Mi(Pchance, method):
+def raw_prior_Oi(Pchance, method):
     """
     Raw prior for a given set of Pchance values
 
@@ -77,7 +77,7 @@ def prior_S_n(rlim, theta_max, rmax=30.):
 '''
 
 
-def pw_Mi(r_w, r_half, theta_prior):
+def pw_Oi(r_w, r_half, theta_prior):
     """
 
     Args:
@@ -109,7 +109,7 @@ def pw_Mi(r_w, r_half, theta_prior):
     return p
 
 
-def px_Mi(box_radius, frb_coord, eellipse, cand_coords,
+def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
           theta_prior, nsamp=1000):
     """
     Calculate p(x|M_i)
@@ -167,7 +167,7 @@ def px_Mi(box_radius, frb_coord, eellipse, cand_coords,
         x_gal = -r.value * np.sin(new_pa_gal).value
         y_gal = r.value * np.cos(new_pa_gal).value
         r_w = np.sqrt((xcoord-x_gal)**2 + (ycoord-y_gal)**2)
-        p_wMi = pw_Mi(r_w, theta_prior['r_half'][icand], theta_prior)
+        p_wMi = pw_Oi(r_w, theta_prior['r_half'][icand], theta_prior)
 
         # Product
         grid_p = l_w * p_wMi
@@ -178,20 +178,21 @@ def px_Mi(box_radius, frb_coord, eellipse, cand_coords,
     return np.array(p_xMis)
 
 
-def renorm_priors(raw_Mi, S):
+def renorm_priors(raw_Oi, U):
     """
     Simple method to normalize the Priors
 
     Args:
-        raw_Mi (np.ndarray):
-        raw_S (float):
+        raw_Oi (np.ndarray):
+        U (float):
+            Prior for the FRB galaxy being undetected
 
     Returns:
         tuple: Normalized priors
 
     """
-    raw_sum = np.sum(raw_Mi)
-    return (1.-S) * raw_Mi/raw_sum
+    raw_sum = np.sum(raw_Oi)
+    return (1.-U) * raw_Oi/raw_sum
 
 
 def mock_run(sky, frbs, sigR, theta, fov, scale_rhalf=2., nsigma=2.,
