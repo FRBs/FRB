@@ -33,7 +33,7 @@ def bloom_sigma(rmag):
     return sigma
 
 
-def pchance(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3., ndens_eval='bloom'):
+def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='bloom'):
     """
 
     Args:
@@ -43,7 +43,8 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=3., nsigma=3., ndens_eval='bloo
             Half light radius of the galaxy
         sigR (float):
             1 sigma error in FRB localization; assumed symmetric
-        scale_rhalf:
+        scale_rhalf (float):
+            Weighting factor for the half-light radius
         nsigma:
 
     Returns:
