@@ -38,16 +38,21 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='bloo
 
     Args:
         rmag (np.ndarray):
+            Extinction corrected apparent magnitude
         sep (np.ndarray):
+            Angular separations; arcsec
         r_half (np.ndarray):
-            Half light radius of the galaxy
+            Half light radii of the galaxies; arcsec
         sigR (float):
-            1 sigma error in FRB localization; assumed symmetric
-        scale_rhalf (float):
+            1 sigma error in FRB localization; assumed symmetric; arcsec
+        scale_rhalf (float, optional):
             Weighting factor for the half-light radius
         nsigma:
+        ndens_eval (str, optinal):
+            Number count source used
 
     Returns:
+        np.ndarray:
 
     """
 
