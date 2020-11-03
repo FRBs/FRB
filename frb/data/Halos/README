@@ -1,0 +1,6 @@
+DM_PDF.fits
+  -- DM_cosmic PDFs at a series of redshifts
+  -- Extensions:
+              zvals
+              DMvals
+              logPDF
