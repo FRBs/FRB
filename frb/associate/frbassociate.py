@@ -16,6 +16,8 @@ from astropy import wcs as astropy_wcs
 from frb import frb
 from frb.associate import bayesian
 from frb.associate import chance
+from frb.galaxies import photom
+from frb.galaxies import nebular
 
 import photutils
 
@@ -53,6 +55,25 @@ class FRBAssociate():
         self.header = self.hdu.header
 
     def calc_pchance(self, ndens_eval='bloom'):
+        """
+        Calculate the Pchance values for the candidates
+
+        self.Pchance filled in place
+        Addes as P_c to candidates
+
+        Args:
+            ndens_eval:
+
+        Returns:
+
+        """
+        # Correct for extinction
+        if self.filter+'_orig' not in self.candidates.keys():
+            ebv = nebular.get_ebv(self.frb.coord, definition='SandF')['meanValue']
+            linear_ext = photom.extinction_correction(self.filter, ebv)
+            self.candidates[self.filter+'_orig'] = self.candidates[self.filter].values.copy()
+            self.candidates[self.filter] += -2.5*np.log10(linear_ext)
+        # Do it
         self.Pchance = chance.pchance(self.candidates[self.filter],
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
@@ -60,69 +81,84 @@ class FRBAssociate():
         # Add to table
         self.candidates['P_c'] = self.Pchance
 
-    def calc_priors(self, prior_S, method='linear'):
+    def calc_priors(self, prior_U, method='linear'):
+        """
+        Calulate the priors based on Pchance
+        and the input method
+
+        prior_Mi and prior_S are set in place
+        The candidates table is updated with P_O
+
+        Args:
+            prior_S (float):
+                If the input value is <0, use the P_c product else use the input value
+            method (str, optional):
+
+        Returns:
+
+        """
 
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
-        if prior_S < 0.:
-            self.prior_S = np.product(self.candidates['P_c'])
+        if prior_U < 0.:
+            self.prior_U = np.product(self.candidates['P_c'])
         else:
-            self.prior_S = prior_S
+            self.prior_U = prior_U
         # Raw priors
-        self.raw_prior_Mi = bayesian.raw_prior_Mi(self.Pchance, method)
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, method)
 
         # Normalize
-        self.prior_Mi = bayesian.renorm_priors(self.raw_prior_Mi, self.prior_S)
+        self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)
 
         # Add to table
-        self.candidates['P_M'] = self.prior_Mi
+        self.candidates['P_O'] = self.prior_Oi
 
-    def calc_PMx(self):
+    def calc_POx(self):
         """
-        Calculate p(M|x) by running through
+        Calculate p(O|x) by running through
         the series of:
-            self.calc_pxM()
+            self.calc_pxO()
             self.calc_pxS()
             self.calc_px()
 
-        Values are stored in self.P_Mix
-        and the candidates table as P_Mx
+        Values are stored in self.P_Oix
+        and the candidates table as P_Ox
         """
 
         # Intermediate steps
-        self.calc_pxM()
-        self.calc_pxS()
+        self.calc_pxO()
+        self.calc_pxU()
         self.calc_px()
 
         # Finish
-        self.P_Mix = self.prior_Mi * self.p_xMi / self.p_x
-        self.candidates['P_Mx'] = self.P_Mix
+        self.P_Oix = self.prior_Oi * self.p_xOi / self.p_x
+        self.candidates['P_Ox'] = self.P_Oix
 
         # P(S|x)
-        self.P_Sx = self.prior_S * self.p_xS / self.p_x
+        self.P_Ux = self.prior_U * self.p_xU / self.p_x
 
-    def calc_pxM(self):
+    def calc_pxO(self):
         """
-        Calculate p(x|M) and assign to p_xMi
+        Calculate p(x|O) and assign to p_xOi
         """
-        self.p_xMi = bayesian.px_Mi(self.max_radius,
+        self.p_xOi = bayesian.px_Oi(self.max_radius,
                               self.frb.coord, self.frb_eellipse,
                               self.candidates['coords'].values,
                               self.theta_prior)
 
-    def calc_pxS(self):
+    def calc_pxU(self):
         """
-        Calculate p(x|S) and assign to p_xS
+        Calculate p(x|U) and assign to p_xU
         """
-        self.p_xS = bayesian.px_Mi(self.max_radius,
+        self.p_xU = bayesian.px_Oi(self.max_radius,
                                    self.frb.coord,
                                    self.frb_eellipse,
                                    SkyCoord([self.frb.coord]),
                                    self.theta_prior)[0]
 
     def calc_px(self):
-        self.p_x = self.prior_S * self.p_xS + np.sum(self.prior_Mi * self.p_xMi)
+        self.p_x = self.prior_U * self.p_xU + np.sum(self.prior_Oi * self.p_xOi)
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
         """
@@ -369,7 +405,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     # Chance probability
     frbA.calc_pchance()
     if verbose:
-        print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
+        print(frbA.candidates[['id', config['filter']+'_orig', config['filter'], 'half_light', 'separation', 'P_c']])
 
     # Return here?
     if skip_bayesian:
