@@ -16,6 +16,24 @@ base_config = dict(
 )
 
 # ##############################
+# FRB 121102
+""" 
+"""
+updates = dict(
+    name='FRB121102',
+    image_file=os.path.join(gdb_path, 'Repeater', 'Tendulkar2017', 'FRB121102_GMOS_i.fits'),
+    cut_size = 30.,
+    filter = 'i',
+    ZP = 32.2,
+    deblend=True,
+    npixels=9,
+    cand_bright=15.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.1459 * units.arcsec,
+)
+frb121102 = {**base_config, **updates}  # Use | in 3.9
+
+# ##############################
 # FRB 180916
 """ 
 """
@@ -96,6 +114,21 @@ updates = dict(
     npixels=9,
 )
 frb190523 = {**base_config, **updates}  # Use | in 3.9
+
+# ##############################
+# FRB 190611
+updates = dict(
+    name='FRB190611',
+    image_file = os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190611_GMOS-S_i_img.fits'),
+    cut_size = 30.,
+    filter='i',
+    ZP=32.8,
+    deblend=True,
+    plate_scale = 0.160 * units.arcsec,
+    cand_separation=10*units.arcsec,
+    npixels=9,
+)
+frb190611 = {**base_config, **updates}
 
 # ##############################
 # FRB 190614
