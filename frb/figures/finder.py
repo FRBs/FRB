@@ -235,7 +235,8 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
 
 #### ###############################
 def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, outfile=None,
-         show_slit=None, show_another=None, cradius=None, in_img=None, dss_only=False):
+         show_slit=None, show_another=None, cradius=None, in_img=None, dss_only=False,
+         vmnx=(None,None)):
     """
     Generate a SDSS or DSS finder
 
@@ -260,6 +261,8 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
         in_img (PIL image, optional):
         dss_only (bool, optional):
             Only pull from DSS
+        vmnx (tuple, optional):
+            vmin, vmax
     """
     # Init
     vimsize = imsize.to('arcmin').value
@@ -306,7 +309,8 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
     else:
         cmm = None
     plt.imshow(img, cmap=cmm, aspect='equal', extent=(-vimsize / 2., vimsize / 2,
-                                                      -vimsize / 2., vimsize / 2))
+                                                      -vimsize / 2., vimsize / 2),
+               vmin=vmnx[0], vmax=vmnx[1])
 
     # Axes
     plt.xlim(-vimsize / 2., vimsize / 2.)
