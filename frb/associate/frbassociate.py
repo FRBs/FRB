@@ -47,6 +47,12 @@ class FRBAssociate():
                     theta=self.frb.eellipse['theta'])
 
     def load_image(self):
+        """
+        Load the image from self.image_file
+
+        Returns:
+
+        """
 
         if self.image_file is None:
             raise IOError("Set image_file before calling this method")
