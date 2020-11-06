@@ -1,4 +1,8 @@
-""" Sets parameters for FRB associations """
+""" Sets parameters for FRB associations
+
+At the moment the Zero Points used include Galactic Extinction!
+
+"""
 import os
 from astropy import units
 

@@ -60,7 +60,7 @@ class FRBAssociate():
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
 
-    def calc_pchance(self, ndens_eval='bloom'):
+    def calc_pchance(self, ndens_eval='bloom', extinction_correct=False):
         """
         Calculate the Pchance values for the candidates
 
@@ -74,7 +74,7 @@ class FRBAssociate():
 
         """
         # Correct for extinction
-        if self.filter+'_orig' not in self.candidates.keys():
+        if extinction_correct and self.filter+'_orig' not in self.candidates.keys():
             ebv = nebular.get_ebv(self.frb.coord, definition='SandF')['meanValue']
             linear_ext = photom.extinction_correction(self.filter, ebv)
             self.candidates[self.filter+'_orig'] = self.candidates[self.filter].values.copy()
