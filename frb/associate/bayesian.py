@@ -94,7 +94,7 @@ def pw_Oi(r_w, r_half, theta_prior):
     """
     p = np.zeros_like(r_w)
     ok_w = r_w < theta_prior['max']*r_half
-    if theta_prior['method'] == 'rcore':
+    if theta_prior['method'] == 'core':
         if np.any(ok_w):
             p[ok_w] = r_half / (r_w[ok_w] + r_half)
     elif theta_prior['method'] == 'uniform':
