@@ -35,6 +35,7 @@ class FRBAssociate():
         self.wcs = None
         self.theta_max = None
         self.Pchance = None
+        self.theta_prior = None
 
     @property
     def sigR(self):
@@ -99,6 +100,8 @@ class FRBAssociate():
             prior_S (float):
                 If the input value is <0, use the P_c product else use the input value
             method (str, optional):
+                'linear':  P(O) = 1 - Pchance
+                'inverse':  P(O) = 1 / Pchance
 
         Returns:
 
