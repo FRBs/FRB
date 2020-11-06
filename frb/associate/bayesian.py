@@ -44,11 +44,14 @@ def raw_prior_Oi(Pchance, method):
     """
     Raw prior for a given set of Pchance values
 
-    Proper normalization requires P(S) so that is done below
+    Proper normalization requires P(U) so that is done below
 
     Args:
         Pchance (np.ndarray):
         method (str):
+            linear
+            inverse
+            identical
 
     Returns:
         np.ndarray:
@@ -58,10 +61,10 @@ def raw_prior_Oi(Pchance, method):
         return 1 - Pchance
     elif method == 'inverse':
         return 1./Pchance
-    elif method == 'uniform':
+    elif method == 'identical':
         return np.ones_like(Pchance)
     else:
-        raise IOError("Bad method for prior_Mi")
+        raise IOError("Bad method {} for prior_Oi".format(method))
 
 
 '''
