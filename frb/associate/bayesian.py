@@ -44,11 +44,14 @@ def raw_prior_Oi(Pchance, method):
     """
     Raw prior for a given set of Pchance values
 
-    Proper normalization requires P(S) so that is done below
+    Proper normalization requires P(U) so that is done below
 
     Args:
         Pchance (np.ndarray):
         method (str):
+            linear
+            inverse
+            identical
 
     Returns:
         np.ndarray:
@@ -58,10 +61,10 @@ def raw_prior_Oi(Pchance, method):
         return 1 - Pchance
     elif method == 'inverse':
         return 1./Pchance
-    elif method == 'uniform':
+    elif method == 'identical':
         return np.ones_like(Pchance)
     else:
-        raise IOError("Bad method for prior_Mi")
+        raise IOError("Bad method {} for prior_Oi".format(method))
 
 
 '''
@@ -110,9 +113,9 @@ def pw_Oi(r_w, r_half, theta_prior):
 
 
 def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
-          theta_prior, nsamp=1000):
+          theta_prior, nsamp=1000, return_grids=False):
     """
-    Calculate p(x|M_i)
+    Calculate p(x|O_i)
 
     Args:
         box_radius (float):
@@ -140,10 +143,10 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
     x = np.linspace(-box_radius, box_radius, nsamp)
     xcoord, ycoord = np.meshgrid(x,x)
 
-    # Build the grid around the FRB (orient a on our x axis)
+    # Build the grid around the FRB (orient semi-major axis "a" on our x axis)
     l_w = np.exp(-xcoord ** 2 / (2 * eellipse['a'] ** 2)) * np.exp(-ycoord ** 2 / (2 * eellipse['b'] ** 2))
 
-    p_xMis = []
+    p_xMis, grids = [], []
     for icand, cand_coord in enumerate(cand_coords):
 
         # Calculate observed FRB location
@@ -172,10 +175,18 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
         # Product
         grid_p = l_w * p_wMi
 
+        # Save grids if returning
+        if return_grids:
+            grids.append(grid_p.copy())
+
         # Average
         p_xMis.append(np.mean(grid_p))
+
     # Return
-    return np.array(p_xMis)
+    if return_grids:
+        return np.array(p_xMis), grids
+    else:
+        return np.array(p_xMis)
 
 
 def renorm_priors(raw_Oi, U):

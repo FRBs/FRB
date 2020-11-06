@@ -224,7 +224,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     #ax.set_ylabel(r'\textbf{RA (SOUTH direction)}')
 
     if outfile is not None:
-        plt.savefig(outfile)
+        plt.savefig(outfile, dpi=400)
         plt.close()
     else:
         plt.show()
