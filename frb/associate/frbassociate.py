@@ -296,7 +296,9 @@ class FRBAssociate():
 
         Args:
             nsig (float):
+                Kernel parameter
             xy_kernel:
+                Kernel parameter
             npixels:
             show:
             outfile:
@@ -347,17 +349,39 @@ class FRBAssociate():
                 plt.show()
 
     def set_theta_prior(self, theta_dict):
+        """
+
+        Args:
+            theta_dict (dict):
+
+        """
         self.theta_max = theta_dict['max']
         self.theta_prior = theta_dict
 
-    def threshold(self, nsig=1.5):
+    def threshold(self, nsig=1.5, box_size=(50,50), filter_size=(3,3)):
+        """
+        Generate threshold image
+
+        self.thresh_img is set in place
+
+        Args:
+            nsig (float, optional):
+                Primary threshold parameter
+            box_size (tuple):
+                Primary Background2D parameter
+            filter_size (tuple):
+                Primary Background2D parameter
+        Returns:
+
+        """
 
         if self.hdu is None:
             self.load_image()
 
         # Background
         bkg_estimator = photutils.MedianBackground()
-        self.bkg = photutils.Background2D(self.hdu.data, (50, 50), filter_size=(3, 3),
+        self.bkg = photutils.Background2D(self.hdu.data, box_size,
+                                          filter_size=filter_size,
                                           bkg_estimator=bkg_estimator)
 
         # Threshold
