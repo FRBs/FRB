@@ -35,10 +35,6 @@ def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
     return cand_gal, cand_coord
 
 
-def prior_uniform():
-    pass
-
-
 
 def raw_prior_Oi(Pchance, method):
     """
