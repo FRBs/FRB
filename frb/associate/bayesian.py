@@ -76,32 +76,33 @@ def prior_S_n(rlim, theta_max, rmax=30.):
 '''
 
 
-def pw_Oi(r_w, r_half, theta_prior):
+def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
     """
 
     Args:
         r_w (np.ndarray):
             offset from galaxy center in arcsec
-        r_half (float):
+        theta_half (float):
             Half-light radius of this galaxy in arcsec
         theta_prior (dict):
             Parameters for theta prior
+        scale_half (float):
 
     Returns:
         np.ndarray: Probability values; un-normalized
 
     """
     p = np.zeros_like(r_w)
-    ok_w = r_w < theta_prior['max']*r_half
+    ok_w = r_w < theta_prior['max']*theta_half
     if theta_prior['method'] == 'core':
         if np.any(ok_w):
-            p[ok_w] = r_half / (r_w[ok_w] + r_half)
+            p[ok_w] = theta_half / (r_w[ok_w] + theta_half)
     elif theta_prior['method'] == 'uniform':
         if np.any(ok_w):
             p[ok_w] = 1.
     elif theta_prior['method'] == 'exp':
         if np.any(ok_w):
-            p[ok_w] = (r_w[ok_w] / r_half) * np.exp(-r_w[ok_w]/r_half)
+            p[ok_w] = (r_w[ok_w] / theta_half) * np.exp(-r_w[ok_w]/(scale_half*theta_half))
     else:
         raise IOError("Bad theta method")
     #
