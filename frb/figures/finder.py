@@ -199,6 +199,8 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         pa_deg = pa.to('deg').value
 
+        if flip_ra:
+            pa = -1*pa
         aper = SkyRectangularAperture(positions=slit_coords, w=length, h=width, theta=pa)  # For theta=0, width goes North-South, which is slit length
         
         apermap = aper.to_pixel(wcs)
