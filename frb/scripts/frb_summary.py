@@ -42,12 +42,14 @@ def main(pargs):
     print(frb_name)
     print(ltu.name_from_coord(FRB.coord))
     print('ee={}'.format(pjson(FRB.eellipse)))
+    print('DM={}'.format(FRB.DM))
 
     # Host
-    print("Host")
     hg = FRB.grab_host()
-    print(ltu.name_from_coord(hg.coord))
-    print('z={}'.format(pjson(hg.redshift)))
-    # photometry
-    print('photom:{}'.format(pjson(hg.photom)))
+    if hg is not None:
+        print("Host")
+        print(ltu.name_from_coord(hg.coord))
+        print('z={}'.format(pjson(hg.redshift)))
+        # photometry
+        print('photom:{}'.format(pjson(hg.photom)))
 
