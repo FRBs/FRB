@@ -48,4 +48,6 @@ def main(pargs):
     hg = FRB.grab_host()
     print(ltu.name_from_coord(hg.coord))
     print('z={}'.format(pjson(hg.redshift)))
+    # photometry
+    print('photom:{}'.format(pjson(hg.photom)))
 
