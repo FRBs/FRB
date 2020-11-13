@@ -2,8 +2,6 @@
 """
 Script to print a summary of a given FRB to the terminal
 """
-from __future__ import (print_function, absolute_import, division, unicode_literals)
-
 from IPython import embed
 
 def parser(options=None):
@@ -11,6 +9,7 @@ def parser(options=None):
     # Parse
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("frb_name", type=str, help="FRB name, e.g. FRB180924 or simply 180924")
+    parser.add_argument("--verbose", default=False, action="store_true", help="Overwhelm the screen?")
 
     if options is None:
         pargs = parser.parse_args()
@@ -47,9 +46,12 @@ def main(pargs):
     # Host
     hg = FRB.grab_host()
     if hg is not None:
-        print("Host")
+        print("=========================================================\n")
+        print("Host\n")
         print(ltu.name_from_coord(hg.coord))
-        print('z={}'.format(pjson(hg.redshift)))
-        # photometry
-        print('photom:{}'.format(pjson(hg.photom)))
+        print('z: \n {}'.format(pjson(hg.redshift)))
+        if pargs.verbose:
+            # photometry
+            print('photom: \n {}'.format(pjson(hg.photom)))
+            print('derived: \n {}'.format(pjson(hg.derived)))
 
