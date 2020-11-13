@@ -14,6 +14,8 @@ from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 from astropy.visualization.wcsaxes import SphericalCircle
 
+from photutils import SkyEllipticalAperture
+
 from frb.figures import utils
 
 primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
@@ -43,9 +45,11 @@ def sub_image(fig, hdu, FRB, img_center=None,
     Returns:
 
     """
+    if isinstance(hdu, fits.HDUList):
+        hdu = hdu[0]
 
-    header = hdu[0].header
-    hst_uvis = hdu[0].data
+    header = hdu.header
+    hst_uvis = hdu.data
 
     size = units.Quantity((imsize, imsize), units.arcsec)
     if img_center is None:
@@ -73,10 +77,15 @@ def sub_image(fig, hdu, FRB, img_center=None,
     if invert:
         axIMG.invert_xaxis()
 
-    c = SphericalCircle((FRB.coord.ra, FRB.coord.dec),
-                        FRB.eellipse['a']*units.arcsec, transform=axIMG.get_transform('icrs'),
-                        edgecolor=cclr, facecolor='none')
-    axIMG.add_patch(c)
+    #c = SphericalCircle((FRB.coord.ra, FRB.coord.dec),
+    #                    FRB.eellipse['a']*units.arcsec, transform=axIMG.get_transform('icrs'),
+    #                    edgecolor=cclr, facecolor='none')
+    aper = SkyEllipticalAperture(positions=FRB.coord,
+                                 a=FRB.sig_a * units.arcsecond,
+                                 b=FRB.sig_b * units.arcsecond,
+                                 theta=FRB.eellipse['theta'] * units.deg)
+    apermap = aper.to_pixel(cutout.wcs)
+    apermap.plot(color='black', lw=2, ls='dashed')
 
     '''
     ylbl = 0.05
