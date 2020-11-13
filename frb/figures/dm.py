@@ -234,7 +234,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
 
 def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
-               widen=False, show_nuisance=False,
+               widen=False, show_nuisance=False, ax=None,
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
@@ -260,6 +260,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             If True, limit to the gold standard sample
         gold_frbs (list, optional):
             List of gold standard FRBs
+        ax (matplotlib.Axis, optional):
+            Use this axis instead of creating one
 
     Returns:
 
@@ -274,12 +276,13 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
     bias_clr = 'darkgray'
 
     # Start the plot
-    if widen:
-        fig = plt.figure(figsize=(12, 8))
-    else:
-        fig = plt.figure(figsize=(8, 8))
-    plt.clf()
-    ax = plt.gca()
+    if ax is None:
+        if widen:
+            fig = plt.figure(figsize=(12, 8))
+        else:
+            fig = plt.figure(figsize=(8, 8))
+        plt.clf()
+        ax = plt.gca()
 
     # DM_cosmic from cosmology
     zmax = 0.75
@@ -408,5 +411,5 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         print('Wrote {:s}'.format(outfile))
         plt.close()
     else:
-        plt.show()
+        return ax
 
