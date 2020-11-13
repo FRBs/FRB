@@ -98,7 +98,7 @@ def build_table_of_hosts(hosts=None):
 
     # Table
     host_tbl = pd.DataFrame({'Host': [host.name for host in hosts]})
-    frb_names = ['FRB'+host.frb.frb_name for host in hosts]
+    frb_names = [host.frb.frb_name for host in hosts]
     host_tbl['FRB'] = frb_names
     tbl_units = {}
 
