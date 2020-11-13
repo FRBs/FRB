@@ -9,7 +9,7 @@ def parser(options=None):
     # Parse
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("frb_name", type=str, help="FRB name, e.g. FRB180924 or simply 180924")
-    parser.add_argument("--verbose", default=False, action="store_true", help="Overwhelm the screen?")
+    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Overwhelm the screen?")
 
     if options is None:
         pargs = parser.parse_args()
