@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 55.930581257935096
+        "value": 55.9305812579351
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -45,5 +45,6 @@
         "MacQuart2020",
         "Day2020"
     ],
+    "repeater": true,
     "z": 0.52172
 }

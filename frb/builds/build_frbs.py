@@ -18,7 +18,7 @@ def frb_121102():
     """
     frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
                         558.1*units.pc/units.cm**3,
-                        z_frb=0.19273)
+                        z_frb=0.19273, repeater=True)
     # NE2001
     frb121102.set_DMISM()
     # Error ellipse
@@ -42,7 +42,7 @@ def frb_180916():
     name = 'FRB180916'
     frb180916 = frb.FRB(name, coord,
                         348.76*units.pc / units.cm**3,
-                        z_frb=0.0337)
+                        z_frb=0.0337, repeater=True)
     # Error ellipse
     frb180916.set_ee(0.0023, 0.0023, theta=0., cl=68.)
     # Error in DM
@@ -69,7 +69,7 @@ def frb_180924():
     """
     frb180924 = frb.FRB('FRB180924', 'J214425.255-405400.10',
                         362.16*units.pc / units.cm**3,
-                        z_frb=0.3212)
+                        z_frb=0.3212, repeater=False)
     # Error in DM (Day 2019)
     frb180924.DM_err = 0.01 * units.pc / units.cm**3
 
@@ -105,7 +105,7 @@ def frb_181112():
     """
     frb181112 = frb.FRB('FRB181112', 'J214923.63-525815.33',
                         589.27 * units.pc / units.cm**3,
-                        z_frb=0.4755)
+                        z_frb=0.4755, repeater=False)
     # Error in DM
     frb181112.DM_err = 0.03 * units.pc / units.cm**3
     # Error ellipse
@@ -138,7 +138,7 @@ def frb_190102():
     #z_OIII = wv_oiii / 5008.239 - 1
     frb190102 = frb.FRB(fname, 'J212939.76-792832.5', # Day+20
                         364.545 * units.pc / units.cm**3,
-                        z_frb=0.2912) # Updated redshift
+                        z_frb=0.2912, repeater=False) # Updated redshift
     # Error ellipse [REQUIRED]
     frb190102.set_ee(0.2, 0.16, theta=0., cl=68.) # Statistical (Day+2020)
     frb190102.set_ee(0.5, 0.44, theta=0., cl=68., stat=False) # Systematic
@@ -204,7 +204,7 @@ def frb_190608():
     fname = 'FRB190608'
     frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
                         340.05 * units.pc / units.cm**3,
-                        z_frb=0.1177805)  # Taken from the SDSS table
+                        z_frb=0.1177805, repeater=False)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
     frb190608.set_ee(0.19, 0.18, theta=90., cl=68.) # Statistsical (Day+2020)
     frb190608.set_ee(0.18, 0.18, theta=90., cl=68., stat=False) # Systematic    
@@ -240,7 +240,7 @@ def frb_190611():
                                 unit=(units.hourangle, units.deg))
     frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
                         332.63 * units.pc / units.cm**3,
-                        z_frb=0.3778)  # Bright
+                        z_frb=0.3778, repeater=False)  # Bright
     # Error ellipse [REQUIRED]
     frb190611.set_ee(0.30, 0.3, theta=0., cl=68.) # Statistical (Day+2020)
     frb190611.set_ee(0.60, 0.6, theta=0., cl=68., stat=False) # Systematic    
@@ -274,7 +274,7 @@ def frb_190614():
     fname = 'FRB190614'
     FRB_190614_coord = SkyCoord(ra=65.07552, dec=73.70674, unit='deg')
     frb190614 = frb.FRB(fname, FRB_190614_coord,
-                        959 * units.pc / units.cm ** 3)
+                        959 * units.pc / units.cm ** 3, repeater=False)
     # Error ellipse [REQUIRED]
     frb190614.set_ee(a=0.8, b=0.4, theta=67., cl=68.)
     # Error in DM
@@ -301,7 +301,7 @@ def frb_190711():
     fname = 'FRB190711'
     frb190711 = frb.FRB(fname, 'J215740.68-802128.8',  # MacQuarter+2020, Day+2020
                         587.9 * units.pc / units.cm ** 3,    # Day+2020
-                        z_frb=0.52172)
+                        z_frb=0.52172, repeater=True)
     # Error ellipse
     frb190711.set_ee(0.12, 0.07, theta=90., cl=68.)  # Statistical (Day+2020)
     frb190711.set_ee(0.38, 0.3, theta=90., cl=68., stat=False) # Systematic
@@ -337,7 +337,7 @@ def frb_190714():
                                 unit=(units.hourangle, units.deg))
     frb190714 = frb.FRB('FRB190714', FRB_190714_coord,
                         504.13 * units.pc / units.cm ** 3,
-                        z_frb=0.2365)
+                        z_frb=0.2365, repeater=False)
     # Error ellipse
     frb190714.set_ee(0.16, 0.1, theta=90., cl=68.) # Statistical
     frb190714.set_ee(0.32, 0.2, theta=90., cl=68., stat=False)  # Systematic
@@ -367,7 +367,7 @@ def frb_191001():
     FRB_191001_coord = SkyCoord("21h33m24.373s -54d44m51.86s", frame='icrs')
     frb191001 = frb.FRB('FRB191001', FRB_191001_coord,
                         507.90 * units.pc / units.cm ** 3,
-                        z_frb=0.2340)
+                        z_frb=0.2340, repeater=False)
     # Error ellipse [REQUIRED]
     frb191001.set_ee(0.17, 0.13, theta=90., cl=68.)  # This is statistical + systematic in quadrature
     # Error in DM
