@@ -25,7 +25,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
               imsize=30*units.arcsec, vmnx = (None,None),
               xyaxis=(0.15, 0.15, 0.8, 0.8), fsz=15.,
               tick_spacing=None, invert=False,
-              cmap='Blues', cclr='red'):
+              cmap='Blues', frb_clr='red'):
     """
 
     Args:
@@ -85,7 +85,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
                                  b=FRB.sig_b * units.arcsecond,
                                  theta=FRB.eellipse['theta'] * units.deg)
     apermap = aper.to_pixel(cutout.wcs)
-    apermap.plot(color='black', lw=2, ls='dashed')
+    apermap.plot(color=frb_clr, lw=2, ls='dashed')
 
     '''
     ylbl = 0.05

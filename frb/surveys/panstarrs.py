@@ -2,6 +2,7 @@
 Slurp data from Pan-STARRS catalog using the MAST API.
 A lot of this code has been directly taken from
 http://ps1images.stsci.edu/ps1_dr2_api.html
+
 """
 
 import numpy as np
@@ -40,7 +41,10 @@ photom["Pan-STARRS"]['dec'] = 'decStack'
 photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 
 # Define the default set of query fields
-_DEFAULT_query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag']
+# See: https://outerspace.stsci.edu/display/PANSTARRS/PS1+StackObjectView+table+fields
+# for additional Fields
+_DEFAULT_query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag', 'rKronRad',
+                         'rPSFMag', 'rKronMag']
 _DEFAULT_query_fields +=['{:s}PSFmag'.format(band) for band in PanSTARRS_bands]
 _DEFAULT_query_fields +=['{:s}PSFmagErr'.format(band) for band in PanSTARRS_bands]
 
