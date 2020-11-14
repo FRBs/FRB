@@ -17,16 +17,17 @@ def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
     """
     
     Args:
-        frb (:class:frb.frb.FRB):
+        frb (:class:`frb.frb.FRB`):
         DM_min (float, optional):
+            Lowest DM for the calulation
         DM_max (float, optional):
+            Highest DM for the calulation
         step (float, optional):
             Step size of DM array in units of pc/cm**3
         ISMfrac (float, optional):
             Fraction of DM_ISM to adopt as the 1-sigma error
         DM_MWhalo (float, optional):
             Fixed value to use for the MW halo
-
 
     Returns:
         tuple:  numpy.ndarray, numpy.ndarray
@@ -74,6 +75,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
 
     Args:
         beta (float, optional):
+            sigma_DM_cosmic parameter
         F (float, optional):
             Feedback parameter (higher F means weaker feedback)
         zvals (np.ndarray, optional):
