@@ -110,7 +110,7 @@ def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
 
 
 def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
-          theta_prior, nsamp=1000, return_grids=False):
+          theta_prior, ngrid=1000, return_grids=False):
     """
     Calculate p(x|O_i)
 
@@ -125,7 +125,8 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
             Coordinates of the candidate hosts
         theta_prior (dict):
             Parameters for theta prior
-        nsamp (int, optional):
+        ngrid (int, optional):
+            Size of grid for calculation
 
     Returns:
         np.ndarray:
@@ -137,7 +138,7 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
     # Set Equinox (for spherical offsets)
     frb_coord.equinox = cand_coords[0].equinox
     #
-    x = np.linspace(-box_radius, box_radius, nsamp)
+    x = np.linspace(-box_radius, box_radius, ngrid)
     xcoord, ycoord = np.meshgrid(x,x)
 
     # Build the grid around the FRB (orient semi-major axis "a" on our x axis)
