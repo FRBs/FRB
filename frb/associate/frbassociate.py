@@ -123,6 +123,7 @@ class FRBAssociate():
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
+        # TODO -- Move this into Bayesian
         if prior_U < 0.:
             self.prior_U = np.product(self.candidates['P_c'])
         else:
@@ -309,6 +310,29 @@ class FRBAssociate():
             if show:
                 plt.show()
 
+    def run_bayes(self, prior, fill_half_light=True, verbose=True):
+        """
+
+        Args:
+            prior:
+            fill_half_light:
+            verbose:
+
+        Returns:
+
+        """
+        # Priors
+        self.calc_priors(prior['S'], method=prior['M'])
+        # Fill?
+        if fill_half_light:
+            prior['theta']['r_half'] = self.candidates['half_light'].values
+        self.set_theta_prior(prior['theta'])
+        # P(O|x)
+        self.calc_POx()
+        #
+        if verbose:
+            print("All done with Bayes")
+
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None,
                 deblend=False):
         """
@@ -407,6 +431,24 @@ class FRBAssociate():
         # Threshold
         self.thresh_img = self.bkg.background + (nsig * self.bkg.background_rms)
 
+    def view_candidates(self):
+        """
+        Convenience method to show candidate table
+
+        Args:
+            nsig:
+            box_size:
+            filter_size:
+
+        Returns:
+
+        """
+        items = ['id', self.filter, 'half_light', 'separation', 'P_c']
+        for add_on in ['P_O', 'P_Ox']:
+            if add_on in self.candidates.keys():
+                items += [add_on]
+        print(self.candidates[items])
+
     def __repr__(self):
         txt = '<{:s}: {}'.format(self.__class__.__name__, self.frb.frb_name)
         # Finish
@@ -458,7 +500,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     # Chance probability
     frbA.calc_pchance()
     if verbose:
-        print(frbA.candidates[['id', config['filter']+'_orig', config['filter'], 'half_light', 'separation', 'P_c']])
+        print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
     # Return here?
     if skip_bayesian:
