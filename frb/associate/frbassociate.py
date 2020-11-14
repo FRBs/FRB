@@ -24,8 +24,21 @@ import photutils
 from IPython import embed
 
 class FRBAssociate():
+    """
+
+    Attributes:
+        hdu:
+    """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
+        """
+
+        Args:
+            frb:
+            image_file:
+            max_radius (float, optional):
+                Maximum radius for analysis (arcsec)
+        """
         self.frb = frb
         self.image_file = image_file
         self.max_radius = max_radius
@@ -123,7 +136,7 @@ class FRBAssociate():
         # Add to table
         self.candidates['P_O'] = self.prior_Oi
 
-    def calc_POx(self):
+    def calc_POx(self, **kwargs):
         """
         Calculate p(O|x) by running through
         the series of:
@@ -136,7 +149,7 @@ class FRBAssociate():
         """
 
         # Intermediate steps
-        self.calc_pxO()
+        self.calc_pxO(**kwargs)
         self.calc_pxU()
         self.calc_px()
 
@@ -147,14 +160,14 @@ class FRBAssociate():
         # P(S|x)
         self.P_Ux = self.prior_U * self.p_xU / self.p_x
 
-    def calc_pxO(self):
+    def calc_pxO(self, **kwargs):
         """
         Calculate p(x|O) and assign to p_xOi
         """
         self.p_xOi = bayesian.px_Oi(self.max_radius,
                               self.frb.coord, self.frb_eellipse,
                               self.candidates['coords'].values,
-                              self.theta_prior)
+                              self.theta_prior, **kwargs)
 
     def calc_pxU(self):
         """
@@ -167,6 +180,13 @@ class FRBAssociate():
                                    self.theta_prior)[0]
 
     def calc_px(self):
+        """
+        Calculate p(x)
+
+        Returns:
+            np.ndarray:
+
+        """
         self.p_x = self.prior_U * self.p_xU + np.sum(self.prior_Oi * self.p_xOi)
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
@@ -199,7 +219,7 @@ class FRBAssociate():
             cands &= good_bright
 
         # Candidate table
-        self.candidates = self.photom[cands]
+        self.candidates = self.photom[cands].copy()
 
         # Add coords
         coords = astropy_wcs.utils.pixel_to_skycoord(
@@ -274,7 +294,7 @@ class FRBAssociate():
         # Plot?
         if show or outfile is not None:
             norm = ImageNormalize(stretch=SqrtStretch())
-            fig = plt.figure(figsize=(9, 9))
+            fig = plt.figure(figsize=(6, 6))
 
             # fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12.5))
             plt.clf()
@@ -336,7 +356,7 @@ class FRBAssociate():
 
         # Show?
         if show or outfile is not None:
-            fig = plt.figure(figsize=(7, 7))
+            fig = plt.figure(figsize=(6, 6))
 
             ax = plt.gca()
             cmap = self.segm.make_cmap()
