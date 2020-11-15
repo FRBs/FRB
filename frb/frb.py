@@ -430,6 +430,33 @@ class FRB(GenericFRB):
         return (txt)
 
 
+def list_of_frbs(require_z=False):
+    """
+    Generate a list of FRB objects for all the FRBs in the Repo
+
+    Args:
+        require_z (bool, optional):
+            If True, require z be set
+
+    Returns:
+        list:
+
+    """
+    # Grab the files
+    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
+    frb_files.sort()
+    # Load up the FRBs
+    frbs = []
+    for frb_file in frb_files:
+        frb_name = os.path.basename(frb_file).split('.')[0]
+        frb = FRB.by_name(frb_name)
+        if require_z and frb.z is None:
+            continue
+        frbs.append(frb)
+    # Return
+    return frbs
+
+
 def build_table_of_frbs(frbs=None, fattrs=None):
     """
     Generate a Pandas table of FRB data
@@ -448,15 +475,9 @@ def build_table_of_frbs(frbs=None, fattrs=None):
     """
     if fattrs is None:
         fattrs = ['DM', 'fluence', 'RM', 'lpol', 'z', 'DMISM']
-    # Grab the files
-    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
-    frb_files.sort()
     # Load up the FRBs
     if frbs is None:
-        frbs = []
-        for frb_file in frb_files:
-            frb_name = os.path.basename(frb_file).split('.')[0]
-            frbs.append(FRB.by_name(frb_name))
+        frbs = list_of_frbs()
 
     # Table
     frb_tbl = pd.DataFrame({'FRB': [ifrb.frb_name for ifrb in frbs]})
