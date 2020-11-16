@@ -125,7 +125,6 @@ class FRBAssociate():
         Returns:
 
         """
-
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
@@ -317,15 +316,23 @@ class FRBAssociate():
 
     def run_bayes(self, prior, fill_half_light=True, verbose=True):
         """
+        Run the main steps of the Bayesian analysis
+
+        self.POx is filled in place
+        and added to self.candidates
 
         Args:
-            prior:
-            fill_half_light:
-            verbose:
+            prior (dict):
+            fill_half_light (bool, optional):
+                Add half_light radii to the prior dict
+            verbose (bool, optional):
 
         Returns:
 
         """
+        # Checks
+        if self.Pchance is None:
+            raise IOError("Set Pchance before calling this method")
         # Priors
         self.calc_priors(prior['S'], method=prior['M'])
         # Fill?
