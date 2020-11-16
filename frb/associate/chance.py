@@ -56,7 +56,7 @@ def bloom_sigma(rmag):
     return sigma
 
 
-def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='bloom'):
+def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driver'):
     """
 
     Args:
@@ -73,8 +73,8 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='bloo
         nsigma:
         ndens_eval (str, optinal):
             Number count source used
-            'bloom'
-            'driver'
+            'bloom': Hogg et al.
+            'driver':  Driver et al. 2016
 
     Returns:
         np.ndarray:
@@ -90,7 +90,7 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='bloo
     if ndens_eval =='bloom':
         nden = bloom_sigma(rmag)
     elif ndens_eval =='driver':
-        nden = driver_spl(rmag)
+        nden = driver_sigma(rmag)
     else:
         raise IOError("Bad ndens evaluation")
 
