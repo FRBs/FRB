@@ -234,7 +234,7 @@ def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
             for multiple filters.
     Returns:
         dict:
-            Dict with E(B-V) at pixel, mean, std, min and max values in
+            Dict with E(B-V) at refPixelValue, meanValue, std, minValue and maxValue in
             the query region. All values are in mags.
     """
     assert definition in ['SFD','SandF'], "definition can only be one of 'SFD' and 'SandF'"
