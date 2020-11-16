@@ -172,7 +172,7 @@ def frb_190523():
     fname = 'FRB190523'
     frb190523 = frb.FRB(fname, 'J134815.6+722811',
                         760.8 * units.pc / units.cm**3,
-                        z_frb=0.660)
+                        z_frb=0.660, repeater=False)
     # Error ellipse [REQUIRED]
     frb190523.set_ee(4, 1.5, cl=68., theta=340.) # Halfing the 3x8'' at 95% reported by Ravi et al.
     # Error in DM
