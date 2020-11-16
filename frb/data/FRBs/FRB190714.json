@@ -28,5 +28,6 @@
     "refs": [
         "Heintz2020"
     ],
+    "repeater": false,
     "z": 0.2365
 }
