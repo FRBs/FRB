@@ -13,6 +13,7 @@ from scipy.special import gamma
 from astropy.table import Table
 
 
+# Globals to speed up analysis
 const1_A = np.sqrt(2) * gamma(5/6)
 const2_A = 9. * gamma(4/3)
 const3_A = 3 * 2**(1/6) * 3**(1/3) * np.sqrt(np.pi)
@@ -49,6 +50,20 @@ def DMcosmic_PDF(Delta, C0, sigma, A=1., alpha=3., beta=3.):
 
 
 def deviate1(C0, sigma, beta, orig=False):
+    """
+    Calculate deviate to solve fo C0
+
+    Args:
+        C0 (float):
+        sigma (float):
+        beta (float):
+        orig (bool, optional):
+            use the original approach.  Not recommended
+
+    Returns:
+        float: deviate
+
+    """
     if orig:
         # Calculate <D>
         x = -1 * C0**2 / 18 / sigma**2
@@ -64,27 +79,29 @@ def deviate1(C0, sigma, beta, orig=False):
     return np.abs(avgD-1)
 
 
-def build_C0_spline(max_log10_sigma=0., npt=100, ret_all=False, redo=False, beta=4.,
-                    ifile=None):
+def build_C0_spline(max_log10_sigma=0., npt=100, ret_all=False, beta=4.):
     """
     Generate a spline of C0 vs sigma values for the
     McQuinn formalism
+
+    Args:
+        max_log10_sigma (float, optional):
+        npt (int, optional):
+        ret_all (bool, optional):
+            if True, return more items
+        beta (float, optional):
+
+    Returns:
+        float or tuple:  If ret_all, return f_C), sigmas, COs else return the spline
+
     """
-    if redo:
-        sigmas = 10 ** np.linspace(-2, max_log10_sigma, npt)
-        C0s = np.zeros_like(sigmas)
-        # Loop
-        for kk, sigma in enumerate(sigmas):
-            # Minimize
-            res = minimize_scalar(deviate1, args=(sigma,beta))
-            C0s[kk] = res.x
-    else:
-        # Load from file
-        if ifile is None:
-            ifile = '../Analysis/sigma_C0.ascii'
-        tbl = Table.read(ifile, format='ascii.fixed_width')
-        sigmas = tbl['sigma'].data
-        C0s = tbl['C0'].data
+    sigmas = 10 ** np.linspace(-2, max_log10_sigma, npt)
+    C0s = np.zeros_like(sigmas)
+    # Loop
+    for kk, sigma in enumerate(sigmas):
+        # Minimize
+        res = minimize_scalar(deviate1, args=(sigma,beta))
+        C0s[kk] = res.x
     # Spline
     f_C0 = IUS(sigmas, C0s)
     # Return
@@ -94,30 +111,19 @@ def build_C0_spline(max_log10_sigma=0., npt=100, ret_all=False, redo=False, beta
         return f_C0
 
 
-def grab_sigma_spline(redo=False):
+def grab_sigma_spline():
     """
+    Load up the sigma spline
 
     Args:
         redo:
 
     Returns:
+        scipy.interpolate.InterpolatedUnivariateSpline:
 
     """
     sigma_file = os.path.join(resource_filename('frb', 'data'),
                               'DM', 'sigma_sigma.ascii')
-    if redo:
-        raise IOError("Not ready to redo")
-        npt = 200
-        sigma_DMps = np.linspace(0., 0.55, npt)
-        sigmas = []
-        for sigma_DMp in sigma_DMps:
-            res = minimize_scalar(deviate2, args=(f_C0, sigma_DMp))
-            sigmas.append(float(res.x))
-        # Write
-        tbl = Table()
-        tbl['sigma_DMp'] = sigma_DMps
-        tbl['sigma'] = sigmas
-        tbl.write(sigma_file, format='ascii.fixed_width', overwrite=True)
     # Load me up
     tbl = Table.read(sigma_file, format='ascii.fixed_width')
     spl_sigma = IUS(tbl['sigma_DMp'], tbl['sigma'])
@@ -127,8 +133,19 @@ def grab_sigma_spline(redo=False):
 def grab_C0_spline(max_log10_sigma=0., npt=100, ret_all=False,
                    redo=False, beta=3., ifile=None):
     """
-    Generate a spline of C0 vs sigma values for the
-    McQuinn formalism
+    Load up the C0 spline
+
+    Args:
+        max_log10_sigma:
+        npt:
+        ret_all:
+        redo:
+        beta:
+        ifile:
+
+    Returns:
+        scipy.interpolate.InterpolatedUnivariateSpline:
+
     """
     if redo:
         raise NotImplementedError('Not ready for this')

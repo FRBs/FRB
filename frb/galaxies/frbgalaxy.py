@@ -4,11 +4,9 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-from IPython import embed
 import warnings
 import glob
 
-import pandas as pd
 
 from pkg_resources import resource_filename
 
@@ -20,11 +18,12 @@ from astropy.table import Table
 from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
+from frb.galaxies import offsets
 from frb import utils
-from frb import frb
 
 from scipy.integrate import simps
 
+from IPython import embed
 
 class FRBGalaxy(object):
     """
@@ -38,7 +37,7 @@ class FRBGalaxy(object):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        frb (str): Nomiker of the FRB, e.g. 121102
+        frb (frb.FRB): FRB object
         cosmo (astropy.cosmology): Cosmology, e.g. Planck15
 
     Attributes:
@@ -51,11 +50,12 @@ class FRBGalaxy(object):
 
     """
     @classmethod
-    def from_dict(cls, idict, **kwargs):
+    def from_dict(cls, frb, idict, **kwargs):
         """
         Instantiate from a dict
 
         Args:
+            frb (frb.FRB):
             idict (dict):
             **kwargs: Passed to the __init__ call
 
@@ -63,7 +63,7 @@ class FRBGalaxy(object):
 
         """
         # Init
-        slf = cls(idict['ra'], idict['dec'], idict['FRB'], **kwargs)
+        slf = cls(idict['ra'], idict['dec'], frb, **kwargs)
 
         # FRB coord
         if 'ra_FRB' in idict.keys():
@@ -77,14 +77,21 @@ class FRBGalaxy(object):
         for attr in slf.main_attr:
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
+
+        # Physical Offset -- remove this when these get into JSON files
+        if 'z_spec' in slf.redshift.keys() and 'physical' not in slf.offsets.keys():
+            slf.offsets['physical'] = (slf.offsets['ang_best']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+            slf.offsets['physical_err'] = (slf.offsets['ang_best_err']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
+
         # Return
         return slf
 
     @classmethod
-    def from_json(cls, json_file, **kwargs):
+    def from_json(cls, frb, json_file, **kwargs):
         """
 
         Args:
+            frb (frb.FRB):
             json_file:
             **kwargs:
 
@@ -97,16 +104,22 @@ class FRBGalaxy(object):
         except FileNotFoundError:
             warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
             return None
-        slf = cls.from_dict(idict, **kwargs)
+        slf = cls.from_dict(frb, idict, **kwargs)
         return slf
 
     def __init__(self, ra, dec, frb, cosmo=None):
+        """
+
+        Args:
+            ra (float):
+            dec (float):
+            frb (frb.FRB) :
+            cosmo (astropy.cosmology, optional):
+        """
 
         # Init
         self.coord = SkyCoord(ra=ra, dec=dec, unit='deg')
-        self.frb = frb # Name, not coord
-
-        self.frb_coord = None
+        self.frb = frb  # FRB object
         #
         self.name = ''
 
@@ -117,14 +130,20 @@ class FRBGalaxy(object):
             self.cosmo = cosmo
 
         # Main attributes
-        self.eellipse = {}  # Error ellipse
         self.redshift = {}
         self.photom = {}
         self.morphology = {}
         self.neb_lines = {}
         self.kinematics = {}
         self.derived = {}
-        self.main_attr = ('eellipse', 'photom', 'redshift', 'morphology', 'neb_lines', 'kinematics', 'derived')
+        self.offsets = {}
+        self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
+                          'kinematics', 'derived', 'offsets')
+
+        # Angular offset
+        self.offsets['ang_avg'], self.offsets['ang_avg_err'], \
+                self.offsets['ang_best'], self.offsets['ang_best_err'] \
+                    = offsets.angular_offset(frb, self)
 
     @property
     def z(self):
@@ -424,11 +443,6 @@ class FRBGalaxy(object):
             cigale['M_r'] = -2.5*np.log10(cigale['Lnu_r']) + 34.1
             cigale['M_r_err'] = 2.5*(cigale['Lnu_r_err']/cigale['Lnu_r']) / np.log(10)
 
-        # Fill Derived
-        for key, item in cigale.items():
-            if (key not in self.derived.keys()) or (overwrite):
-                self.derived[key] = item
-        
         # Compute mass weighted age?
         if sfh_file is not None:
             try:
@@ -443,6 +457,11 @@ class FRBGalaxy(object):
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
 
+        # Fill Derived
+        for key, item in cigale.items():
+            if (key not in self.derived.keys()) or (overwrite):
+                self.derived[key] = item
+        
 
     def parse_galfit(self, galfit_file, overwrite=True):
         """
@@ -562,9 +581,19 @@ class FRBGalaxy(object):
             if err is not None:
                 self.redshift['z_err'] = err
 
+        # Physical offset
+        if origin == 'spec':
+            self.offsets['physical'] = (self.offsets['ang_best'] * units.arcsec *
+                                        self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+            self.offsets['physical_err'] = (self.offsets['ang_best_err'] * units.arcsec *
+                                        self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
+
     def vet_one(self, attr):
         """
         Vette one of the main_attr
+
+        Parameters:
+            attr (str):
 
         Returns:
             bool: True = passed
@@ -585,8 +614,8 @@ class FRBGalaxy(object):
             defs_list = defs.valid_derived
         elif attr == 'redshift':
             defs_list = defs.valid_z
-        elif attr == 'eellipse':
-            defs_list = defs.valid_e
+        elif attr == 'offsets':
+            defs_list = defs.valid_offsets
         else:
             return True
         # Vet
@@ -655,10 +684,10 @@ class FRBGalaxy(object):
         # Basics
         frbgal_dict['ra'] = self.coord.ra.value
         frbgal_dict['dec'] = self.coord.dec.value
-        frbgal_dict['FRB'] = self.frb
-        if self.frb_coord is not None:
-            frbgal_dict['ra_FRB'] = self.frb_coord.ra.value
-            frbgal_dict['dec_FRB'] = self.frb_coord.dec.value
+        frbgal_dict['FRB'] = self.frb.frb_name
+        if self.frb.coord is not None:
+            frbgal_dict['ra_FRB'] = self.frb.coord.ra.value
+            frbgal_dict['dec_FRB'] = self.frb.coord.dec.value
         frbgal_dict['cosmo'] = self.cosmo.name
 
         # Main attributes
@@ -676,7 +705,7 @@ class FRBGalaxy(object):
     def __repr__(self):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
             self.__class__.__name__, self.coord.icrs.ra.to_string(unit=units.hour,sep=':', pad=True),
-            self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb)
+            self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb.frb_name)
         # Finish
         txt = txt + '>'
         return (txt)
@@ -696,11 +725,11 @@ class FRBHost(FRBGalaxy):
 
     """
     @classmethod
-    def by_name(cls, frb, **kwargs):
+    def by_frb(cls, frb, **kwargs):
         """
         
         Args:
-            frb (str):  FRB name with or without FRB, e.g. 180924 or FRB180924
+            frb (FRB):  FRB object
             **kwargs: 
 
         Returns:
@@ -708,20 +737,26 @@ class FRBHost(FRBGalaxy):
 
         """
         # Strip off FRB
-        if frb[0:3] == 'FRB':
-            frb = frb[3:]
+        if frb.frb_name[0:3] == 'FRB':
+            name = frb.frb_name[3:]
+        else:
+            name = frb.frb_name
         #
-        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), frb)
-        json_file = os.path.join(path, FRBHost._make_outfile(frb))
-        slf = cls.from_json(json_file, **kwargs)
+        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), name)
+        json_file = os.path.join(path, FRBHost._make_outfile(name))
+        slf = cls.from_json(frb, json_file, **kwargs)
         return slf
 
     def __init__(self, ra, dec, frb, z_frb=None, **kwargs):
         # Instantiate
         super(FRBHost, self).__init__(ra, dec, frb, **kwargs)
 
-        # Load up FRB info from name
-        self.name = 'HG{}'.format(self.frb)
+        # Name
+        if frb.frb_name[0:3] == 'FRB':
+            name = frb.frb_name[3:]
+        else:
+            name = frb.frb_name
+        self.name = 'HG{}'.format(name)
 
         # Optional
         if z_frb is not None:
@@ -757,7 +792,7 @@ class FRBHost(FRBGalaxy):
             str:  Name of the default outfile
 
         """
-        outfile = self._make_outfile(self.frb)
+        outfile = self._make_outfile(self.frb.frb_name)
         return outfile
 
     def set_z(self, z, origin, err=None):
@@ -796,99 +831,5 @@ class FGGalaxy(FRBGalaxy):
         # Load up FRB info from name
         self.name = 'FG{}_{}'.format(self.frb, utils.name_from_coord(self.coord))
 
-
-def list_of_hosts():
-    """
-    Scan through the Repo and generate a list of FRB Host galaxies
-
-    Also returns a list of the FRBs
-
-    Returns:
-        list, list:
-
-    """
-    # FRB files
-    frb_data = resource_filename('frb', 'data')
-    frb_files = glob.glob(os.path.join(frb_data, 'FRBs', 'FRB*.json'))
-    frb_files.sort()
-
-    hosts = []
-    frbs = []
-    for ifile in frb_files:
-        # Parse
-        name = ifile.split('.')[-2]
-        ifrb = frb.FRB.by_name(name)
-        host = ifrb.grab_host()
-        if host is not None:
-            hosts.append(host)
-            frbs.append(ifrb)
-    # Return
-    return frbs, hosts
-
-
-def build_table_of_hosts(hosts=None):
-    """
-    Generate a Pandas table of FRB Host galaxy data.  These are slurped
-    from the 'derived', 'photom', and 'neb_lines' dicts of each host object
-
-    Warning:  As standard, missing values are given NaN in the Pandas table
-        Be careful!
-
-    Note:
-        RA, DEC are given as RA_host, DEC_host to avoid conflict with the FRB table
-
-    Returns:
-        pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
-
-    """
-    if hosts is None:
-        _, hosts = list_of_hosts()
-    nhosts = len(hosts)
-
-    # Table
-    host_tbl = pd.DataFrame({'Host': [host.name for host in hosts]})
-    frb_names = ['FRB'+host.frb for host in hosts]
-    host_tbl['FRB'] = frb_names
-    tbl_units = {}
-
-    # Coordinates
-    coords = SkyCoord([host.coord for host in hosts])
-    # Named to faciliate merging with an FRB table
-    host_tbl['RA_host'] = coords.ra.value
-    host_tbl['DEC_host'] = coords.dec.value
-    tbl_units['RA_host'] = 'deg'
-    tbl_units['DEC_host'] = 'deg'
-
-    # Loop on the 3 main dicts
-    for attr in ['derived', 'photom', 'neb_lines']:
-        # Load up the dicts
-        dicts = [getattr(host, attr) for host in hosts]
-
-        # Photometry
-        all_keys = []
-        for idict in dicts:
-            all_keys += list(idict.keys())
-            #all_keys += list(host.photom.keys())
-        #
-        all_keys = np.array(all_keys)
-        uni_keys = np.unique(all_keys)
-
-        # Slurp using Nan's for missing values
-        tbl_dict = {}
-        for key in uni_keys:
-            tbl_dict[key] = np.array([np.nan]*nhosts)
-        for ss in range(nhosts): #, host in enumerate(hosts):
-            for pkey in dicts[ss].keys(): #host.photom.keys():
-                tbl_dict[pkey][ss] = dicts[ss][pkey]
-        for key in tbl_dict.keys():
-            # Error check
-            if key in host_tbl.keys():
-                raise IOError("Duplicate items!!")
-            # Set
-            host_tbl[key] = tbl_dict[key]
-            tbl_units[key] = 'See galaxies.defs.py'
-
-    # Return
-    return host_tbl, tbl_units
 
 

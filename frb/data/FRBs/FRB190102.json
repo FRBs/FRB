@@ -1,28 +1,50 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 362.0
+        "value": 364.545
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 56.815596175334385
+        "value": 56.81557996628042
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 1.0
+        "value": 0.004
     },
     "FRB": "FRB190102",
-    "cosmo": "Planck15",
-    "dec": -79.4756388888889,
-    "eellipse": {
-        "a": 0.1,
-        "b": 0.1,
-        "cl": 95.0,
-        "theta": 0.0
+    "RM": {
+        "unit": "rad / m2",
+        "value": -105.0
     },
-    "ra": 322.4154166666666,
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 1.0
+    },
+    "cosmo": "Planck15",
+    "dec": -79.47569444444444,
+    "eellipse": {
+        "a": 0.2,
+        "a_sys": 0.5,
+        "b": 0.16,
+        "b_sys": 0.44,
+        "cl": 68.0,
+        "cl_sys": 68.0,
+        "theta": 0.0,
+        "theta_sys": 0.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 14.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 1.0
+    },
+    "ra": 322.41566666666665,
     "refs": [
-        "Bhandari2019"
+        "Bhandari2020",
+        "Day2020"
     ],
-    "z": 0.29116841268957017
+    "repeater": false,
+    "z": 0.2912
 }
