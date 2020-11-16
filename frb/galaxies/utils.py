@@ -77,7 +77,7 @@ def list_of_hosts():
     return frbs, hosts
 
 
-def build_table_of_hosts(hosts=None):
+def build_table_of_hosts():
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object
@@ -92,14 +92,13 @@ def build_table_of_hosts(hosts=None):
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
 
     """
-    if hosts is None:
-        _, hosts = list_of_hosts()
+    frbs, hosts = list_of_hosts()
     nhosts = len(hosts)
 
     # Table
     host_tbl = pd.DataFrame({'Host': [host.name for host in hosts]})
     frb_names = [host.frb.frb_name for host in hosts]
-    host_tbl['FRB'] = frb_names
+    host_tbl['FRBname'] = frb_names
     tbl_units = {}
 
     # Coordinates
@@ -109,6 +108,9 @@ def build_table_of_hosts(hosts=None):
     host_tbl['DEC_host'] = coords.dec.value
     tbl_units['RA_host'] = 'deg'
     tbl_units['DEC_host'] = 'deg'
+
+    # FRBs
+    host_tbl['FRBobj'] = frbs
 
     # Loop on all the main dicts
     for attr in ['derived', 'photom', 'neb_lines','offsets','morphology','redshift']:
