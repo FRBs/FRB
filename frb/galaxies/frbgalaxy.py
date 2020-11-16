@@ -451,7 +451,7 @@ class FRBGalaxy(object):
         Loaded into self.morphology
 
         Args:
-            galfit_file (str): processed out.fits file
+            galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
             overwrite (bool, optional):
