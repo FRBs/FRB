@@ -28,6 +28,9 @@ class FRBAssociate():
 
     Attributes:
         hdu:
+        photom (pandas.DataFrame):  Photometry table
+        candidate (pandas.DataFrame):  Candidates table
+            Note, while this is derived from photom, it is a *separate* copy
     """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
@@ -49,6 +52,9 @@ class FRBAssociate():
         self.theta_max = None
         self.Pchance = None
         self.theta_prior = None
+
+        self.photom = None
+        self.candidates = None
 
     @property
     def sigR(self):
@@ -250,6 +256,8 @@ class FRBAssociate():
         """
         Perform photometry
 
+        Fills self.photom in place
+
         Args:
             ZP (float):
                 Zero point magnitude
@@ -257,9 +265,6 @@ class FRBAssociate():
             radius:
             show:
             outfile:
-
-        Returns:
-
         """
 
         # Init
