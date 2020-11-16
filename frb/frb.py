@@ -56,6 +56,8 @@ class GenericFRB(object):
             Redshift
         z_err (float):
             Uncertainty in the redshift
+        repeater (bool):
+            Marks the FRB as being a Repeater
 
     """
     @classmethod
@@ -114,7 +116,7 @@ class GenericFRB(object):
         slf = cls.from_dict(idict, **kwargs)
         return slf
 
-    def __init__(self, S, nu_c, DM, coord=None, cosmo=None):
+    def __init__(self, S, nu_c, DM, coord=None, cosmo=None, repeater=None):
         """
         """
         self.S = S
@@ -122,6 +124,8 @@ class GenericFRB(object):
         # NE2001 (for speed)
         self.DMISM = None
         self.DMISM_err = None
+        # Repeater?
+        self.repeater = repeater
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -170,6 +174,8 @@ class GenericFRB(object):
                 If True, fill in statistical error
                 if False, fill in systematic
         """
+        if a < b:
+            raise IOError("For the ellipse, a must be greater than or equal to b")
         if stat:
             self.eellipse['a'] = a
             self.eellipse['b'] = b
@@ -182,6 +188,39 @@ class GenericFRB(object):
             self.eellipse['cl_sys'] = cl
         #
         return
+
+    @property
+    def sig_a(self):
+        """
+        Combined semi-major axis error
+
+        Returns:
+            float:
+
+        """
+
+        if len(self.eellipse) == 0:
+            return None
+        siga = self.eellipse['a']  # arcsec
+        if 'a_sys' in self.eellipse.keys():
+            siga = np.sqrt(self.eellipse['a_sys']**2 + siga**2)
+        return siga
+
+    @property
+    def sig_b(self):
+        """
+        Combined semi-minor axis error
+
+        Returns:
+            float:
+
+        """
+        if len(self.eellipse) == 0:
+            return None
+        sigb = self.eellipse['b']  # arcsec
+        if 'b_sys' in self.eellipse.keys():
+            sigb = np.sqrt(self.eellipse['b_sys']**2 + sigb**2)
+        return sigb
 
 
     def set_width(self, wtype, value, overwrite=False):
@@ -248,6 +287,9 @@ class GenericFRB(object):
             frb_dict['FRB'] = self.frb_name
         frb_dict['cosmo'] = self.cosmo.name
         frb_dict['refs'] = self.refs
+
+        if self.repeater is not None:
+            frb_dict['repeater'] = self.repeater
 
         # Measured properties
         for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
@@ -372,7 +414,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_name(self.frb_name[3:])
+        frbHost = frbgalaxy.FRBHost.by_frb(self)
         return frbHost
 
     def __repr__(self):
@@ -448,6 +490,14 @@ def build_table_of_frbs(frbs=None, fattrs=None):
     frb_tbl['DEC'] = coords.dec.value
     tbl_units['RA'] = 'deg'
     tbl_units['DEC'] = 'deg'
+
+    # Error ellipses
+    ee_attrs = ['a', 'b', 'a_sys', 'b_sys', 'theta']
+    ee_units = ['arcsec', 'arcsec', 'arcsec', 'arcsec', 'deg']
+    for ss, ee_attr in enumerate(ee_attrs):
+        alist = [ifrb.eellipse[ee_attr] if ee_attr in ifrb.eellipse.keys() else np.nan for ifrb in frbs]
+        frb_tbl['ee_'+ee_attr] = alist
+        tbl_units['ee_'+ee_attr] = ee_units[ss]
 
     # Float Attributes on an Object
     for fattr in fattrs:

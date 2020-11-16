@@ -23,10 +23,14 @@
     "cosmo": "Planck15",
     "dec": -40.90002777777778,
     "eellipse": {
-        "a": 0.1,
-        "b": 0.1,
+        "a": 0.07,
+        "a_sys": 0.09,
+        "b": 0.06,
+        "b_sys": 0.07,
         "cl": 68.0,
-        "theta": 0.0
+        "cl_sys": 68.0,
+        "theta": 0.0,
+        "theta_sys": 0.0
     },
     "fluence": {
         "unit": "Jy ms",
@@ -43,5 +47,6 @@
         "Bannister2019",
         "Day2020"
     ],
+    "repeater": false,
     "z": 0.3212
 }

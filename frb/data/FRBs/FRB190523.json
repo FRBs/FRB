@@ -17,8 +17,8 @@
     "eellipse": {
         "a": 4,
         "b": 1.5,
-        "cl": 340,
-        "theta": 0.0
+        "cl": 68.0,
+        "theta": 340.0
     },
     "fluence": {
         "unit": "Jy ms",
@@ -28,5 +28,6 @@
     "refs": [
         "Ravi2019"
     ],
+    "repeater": false,
     "z": 0.66
 }

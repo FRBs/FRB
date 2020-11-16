@@ -57,7 +57,7 @@ def main(pargs):
     fig = plt.figure(figsize=(7, 7))
     ffutils.set_mplrc()
     ffgal.sub_image(fig, hdu, FRB, vmnx=vmnx, cmap='gist_heat',
-                    cclr='black', imsize=pargs.imsize) #img_center=HG190608.coord,
+                    frb_clr='white', imsize=pargs.imsize) #img_center=HG190608.coord,
 
     # Layout and save
     plt.tight_layout(pad=0.2, h_pad=0.1, w_pad=0.1)

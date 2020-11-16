@@ -129,7 +129,18 @@ valid_morphology = [
     'n',          # Sersic index; Galfit
     'PA',         # Position angle (deg); Galfit
     'b/a',        # Ellipticity; Galfit
+    'ra',         # RA centroid inferred from Galfit
+    'dec',        # DEC centroid inferred from Galfit
+    'n',          # Sersic index from Galfit
 ]
+
+##############################################################
+# Offsets
+valid_offsets = [
+    'ang_best',   # Angular offset in arcsec from localization centroid to galaxy
+    'ang_avg',    # Angular offset in arcsec averaging over localization
+    'physical',   # Physical offset in kpc;  Uses ang_best
+    ]
 
 ##############################################################
 # Derived quantities
@@ -141,6 +152,7 @@ valid_derived_photom = [
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
+    'age_mass',        # Age weighted mass from CIGALE
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
