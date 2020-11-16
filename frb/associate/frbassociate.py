@@ -80,7 +80,7 @@ class FRBAssociate():
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
 
-    def calc_pchance(self, ndens_eval='bloom', extinction_correct=False):
+    def calc_pchance(self, ndens_eval='driver', extinction_correct=False):
         """
         Calculate the Pchance values for the candidates
 
@@ -503,7 +503,8 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
                         separation=config['cand_separation'])
 
     # Chance probability
-    frbA.calc_pchance()
+    frbA.calc_pchance(ndens_eval='driver')
+
     if verbose:
         print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
