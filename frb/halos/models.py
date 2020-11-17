@@ -5,8 +5,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 
-import warnings
-
 from pkg_resources import resource_filename
 
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -17,7 +15,6 @@ from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
-from astropy.cosmology import z_at_value
 from astropy.table import Table
 
 from IPython import embed
