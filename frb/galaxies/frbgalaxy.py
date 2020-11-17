@@ -463,17 +463,21 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True):
+    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
         """
         Parse an output GALFIT file
 
         Loaded into self.morphology
 
         Args:
-            galfit_file (str): processed out.fits file
+            galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
-            overwrite (bool, optional):
+            overwrite (bool, optional): Need to overwrite
+                the object's attributes?
+            twocomponent (bool, optional): Should the morphology
+                attribute generated contain fit parameters of
+                two components?
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
@@ -485,7 +489,10 @@ class FRBGalaxy(object):
             if 'mag' in key:
                 continue
             if (key not in self.morphology.keys()) or (overwrite):
-                self.morphology[key] = fit_tab[key][0] #Assumes single sersic profile in the fit params
+                if twocomponent:
+                    self.morphology[key] = fit_tab[key].data
+                else:
+                    self.morphology[key] = fit_tab[key][0]
         # reff kpc?
         if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
