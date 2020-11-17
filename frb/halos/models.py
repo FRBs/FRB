@@ -620,8 +620,10 @@ class LMC(ModifiedNFW):
 
     Taking data from D'Onghia & Fox ARAA 2016
 
+    Mass updated according to XXX paper
+
     """
-    def __init__(self, log_Mhalo=np.log10(1.7e10), c=12.1, f_hot=0.75, alpha=2, y0=2, **kwargs):
+    def __init__(self, log_Mhalo=np.log10(1.e11), c=12.1, f_hot=0.75, alpha=2, y0=2, **kwargs):
 
         # Init ModifiedNFW
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
