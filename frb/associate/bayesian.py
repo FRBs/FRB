@@ -110,9 +110,14 @@ def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
 
 
 def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
-          theta_prior, ngrid=1000, return_grids=False):
+          theta_prior, step_size=0.1, return_grids=False):
     """
-    Calculate p(x|O_i)
+    Calculate p(x|O_i), the primary piece of the analysis
+
+    Main concept:
+        1. Set an area to analyze
+        2. Discretize it to 0.1"
+        3. Convolve
 
     Args:
         box_radius (float):
@@ -125,8 +130,8 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
             Coordinates of the candidate hosts
         theta_prior (dict):
             Parameters for theta prior
-        ngrid (int, optional):
-            Size of grid for calculation
+        step_size (float, optional):
+            Step size for grid, in arcsec
 
     Returns:
         np.ndarray:
@@ -138,6 +143,7 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
     # Set Equinox (for spherical offsets)
     frb_coord.equinox = cand_coords[0].equinox
     #
+    ngrid = int(np.round(2*box_radius / step_size))
     x = np.linspace(-box_radius, box_radius, ngrid)
     xcoord, ycoord = np.meshgrid(x,x)
 

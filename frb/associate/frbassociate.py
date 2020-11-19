@@ -1,4 +1,4 @@
-import os
+import warnings
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -169,11 +169,22 @@ class FRBAssociate():
     def calc_pxO(self, **kwargs):
         """
         Calculate p(x|O) and assign to p_xOi
+
+        self.p_xOi is set in place
         """
+
+        # This hack sets the minimum localization to 0.2''
+        # TODO -- Do this better
+        eellipse = self.frb.eellipse.copy()
+        eellipse['a'] = max(self.frb.sig_a, 0.2)
+        warnings.warn("Need to improve the hack above")
+
+        # Do it
         self.p_xOi = bayesian.px_Oi(self.max_radius,
-                              self.frb.coord, self.frb_eellipse,
-                              self.candidates['coords'].values,
-                              self.theta_prior, **kwargs)
+                                    self.frb.coord,
+                                    eellipse,
+                                    self.candidates['coords'].values,
+                                    self.theta_prior, **kwargs)
 
     def calc_pxU(self):
         """
