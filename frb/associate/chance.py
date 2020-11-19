@@ -23,7 +23,7 @@ driver_spl = hosts.interpolate.UnivariateSpline._from_tck(driver_tck)
 
 
 
-def driver_sigma(m_r):
+def driver_sigma(rmag):
     """
     Estimated incidence of galaxies per sq arcsec with r > rmag 
     using Driver et al. 2016 number counts.
@@ -31,13 +31,13 @@ def driver_sigma(m_r):
     Spline parameters (globals) are for rmag vs sigma
 
     Args:
-        m_r (float or np.ndarray):
+        rmag (float or np.ndarray):
 
     Returns:
         float or np.ndarray:  Galaxy number density
 
     """
-    return 10**driver_spl(m_r)
+    return 10**driver_spl(rmag)
 
 
 def bloom_sigma(rmag):
