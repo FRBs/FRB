@@ -24,8 +24,24 @@ import photutils
 from IPython import embed
 
 class FRBAssociate():
+    """
+
+    Attributes:
+        hdu:
+        photom (pandas.DataFrame):  Photometry table
+        candidate (pandas.DataFrame):  Candidates table
+            Note, while this is derived from photom, it is a *separate* copy
+    """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
+        """
+
+        Args:
+            frb:
+            image_file:
+            max_radius (float, optional):
+                Maximum radius for analysis (arcsec)
+        """
         self.frb = frb
         self.image_file = image_file
         self.max_radius = max_radius
@@ -36,6 +52,9 @@ class FRBAssociate():
         self.theta_max = None
         self.Pchance = None
         self.theta_prior = None
+
+        self.photom = None
+        self.candidates = None
 
     @property
     def sigR(self):
@@ -61,7 +80,7 @@ class FRBAssociate():
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
 
-    def calc_pchance(self, ndens_eval='bloom', extinction_correct=False):
+    def calc_pchance(self, ndens_eval='driver', extinction_correct=False):
         """
         Calculate the Pchance values for the candidates
 
@@ -106,10 +125,10 @@ class FRBAssociate():
         Returns:
 
         """
-
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
+        # TODO -- Move this into Bayesian
         if prior_U < 0.:
             self.prior_U = np.product(self.candidates['P_c'])
         else:
@@ -123,7 +142,7 @@ class FRBAssociate():
         # Add to table
         self.candidates['P_O'] = self.prior_Oi
 
-    def calc_POx(self):
+    def calc_POx(self, **kwargs):
         """
         Calculate p(O|x) by running through
         the series of:
@@ -136,7 +155,7 @@ class FRBAssociate():
         """
 
         # Intermediate steps
-        self.calc_pxO()
+        self.calc_pxO(**kwargs)
         self.calc_pxU()
         self.calc_px()
 
@@ -147,14 +166,14 @@ class FRBAssociate():
         # P(S|x)
         self.P_Ux = self.prior_U * self.p_xU / self.p_x
 
-    def calc_pxO(self):
+    def calc_pxO(self, **kwargs):
         """
         Calculate p(x|O) and assign to p_xOi
         """
         self.p_xOi = bayesian.px_Oi(self.max_radius,
                               self.frb.coord, self.frb_eellipse,
                               self.candidates['coords'].values,
-                              self.theta_prior)
+                              self.theta_prior, **kwargs)
 
     def calc_pxU(self):
         """
@@ -167,6 +186,13 @@ class FRBAssociate():
                                    self.theta_prior)[0]
 
     def calc_px(self):
+        """
+        Calculate p(x)
+
+        Returns:
+            np.ndarray:
+
+        """
         self.p_x = self.prior_U * self.p_xU + np.sum(self.prior_Oi * self.p_xOi)
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
@@ -199,7 +225,7 @@ class FRBAssociate():
             cands &= good_bright
 
         # Candidate table
-        self.candidates = self.photom[cands]
+        self.candidates = self.photom[cands].copy()
 
         # Add coords
         coords = astropy_wcs.utils.pixel_to_skycoord(
@@ -229,6 +255,8 @@ class FRBAssociate():
         """
         Perform photometry
 
+        Fills self.photom in place
+
         Args:
             ZP (float):
                 Zero point magnitude
@@ -236,9 +264,6 @@ class FRBAssociate():
             radius:
             show:
             outfile:
-
-        Returns:
-
         """
 
         # Init
@@ -274,7 +299,7 @@ class FRBAssociate():
         # Plot?
         if show or outfile is not None:
             norm = ImageNormalize(stretch=SqrtStretch())
-            fig = plt.figure(figsize=(9, 9))
+            fig = plt.figure(figsize=(6, 6))
 
             # fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 12.5))
             plt.clf()
@@ -288,6 +313,37 @@ class FRBAssociate():
                 plt.savefig(outfile, dpi=300)
             if show:
                 plt.show()
+
+    def run_bayes(self, prior, fill_half_light=True, verbose=True):
+        """
+        Run the main steps of the Bayesian analysis
+
+        self.POx is filled in place
+        and added to self.candidates
+
+        Args:
+            prior (dict):
+            fill_half_light (bool, optional):
+                Add half_light radii to the prior dict
+            verbose (bool, optional):
+
+        Returns:
+
+        """
+        # Checks
+        if self.Pchance is None:
+            raise IOError("Set Pchance before calling this method")
+        # Priors
+        self.calc_priors(prior['S'], method=prior['M'])
+        # Fill?
+        if fill_half_light:
+            prior['theta']['r_half'] = self.candidates['half_light'].values
+        self.set_theta_prior(prior['theta'])
+        # P(O|x)
+        self.calc_POx()
+        #
+        if verbose:
+            print("All done with Bayes")
 
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None,
                 deblend=False):
@@ -336,7 +392,7 @@ class FRBAssociate():
 
         # Show?
         if show or outfile is not None:
-            fig = plt.figure(figsize=(7, 7))
+            fig = plt.figure(figsize=(6, 6))
 
             ax = plt.gca()
             cmap = self.segm.make_cmap()
@@ -387,6 +443,24 @@ class FRBAssociate():
         # Threshold
         self.thresh_img = self.bkg.background + (nsig * self.bkg.background_rms)
 
+    def view_candidates(self):
+        """
+        Convenience method to show candidate table
+
+        Args:
+            nsig:
+            box_size:
+            filter_size:
+
+        Returns:
+
+        """
+        items = ['id', self.filter, 'half_light', 'separation', 'P_c']
+        for add_on in ['P_O', 'P_Ox']:
+            if add_on in self.candidates.keys():
+                items += [add_on]
+        print(self.candidates[items])
+
     def __repr__(self):
         txt = '<{:s}: {}'.format(self.__class__.__name__, self.frb.frb_name)
         # Finish
@@ -436,9 +510,10 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
                         separation=config['cand_separation'])
 
     # Chance probability
-    frbA.calc_pchance()
+    frbA.calc_pchance(ndens_eval='driver')
+
     if verbose:
-        print(frbA.candidates[['id', config['filter']+'_orig', config['filter'], 'half_light', 'separation', 'P_c']])
+        print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
     # Return here?
     if skip_bayesian:
