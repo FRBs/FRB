@@ -481,9 +481,15 @@ class FRBAssociate():
 
 def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     """
+    Run through the steps leading up to Bayes
+
+    Args:
+        config:
+        show:
+        skip_bayesian:
+        verbose:
 
     Returns:
-        FRBAssociate:
 
     """
     # FRB
@@ -493,6 +499,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
 
     # Image
+    print("Using image {}".format(config['image_file']))
     hdul = fits.open(config['image_file'])
     hdu_full = hdul[0]
 
