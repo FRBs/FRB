@@ -121,9 +121,6 @@ class FRBAssociate():
             method (str, optional):
                 'linear':  P(O) = 1 - Pchance
                 'inverse':  P(O) = 1 / Pchance
-
-        Returns:
-
         """
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
