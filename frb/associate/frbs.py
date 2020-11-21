@@ -8,7 +8,8 @@ from astropy import units
 
 from IPython import embed
 
-gdb_path = os.getenv('FRB_GDB')
+#gdb_path = os.getenv('FRB_GDB')
+gdb_path = '/Users/tarraneh/Dropbox/FRB/frb/associate'
 
 base_config = dict(
     max_radius=10.,
@@ -19,6 +20,29 @@ base_config = dict(
     skip_bayesian=False,
     npixels=9,
 )
+
+
+## ##############################
+## FRB 190608
+#"""
+#Notes:
+#"""
+updates = dict(
+    name='FRB190608',
+    #image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'frb190608_panstarrs_iband.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'HG_190608_FORS2_I.fits'),
+    cut_size = 34.,
+    filter = 'VLT_FORS2_I',
+    ZP = 27.9,  # Tied to Pan-Starrs i-band
+    deblend=True,
+    cand_bright=15.,
+    cand_separation=10*units.arcsec,
+    plate_scale=0.252202*units.arcsec,
+)
+frb190608 = {**base_config, **updates}  # Use | in 3.9
+
+
+
 
 # ##############################
 # FRB 121102
@@ -197,7 +221,7 @@ updates = dict(
 )
 frb191001 = {**base_config, **updates}  # Use | in 3.9
 
-# ##############################
+ ##############################
 # FRB 200430
 """
 Notes:
@@ -214,4 +238,5 @@ updates = dict(
     plate_scale=0.134*units.arcsec,
 )
 frb200430 = {**base_config, **updates}  # Use | in 3.9
-
+#
+#
