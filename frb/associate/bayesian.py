@@ -76,7 +76,6 @@ def prior_S_n(rlim, theta_max, rmax=30.):
 '''
 
 
-
 def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
     """
 
