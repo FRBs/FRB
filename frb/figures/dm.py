@@ -6,20 +6,24 @@ from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from IPython import embed
 
 from pkg_resources import resource_filename
+from matplotlib import pyplot as plt
 
-from astropy.cosmology import Planck15 as cosmo
+from astropy.cosmology import FlatLambdaCDM
+from astropy.cosmology import Planck15
 from astropy.cosmology import z_at_value
 from astropy import units
 
 from frb.halos import ModifiedNFW, M31
 from frb import halos as frb_halos
-from frb import igm as frb_igm
+from frb.dm import igm as frb_igm
+from frb.dm import cosmic
+from frb.figures import utils as ff_utils
 
 from ne2001 import density
 
 
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
-                IGM_only=True, smin=0.1,
+                IGM_only=True, smin=0.1, cosmo=None,
                 show_M31=None, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
@@ -56,9 +60,15 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         FRB_DM (float): Observed value;  sets ymax = FRB_DM+50
         yscl (float, optional):
             Controls placement of labels
+        cosmo (astropy.cosmology, optional):
+            Defaults to Planck15
 
     """
+    if cosmo is None:
+        cosmo = Planck15
+
     if halos:
+        # NOT READY FOR THIS
         embed()
 
     gcoord = coord.transform_to('galactic')
@@ -221,4 +231,187 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
     if FRB_DM is not None:
         ax1.axhline(y=FRB_DM, ls='--', color='black', lw=3)
         ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
+
+
+def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
+               widen=False, show_nuisance=False, ax=None, zmax=0.75,
+               show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
+    """
+
+    Args:
+        frbs (list):
+            list of FRB objects
+        clrs (list, optional):
+        outfile (str, optional):
+        multi_model (deprecated):
+        no_curves (bool, optional):
+            If True, just show the data
+        widen (bool, optional):
+            If True, make the plot wide
+        show_nuisance (bool, optional):
+            if True, add a label giving the Nuiscance value
+        show_sigmaDM (bool, optional):
+            If True, show a model estimate of the scatter in the DM relation
+        cl (tuple, optional):
+            Confidence limits for the scatter
+        beta (float, optional):
+            Parameter to the DM scatter estimation
+        gold_only (bool, optional):
+            If True, limit to the gold standard sample
+        gold_frbs (list, optional):
+            List of gold standard FRBs
+        ax (matplotlib.Axis, optional):
+            Use this axis instead of creating one
+        zmax (float, optional):
+            Max redshift for the MR line
+
+    Returns:
+
+    """
+    # Init
+    if gold_frbs is None:
+        gold_frbs = cosmic.gold_frbs
+
+    # Plotting
+    ff_utils.set_mplrc()
+
+    bias_clr = 'darkgray'
+
+    # Start the plot
+    if ax is None:
+        if widen:
+            fig = plt.figure(figsize=(12, 8))
+        else:
+            fig = plt.figure(figsize=(8, 8))
+        plt.clf()
+        ax = plt.gca()
+
+    # DM_cosmic from cosmology
+    DM_cosmic, zeval = frb_igm.average_DM(zmax, cumul=True)
+    DMc_spl = IUS(zeval, DM_cosmic)
+    if not no_curves:
+        #ax.plot(zeval, DM_cosmic, 'k-', label=r'DM$_{\rm cosmic} (z) \;\; [\rm Planck15]$')
+        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15')
+
+    if multi_model:
+        # Change Omega_b
+        cosmo_highOb = FlatLambdaCDM(Ob0=Planck15.Ob0*1.2, Om0=Planck15.Om0, H0=Planck15.H0)
+        DM_cosmic_high, zeval_high = frb_igm.average_DM(zmax, cumul=True, cosmo=cosmo_highOb)
+        ax.plot(zeval_high, DM_cosmic_high, '--', color='gray', label=r'DM$_{\rm cosmic} (z) \;\; [1.2 \times \Omega_b]$')
+        # Change H0
+        cosmo_lowH0 = FlatLambdaCDM(Ob0=Planck15.Ob0, Om0=Planck15.Om0, H0=Planck15.H0/1.2)
+        DM_cosmic_lowH0, zeval_lowH0 = frb_igm.average_DM(zmax, cumul=True, cosmo=cosmo_lowH0)
+        ax.plot(zeval_lowH0, DM_cosmic_lowH0, ':', color='gray', label=r'DM$_{\rm cosmic} (z) \;\; [H_0/1.2]$')
+
+    if show_sigmaDM:
+        #f_C0 = frb_cosmology.build_C0_spline()
+        f_C0_3 = cosmic.grab_C0_spline(beta=3.)
+        # Updated
+        F = 0.2
+        nstep=50
+        sigma_DM = F * zeval**(-0.5) #* DM_cosmic.value
+        sub_sigma_DM = sigma_DM[::nstep]
+        sub_z = zeval[::nstep]
+        sub_DM = DM_cosmic.value[::nstep]
+        # Loop me
+        sigmas, C0s, sigma_lo, sigma_hi = [], [], [], []
+        for kk, isigma in enumerate(sub_sigma_DM):
+            #res = frb_cosmology.minimize_scalar(frb_cosmology.deviate2, args=(f_C0, isigma))
+            #sigmas.append(res.x)
+            sigmas.append(isigma)
+            C0s.append(float(f_C0_3(isigma)))
+            # PDF
+            PDF = cosmic.DMcosmic_PDF(cosmic.Delta_values, C0s[-1], sigma=sigmas[-1], beta=beta)
+            cumsum = np.cumsum(PDF) / np.sum(PDF)
+            #if sub_DM[kk] > 200.:
+            #    embed(header='131')
+            # DO it
+            DM = cosmic.Delta_values * sub_DM[kk]
+            sigma_lo.append(DM[np.argmin(np.abs(cumsum-cl[0]/100))])
+            sigma_hi.append(DM[np.argmin(np.abs(cumsum-cl[1]/100))])
+        # Plot
+        ax.fill_between(sub_z, sigma_lo, sigma_hi, # DM_cosmic.value-sigma_DM, DM_cosmic.value+sigma_DM,
+                        color='gray', alpha=0.3)
+
+    # Do each FRB
+    DM_subs = []
+    for ifrb in frbs:
+        DM_sub = ifrb.DM - ifrb.DMISM
+        DM_subs.append(DM_sub.value)
+    DM_subs = np.array(DM_subs)
+
+    # chi2
+    DMs_MW_host = np.linspace(30., 100., 100)
+    zs = np.array([ifrb.z for ifrb in frbs])
+    DM_theory = DMc_spl(zs)
+
+    chi2 = np.zeros_like(DMs_MW_host)
+    for kk,DM_MW_host in enumerate(DMs_MW_host):
+        chi2[kk] = np.sum(((DM_subs-DM_MW_host)-DM_theory)**2)
+
+    imin = np.argmin(chi2)
+    DM_MW_host_chisq = DMs_MW_host[imin]
+    print("DM_nuisance = {}".format(DM_MW_host))
+
+    # MW + Host term
+    def DM_MW_host(z, min_chisq=False):
+        if min_chisq:
+            return DM_MW_host_chisq
+        else:
+            return 50. + 50./(1+z)
+
+    # Gold FRBs
+    for kk,ifrb in enumerate(frbs):
+        if ifrb.frb_name not in gold_frbs:
+            continue
+        if clrs is not None:
+            clr = clrs[kk]
+        else:
+            clr = None
+        ax.scatter([ifrb.z], [DM_subs[kk]-DM_MW_host(ifrb.z)],
+                        label=ifrb.frb_name, marker='s', s=90, color=clr)
+
+    # ################################
+    # Other FRBs
+    s_other = 90
+
+    if not gold_only:
+        labeled = False
+        for kk, ifrb in enumerate(frbs):
+            if ifrb.frb_name in gold_frbs:
+                continue
+            if not labeled:
+                lbl = "Others"
+                labeled = True
+            else:
+                lbl = None
+            ax.scatter([ifrb.z], [ifrb.DM.value -
+                                      ifrb.DMISM.value - DM_MW_host(ifrb.z)],
+                   label=lbl, marker='o', s=s_other, color=bias_clr)
+
+
+    legend = ax.legend(loc='upper left', scatterpoints=1, borderpad=0.2,
+                        handletextpad=0.3, fontsize=19)
+    ax.set_xlim(0, 0.7)
+    ax.set_ylim(0, 1000.)
+    #ax.set_xlabel(r'$z_{\rm FRB}$', fontname='DejaVu Sans')
+    ax.set_xlabel(r'$z_{\rm FRB}$', fontname='DejaVu Sans')
+    ax.set_ylabel(r'$\rm DM_{cosmic} \; (pc \, cm^{-3})$', fontname='DejaVu Sans')
+
+    #
+    if show_nuisance:
+        ax.text(0.05, 0.60, r'$\rm DM_{MW,halo} + DM_{host} = $'+' {:02d} pc '.format(int(DM_MW_host))+r'cm$^{-3}$',
+            transform=ax.transAxes, fontsize=23, ha='left', color='black')
+
+    ff_utils.set_fontsize(ax, 23.)
+
+    # Layout and save
+    if outfile is not None:
+        plt.tight_layout(pad=0.2,h_pad=0.1,w_pad=0.1)
+        plt.savefig(outfile, dpi=400)
+        print('Wrote {:s}'.format(outfile))
+        plt.close()
+    else:
+        return ax
+
 

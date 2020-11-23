@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 41.894194340740675
+        "value": 41.89419434074069
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -47,5 +47,7 @@
         "Bannister2019",
         "Day2020"
     ],
+    "repeater": false,
     "z": 0.3212
 }
+
