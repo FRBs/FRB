@@ -57,7 +57,7 @@ def test_step_by_step():
                    max=theta_max)
     frbA_180924.set_theta_prior(theta_u)
 
-    # Calcuate p(M_i|x)
+    # Calcuate p(O_i|x)
     frbA_180924.calc_POx()
 
     final_cands = frbA_180924.P_Oix > 0.01

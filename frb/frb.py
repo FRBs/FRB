@@ -56,6 +56,8 @@ class GenericFRB(object):
             Redshift
         z_err (float):
             Uncertainty in the redshift
+        repeater (bool):
+            Marks the FRB as being a Repeater
 
     """
     @classmethod
@@ -114,7 +116,7 @@ class GenericFRB(object):
         slf = cls.from_dict(idict, **kwargs)
         return slf
 
-    def __init__(self, S, nu_c, DM, coord=None, cosmo=None):
+    def __init__(self, S, nu_c, DM, coord=None, cosmo=None, repeater=None):
         """
         """
         self.S = S
@@ -122,6 +124,8 @@ class GenericFRB(object):
         # NE2001 (for speed)
         self.DMISM = None
         self.DMISM_err = None
+        # Repeater?
+        self.repeater = repeater
         # Coord
         if coord is not None:
             self.coord = utils.radec_to_coord(coord)
@@ -187,6 +191,14 @@ class GenericFRB(object):
 
     @property
     def sig_a(self):
+        """
+        Combined semi-major axis error
+
+        Returns:
+            float:
+
+        """
+
         if len(self.eellipse) == 0:
             return None
         siga = self.eellipse['a']  # arcsec
@@ -196,12 +208,20 @@ class GenericFRB(object):
 
     @property
     def sig_b(self):
+        """
+        Combined semi-minor axis error
+
+        Returns:
+            float:
+
+        """
         if len(self.eellipse) == 0:
             return None
         sigb = self.eellipse['b']  # arcsec
         if 'b_sys' in self.eellipse.keys():
             sigb = np.sqrt(self.eellipse['b_sys']**2 + sigb**2)
         return sigb
+
 
     def set_width(self, wtype, value, overwrite=False):
         """ Set a Width value
@@ -267,6 +287,9 @@ class GenericFRB(object):
             frb_dict['FRB'] = self.frb_name
         frb_dict['cosmo'] = self.cosmo.name
         frb_dict['refs'] = self.refs
+
+        if self.repeater is not None:
+            frb_dict['repeater'] = self.repeater
 
         # Measured properties
         for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
@@ -407,6 +430,33 @@ class FRB(GenericFRB):
         return (txt)
 
 
+def list_of_frbs(require_z=False):
+    """
+    Generate a list of FRB objects for all the FRBs in the Repo
+
+    Args:
+        require_z (bool, optional):
+            If True, require z be set
+
+    Returns:
+        list:
+
+    """
+    # Grab the files
+    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
+    frb_files.sort()
+    # Load up the FRBs
+    frbs = []
+    for frb_file in frb_files:
+        frb_name = os.path.basename(frb_file).split('.')[0]
+        frb = FRB.by_name(frb_name)
+        if require_z and frb.z is None:
+            continue
+        frbs.append(frb)
+    # Return
+    return frbs
+
+
 def build_table_of_frbs(frbs=None, fattrs=None):
     """
     Generate a Pandas table of FRB data
@@ -425,15 +475,9 @@ def build_table_of_frbs(frbs=None, fattrs=None):
     """
     if fattrs is None:
         fattrs = ['DM', 'fluence', 'RM', 'lpol', 'z', 'DMISM']
-    # Grab the files
-    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
-    frb_files.sort()
     # Load up the FRBs
     if frbs is None:
-        frbs = []
-        for frb_file in frb_files:
-            frb_name = os.path.basename(frb_file).split('.')[0]
-            frbs.append(FRB.by_name(frb_name))
+        frbs = list_of_frbs()
 
     # Table
     frb_tbl = pd.DataFrame({'FRB': [ifrb.frb_name for ifrb in frbs]})
