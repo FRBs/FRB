@@ -291,7 +291,6 @@ class GenericFRB(object):
         if self.repeater is not None:
             frb_dict['repeater'] = self.repeater
 
-
         # Measured properties
         for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
             # Value
@@ -456,7 +455,6 @@ def list_of_frbs(require_z=False):
         frbs.append(frb)
     # Return
     return frbs
-
 
 
 def build_table_of_frbs(frbs=None, fattrs=None):

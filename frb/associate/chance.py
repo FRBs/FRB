@@ -6,7 +6,6 @@ from frb.galaxies import hosts
 
 from IPython import embed
 
-
 '''
 # Globals -- to speed up calculations
 r_dat, mag_uniq, _ = hosts.read_r_mags(
@@ -26,7 +25,11 @@ driver_spl = hosts.interpolate.UnivariateSpline._from_tck(driver_tck)
 
 def driver_sigma(rmag):
     """
+<<<<<<< HEAD
     Estimated incidence of galaxies per sq arcsec with r > rmag
+=======
+    Estimated incidence of galaxies per sq arcsec with r > rmag 
+>>>>>>> e4248983c1a7885084debb4e5f4a4281f63735b9
     using Driver et al. 2016 number counts.
 
     Spline parameters (globals) are for rmag vs sigma
@@ -39,7 +42,6 @@ def driver_sigma(rmag):
 
     """
     return 10**driver_spl(rmag)
-
 
 
 def bloom_sigma(rmag):
@@ -58,9 +60,7 @@ def bloom_sigma(rmag):
     return sigma
 
 
-
 def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driver'):
-
     """
 
     Args:
@@ -90,7 +90,6 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
                    np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
     reff = np.max(Rs, axis=0)
 
-
     # Number density
     if ndens_eval =='bloom':
         nden = bloom_sigma(rmag)
@@ -98,9 +97,6 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
         nden = driver_sigma(rmag)
     else:
         raise IOError("Bad ndens evaluation")
-
-
-
 
     # Nbar
     Nbar = np.pi * reff ** 2 * nden

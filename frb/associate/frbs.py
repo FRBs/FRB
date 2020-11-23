@@ -8,6 +8,7 @@ from astropy import units
 
 from IPython import embed
 
+
 #gdb_path = os.getenv('FRB_GDB')
 gdb_path = '/Users/tarraneh/Dropbox/FRB/frb/associate'
 
@@ -20,7 +21,6 @@ base_config = dict(
     skip_bayesian=False,
     npixels=9,
 )
-
 
 ## ##############################
 ## FRB 190608
@@ -40,8 +40,6 @@ updates = dict(
     plate_scale=0.252202*units.arcsec,
 )
 frb190608 = {**base_config, **updates}  # Use | in 3.9
-
-
 
 
 # ##############################
@@ -221,7 +219,7 @@ updates = dict(
 )
 frb191001 = {**base_config, **updates}  # Use | in 3.9
 
- ##############################
+# ##############################
 # FRB 200430
 """
 Notes:
@@ -238,5 +236,4 @@ updates = dict(
     plate_scale=0.134*units.arcsec,
 )
 frb200430 = {**base_config, **updates}  # Use | in 3.9
-#
-#
+

@@ -414,4 +414,3 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
     else:
         return ax
 
-

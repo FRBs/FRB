@@ -14,8 +14,8 @@ from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
 from frb import frb
-import bayesian
-import chance
+from frb.associate import bayesian
+from frb.associate import chance
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -52,6 +52,7 @@ class FRBAssociate():
         self.theta_max = None
         self.Pchance = None
         self.theta_prior = None
+
         self.photom = None
         self.candidates = None
 
@@ -103,7 +104,6 @@ class FRBAssociate():
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
-
         # Add to table
         self.candidates['P_c'] = self.Pchance
 
@@ -125,7 +125,6 @@ class FRBAssociate():
         Returns:
 
         """
-
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
 
@@ -514,7 +513,6 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     frbA.calc_pchance(ndens_eval='driver')
 
     if verbose:
-        #print(frbA.candidates[['id', config['filter']+'_orig', config['filter'], 'half_light', 'separation', 'P_c']])
         print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
     # Return here?
