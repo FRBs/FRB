@@ -291,7 +291,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
     DMc_spl = IUS(zeval, DM_cosmic)
     if not no_curves:
         #ax.plot(zeval, DM_cosmic, 'k-', label=r'DM$_{\rm cosmic} (z) \;\; [\rm Planck15]$')
-        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15')
+        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15', lw=2)
 
     if multi_model:
         # Change Omega_b
