@@ -8,8 +8,7 @@ from astropy import units
 
 from IPython import embed
 
-#gdb_path = os.getenv('FRB_GDB')
-gdb_path = '/Users/tarraneh/Dropbox/FRB/frb/associate'
+gdb_path = os.getenv('FRB_GDB')
 
 base_config = dict(
     max_radius=10.,
