@@ -29,7 +29,6 @@ base_config = dict(
 #"""
 updates = dict(
     name='FRB190608',
-    #image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'frb190608_panstarrs_iband.fits'),
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'HG_190608_FORS2_I.fits'),
     cut_size = 34.,
     filter = 'VLT_FORS2_I',
@@ -40,8 +39,6 @@ updates = dict(
     plate_scale=0.252202*units.arcsec,
 )
 frb190608 = {**base_config, **updates}  # Use | in 3.9
-
-
 
 
 # ##############################
