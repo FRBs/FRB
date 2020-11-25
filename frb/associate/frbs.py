@@ -20,6 +20,26 @@ base_config = dict(
     npixels=9,
 )
 
+
+## ##############################
+## FRB 190608
+#"""
+#Notes:
+#"""
+updates = dict(
+    name='FRB190608',
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'HG_190608_FORS2_I.fits'),
+    cut_size = 34.,
+    filter = 'VLT_FORS2_I',
+    ZP = 27.9,  # Tied to Pan-Starrs i-band
+    deblend=True,
+    cand_bright=15.,
+    cand_separation=10*units.arcsec,
+    plate_scale=0.252202*units.arcsec,
+)
+frb190608 = {**base_config, **updates}  # Use | in 3.9
+
+
 # ##############################
 # FRB 121102
 """ 
@@ -197,7 +217,7 @@ updates = dict(
 )
 frb191001 = {**base_config, **updates}  # Use | in 3.9
 
-# ##############################
+ ##############################
 # FRB 200430
 """
 Notes:
@@ -214,4 +234,5 @@ updates = dict(
     plate_scale=0.134*units.arcsec,
 )
 frb200430 = {**base_config, **updates}  # Use | in 3.9
-
+#
+#

@@ -104,6 +104,7 @@ class FRBAssociate():
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
+
         # Add to table
         self.candidates['P_c'] = self.Pchance
 
