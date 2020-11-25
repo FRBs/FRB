@@ -14,8 +14,8 @@ from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
 from frb import frb
-import bayesian
-import chance
+from frb.associate import bayesian
+from frb.associate import chance
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -529,7 +529,6 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     frbA.calc_pchance(ndens_eval='driver')
 
     if verbose:
-        #print(frbA.candidates[['id', config['filter']+'_orig', config['filter'], 'half_light', 'separation', 'P_c']])
         print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
 
     # Return here?
