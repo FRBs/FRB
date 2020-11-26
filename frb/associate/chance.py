@@ -25,7 +25,7 @@ driver_spl = hosts.interpolate.UnivariateSpline._from_tck(driver_tck)
 
 def driver_sigma(rmag):
     """
-    Estimated incidence of galaxies per sq arcsec with r > rmag 
+    Estimated incidence of galaxies per sq arcsec with r > rmag
     using Driver et al. 2016 number counts.
 
     Spline parameters (globals) are for rmag vs sigma
@@ -56,7 +56,8 @@ def bloom_sigma(rmag):
     return sigma
 
 
-def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driver'):
+def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driver',
+            orig_theff=False):
     """
 
     Args:
@@ -75,16 +76,22 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
             Number count source used
             'bloom': Hogg et al.
             'driver':  Driver et al. 2016
+        orig_theff (bool, optional):
 
     Returns:
         np.ndarray:
 
     """
 
-    # Reff - More conservative than usual
-    Rs = np.stack([scale_rhalf * r_half, np.ones_like(r_half)* nsigma * sigR,
-                   np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
-    reff = np.max(Rs, axis=0)
+    # Semi-original
+    if orig_theff:
+        Rs = np.stack([scale_rhalf * r_half, np.ones_like(r_half) * nsigma * sigR,
+                       np.sqrt(sep ** 2 + (scale_rhalf * r_half) ** 2)])
+        reff = np.max(Rs, axis=0)
+    else:
+        # More conservative than usual
+        reff = np.sqrt(4*sigR**2 + 4*r_half**2 + sep**2)
+
 
     # Number density
     if ndens_eval =='bloom':
@@ -93,6 +100,8 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
         nden = driver_sigma(rmag)
     else:
         raise IOError("Bad ndens evaluation")
+
+
 
     # Nbar
     Nbar = np.pi * reff ** 2 * nden

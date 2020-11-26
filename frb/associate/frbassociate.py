@@ -104,6 +104,7 @@ class FRBAssociate():
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
+
         # Add to table
         self.candidates['P_c'] = self.Pchance
 
@@ -121,9 +122,6 @@ class FRBAssociate():
             method (str, optional):
                 'linear':  P(O) = 1 - Pchance
                 'inverse':  P(O) = 1 / Pchance
-
-        Returns:
-
         """
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
@@ -481,9 +479,15 @@ class FRBAssociate():
 
 def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     """
+    Run through the steps leading up to Bayes
+
+    Args:
+        config:
+        show:
+        skip_bayesian:
+        verbose:
 
     Returns:
-        FRBAssociate:
 
     """
     # FRB
@@ -493,6 +497,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
 
     # Image
+    print("Using image {}".format(config['image_file']))
     hdul = fits.open(config['image_file'])
     hdu_full = hdul[0]
 
