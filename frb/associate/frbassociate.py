@@ -265,12 +265,16 @@ class FRBAssociate():
         Perform photometry
 
         Fills self.photom in place
+        
+        Half-light radii:
+            https://iopscience.iop.org/article/10.1086/444475/pdf
 
         Args:
             ZP (float):
                 Zero point magnitude
             ifilter (str):
-            radius:
+            radius (float, optional):
+                Scaling for semimajor/minor axes for Elliptical apertures
             show:
             outfile:
         """
@@ -287,6 +291,7 @@ class FRBAssociate():
 
         self.cat = photutils.source_properties(self.hdu.data - self.bkg.background,
                                                self.segm,
+                                               kron_params=('mask', 2.5, 1.0, 'exact', 5),
                                                background=self.bkg.background,
                                                filter_kernel=self.kernel)
 
@@ -304,6 +309,10 @@ class FRBAssociate():
         self.filter = ifilter
         self.photom = self.cat.to_table().to_pandas()
         self.photom[ifilter] = -2.5 * np.log10(self.photom['source_sum']) + ZP
+
+        # Kron
+        for key in ['kron_radius']:
+            self.photom[key] = getattr(self.cat, key)
 
         # Plot?
         if show or outfile is not None:
