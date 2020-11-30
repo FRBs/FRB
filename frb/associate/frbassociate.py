@@ -1,4 +1,4 @@
-import os
+import warnings
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -122,9 +122,6 @@ class FRBAssociate():
             method (str, optional):
                 'linear':  P(O) = 1 - Pchance
                 'inverse':  P(O) = 1 / Pchance
-
-        Returns:
-
         """
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
@@ -170,11 +167,22 @@ class FRBAssociate():
     def calc_pxO(self, **kwargs):
         """
         Calculate p(x|O) and assign to p_xOi
+
+        self.p_xOi is set in place
         """
+
+        # This hack sets the minimum localization to 0.2''
+        # TODO -- Do this better
+        eellipse = self.frb.eellipse.copy()
+        eellipse['a'] = max(self.frb.sig_a, 0.2)
+        warnings.warn("Need to improve the hack above")
+
+        # Do it
         self.p_xOi = bayesian.px_Oi(self.max_radius,
-                              self.frb.coord, self.frb_eellipse,
-                              self.candidates['coords'].values,
-                              self.theta_prior, **kwargs)
+                                    self.frb.coord,
+                                    eellipse,
+                                    self.candidates['coords'].values,
+                                    self.theta_prior, **kwargs)
 
     def calc_pxU(self):
         """
@@ -257,12 +265,16 @@ class FRBAssociate():
         Perform photometry
 
         Fills self.photom in place
+        
+        Half-light radii:
+            https://iopscience.iop.org/article/10.1086/444475/pdf
 
         Args:
             ZP (float):
                 Zero point magnitude
             ifilter (str):
-            radius:
+            radius (float, optional):
+                Scaling for semimajor/minor axes for Elliptical apertures
             show:
             outfile:
         """
@@ -279,6 +291,7 @@ class FRBAssociate():
 
         self.cat = photutils.source_properties(self.hdu.data - self.bkg.background,
                                                self.segm,
+                                               kron_params=('mask', 2.5, 1.0, 'exact', 5),
                                                background=self.bkg.background,
                                                filter_kernel=self.kernel)
 
@@ -296,6 +309,10 @@ class FRBAssociate():
         self.filter = ifilter
         self.photom = self.cat.to_table().to_pandas()
         self.photom[ifilter] = -2.5 * np.log10(self.photom['source_sum']) + ZP
+
+        # Kron
+        for key in ['kron_radius']:
+            self.photom[key] = getattr(self.cat, key)
 
         # Plot?
         if show or outfile is not None:
@@ -471,9 +488,15 @@ class FRBAssociate():
 
 def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     """
+    Run through the steps leading up to Bayes
+
+    Args:
+        config:
+        show:
+        skip_bayesian:
+        verbose:
 
     Returns:
-        FRBAssociate:
 
     """
     # FRB
@@ -483,6 +506,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
 
     # Image
+    print("Using image {}".format(config['image_file']))
     hdul = fits.open(config['image_file'])
     hdu_full = hdul[0]
 

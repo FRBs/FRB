@@ -28,7 +28,7 @@ base_config = dict(
 #"""
 updates = dict(
     name='FRB190608',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'HG_190608_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Unpublished', 'HG_190608_FORS2_I.fits'),
     cut_size = 34.,
     filter = 'VLT_FORS2_I',
     ZP = 27.9,  # Tied to Pan-Starrs i-band
