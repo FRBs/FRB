@@ -5,7 +5,7 @@ script. Requires pcigale already installed on the system.
 """
 
 import numpy as np
-import sys, os, glob, multiprocessing
+import sys, os, glob, multiprocessing, warnings
 from collections import OrderedDict
 
 from astropy.table import Table
@@ -17,10 +17,6 @@ except ImportError:
 else:
     from pcigale.analysis_modules import get_module
     from pcigale.data import Database
-    try:
-        from pcigale.utils import read_table
-    except ImportError:
-        from utils import read_table
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
@@ -34,7 +30,6 @@ _DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "da
 #TODO Create a function to check the input filters
 #Or create a translation file like eazy's.
 #def check_filters(data_file):
-
 
 def _sed_default_params(module):
     """
@@ -299,8 +294,21 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     analysis_module = get_module(cigconf.configuration['analysis_method'])
     analysis_module.process(cigconf.configuration)
     if plot:
-        from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
-        sed(cigconf,"mJy",True)
+        try:
+            from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
+            old_version = True
+            import pcigale
+            warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
+        except ImportError:
+            from pcigale_plots.plot_types.sed import sed
+            old_version = False
+        
+        if old_version:
+            sed(cigconf,"mJy",True)
+        else:
+            # TODO: Let the user customize the plot.
+            series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
+            sed(cigconf,"mJy",True, (False, 1e5), (False, 1e2), series, "pdf", "out")
         # Set back to a GUI
         import matplotlib
         matplotlib.use('TkAgg')
@@ -328,7 +336,12 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             filters_wl = np.array([filt.pivot_wavelength
                                     for filt in filters.values()])
             mods = Table.read(outdir+'/results.fits')
-            obs = read_table(os.path.join(outdir, cigconf.configuration['data_file']))
+
+            try:
+                obs = Table.read(os.path.join(outdir, cigconf.configuration['data_file']))
+            except:
+                print("Something went wrong here. Astropy was unable to read the observations table. Please ensure it is in the fits format.")
+                return
             for model, obj in zip(mods, obs):
                 photo_obs_model = Table()
                 photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
