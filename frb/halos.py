@@ -55,7 +55,7 @@ def init_hmf():
     # Return
     return hmfe
 
-# Stroing for use
+# Storing for use
 try:
     import hmf_emulator
 except:
