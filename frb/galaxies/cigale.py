@@ -17,7 +17,10 @@ except ImportError:
 else:
     from pcigale.analysis_modules import get_module
     from pcigale.data import Database
-    from pcigale.utils import read_table
+    try:
+        from pcigale.utils import read_table
+    except ImportError:
+        from utils import read_table
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
