@@ -184,7 +184,10 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
         x_gal = -r.value * np.sin(new_pa_gal).value
         y_gal = r.value * np.cos(new_pa_gal).value
         r_w = np.sqrt((xcoord-x_gal)**2 + (ycoord-y_gal)**2)
-        p_wMi = pw_Oi(r_w, theta_prior['r_half'][icand], theta_prior)
+        try:
+            p_wMi = pw_Oi(r_w, theta_prior['r_half'][icand], theta_prior)
+        except:
+            embed(header='190 of bayesian')
 
         # Product
         grid_p = l_w * p_wMi
