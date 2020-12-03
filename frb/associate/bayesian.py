@@ -94,18 +94,28 @@ def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
     """
     p = np.zeros_like(r_w)
     ok_w = r_w < theta_prior['max']*theta_half
+    norm = 0
     if theta_prior['method'] == 'core':
+        # Wolfram
+        norm = theta_half * np.log(theta_prior['max']+1)
         if np.any(ok_w):
-            p[ok_w] = theta_half / (r_w[ok_w] + theta_half)
+            p[ok_w] = theta_half / (r_w[ok_w] + theta_half) / norm
     elif theta_prior['method'] == 'uniform':
+        norm = theta_half * theta_prior['max']
         if np.any(ok_w):
-            p[ok_w] = 1.
+            p[ok_w] = 1. / norm
     elif theta_prior['method'] == 'exp':
+        #norm = theta_half  - theta_half * (theta_prior['max']+1) * np.exp(-theta_prior['max'])
+        norm = theta_half*scale_half * (scale_half - (
+                scale_half+theta_prior['max'])*np.exp(-theta_prior['max']/scale_half))
         if np.any(ok_w):
-            p[ok_w] = (r_w[ok_w] / theta_half) * np.exp(-r_w[ok_w]/(scale_half*theta_half))
+            p[ok_w] = (r_w[ok_w] / theta_half) * np.exp(-r_w[ok_w]/(scale_half*theta_half)) / norm
     else:
         raise IOError("Bad theta method")
     #
+    if norm == 0:
+        raise ValueError("You forgot to normalize!")
+    # Return
     return p
 
 
@@ -174,7 +184,10 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
         x_gal = -r.value * np.sin(new_pa_gal).value
         y_gal = r.value * np.cos(new_pa_gal).value
         r_w = np.sqrt((xcoord-x_gal)**2 + (ycoord-y_gal)**2)
-        p_wMi = pw_Oi(r_w, theta_prior['r_half'][icand], theta_prior)
+        try:
+            p_wMi = pw_Oi(r_w, theta_prior['r_half'][icand], theta_prior)
+        except:
+            embed(header='190 of bayesian')
 
         # Product
         grid_p = l_w * p_wMi
