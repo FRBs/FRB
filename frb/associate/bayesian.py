@@ -76,6 +76,7 @@ def prior_S_n(rlim, theta_max, rmax=30.):
 '''
 
 
+# TODO -- JIT this
 def pw_Oi(r_w, theta_half, theta_prior, scale_half=1.):
     """
 
@@ -161,6 +162,7 @@ def px_Oi(box_radius, frb_coord, eellipse, cand_coords,
     l_w = np.exp(-xcoord ** 2 / (2 * eellipse['a'] ** 2)) * np.exp(-ycoord ** 2 / (2 * eellipse['b'] ** 2))
 
     p_xMis, grids = [], []
+    # TODO -- multiprocess this
     for icand, cand_coord in enumerate(cand_coords):
 
         # Calculate observed FRB location
