@@ -36,7 +36,7 @@ def add_contam(ncontam, frb_coord, cand_gal, cand_coord, fov,
 
 
 
-def raw_prior_Oi(Pchance, method):
+def raw_prior_Oi(Pchance, Sigma_m, method):
     """
     Raw prior for a given set of Pchance values
 
@@ -44,10 +44,14 @@ def raw_prior_Oi(Pchance, method):
 
     Args:
         Pchance (np.ndarray):
+            Chance probability
+        Sigma_m (np.ndarray):
+            Number density of sources on the sky brighter than m
         method (str):
             linear
-            inverse
-            identical
+            orig_inverse :: Assign inverse to P_chance
+            inverse :: Assign inverse to Sigma_m
+            identical :: All the same
 
     Returns:
         np.ndarray:
@@ -55,8 +59,10 @@ def raw_prior_Oi(Pchance, method):
     """
     if method == 'linear':
         return 1 - Pchance
+    elif method == 'orig_inverse':
+        return 1. / Pchance
     elif method == 'inverse':
-        return 1./Pchance
+        return 1. / Sigma_m
     elif method == 'identical':
         return np.ones_like(Pchance)
     else:

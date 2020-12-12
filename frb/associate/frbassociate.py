@@ -31,6 +31,8 @@ class FRBAssociate():
         photom (pandas.DataFrame):  Photometry table
         candidate (pandas.DataFrame):  Candidates table
             Note, while this is derived from photom, it is a *separate* copy
+        Pchance (np.ndarray): Chance probability
+        Sigma_m (np.ndarray): Surface density of sources on the sky
     """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
@@ -51,6 +53,7 @@ class FRBAssociate():
         self.wcs = None
         self.theta_max = None
         self.Pchance = None
+        self.Sigma_m = None
         self.theta_prior = None
 
         self.photom = None
@@ -100,13 +103,14 @@ class FRBAssociate():
             self.candidates[self.filter+'_orig'] = self.candidates[self.filter].values.copy()
             self.candidates[self.filter] += -2.5*np.log10(linear_ext)
         # Do it
-        self.Pchance = chance.pchance(self.candidates[self.filter],
+        self.Pchance, self.Sigma_m = chance.pchance(self.candidates[self.filter],
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
 
         # Add to table
         self.candidates['P_c'] = self.Pchance
+        self.candidates['Sigma_m'] = self.Sigma_m
 
     def calc_priors(self, prior_U, method='linear'):
         """
@@ -132,7 +136,7 @@ class FRBAssociate():
         else:
             self.prior_U = prior_U
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, method)
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, self.Sigma_m, method)
 
         # Normalize
         self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)

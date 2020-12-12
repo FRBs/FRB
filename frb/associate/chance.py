@@ -79,7 +79,7 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
         orig_theff (bool, optional):
 
     Returns:
-        np.ndarray:
+        tuple: Pchance, nden
 
     """
 
@@ -106,5 +106,5 @@ def pchance(rmag, sep, r_half, sigR, scale_rhalf=2., nsigma=2., ndens_eval='driv
     # Nbar
     Nbar = np.pi * reff ** 2 * nden
 
-    # Return Pchance
-    return 1. - np.exp(-Nbar)
+    # Return Pchance and nden
+    return 1. - np.exp(-Nbar), nden
