@@ -15,6 +15,7 @@ def frb_121102():
     FRB 121102
         All of the data currently comes from Tendulkar et al. 2017
         https://ui.adsabs.harvard.edu/abs/2017ApJ...834L...7T/abstract
+        or Chatterjee et al. 2017
     """
     frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
                         558.1*units.pc/units.cm**3,
