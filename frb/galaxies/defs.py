@@ -63,7 +63,7 @@ for band in GMOS_bands:
     valid_filters.append('GMOS_N_{:s}'.format(band))
 
 #NOT
-NOT_bands = ['g','r','i','z']
+NOT_bands = ['u', 'g','r','i','z']
 for band in NOT_bands:
     valid_filters.append('NOT_{:s}'.format(band))
 
