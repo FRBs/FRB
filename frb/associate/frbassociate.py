@@ -14,8 +14,8 @@ from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
 from frb import frb
-from frb.associate import bayesian
-from frb.associate import chance
+from astropath import bayesian
+from astropath import chance
 from frb.galaxies import photom
 from frb.galaxies import nebular
 

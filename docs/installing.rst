@@ -39,6 +39,10 @@ If you are using Anaconda, you can check the presence of these packages with::
 If the packages have been installed, this command should print
 out all the packages and their version numbers.
 
+The following package(s) is required to perform the PATH analysis:
+
+* `astropath <https://github.com/FRBs/astropath.git> `_
+
 The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
