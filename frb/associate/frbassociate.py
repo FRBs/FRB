@@ -137,7 +137,7 @@ class FRBAssociate():
             self.prior_U = prior_U
 
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, self.Sigma_m, method,
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.Sigma_m, Pchance=self.Pchance,
                                                   half_light=self.candidates.half_light.values)
 
         # Normalize
