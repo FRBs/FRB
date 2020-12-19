@@ -135,6 +135,7 @@ class FRBAssociate():
             self.prior_U = np.product(self.candidates['P_c'])
         else:
             self.prior_U = prior_U
+
         # Raw priors
         self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, self.Sigma_m, method,
                                                   half_light=self.candidates.half_light.values)
