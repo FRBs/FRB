@@ -16,16 +16,19 @@ def frb_121102():
         All of the data currently comes from Tendulkar et al. 2017
         https://ui.adsabs.harvard.edu/abs/2017ApJ...834L...7T/abstract
         or Chatterjee et al. 2017
+    Update for Marcote et al. 2017
+        05h31m58.7013s +/- 4 mas
+        +33d08m52.5536s +/- 2.3 mas
     """
-    frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
+    frb121102 = frb.FRB('FRB121102', 'J053158.7013+330852.5536',
                         558.1*units.pc/units.cm**3,
                         z_frb=0.19273, repeater=True)
     # NE2001
     frb121102.set_DMISM()
     # Error ellipse
-    frb121102.set_ee(0.1, 0.1, theta=0., cl=95.)
+    frb121102.set_ee(0.004, 0.002, theta=90., cl=68.)
     # References
-    frb121102.refs = ['Tendulkar2017']
+    frb121102.refs = ['Tendulkar2017', 'Marcote2017']
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb121102.write_to_json(path=path)
