@@ -21,8 +21,6 @@ def parser(options=None):
 def main(pargs):
     """ Run
     """
-    import warnings
-    import numpy as np
     import json
 
     from linetools import utils as ltu
@@ -44,13 +42,14 @@ def main(pargs):
     # Coords
     print("=========================================================\n")
     print(frb_name)
-    print(ltu.name_from_coord(FRB.coord), '\n     ra,dec = {:0.5f},{:0.5f} deg'.format(FRB.coord.ra.value,
+    print(ltu.name_from_coord(FRB.coord, precision=(4,4)), '\n     ra,dec = {:0.7f},{:0.7f} deg'.format(FRB.coord.ra.value,
                                                                            FRB.coord.dec.value))
     if pargs.verbose:
         print('ee={}'.format(pjson(FRB.eellipse)))
 
-    print('sig_a = {:0.2f} arcsec'.format(FRB.sig_a))
-    print('sig_b = {:0.2f} arcsec'.format(FRB.sig_b))
+    print('sig_a = {:0.3f} arcsec'.format(FRB.sig_a))
+    print('sig_b = {:0.3f} arcsec'.format(FRB.sig_b))
+    print('PA = {:0.1f} deg'.format(FRB.eellipse['theta']))
     print('')
     print('DM={}'.format(FRB.DM))
 
