@@ -15,16 +15,20 @@ def frb_121102():
     FRB 121102
         All of the data currently comes from Tendulkar et al. 2017
         https://ui.adsabs.harvard.edu/abs/2017ApJ...834L...7T/abstract
+        or Chatterjee et al. 2017
+    Update for Marcote et al. 2017
+        05h31m58.7013s +/- 4 mas
+        +33d08m52.5536s +/- 2.3 mas
     """
-    frb121102 = frb.FRB('FRB121102', 'J053158.7+330852.5',
+    frb121102 = frb.FRB('FRB121102', 'J053158.7013+330852.5536',
                         558.1*units.pc/units.cm**3,
                         z_frb=0.19273, repeater=True)
     # NE2001
     frb121102.set_DMISM()
     # Error ellipse
-    frb121102.set_ee(0.1, 0.1, theta=0., cl=95.)
+    frb121102.set_ee(0.004, 0.002, theta=90., cl=68.)
     # References
-    frb121102.refs = ['Tendulkar2017']
+    frb121102.refs = ['Tendulkar2017', 'Marcote2017']
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb121102.write_to_json(path=path)
@@ -140,8 +144,8 @@ def frb_190102():
                         364.545 * units.pc / units.cm**3,
                         z_frb=0.2912, repeater=False) # Updated redshift
     # Error ellipse [REQUIRED]
-    frb190102.set_ee(0.2, 0.16, theta=0., cl=68.) # Statistical (Day+2020)
-    frb190102.set_ee(0.5, 0.44, theta=0., cl=68., stat=False) # Systematic
+    frb190102.set_ee(0.21, 0.17, theta=0., cl=68.) # Statistical (Day+2020)
+    frb190102.set_ee(0.52, 0.44, theta=0., cl=68., stat=False) # Systematic
 
     # Error in DM
     frb190102.DM_err = 0.004 * units.pc / units.cm**3
@@ -207,7 +211,7 @@ def frb_190608():
                         z_frb=0.1177805, repeater=False)  # Taken from the SDSS table
     # Error ellipse [REQUIRED]
     frb190608.set_ee(0.19, 0.18, theta=90., cl=68.) # Statistsical (Day+2020)
-    frb190608.set_ee(0.18, 0.18, theta=90., cl=68., stat=False) # Systematic    
+    frb190608.set_ee(0.19, 0.18, theta=90., cl=68., stat=False) # Systematic
     
     # Error in DM
     frb190608.DM_err = 0.6 * units.pc / units.cm**3
@@ -242,8 +246,8 @@ def frb_190611():
                         332.63 * units.pc / units.cm**3,
                         z_frb=0.3778, repeater=False)  # Bright
     # Error ellipse [REQUIRED]
-    frb190611.set_ee(0.30, 0.3, theta=0., cl=68.) # Statistical (Day+2020)
-    frb190611.set_ee(0.60, 0.6, theta=0., cl=68., stat=False) # Systematic    
+    frb190611.set_ee(0.34, 0.32, theta=0., cl=68.) # Statistical (Day+2020)
+    frb190611.set_ee(0.60, 0.60, theta=0., cl=68., stat=False) # Systematic -- Cherie says use 0.63 for DEC but I have not
 
     # Error in DM
     frb190611.DM_err = 0.04 * units.pc / units.cm**3
@@ -304,7 +308,7 @@ def frb_190711():
                         z_frb=0.52172, repeater=True)
     # Error ellipse
     frb190711.set_ee(0.12, 0.07, theta=90., cl=68.)  # Statistical (Day+2020)
-    frb190711.set_ee(0.38, 0.3, theta=90., cl=68., stat=False) # Systematic
+    frb190711.set_ee(0.38, 0.32, theta=90., cl=68., stat=False) # Systematic
 
     # Error in DM
     frb190711.DM_err = 1 * units.pc / units.cm ** 3
@@ -339,8 +343,8 @@ def frb_190714():
                         504.13 * units.pc / units.cm ** 3,
                         z_frb=0.2365, repeater=False)
     # Error ellipse
-    frb190714.set_ee(0.16, 0.1, theta=90., cl=68.) # Statistical
-    frb190714.set_ee(0.32, 0.2, theta=90., cl=68., stat=False)  # Systematic
+    frb190714.set_ee(0.17, 0.10, theta=90., cl=68.) # Statistical
+    frb190714.set_ee(0.32, 0.23, theta=90., cl=68., stat=False)  # Systematic
 
     # Error in DM
     frb190714.DM_err = 0.1 * units.pc / units.cm ** 3
@@ -369,7 +373,8 @@ def frb_191001():
                         507.90 * units.pc / units.cm ** 3,
                         z_frb=0.2340, repeater=False)
     # Error ellipse [REQUIRED]
-    frb191001.set_ee(0.17, 0.13, theta=90., cl=68.)  # This is statistical + systematic in quadrature
+    frb191001.set_ee(0.13, 0.08, theta=90., cl=68.) # Statistical  -- Cherie via Slack 2020-12-17
+    frb191001.set_ee(0.11, 0.10, theta=90., cl=68., stat=False)  # Systematic
     # Error in DM
     frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
 
