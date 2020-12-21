@@ -79,6 +79,10 @@ The following are required to build host galaxy objects:
 * `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
 * `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
 
+The following is required to run the code in dm_kde:
+
+* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>` no versioning
+
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
 `Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
