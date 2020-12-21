@@ -2,7 +2,7 @@
 Standard KDE is used for pulsars and varying asymmetric KDE for FRBs.
 To use this code, please download the asymmetric_kde package from
 https://github.com/tillahoffmann/asymmetric_kde [Hoffman and Jones, 2015] """
-from pkg_resources import resource_filename
+
 from asymmetric_kde import ProperGammaEstimator
 from pdf_fns import make_kde_funtion
 from data import FRBs
