@@ -15,9 +15,8 @@ def find_delta_dm(transient_type,transient_data,ism_model,b_val,mc_deg=5,save_df
     """
     Find pulsar/FRB DMs corrected for by the MW ISM DM and remove observations in complex DM regions.
     Returns array of DMs
-    To use this code, please download the FRB catalogue from http://frbcat.org/ [Petroff et al. 2017]
-    and the ATNF pulsar catalogue [Manchester et al. 2005].
-    Check columns match the template used here.
+    FRB data is available as a csv in the FRBs/FRB/frb/data/FRBs repo (FRB catalogue [Petroff et al. 2017])
+    Pulsar data is avaiable as a csv in the FRBs/pulsars/pulsars/data/atnf_cat repo (v1.61 ATNF pulsar catalogue [Manchester et al. 2005])
     
     Arguments:
         transient_type (str):
@@ -96,7 +95,3 @@ def find_delta_dm(transient_type,transient_data,ism_model,b_val,mc_deg=5,save_df
         pass
 
     return np.array(transcat_df['deltaDM'])
-
-
-find_delta_dm(transient_type='frb',transient_data='transient_data/frbcat.csv',ism_model='ne2001',b_val=20)
-find_delta_dm(transient_type='pulsar',transient_data='transient_data/psrcat.csv',ism_model='ne2001',b_val=20)

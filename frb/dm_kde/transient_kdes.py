@@ -1,13 +1,14 @@
 """ Definitions relating to the observed DM distributions of pulsars and FRBs.
-Standard KDE is used for pulsars and varying assymetric KDE for FRBs.
+Standard KDE is used for pulsars and varying asymmetric KDE for FRBs.
 To use this code, please download the asymmetric_kde package from
 https://github.com/tillahoffmann/asymmetric_kde [Hoffman and Jones, 2015] """
-
+from pkg_resources import resource_filename
 from asymmetric_kde import ProperGammaEstimator
+from pdf_fns import make_kde_funtion
+from data import FRBs
 import numpy as np
 import pandas as pd
 from scipy.signal import argrelextrema
-from pdf_fns import make_kde_funtion
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
 import random
