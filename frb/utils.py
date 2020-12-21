@@ -244,7 +244,7 @@ def radec_to_coord(radec):
             else:
                 DEC = radec[1]
             #
-            coord = SkyCoord(radec[0]+DEC, frame='fk5',
+            coord = SkyCoord(radec[0]+DEC, frame='icrs',
                                   unit=(units.hourangle, units.deg))
         else:
             coord = SkyCoord(ra=radec[0], dec=radec[1], unit='deg')
@@ -258,14 +258,14 @@ def radec_to_coord(radec):
         radec = radec[ii:]
         #
         if ':' in radec:
-            coord = SkyCoord(radec, frame='fk5', unit=(units.hourangle, units.deg))
+            coord = SkyCoord(radec, frame='icrs', unit=(units.hourangle, units.deg))
         else:  # Add in :
             if ('+' in radec) or ('-' in radec):
                 sign = max(radec.find('+'), radec.find('-'))
             else:
                 raise ValueError("radec must include + or - for DEC")
             newradec = (radec[0:2]+':'+radec[2:4]+':'+radec[4:sign+3] +':'+radec[sign+3:sign+5]+':'+radec[sign+5:])
-            coord = SkyCoord(newradec, frame='fk5', unit=(units.hourangle, units.deg))
+            coord = SkyCoord(newradec, frame='icrs', unit=(units.hourangle, units.deg))
     elif isinstance(radec,list):
         clist = []
         for item in radec:
