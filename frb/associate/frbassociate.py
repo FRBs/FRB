@@ -137,7 +137,8 @@ class FRBAssociate():
             self.prior_U = prior_U
 
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.Sigma_m, Pchance=self.Pchance,
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.candidates[self.filter].values,
+                                                  Pchance=self.Pchance,
                                                   half_light=self.candidates.half_light.values)
 
         # Normalize
@@ -194,11 +195,12 @@ class FRBAssociate():
         """
         Calculate p(x|U) and assign to p_xU
         """
-        self.p_xU = bayesian.px_Oi(self.max_radius,
-                                   self.frb.coord,
-                                   self.frb_eellipse,
-                                   SkyCoord([self.frb.coord]),
-                                   self.theta_prior)[0]
+        self.p_xU = 1. #bayesian.px_Oi(self.max_radius)
+        #self.p_xU = bayesian.px_Oi(self.max_radius,
+        #                           self.frb.coord,
+        #                           self.frb_eellipse,
+        #                           SkyCoord([self.frb.coord]),
+        #                           self.theta_prior)[0]
 
     def calc_px(self):
         """
