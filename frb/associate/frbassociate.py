@@ -178,10 +178,11 @@ class FRBAssociate():
         self.p_xOi is set in place
         """
 
-        # This hack sets the minimum localization to 0.2''
+        # This hack sets the minimum localization to 0.3''
         # TODO -- Do this better
         eellipse = self.frb.eellipse.copy()
-        eellipse['a'] = max(self.frb.sig_a, 0.2)
+        eellipse['a'] = max(self.frb.sig_a, 0.3)
+        eellipse['b'] = max(self.frb.sig_b, 0.3)
         warnings.warn("Need to improve the hack above")
 
         # Do it
@@ -190,17 +191,13 @@ class FRBAssociate():
                                     eellipse,
                                     self.candidates['coords'].values,
                                     self.theta_prior, **kwargs)
+        self.candidates['p_xO'] = self.p_xOi
 
     def calc_pxU(self):
         """
         Calculate p(x|U) and assign to p_xU
         """
-        self.p_xU = 1. #bayesian.px_Oi(self.max_radius)
-        #self.p_xU = bayesian.px_Oi(self.max_radius,
-        #                           self.frb.coord,
-        #                           self.frb_eellipse,
-        #                           SkyCoord([self.frb.coord]),
-        #                           self.theta_prior)[0]
+        self.p_xU = bayesian.px_U(self.max_radius)
 
     def calc_px(self):
         """
