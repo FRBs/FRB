@@ -12,8 +12,6 @@ from astropy.wcs import WCS
 
 from pkg_resources import resource_filename
 
-from frb.galaxies.frbgalaxy import FRBHost
-
 from frb.galaxies import galfit as glf
 
 remote_data = pytest.mark.remote_data
