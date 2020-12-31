@@ -8,4 +8,5 @@ IPython>=7.2.0
 pytest>=6.0.0
 pandas>=0.25
 photutils>=1.0.1
+requests>=2.18
 

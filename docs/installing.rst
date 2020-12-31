@@ -31,6 +31,7 @@ to install and/or update these packages.
 * `scipy <http://www.scipy.org/>`_ version 1.2 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
 * `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
+* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 
@@ -46,7 +47,6 @@ for data that may be associated to an FRB:
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
-* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
 The following package(s) is/are required to access FRB galaxy spectra:
 
