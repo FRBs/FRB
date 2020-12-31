@@ -13,8 +13,8 @@ from astropy.wcs import WCS
 from pkg_resources import resource_filename
 
 from frb.galaxies import galfit as glf
-
-remote_data = pytest.mark.remote_data
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                        reason='test requires dev suite')
 
 def test_platescale():
     cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')

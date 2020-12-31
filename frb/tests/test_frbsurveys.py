@@ -13,7 +13,8 @@ from astropy.io.fits.hdu.image import PrimaryHDU
 from frb.surveys import survey_utils
 from PIL import Image
 
-remote_data = pytest.mark.remote_data
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                 reason='test requires dev suite')
 
 def test_sdss():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
