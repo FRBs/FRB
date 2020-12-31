@@ -16,6 +16,7 @@ from PIL import Image
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
 
+@remote_data
 def test_sdss():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -77,6 +78,7 @@ def test_decals():
 
 
 
+@remote_data
 def test_first():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -87,6 +89,8 @@ def test_first():
     assert isinstance(first_tbl, Table)
     assert len(first_tbl) == 1
 
+
+@remote_data
 def test_panstarrs():
     #Test get_catalog
     coord = SkyCoord(0, 0,unit="deg")
