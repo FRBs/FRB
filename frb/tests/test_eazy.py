@@ -16,7 +16,8 @@ try:
 except ImportError:
     pass
 
-remote_data = pytest.mark.remote_data
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                 reason='test requires dev suite')
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
