@@ -25,8 +25,11 @@ def frb_121102():
                         z_frb=0.19273, repeater=True)
     # NE2001
     frb121102.set_DMISM()
+
     # Error ellipse
     frb121102.set_ee(0.004, 0.002, theta=90., cl=68.)
+    frb121102.set_ee(a=0.0015, b=0.0015, theta=0., cl=68.,stat=False) # Marcote priv. corr
+
     # References
     frb121102.refs = ['Tendulkar2017', 'Marcote2017']
     # Write
@@ -48,7 +51,8 @@ def frb_180916():
                         348.76*units.pc / units.cm**3,
                         z_frb=0.0337, repeater=True)
     # Error ellipse
-    frb180916.set_ee(0.0023, 0.0023, theta=0., cl=68.)
+    frb180916.set_ee(0.0011, 0.0011, theta=0., cl=68.)
+    frb180916.set_ee(a=0.002, b=0.002, theta=0., cl=68.,stat=False)  # Marcote priv. corr
     # Error in DM
     frb180916.DM_err = 0.10 * units.pc / units.cm**3
     # NE2001
@@ -409,7 +413,7 @@ def main(inflg='all'):
         flg = int(inflg)
 
     # 121102
-    if flg & (2**0):
+    if flg & (2**0):  # 1
         frb_121102()
 
     # 180924

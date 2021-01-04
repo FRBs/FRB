@@ -12,8 +12,10 @@ from astropy.wcs import WCS
 
 from pkg_resources import resource_filename
 
+from frb.galaxies.frbgalaxy import FRBHost
 from frb.frb import FRB
 
+from frb.galaxies import galfit as glf
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                         reason='test requires dev suite')
 

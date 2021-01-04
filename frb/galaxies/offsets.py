@@ -62,7 +62,7 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
 
     # Offset
     ang_off = np.sqrt((xx-x_gal)**2 + (yy-y_gal)**2)
-    p_xy = np.exp(-xx**2 / (2*frb.sig_a**2)) * np.exp(-yy**2 / (2*frb.sig_b**2))
+    p_xy = np.exp(-xx**2 / (2*sig_a**2)) * np.exp(-yy**2 / (2*sig_b**2))
 
     # Best offset
     best_off = r.value
