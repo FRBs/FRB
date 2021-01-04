@@ -413,7 +413,7 @@ def main(inflg='all'):
         flg = int(inflg)
 
     # 121102
-    if flg & (2**0):
+    if flg & (2**0):  # 1
         frb_121102()
 
     # 180924
