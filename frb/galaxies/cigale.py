@@ -44,7 +44,7 @@ def _sed_default_params(module):
         and their initial parameters.
     """
     params = {}
-    if module is "sfhdelayed":
+    if module == "sfhdelayed":
         params['tau_main'] = (10**np.linspace(1,3,10)).tolist() #e-folding time of main population (Myr)
         params['age_main'] = (10**np.linspace(3,4,10)).tolist() #age (Myr)
         params['tau_burst'] = 50.0 #burst e-folding time (Myr)
@@ -52,17 +52,17 @@ def _sed_default_params(module):
         params['f_burst'] = 0.0 #burst fraction by mass
         params['sfr_A'] = 0.1 #SFR at t = 0 (Msun/yr)
         params['normalise'] = False # Normalise SFH to produce one solar mass
-    elif module is "bc03":
+    elif module == "bc03":
         params['imf'] = 1 #0: Salpeter 1: Chabrier
         params['metallicity'] = [0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05] 
         params['separation_age'] = 10 # Separation between yound and old stellar population (Myr)
-    elif module is 'nebular':
+    elif module == 'nebular':
         params['logU'] = -2.0 # Ionization parameter
         params['f_esc'] = 0.0 # Escape fraction of Ly continuum photons
         params['f_dust'] = 0.0 # Fraction of Ly continuum photons absorbed
         params['lines_width'] = 300.0
         params['emission'] = True
-    elif module is 'dustatt_calzleit':
+    elif module == 'dustatt_calzleit':
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
         params['E_BVs_old_factor'] = 1.0 # Reduction of E(B-V) for the old population w.r.t. young
         params['uv_bump_wavelength'] = 217.5 #central wavelength of UV bump (nm)
@@ -73,17 +73,17 @@ def _sed_default_params(module):
         params['powerlaw_slope'] = -0.13  # Slope delta of the power law modifying the attenuation curve.
         # These filters have no effect
         params['filters'] = 'B_B90 & V_B90 & FUV'
-    elif module is 'dale2014':
+    elif module == 'dale2014':
         params['fracAGN'] = [0.0,0.05,0.1,0.2]
         params['alpha'] = 2.0
-    elif module is 'restframe_parameters':
+    elif module == 'restframe_parameters':
         params['beta_calz94'] = False
         params['D4000'] = False
         params['IRX'] = False
         params['EW_lines'] = '500.7/1.0 & 656.3/1.0'
         params['luminosity_filters'] = 'u_prime & r_prime'
         params['colours_filters'] = 'u_prime-r_prime'
-    elif module is 'redshifting':
+    elif module == 'redshifting':
         params['redshift'] = '' #Use input redshifts
     return params
 
