@@ -88,7 +88,7 @@ for band in VISTA_bands:
 
 # HST instruments
 # WFC3
-WFC3_bands = ['F300X', 'F110W', 'F160W']
+WFC3_bands = ['F300X', 'F110W', 'F160W', 'F763M']
 for band in WFC3_bands:
     valid_filters.append('WFC3_{:s}'.format(band))
 
