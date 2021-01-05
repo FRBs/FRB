@@ -2,10 +2,11 @@ import os
 import numpy as np
 from pkg_resources import resource_filename
 
+import pandas
+
 from astropy import units
 
 from frb.associate import frbassociate
-from frb.associate import frbs
 
 import pytest
 
@@ -14,8 +15,11 @@ remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
 
 @remote_data
 def test_individual():
+    from frb.associate import frbs
     config = getattr(frbs, 'FRB180924'.lower())
     frbA = frbassociate.run_individual(config)
+    # Test
+    assert isinstance(frbA.candidates, pandas.DataFrame)
 
 
 @remote_data
