@@ -1,3 +1,4 @@
+import numpy as np
 from pkg_resources import resource_filename
 
 from astropy import units
@@ -63,7 +64,6 @@ def test_step_by_step():
     final_cands = frbA_180924.P_Oix > 0.01
     print(frbA_180924.candidates[['id', 'r', 'half_light',
                                   'separation', 'P_O', 'P_Ox']][final_cands])
-    frbA_180924.candidates['P_Mx_u'] = frbA_180924.P_Oix.copy()
 
     # Now Linear prior
     # Theta
@@ -72,12 +72,30 @@ def test_step_by_step():
     theta_c['r_half'] = frbA_180924.candidates['half_light'].values
     frbA_180924.set_theta_prior(theta_c)
 
-    # Calcuate p(M_i|x)
+    # Calcuate p(O_i|x)
     frbA_180924.calc_POx()
 
     final_cands = frbA_180924.P_Oix > 0.01
     print(frbA_180924.candidates[['id', 'r', 'half_light',
                                   'separation', 'P_O', 'P_Ox']][final_cands])
-    frbA_180924.candidates['P_Ox_c'] = frbA_180924.P_Oix.copy()
+    frbA_180924.candidates['P_Ox_core'] = frbA_180924.P_Oix.copy()
+
+
+    # Now Exponential prior
+    # Theta
+    theta_max = 10.  # in half-light units
+    theta_e = dict(method='exp', max=theta_max)
+    theta_e['r_half'] = frbA_180924.candidates['half_light'].values
+    frbA_180924.set_theta_prior(theta_e)
+
+    # Calcuate p(O_i|x)
+    frbA_180924.calc_POx()
+
+    final_cands = frbA_180924.P_Oix > 0.01
+    print(frbA_180924.candidates[['id', 'r', 'half_light',
+                                  'separation', 'P_O', 'P_Ox']][final_cands])
+
+    assert np.isclose(np.max(frbA_180924.candidates.P_Ox), 0.9793614051180874)
+
 
 

@@ -35,6 +35,7 @@ to install and/or update these packages.
 * `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
 * `matplotlib <https://matplotlib.org/>`_ version 3.2 or greater
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
+* `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 

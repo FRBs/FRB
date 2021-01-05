@@ -14,8 +14,8 @@ from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
 from frb import frb
-from frb.associate import bayesian
-from frb.associate import chance
+from astropath import bayesian
+from astropath import chance
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -31,6 +31,8 @@ class FRBAssociate():
         photom (pandas.DataFrame):  Photometry table
         candidate (pandas.DataFrame):  Candidates table
             Note, while this is derived from photom, it is a *separate* copy
+        Pchance (np.ndarray): Chance probability
+        Sigma_m (np.ndarray): Surface density of sources on the sky
     """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
@@ -51,6 +53,7 @@ class FRBAssociate():
         self.wcs = None
         self.theta_max = None
         self.Pchance = None
+        self.Sigma_m = None
         self.theta_prior = None
 
         self.photom = None
@@ -100,13 +103,14 @@ class FRBAssociate():
             self.candidates[self.filter+'_orig'] = self.candidates[self.filter].values.copy()
             self.candidates[self.filter] += -2.5*np.log10(linear_ext)
         # Do it
-        self.Pchance = chance.pchance(self.candidates[self.filter],
+        self.Pchance, self.Sigma_m = chance.pchance(self.candidates[self.filter],
                                         self.candidates['separation'],
                                         self.candidates['half_light'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
 
         # Add to table
         self.candidates['P_c'] = self.Pchance
+        self.candidates['Sigma_m'] = self.Sigma_m
 
     def calc_priors(self, prior_U, method='linear'):
         """
@@ -131,8 +135,11 @@ class FRBAssociate():
             self.prior_U = np.product(self.candidates['P_c'])
         else:
             self.prior_U = prior_U
+
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, method)
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.candidates[self.filter].values,
+                                                  Pchance=self.Pchance,
+                                                  half_light=self.candidates.half_light.values)
 
         # Normalize
         self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)
@@ -171,10 +178,11 @@ class FRBAssociate():
         self.p_xOi is set in place
         """
 
-        # This hack sets the minimum localization to 0.2''
+        # This hack sets the minimum localization to 0.3''
         # TODO -- Do this better
         eellipse = self.frb.eellipse.copy()
-        eellipse['a'] = max(self.frb.sig_a, 0.2)
+        eellipse['a'] = max(self.frb.sig_a, 0.3)
+        eellipse['b'] = max(self.frb.sig_b, 0.3)
         warnings.warn("Need to improve the hack above")
 
         # Do it
@@ -183,16 +191,13 @@ class FRBAssociate():
                                     eellipse,
                                     self.candidates['coords'].values,
                                     self.theta_prior, **kwargs)
+        self.candidates['p_xO'] = self.p_xOi
 
     def calc_pxU(self):
         """
         Calculate p(x|U) and assign to p_xU
         """
-        self.p_xU = bayesian.px_Oi(self.max_radius,
-                                   self.frb.coord,
-                                   self.frb_eellipse,
-                                   SkyCoord([self.frb.coord]),
-                                   self.theta_prior)[0]
+        self.p_xU = bayesian.px_U(self.max_radius)
 
     def calc_px(self):
         """
