@@ -1,4 +1,6 @@
-""" Codes realted to developing what has become PATH (aka astropath)"""
+""" Codes related to developing what has become PATH (aka astropath)
+  Much of this code is deprecated/defunct"""
+
 
 import pdb; pdb.set_trace()  # This module is defunct
 
