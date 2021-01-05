@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from pkg_resources import resource_filename
 
@@ -8,11 +9,15 @@ from frb.associate import frbs
 
 import pytest
 
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                 reason='test requires dev suite')
+
 def test_individual():
     config = getattr(frbs, 'FRB180924'.lower())
     frbA = frbassociate.run_individual(config)
 
 
+@remote_data
 def test_step_by_step():
     from frb import frb
 
