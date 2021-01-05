@@ -112,7 +112,7 @@ class FRBAssociate():
         self.candidates['P_c'] = self.Pchance
         self.candidates['Sigma_m'] = self.Sigma_m
 
-    def calc_priors(self, prior_U, method='linear'):
+    def calc_priors(self, prior_U, method='inverse'):
         """
         Calulate the priors based on Pchance
         and the input method
@@ -124,8 +124,7 @@ class FRBAssociate():
             prior_S (float):
                 If the input value is <0, use the P_c product else use the input value
             method (str, optional):
-                'linear':  P(O) = 1 - Pchance
-                'inverse':  P(O) = 1 / Pchance
+                'inverse':  P(O) = 1 / Sigma(m)
         """
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
