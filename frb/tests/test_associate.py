@@ -12,6 +12,7 @@ import pytest
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
 
+@remote_data
 def test_individual():
     config = getattr(frbs, 'FRB180924'.lower())
     frbA = frbassociate.run_individual(config)
