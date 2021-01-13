@@ -243,7 +243,7 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
         return DM_cum[-1]
 
 
-def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neval = 10000, cumul=False):
+def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
@@ -256,6 +256,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, ne
         logMmin (float, optional): Lowest mass halos to consider
           Cannot be much below 10.3 or the Halo code barfs
           The code deals with h^-1 factors, i.e. do not impose it yourself
+        logMmax (float, optional): Highest halo mass. Default to 10^16 Msun
         neval (int, optional): Number of redshift values between
           0 and z the function is evaluated at.
         cumul (bool, optional): Return a cumulative evaluation?
@@ -276,7 +277,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, ne
 
     # Fraction of total mass in halos
     zvals = np.linspace(0, z, 20)
-    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 1e16, rmax = rmax)
+    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
     fhalos_interp = IUS(zvals, fhalos)(zeval)
 
     # Electron number density in halos only
