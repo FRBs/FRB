@@ -68,7 +68,7 @@ The following are required to use our KCWI datacube handling tools:
 The following are required to run some of the halo codes:
 
 * `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
-* `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 
