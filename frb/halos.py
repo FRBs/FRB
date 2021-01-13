@@ -415,7 +415,7 @@ def rad3d2(xyz):
     return xyz[0]**2 + xyz[1]**2 + xyz[-1]**2
 
 
-def stellarmass_from_halomass(log_Mhalo,z=0):
+def stellarmass_from_halomass(log_Mhalo,z=0, params=None):
     """ Stellar mass from Halo Mass from Moster+2013
     https://doi.org/10.1093/mnras/sts261
 
@@ -430,15 +430,18 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     """
         
     # Define model parameters from Table 1
-    # of the paper.
-    N10 = 0.0351
-    N11 = -0.0247
-    beta10 = 1.376
-    beta11 = -0.826
-    gamma10 = 0.608
-    gamma11 = 0.329
-    M10 = 11.59
-    M11 = 1.195
+    # of the paper if not supplied
+    if params is None:
+        N10 = 0.0351
+        N11 = -0.0247
+        beta10 = 1.376
+        beta11 = -0.826
+        gamma10 = 0.608
+        gamma11 = 0.329
+        M10 = 11.59
+        M11 = 1.195
+    else:
+        N10,N11,beta10,beta11,gamma10,gamma11,M10,M11 = params
 
     # Get redshift dependent parameters
     # from equations 11-14.
@@ -457,7 +460,7 @@ def stellarmass_from_halomass(log_Mhalo,z=0):
     return log_mstar
 
 
-def halomass_from_stellarmass(log_mstar,z=0):
+def halomass_from_stellarmass(log_mstar,z=0, randomize=False):
     """ Halo mass from Stellar mass (Moster+2013).
     Inverts the function `stellarmass_from_halomass`
     numerically.
@@ -476,7 +479,19 @@ def halomass_from_stellarmass(log_mstar,z=0):
     except ValueError:
         raise TypeError("log_mstar and z can't be broadcast together for root finding. Use numpy arrays of same length or scalar values.")
 
-    f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
+    if not randomize:
+        f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
+    else:
+        N10 = np.random.normal(0.0351, 0.0058)
+        N11 = np.random.normal(-0.0247, 0.0069)
+        beta10 = np.random.normal(1.376, 0.153)
+        beta11 = np.random.normal(-0.826, 0.225)
+        gamma10 = np.random.normal(0.608, 0.059)
+        gamma11 = np.random.normal(0.329, 0.173)
+        M10 = np.random.normal(11.59, 0.236)
+        M11 = np.random.normal(1.195, 0.353)
+        params = [N10,N11,beta10,beta11,gamma10,gamma11,M10,M11]
+        f = lambda x: stellarmass_from_halomass(x, z = z, params = params)-log_mstar
     guess = 2+log_mstar
     if isiterable(log_mstar):
         return fsolve(f, guess)
