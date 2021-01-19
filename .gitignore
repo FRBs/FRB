@@ -9,6 +9,13 @@ __pycache__/
 # Spectra
 Spectra/
 
+# Data
+*.fits
+*.fits.gz
+*.fit.gz
+*.npy
+*.hdf5
+
 # Distribution / packaging
 .Python
 env/
