@@ -879,6 +879,11 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
             photom['GMOS_S_r_err'] = 0.15
             photom['GMOS_S_i'] = 22.75
             photom['GMOS_S_i_err'] = 0.15
+            photom['VLT_FORS2_g'] = 24.11  # No extinction correction
+            photom['VLT_FORS2_g_err'] = 0.09
+            photom['VLT_FORS2_I'] = 22.41
+            photom['VLT_FORS2_I_err'] = 0.07
+
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         # Write
