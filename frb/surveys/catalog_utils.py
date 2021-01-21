@@ -264,6 +264,41 @@ def mag_from_flux(flux, flux_err=None):
         err_mag = None
     return mag_AB, err_mag
 
+def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630780.5*units.mJy, mag_err:float=None)->float:
+    """
+    Convert a magnitude to mJy
+
+    Args:
+        mag (float): magnitude
+        zpt_flux (Quantity, optional): Zero point flux for the magnitude.
+            Assumes AB mags by default (i.e. zpt_flux = 3630.7805 Jy). 
+        mag_err (float, optional): uncertainty in magnitude
+    Returns:
+        flux (float): flux in mJy
+        flux_err (float): if mag_err is given, a corresponding
+            flux_err is returned.
+    """
+    # Data validation
+    assert np.isreal(mag), "Mags must be floats."
+    assert np.isreal(mag_err) | mag_err==None, "Mag errs must be floats"
+    try:
+        zpt_flux = zpt_flux.to(u.mJy)
+    except:
+        raise ValueError('zpt_flux should by in flux units like Jy.')
+
+    if mag < -10: # usually non-detections
+        flux = -99.
+    else:
+        flux = zpt_flux.value*10**(-mag/2.5)
+    
+    if mag_err is not None:
+        if mag_err < -10:
+            flux_err = -99.
+        else:
+            flux_err = flux*(10**(mag_err/2.5)-1)
+        return flux, flux_err
+    else:
+        return flux    
 
 def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     """
@@ -294,46 +329,43 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     vistacols = sorted([col for col in mag_cols if "VISTA" in col])
     vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
 
-    wise_fnu0 = {'WISE_W1':309.54,
-                 'WISE_W2':171.787,
-                 'WISE_W3':31.674,
-                 'WISE_W4':8.363} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-    for mag,err in zip(wisecols,wise_errcols):
-        badmags = fluxtable[mag]<0
-        fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = wise_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
-        baderrs = fluxtable[err]<0
-        fluxtable[err][baderrs]=-99.0
-        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
-        if "WISE" not in mag and 'WFC3' not in mag:
+    fnu0 = {'WISE_W1':309.54,
+            'WISE_W2':171.787,
+            'WISE_W3':31.674,
+            'WISE_W4':8.363,
+            'VISTA_Y':2087.32,
+            'VISTA_J':1554.03,
+            'VISTA_H':1030.40,
+            'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
+                               #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+    for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
+        flux, flux_err = mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
+        if flux != -99.:
+            fluxtable[mag] = flux*convert
+        else:
+            fluxtable[mag] = flux
+        if flux_err != -99.:
+            fluxtable[err] = flux_err*convert
+        else:
+            fluxtable[err] = flux_err
+        if "W" in mag and "WISE" not in mag and 'WFC3' not in mag:
             fluxtable.rename_column(mag,mag.replace("W","WISE"))
             fluxtable.rename_column(err,err.replace("W","WISE"))
 
-    #Convert VISTA fluxes to mJy
-    vista_fnu0 = {'VISTA_Y':2087.32,
-                  'VISTA_J':1554.03,
-                  'VISTA_H':1030.40,
-                  'VISTA_Ks':674.83} #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-    for mag,err in zip(vistacols,vista_errcols):
-        badmags = fluxtable[mag]<0
-        fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = vista_fnu0[mag]*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
-        baderrs = fluxtable[err]<0
-        fluxtable[err][baderrs]=-99.0
-        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
-
     #For all other photometry:
-    other_mags = np.setdiff1d(mag_cols,wisecols+vistacols)
-    other_errs = np.setdiff1d(mag_errcols,wise_errcols+vista_errcols)
+    other_mags = np.setdiff1d(mag_cols, wisecols+vistacols)
+    other_errs = np.setdiff1d(mag_errcols, wise_errcols+vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
-        badmags = fluxtable[mag] < 0
-        fluxtable[mag][badmags] = -99.0
-        fluxtable[mag][~badmags] = 3630.7805*10**(-photometry_table[mag][~badmags]/2.5)*1000*convert #mJy to user specified units
-
-        baderrs = fluxtable[err] < 0
-        fluxtable[err][baderrs] = -99.0
-        fluxtable[err][~baderrs] = fluxtable[mag][~baderrs]*(10**(photometry_table[err][~baderrs]/2.5)-1)
+        flux, flux_err = mags_to_flux(photometry_table[mag], mag_err = photometry_table[err])
+        if flux != -99.:
+            fluxtable[mag] = flux*convert
+        else:
+            fluxtable[mag] = flux
+        if flux_err != -99.:
+            fluxtable[err] = flux_err*convert
+        else:
+            fluxtable[err] = flux_err
 
         # Upper limits -- Assume to have been recorded as 3 sigma
         #   Arbitrarily set the value to 1/3 of the error (could even set to 0)
