@@ -6,6 +6,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
 from frb.galaxies.defs import valid_filters
+import warnings
 
 from IPython import embed
 
@@ -264,7 +265,7 @@ def mag_from_flux(flux, flux_err=None):
         err_mag = None
     return mag_AB, err_mag
 
-def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630780.5*units.mJy, mag_err:float=None)->float:
+def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err:float=None)->float:
     """
     Convert a magnitude to mJy
 
@@ -281,18 +282,16 @@ def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630780.5*units.mJy, mag_err
     # Data validation
     assert np.isreal(mag), "Mags must be floats."
     assert np.isreal(mag_err) | mag_err==None, "Mag errs must be floats"
-    try:
-        zpt_flux = zpt_flux.to(u.mJy)
-    except:
-        raise ValueError('zpt_flux should by in flux units like Jy.')
+    assert type(zpt_flux) == units.Quantity & zpt_flux.decompose().unit == units.kg/units.s**2, "zpt_flux units should be Jy or with dimensions kg/s^2."
 
     if mag < -10: # usually non-detections
+        warnings.warn("Assuming mag <-10 implies non-detection", UserWarning)
         flux = -99.
     else:
         flux = zpt_flux.value*10**(-mag/2.5)
     
     if mag_err is not None:
-        if mag_err < -10:
+        if mag_err < 0:
             flux_err = -99.
         else:
             flux_err = flux*(10**(mag_err/2.5)-1)
