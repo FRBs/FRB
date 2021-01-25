@@ -478,6 +478,7 @@ def halomass_from_stellarmass(log_mstar,z=0, randomize=False):
     if not randomize:
         f = lambda x: stellarmass_from_halomass(x, z = z)-log_mstar
     else:
+        np.random.seed()
         N10 = np.random.normal(0.0351, 0.0058)
         N11 = np.random.normal(-0.0247, 0.0069)
         beta10 = np.random.normal(1.376, 0.153)
