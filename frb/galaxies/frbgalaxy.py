@@ -725,8 +725,7 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str):
-            Nomiker of the FRB, e.g. 121102
+        FRB (frb.FRB):
         z_frb (float, optional):
             Redshift of the host, expected to be provided
 

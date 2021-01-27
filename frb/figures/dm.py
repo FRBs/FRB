@@ -234,7 +234,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
 
 def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
-               widen=False, show_nuisance=False, ax=None,
+               widen=False, show_nuisance=False, ax=None, zmax=0.75,
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
@@ -262,6 +262,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             List of gold standard FRBs
         ax (matplotlib.Axis, optional):
             Use this axis instead of creating one
+        zmax (float, optional):
+            Max redshift for the MR line
 
     Returns:
 
@@ -285,12 +287,11 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         ax = plt.gca()
 
     # DM_cosmic from cosmology
-    zmax = 0.75
     DM_cosmic, zeval = frb_igm.average_DM(zmax, cumul=True)
     DMc_spl = IUS(zeval, DM_cosmic)
     if not no_curves:
         #ax.plot(zeval, DM_cosmic, 'k-', label=r'DM$_{\rm cosmic} (z) \;\; [\rm Planck15]$')
-        ax.plot(zeval, DM_cosmic, 'k-', label='Planck15')
+        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15', lw=2)
 
     if multi_model:
         # Change Omega_b
