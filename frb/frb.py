@@ -292,7 +292,7 @@ class GenericFRB(object):
             frb_dict['repeater'] = self.repeater
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
+        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol', 'tau']:
             # Value
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
