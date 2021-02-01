@@ -1,11 +1,11 @@
 """ Module for an FRB event
 """
-
-from __future__ import print_function, absolute_import, division, unicode_literals
+import inspect
 
 from pkg_resources import resource_filename
 import os
 import glob
+import copy
 
 import numpy as np
 
@@ -14,6 +14,8 @@ import pandas as pd
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.cosmology import Planck15
+
+from linetools import utils as ltu
 
 from frb import utils
 from frb import mw
@@ -138,7 +140,6 @@ class GenericFRB(object):
             self.cosmo = cosmo
 
         # Attributes
-        self.eellipse = {}
         self.z = None
         self.frb_name = None
 
@@ -154,7 +155,9 @@ class GenericFRB(object):
         self.refs = []
 
         # dicts of attributes to be read/written
-        self.main_dict = ['eellipse']
+        self.eellipse = {}
+        self.pulse = {}
+        self.main_dict = ['eellipse', 'pulse']
 
     def set_DMISM(self):
         if self.coord is None:
@@ -223,28 +226,28 @@ class GenericFRB(object):
         return sigb
 
 
-    def set_width(self, wtype, value, overwrite=False):
-        """ Set a Width value
-
-        Parameters
-        ----------
-        wtype : str
-          Indicates the type of width
-        value : Quantity
-        overwrite : bool, optional
+    def set_pulse(self, freq,
+                  time_res=None, t0=None, Wi=None, Wi_err=None,
+                  tscatt=None, tscatt_err=None, scatt_index=None,
+                  scatt_index_err=None):
         """
-        # Restrict types
-        assert wtype in ['Wi', 'Wb', 'Wobs']  # Intrinsic, broadened, observed
-        # Check
-        if hasattr(self, wtype) and (not overwrite):
-            raise IOError("Width type {:s} is already set!".format(wtype))
-        # Vette
-        try:
-            value.to('s')
-        except:
-            raise IOError("Bad Quantity for value")
-        # Set
-        setattr(self, wtype, value)
+
+        Args:
+            freq:
+            time_res:
+            t0:
+            Wi:
+            Wi_err:
+            tscatt:
+            tscatt_err:
+            scatt_index:
+            scatt_index_err:
+
+        Returns:
+
+        """
+        args, _, _, values = inspect.getargvalues(inspect.currentframe())
+        self.pulse = dict([(k,values[k]) for k in args[1:]])
 
     def make_outfile(self):
         """
@@ -292,7 +295,7 @@ class GenericFRB(object):
             frb_dict['repeater'] = self.repeater
 
         # Measured properties
-        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol', 'tau']:
+        for attr in ['S', 'nu_c', 'DM', 'z', 'RM', 'DMISM', 'fluence', 'lpol']:
             # Value
             if getattr(self,attr) is not None:
                 frb_dict[attr] = getattr(self, attr)
@@ -307,7 +310,7 @@ class GenericFRB(object):
                 frb_dict[idict] = getattr(self,idict)
 
         # JSONify
-        jdict = utils.jsonify(frb_dict)
+        jdict = utils.jsonify(copy.deepcopy(frb_dict))
 
         # Write
         utils.savejson(os.path.join(path,outfile), jdict, easy_to_read=True, overwrite=overwrite)
@@ -359,7 +362,14 @@ class FRB(GenericFRB):
         # dicts
         for ndict in slf.main_dict:
             if ndict in idict.keys():
+                for key, value in idict[ndict].items():
+                    if isinstance(value, dict):
+                        newvalue = ltu.convert_quantity_in_dict(value)
+                    else:
+                        newvalue = value
+                    idict[ndict][key] = newvalue
                 setattr(slf,ndict,idict[ndict])
+                # Deal with quantities
                 idict.pop(ndict)
 
         # Remainder
