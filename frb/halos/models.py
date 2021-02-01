@@ -620,7 +620,8 @@ class LMC(ModifiedNFW):
 
     Taking data from D'Onghia & Fox ARAA 2016
 
-    Mass updated according to XXX paper
+    Mass updated according to
+        https://ui.adsabs.harvard.edu/abs/2019MNRAS.487.2685E/abstract
 
     """
     def __init__(self, log_Mhalo=np.log10(1.e11), c=12.1, f_hot=0.75, alpha=2, y0=2, **kwargs):
