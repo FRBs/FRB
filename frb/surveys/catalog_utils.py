@@ -265,7 +265,7 @@ def mag_from_flux(flux, flux_err=None):
         err_mag = None
     return mag_AB, err_mag
 
-def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err:float=None)->float:
+def _mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err:float=None)->float:
     """
     Convert a magnitude to mJy
 
@@ -281,8 +281,8 @@ def mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err:
     """
     # Data validation
     assert np.isreal(mag), "Mags must be floats."
-    assert np.isreal(mag_err) | mag_err==None, "Mag errs must be floats"
-    assert type(zpt_flux) == units.Quantity & zpt_flux.decompose().unit == units.kg/units.s**2, "zpt_flux units should be Jy or with dimensions kg/s^2."
+    assert (np.isreal(mag_err)) + (mag_err==None), "Mag errs must be floats"
+    assert (type(zpt_flux) == units.Quantity)*(zpt_flux.decompose().unit == units.kg/units.s**2), "zpt_flux units should be Jy or with dimensions kg/s^2."
 
     if mag < -10: # usually non-detections
         warnings.warn("Assuming mag <-10 implies non-detection", UserWarning)
@@ -338,7 +338,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
             'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
                                #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
     for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
-        flux, flux_err = mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
+        flux, flux_err = _mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
         if flux != -99.:
             fluxtable[mag] = flux*convert
         else:
@@ -356,7 +356,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     other_errs = np.setdiff1d(mag_errcols, wise_errcols+vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
-        flux, flux_err = mags_to_flux(photometry_table[mag], mag_err = photometry_table[err])
+        flux, flux_err = _mags_to_flux(photometry_table[mag], mag_err = photometry_table[err])
         if flux != -99.:
             fluxtable[mag] = flux*convert
         else:
