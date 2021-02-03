@@ -3,7 +3,7 @@
 # TEST_UNICODE_LITERALS
 
 import pytest
-import os
+import os, warnings
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
@@ -110,3 +110,32 @@ def test_panstarrs():
     imghdu = ps_survey.get_image()
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
+
+def test_in_which_survey():
+    """
+    To test if `survey_utils.in_which_survey` works.
+    """
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    
+    with warnings.catch_warnings(record=True) as allwarns:
+        inside = survey_utils.in_which_survey(coord)
+
+    expected_dict = {'SDSS': True,
+                     'DES': False,
+                     'NVSS': False,
+                     'FIRST': False,
+                     'WENSS': False,
+                     'DECaL': True,
+                     'WISE': True,
+                     'Pan-STARRS': True}
+
+    for key in inside.keys():
+        assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
+    
+    # Test if warnings were produced the correct number of times.
+    warncount = 0
+    for w in allwarns:
+        if "Check location manually" in w.message.args[0]:
+            warncount += 1
+    
+    assert warncount == 3
