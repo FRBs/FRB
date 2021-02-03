@@ -92,7 +92,7 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
                 # if that's not the case, then no need to warn.
                 separations = coord.separation(cat_coords)
                 if np.min(separations)>2*u.arcsec:
-                    warnings.warn("Only {} objects found in {} within 1''. Check location manually.".format(len(cat), surveyname),
+                    warnings.warn("Only {} objects found in {} within 1'. Check location manually.".format(len(cat), surveyname),
                                   RuntimeWarning, stacklevel=2)
             return False
         else:
