@@ -2,6 +2,7 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+import astropy
 import pytest
 import os, warnings
 
@@ -117,8 +118,8 @@ def test_in_which_survey():
     """
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     
-    #with warnings.catch_warnings(record=True) as allwarns:
-    inside = survey_utils.in_which_survey(coord)
+    with warnings.catch_warnings(record=True) as allwarns:
+        inside = survey_utils.in_which_survey(coord)
 
     expected_dict = {'SDSS': True,
                      'DES': False,
@@ -133,9 +134,12 @@ def test_in_which_survey():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
     
     # Test if warnings were produced the correct number of times.
-    #warncount = 0
-    #for w in allwarns:
-    #    if "Check location manually" in w.message.args[0]:
-    #        warncount += 1
-    
-    #assert warncount == 3
+    # Only for stable versions. For some reason, the 4.3dev version
+    # returns empty table for the Heasarc surveys but 4.2 returns 1 or 2 objects.
+    # Strange.
+    if 'dev' not in astropy.__version__:
+        warncount = 0
+        for w in allwarns:
+            if "Check location manually" in w.message.args[0]:
+                warncount += 1
+        assert warncount == 3
