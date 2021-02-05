@@ -26,10 +26,14 @@ def frb_121102():
     # NE2001
     frb121102.set_DMISM()
 
-    # FRB properties
-    frb121102.tau = 0.024 * units.ms  # no errors given
+    # RM
     frb121102.RM = 1.e5 * units.rad / units.m**2
-    frb121102.set_width('Wobs',3.0*units.ms)
+
+    # Pulse properties
+    frb121102.set_pulse(1*units.GHz,
+        Wi=3.0*units.ms,
+        Wi_err=0.5*units.ms,
+        tscatt=0.024*units.ms) # no errors given
 
     # Error ellipse
     frb121102.set_ee(0.004, 0.002, theta=90., cl=68.)
@@ -63,11 +67,16 @@ def frb_180916():
     # NE2001
     frb180916.set_DMISM()
    
-    # FRB properties 
-    frb180916.tau = 0.0027 * units.ms  # no errors given
+    # RM and fluence
+    frb180916.fluence = 2.53*units.Jy*units.ms # Brightest
     frb180916.RM = -114.6 * units.rad / units.m**2 # From CHIME/FRB 2019
     frb180916.RM_err = 0.6 * units.rad / units.m**2
     
+    # Pulse properties
+    frb180916.set_pulse(1*units.GHz,
+        Wi=1.66*units.ms,
+        Wi_err=0.05*units.ms, 
+        tscatt=0.0027*units.ms) # no errors given
     
 
     # References
@@ -93,15 +102,21 @@ def frb_180924():
     # NE2001
     frb180924.set_DMISM()
 
-    # FRB properties
+    # RM, fluence and polarization
     frb180924.fluence = 16 * units.Jy * units.ms    # From Bhandari+20
     frb180924.fluence_err = 1 * units.Jy * units.ms # -- //-- 
-    frb180924.RM = 22 * units.rad / units.m**2 
+    frb180924.RM = 22 * units.rad / units.m**2
     frb180924.RM_err = 2 * units.rad / units.m**2
-    frb180924.tau = 0.68 * units.ms
-    frb180924.tau_err = 0.03 * units.ms
     frb180924.lpol = 80.  # %
     frb180924.lpol_err = 10.
+
+    # Pulse properties
+    frb180924.set_pulse(1.2725*units.GHz,
+        Wi=0.09*units.ms,
+        Wi_err=0.04*units.ms,
+        tscatt=0.68*units.ms,
+        tscatt_err=0.03*units.ms)
+ 
     # Error ellipse
     frb180924.set_ee(a=0.07, b=0.06, theta=0., cl=68.) # Statistical (Day+2020)
     frb180924.set_ee(a=0.09, b=0.07, theta=0., cl=68.,stat=False) # Systematic
@@ -129,14 +144,18 @@ def frb_181112():
     frb181112.set_ee(a=555.30/1e3, b=152.93/1e3, theta=120.15, cl=68.) # Statistical (Prochaska+2019)
     frb181112.set_ee(a=3.2, b=0.8, theta=120.15, cl=68.,stat=False) # Systematic
 
-    # FRB properties
-    frb181112.tau = 0.021 * units.ms # All from Cho et al. 2020, ApJ, 891, 38
-    frb181112.tau_err = 0.001 * units.ms
+    # RM and fluence
     frb181112.RM = 10.5 * units.rad / units.m**2
-    frb181112.RM_err = 0.4 * units.rad / units.m**2 
-    frb181112.fluence = 20.2 * units.Jy * units.ms 
-    frb181112.fluence_err = 0.1 * units.Jy * units.ms    
-    frb181112.set_width('Wobs',3.0*units.ms)
+    frb181112.RM_err = 0.4 * units.rad / units.m**2
+    frb181112.fluence = 20.2 * units.Jy * units.ms
+    frb181112.fluence_err = 0.1 * units.Jy * units.ms
+
+    # Pulse properties
+    frb181112.set_pulse(1.2725*units.GHz,
+        Wi=0.016*units.ms,
+        Wi_err=0.001*units.ms,
+        tscatt=0.021*units.ms,
+        tscatt_err=0.001*units.ms)
 
     # NE2001
     frb181112.set_DMISM()
@@ -169,14 +188,19 @@ def frb_190102():
     # NE2001
     frb190102.set_DMISM()
     
-     # FRB properties
+     # RM and fluence
     frb190102.fluence = 14 * units.Jy * units.ms    # From Bhandari+20
     frb190102.fluence_err = 1 * units.Jy * units.ms # -- //-- 
     frb190102.RM = -105 * units.rad / units.m**2
     frb190102.RM_err = 1 * units.rad / units.m**2
-    frb190102.tau = 0.041 * units.ms
-    frb190102.tau_err = 0.003 * units.ms
-    
+
+    # Pulse properties
+    frb190102.set_pulse(1.2725*units.GHz,
+        Wi=0.053*units.ms,
+        Wi_err=0.002*units.ms,
+        tscatt=0.041*units.ms,
+        tscatt_err=0.003*units.ms)   
+ 
     # References
     frb190102.refs = ['Bhandari2020', 'Day2020']
 
@@ -207,9 +231,12 @@ def frb_190523():
     # NE2001
     frb190523.set_DMISM()
 
-    # RM
-    #frb190102.RM = 10 * units.rad / units.m**2
-    #frb190102.RM_err = 1 * units.rad / units.m**2
+    # Pulse properties
+    frb190523.set_pulse(1.*units.GHz,
+        Wi=0.42*units.ms,
+        Wi_err=0.05*units.ms,
+        tscatt=1.4*units.ms,
+        tscatt_err=0.2*units.ms)
 
     # References
     frb190523.refs = ['Ravi2019']
@@ -237,13 +264,18 @@ def frb_190608():
     # NE2001
     frb190608.set_DMISM()
 
-    # FRB properties
+    # RM and fluence 
     frb190608.fluence = 26 * units.Jy * units.ms    # From Macquart+20
     frb190608.fluence_err = 4 * units.Jy * units.ms # -- //-- 
     frb190608.RM = 353 * units.rad / units.m**2 # From Day+20
     frb190608.RM_err = 2 * units.rad / units.m**2
-    frb190608.tau = 3.3 * units.ms
-    frb190608.tau_err = 0.2 * units.ms
+
+    # Pulse properties
+    frb190608.set_pulse(1.2725*units.GHz,
+        Wi=1.1*units.ms,
+        Wi_err=0.2*units.ms,
+        tscatt=3.3*units.ms,
+        tscatt_err=0.2*units.ms)
 
     # References
     frb190608.refs = ['Bhandari2020','Day2020']
@@ -273,13 +305,18 @@ def frb_190611():
     # NE2001
     frb190611.set_DMISM()
     
-    # FRB properties
+    # RM and fluence
     frb190611.RM = 20 * units.rad / units.m**2 # From Day+20
     frb190611.RM_err = 4 * units.rad / units.m**2
-    frb190611.tau = 0.18 * units.ms
-    frb190611.tau_err = 0.02 * units.ms
     frb190611.fluence = 10 * units.Jy * units.ms # From Macquart+20
     frb190611.fluence_err = 2 * units.Jy * units.ms    
+
+    # Pulse properties
+    frb190611.set_pulse(1.2725*units.GHz,
+        Wi=0.09*units.ms,
+        Wi_err=0.02*units.ms,
+        tscatt=0.18*units.ms,
+        tscatt_err=0.02*units.ms)
 
     # References
     frb190611.refs = ['MacQuart2020', 'Day2020']
@@ -334,7 +371,7 @@ def frb_190711():
 
     # NE2001
     frb190711.set_DMISM()
-    # RM -- Day+2020
+    # RM and fluence -- Day+2020
     frb190711.RM = 9 * units.rad / units.m**2 # Day+20
     frb190711.RM_err = 2 * units.rad / units.m**2
     frb190711.fluence = 34 * units.Jy * units.ms # Macquart+20
@@ -371,7 +408,7 @@ def frb_190714():
     # NE2001
     frb190714.set_DMISM()
 
-    # FRB properties
+    # Fluence
     frb190714.fluence = 12 * units.Jy * units.ms # From Cherie on Slack (2/10 - 2020)
     frb190714.fluence_err = 2 * units.Jy * units.ms
 
@@ -401,13 +438,18 @@ def frb_191001():
 
     # NE2001
     frb191001.set_DMISM()
-    # FRB properties (Bhandari+20b)
+    # RM and fluence (Bhandari+20b)
     frb191001.RM = 55.5 * units.rad / units.m**2
     frb191001.RM_err = 0.9 * units.rad / units.m**2
     frb191001.fluence = 143 * units.Jy * units.ms
     frb191001.fluence_err = 15 * units.Jy * units.ms
-    frb191001.tau = 3.3 * units.ms
-    frb191001.tau_err = 0.2 *units.ms
+
+    # Pulse properties
+    frb191001.set_pulse(0.920*units.GHz,
+        Wi=0.22*units.ms,
+        Wi_err=0.03*units.ms,
+        tscatt=3.3*units.ms,
+        tscatt_err=0.2*units.ms)
 
     # References
     frb191001.refs = ['Bhandari2020b']
