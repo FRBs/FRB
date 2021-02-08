@@ -233,15 +233,24 @@ class GenericFRB(object):
         """
 
         Args:
-            freq:
-            time_res:
-            t0:
-            Wi:
-            Wi_err:
-            tscatt:
-            tscatt_err:
-            scatt_index:
-            scatt_index_err:
+            freq (Quantity):
+                Frequency at which the pulse was analyzed
+            time_res (Quantity):
+                Time resolution of the telescope/instrument
+            t0 (Quantity):
+                ??
+            Wi (Quantity):
+                Intrinsic width
+            Wi_err (Quantity):
+                Error in intrinsic width
+            tscatt (Quantity):
+                Scattering broadening time
+            tscatt_err (Quantity):
+                Error in Scattering broadening time
+            scatt_index (float):
+                Scattering index
+            scatt_index_err (float):
+                Error in scattering index
 
         Returns:
 
