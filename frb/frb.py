@@ -231,6 +231,7 @@ class GenericFRB(object):
                   tscatt=None, tscatt_err=None, scatt_index=None,
                   scatt_index_err=None):
         """
+        Set the attributes of the pulse dict for the FRB
 
         Args:
             freq (Quantity):
