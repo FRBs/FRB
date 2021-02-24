@@ -142,4 +142,4 @@ def test_in_which_survey():
         for w in allwarns:
             if "Check location manually" in w.message.args[0]:
                 warncount += 1
-        assert warncount == 3
+        assert warncount == 2
