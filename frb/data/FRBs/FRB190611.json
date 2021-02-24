@@ -40,6 +40,33 @@
         "unit": "Jy ms",
         "value": 2.0
     },
+    "pulse": {
+        "DM_smear": null,
+        "Wi": {
+            "unit": "ms",
+            "value": 0.09
+        },
+        "Wi_err": {
+            "unit": "ms",
+            "value": 0.02
+        },
+        "freq": {
+            "unit": "GHz",
+            "value": 1.2725
+        },
+        "scatt_index": null,
+        "scatt_index_err": null,
+        "t0": null,
+        "time_res": null,
+        "tscatt": {
+            "unit": "ms",
+            "value": 0.18
+        },
+        "tscatt_err": {
+            "unit": "ms",
+            "value": 0.02
+        }
+    },
     "ra": 320.7454583333333,
     "refs": [
         "MacQuart2020",

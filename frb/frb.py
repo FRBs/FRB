@@ -225,21 +225,18 @@ class GenericFRB(object):
             sigb = np.sqrt(self.eellipse['b_sys']**2 + sigb**2)
         return sigb
 
-
     def set_pulse(self, freq,
                   time_res=None, t0=None, Wi=None, Wi_err=None,
                   tscatt=None, tscatt_err=None, scatt_index=None,
-                  scatt_index_err=None):
+                  scatt_index_err=None, DM_smear=None):
         """
-        Set the attributes of the pulse dict for the FRB
-
         Args:
             freq (Quantity):
                 Frequency at which the pulse was analyzed
             time_res (Quantity):
                 Time resolution of the telescope/instrument
             t0 (Quantity):
-                ??
+                Pulse arrival time (MJD) at top band frequency
             Wi (Quantity):
                 Intrinsic width
             Wi_err (Quantity):
@@ -252,9 +249,8 @@ class GenericFRB(object):
                 Scattering index
             scatt_index_err (float):
                 Error in scattering index
-
-        Returns:
-
+            DM_smear (float):
+                Dispersion smearing generated observed width
         """
         args, _, _, values = inspect.getargvalues(inspect.currentframe())
         self.pulse = dict([(k,values[k]) for k in args[1:]])
