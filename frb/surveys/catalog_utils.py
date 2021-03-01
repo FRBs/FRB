@@ -270,7 +270,7 @@ def _mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err
     Convert a magnitude to mJy
 
     Args:
-        mag (float): magnitude
+        mag (column): magnitude
         zpt_flux (Quantity, optional): Zero point flux for the magnitude.
             Assumes AB mags by default (i.e. zpt_flux = 3630.7805 Jy). 
         mag_err (float, optional): uncertainty in magnitude
@@ -280,21 +280,22 @@ def _mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err
             flux_err is returned.
     """
     # Data validation
-    assert np.isreal(mag), "Mags must be floats."
-    assert (np.isreal(mag_err)) + (mag_err==None), "Mag errs must be floats"
+    #assert np.isreal(mag), "Mags must be floats."
+    #assert (np.isreal(mag_err)) + (mag_err==None), "Mag errs must be floats"
     assert (type(zpt_flux) == units.Quantity)*(zpt_flux.decompose().unit == units.kg/units.s**2), "zpt_flux units should be Jy or with dimensions kg/s^2."
 
-    if mag < -10: # usually non-detections
-        warnings.warn("Assuming mag <-10 implies non-detection", UserWarning)
-        flux = -99.
-    else:
-        flux = zpt_flux.value*10**(-mag/2.5)
+    flux = mag.copy()
+
+    # Conver fluxes
+    badmags = mag<-10
+    flux[badmags] = -99.
+    flux[~badmags] = zpt_flux.value*10**(-mag[~badmags]/2.5)
     
     if mag_err is not None:
-        if mag_err < 0:
-            flux_err = -99.
-        else:
-            flux_err = flux*(10**(mag_err/2.5)-1)
+        flux_err = mag_err.copy()
+        baderrs = mag_err < 0
+        flux_err[baderrs] = -99.
+        flux_err[~baderrs] = flux[~baderrs]*(10**(mag_err[~baderrs]/2.5)-1)
         return flux, flux_err
     else:
         return flux    
@@ -311,11 +312,10 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxunits (str, optional):
             Flux units to convert the magnitudes
             to, as parsed by astropy.units. Default is mJy.
-
-    Returns:
-        fluxtable: astropy Table
-            `photometry_table` but the magnitudes
-            are converted to fluxes.
+        Returns:
+            fluxtable: astropy Table
+                `photometry_table` but the magnitudes
+                are converted to fluxes.
     """
     fluxtable = photometry_table.copy()
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
@@ -339,16 +339,21 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
             'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
                                #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
     for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
-        print('mag = {}'.format(mag))
         flux, flux_err = _mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
-        if flux != -99.:
-            fluxtable[mag] = flux*convert
-        else:
-            fluxtable[mag] = flux
-        if flux_err != -99.:
-            fluxtable[err] = flux_err*convert
-        else:
-            fluxtable[err] = flux_err
+        badflux = flux == -99.
+        fluxtable[mag][badflux] = flux[badflux]
+        fluxtable[mag][~badflux] = flux[~badflux]*convert
+        #if flux != -99.:
+        #    fluxtable[mag] = flux*convert
+        #else:
+        #    fluxtable[mag] = flux
+        baderr = flux_err == -99.0
+        fluxtable[err][baderr] = flux_err[baderr]
+        fluxtable[err][~baderr] = flux_err[~baderr]*convert
+        #if flux_err != -99.:
+        #    fluxtable[err] = flux_err*convert
+        #else:
+        #    fluxtable[err] = flux_err
         if "W" in mag and "WISE" not in mag and 'WFC3' not in mag:
             fluxtable.rename_column(mag,mag.replace("W","WISE"))
             fluxtable.rename_column(err,err.replace("W","WISE"))
@@ -359,14 +364,16 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
 
     for mag, err in zip(other_mags, other_errs):
         flux, flux_err = _mags_to_flux(photometry_table[mag], mag_err = photometry_table[err])
-        if flux != -99.:
-            fluxtable[mag] = flux*convert
-        else:
-            fluxtable[mag] = flux
-        if flux_err != -99.:
-            fluxtable[err] = flux_err*convert
-        else:
-            fluxtable[err] = flux_err
+        badflux = flux == -99.
+        fluxtable[mag][badflux] = flux[badflux]
+        fluxtable[mag][~badflux] = flux[~badflux]*convert
+        #if flux != -99.:
+        #    fluxtable[mag] = flux*convert
+        #else:
+        #    fluxtable[mag] = flux
+        baderr = flux_err == -99.0
+        fluxtable[err][baderr] = flux_err[baderr]
+        fluxtable[err][~baderr] = flux_err[~baderr]*convert
 
         # Upper limits -- Assume to have been recorded as 3 sigma
         #   Arbitrarily set the value to 1/3 of the error (could even set to 0)
