@@ -6,6 +6,8 @@ import os
 import shutil
 import numpy as np
 
+from distutils.spawn import find_executable
+
 from astropy.io import fits
 from astropy.table import Table
 from astropy.wcs import WCS
@@ -16,8 +18,8 @@ from frb.galaxies.frbgalaxy import FRBHost
 from frb.frb import FRB
 
 from frb.galaxies import galfit as glf
-remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
-                                        reason='test requires dev suite')
+galfit_exec = pytest.mark.skipif(find_executable('galfit') is None,
+                                        reason='test requires galfit')
 
 def test_platescale():
     cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
@@ -26,7 +28,7 @@ def test_platescale():
     platescale = glf.get_platescale(wcs)
     assert np.isclose(platescale, 0.263)
 
-@remote_data
+@galfit_exec
 def test_run():
     cutout_file = resource_filename('frb','tests/files/cutout_DES_i.fits')
     psf_file = resource_filename('frb', 'tests/files/avg_DES_psf_i.fits')
@@ -44,7 +46,6 @@ def test_run():
     assert np.isclose(result_tab['reff_ang'][0], 0.57071,rtol=1e-2, atol=1e-4)
     shutil.rmtree(outdir)
 
-@remote_data
 def test_parse_galfit():
     frb = FRB.by_name("FRB121102")
     host = frb.grab_host()

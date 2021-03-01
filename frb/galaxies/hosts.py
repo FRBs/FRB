@@ -183,7 +183,6 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
 
     """
     r_dat, mag_uniq, cvs = read_r_mags(resource_filename('frb',os.path.join('data','Galaxies','driver2016_t3data.fits')))
-
     spl = interpolate.UnivariateSpline(x=mag_uniq,
                                        y=np.log10(r_dat),
                                        bbox=[-100, 100],

@@ -40,6 +40,33 @@
         "unit": "Jy ms",
         "value": 4.0
     },
+    "pulse": {
+        "DM_smear": null,
+        "Wi": {
+            "unit": "ms",
+            "value": 1.1
+        },
+        "Wi_err": {
+            "unit": "ms",
+            "value": 0.2
+        },
+        "freq": {
+            "unit": "GHz",
+            "value": 1.2725
+        },
+        "scatt_index": null,
+        "scatt_index_err": null,
+        "t0": null,
+        "time_res": null,
+        "tscatt": {
+            "unit": "ms",
+            "value": 3.3
+        },
+        "tscatt_err": {
+            "unit": "ms",
+            "value": 0.2
+        }
+    },
     "ra": 334.01987499999996,
     "refs": [
         "Bhandari2020",

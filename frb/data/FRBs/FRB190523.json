@@ -24,6 +24,33 @@
         "unit": "Jy ms",
         "value": 280.0
     },
+    "pulse": {
+        "DM_smear": null,
+        "Wi": {
+            "unit": "ms",
+            "value": 0.42
+        },
+        "Wi_err": {
+            "unit": "ms",
+            "value": 0.05
+        },
+        "freq": {
+            "unit": "GHz",
+            "value": 1.0
+        },
+        "scatt_index": null,
+        "scatt_index_err": null,
+        "t0": null,
+        "time_res": null,
+        "tscatt": {
+            "unit": "ms",
+            "value": 1.4
+        },
+        "tscatt_err": {
+            "unit": "ms",
+            "value": 0.2
+        }
+    },
     "ra": 207.065,
     "refs": [
         "Ravi2019"

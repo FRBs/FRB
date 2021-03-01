@@ -26,6 +26,8 @@
 - FRBs from Bhandari et al. and Macquart et al. 2020
 - Convenience functions for FRB and host tables
 - Quantity convenience functions
+- Code to run PATH on FRBs
+- Additional CIGALE filters
 
 
 From heintz2020:

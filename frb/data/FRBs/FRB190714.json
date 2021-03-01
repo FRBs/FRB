@@ -24,6 +24,14 @@
         "theta": 90.0,
         "theta_sys": 90.0
     },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 12.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 2.0
+    },
     "ra": 183.97966666666665,
     "refs": [
         "Heintz2020"

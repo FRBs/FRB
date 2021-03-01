@@ -13,12 +13,10 @@ to parse the output automatically.
 """
 
 import numpy as np
-import pandas as pd
 import sys, os, subprocess
 import warnings
 
 from astropy.io import fits
-from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from astropy.table import Table
 from astropy.wcs import WCS
