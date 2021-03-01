@@ -311,10 +311,11 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxunits (str, optional):
             Flux units to convert the magnitudes
             to, as parsed by astropy.units. Default is mJy.
-        Returns:
-            fluxtable: astropy Table
-                `photometry_table` but the magnitudes
-                are converted to fluxes.
+
+    Returns:
+        fluxtable: astropy Table
+            `photometry_table` but the magnitudes
+            are converted to fluxes.
     """
     fluxtable = photometry_table.copy()
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
@@ -338,6 +339,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
             'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
                                #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
     for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
+        print('mag = {}'.format(mag))
         flux, flux_err = _mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
         if flux != -99.:
             fluxtable[mag] = flux*convert
