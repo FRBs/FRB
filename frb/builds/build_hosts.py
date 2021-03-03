@@ -948,6 +948,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
     frbname = '190614'
     eazy_folder = './eazy'
 
+    frb190614 = FRB.by_name('FRB190614')
+
     #########################################################
     # A
     #########################################################
@@ -957,7 +959,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')  # J042017.713+734222.88
 
         # Instantiate
-        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614A.name = 'G190614_A'
 
         # Photometry
@@ -1061,7 +1064,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')   # J042017.872+734224.42
 
         # Instantiate
-        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614B.name = 'G190614_B'
 
         # Redshift -- JXP measured from FORS2
@@ -1167,7 +1171,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')
 
         # Instantiate
-        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
 
         # Redshift -- JXP measured from FORS2
         #    Should be refined
