@@ -81,6 +81,27 @@ class FRBCat(object):
         self.frbcat['RA'] = self.coords.icrs.ra.value
         self.frbcat['DEC'] = self.coords.icrs.dec.value
 
+        # DM
+        self.frbcat['DM'] = 0.
+        self.frbcat['DM_err'] = -999.
+        for kk, dms in enumerate(self.frbcat['rmp_dm']):
+            ps = dms.split('&plusmn')
+            self.frbcat['DM'][kk] = float(ps[0])
+            if 'plusmn' in dms:
+                self.frbcat['DM_err'][kk] = float(ps[1])
+
+        # RM
+        self.frbcat['RM'] = np.nan
+        self.frbcat['RM_err'] = np.nan
+        for kk, rms in enumerate(self.frbcat['rmp_rm']):
+            if rms == 'null':
+                continue
+            ps = rms.split('&plusmn')
+            self.frbcat['RM'][kk] = float(ps[0])
+            if 'plusmn' in rms:
+                self.frbcat['RM_err'][kk] = float(ps[1])
+
+
         # Restrict to unique sources
         if orig:
             uni, uidx = np.unique(self.frbcat['Name'], return_index=True)
