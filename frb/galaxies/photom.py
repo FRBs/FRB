@@ -8,13 +8,22 @@ from pkg_resources import resource_filename
 
 from IPython import embed
 
+from astropy.io import fits
 from astropy.table import Table, hstack, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
+from astropy.cosmology import Planck15 as cosmo
+from astropy.wcs import utils
+from astropy.nddata import Cutout2D
+from astropy.wcs import WCS
+
+from photutils import SkyCircularAperture
+from photutils import aperture_photometry
 
 from frb.galaxies import nebular
 from frb.galaxies import defs
+from frb import frb
 
 try:
     import extinction
@@ -233,3 +242,146 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         cut_photom[key] += mag_dust
     # Add it back in
     photom[idx] = cut_photom
+
+
+
+def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
+    """
+
+    :param frbname: string, e.g. FRB191001
+    :param isize: int, length of one dimension of cutout around host
+    :param UV: bool, if UV image, True
+    :param fwhm: size of the aperture for photometry (either in pixel or kpc)
+    :param physical: is the fwhm in physical units?
+    :return:
+
+    """
+
+
+
+    frbdat = frb.FRB.by_name(frbname)
+    frbcoord = frbdat.coord
+    hg = frbdat.grab_host()
+    hgcoord = hg.coord
+
+    # Read data
+    hdu = fits.open(file)
+    header = hdu[0].header
+    hst_dat = hdu[0].data
+
+    # Read inverse variance
+    hduivm = fits.open(err_file)
+    headerivm = hduivm[0].header
+    hst_ivm = hduivm[0].data
+
+    isize = isize  # arcsec
+    size = units.Quantity((isize, isize), units.arcsec)
+    cutout = Cutout2D(hst_dat, hgcoord, size, wcs=WCS(header))
+    hg_ivm = Cutout2D(hst_ivm, hgcoord, size, wcs=WCS(header))
+
+    # get data from cutouts (data and error)
+    cut_dat = cutout.data
+    cut_err = hg_ivm.data
+
+    x = np.arange(np.shape(cut_dat)[0])
+    y = np.arange(np.shape(cut_dat)[1])
+    xx, yy = np.meshgrid(x, y)
+    coords = utils.pixel_to_skycoord(xx, yy, cutout.wcs)
+    xfrb, yfrb = utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+    plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
+
+    uncerta = frbdat.eellipse['a'] / plate_scale
+    uncertb = frbdat.eellipse['b'] / plate_scale
+
+    if 'a_sys' in frbdat.eellipse.keys():
+        uncerta = np.sqrt(frbdat.eellipse['a'] ** 2 + frbdat.eellipse['a_sys'] ** 2)
+        uncertb = np.sqrt(frbdat.eellipse['b'] ** 2 + frbdat.eellipse['b_sys'] ** 2)
+    theta = frbdat.eellipse['theta']
+
+    hst_idx = np.where(hst_astrom.FRB.values == int(frbdat.FRB[3:]))[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        # Errors
+        host_ra_sig_astro = hst_row['Astrometric (GB to HST for F160W)']  # Are these arcsec or deg??
+        host_dec_sig_astro = hst_row['Astrometric (Ground-based to HST for F160W)']
+        host_ra_sig_source = hst_row['Host']
+        host_dec_sig_source = hst_row['Source Extractor (Host)']
+        host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
+        host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
+
+        # sigma**2
+        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
+        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
+        # Add em in
+
+        uncerta = np.sqrt(uncerta ** 2 + sig2_gal_a) / plate_scale
+        uncertb = np.sqrt(uncertb ** 2 + sig2_gal_b) / plate_scale
+
+    else:  # for those not in the excel sheet
+        uncerta = uncerta / plate_scale
+        uncertb = uncertb / plate_scale
+
+    if uncerta < 1:
+        uncerta = 2
+
+    if uncertb < 1:
+        uncertb = 2
+
+    # check if in ellipse -- pixel space!
+    in_ellipse = ((xx - xfrb.item()) * np.cos(theta) + (yy - yfrb.item()) * np.sin(theta)) ** 2 / (
+            uncerta ** 2) + (
+                         (xx - xfrb.item()) * np.sin(theta) - (yy - yfrb.item()) * np.cos(
+                     theta)) ** 2 / (
+                         uncertb ** 2) <= 1
+
+    idx = np.where(in_ellipse)
+    xval = xx[idx]
+    yval = yy[idx]
+
+    # x, y gal on the tilted grid (same for frb coords)
+    xp = yval * np.cos(theta) - xval * np.sin(theta)
+    yp = xval * np.cos(theta) + yval * np.sin(theta)
+
+    xpfrb = yfrb.item() * np.cos(theta) - xfrb.item() * np.sin(theta)
+    ypfrb = xfrb.item() * np.cos(theta) + yfrb.item() * np.sin(theta)
+
+    # convert fwhm from pixels to arcsec or kpc to arcsec
+    fwhm_as = fwhm * plate_scale * units.arcsec
+    if physical:
+        fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(hg.z)
+
+    print(fwhm_as)
+    photom = []
+    photom_var = []
+    for i in np.arange(np.shape(idx)[1]):
+        aper = SkyCircularAperture(coords[idx[0][i], idx[1][i]], fwhm_as)
+        apermap = aper.to_pixel(cutout.wcs)
+
+        # aperture photometry for psf-size within the galaxy
+        photo_frb = aperture_photometry(cut_dat, apermap)
+        photo_err = aperture_photometry(1 / cut_err, apermap)
+
+        photom.append(photo_frb['aperture_sum'][0])
+        photom_var.append(photo_err['aperture_sum'][0])
+
+    # ff prob distribution
+    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * uncerta ** 2)) * np.exp(-(yp - ypfrb) ** 2 / (2 * uncertb ** 2))
+    f_weight = (photom / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted photometry
+    fvar_weight = (photom_var / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted sigma
+
+    weight_avg = np.sum(f_weight) / np.sum(p_ff)
+    weight_avg = weight_avg  # per unit area (arcsec^2)
+    var_off = np.sum((photom - weight_avg) ** 2 * p_ff) / np.sum(p_ff)
+    sig_off = np.sqrt(var_off)
+    print(weight_avg)
+
+    weight_var_avg = np.sum(fvar_weight) / np.sum(p_ff)
+    weight_err_avg = np.sqrt(weight_var_avg)
+
+    limit = False
+    if 3 * weight_err_avg > weight_avg:
+        print('LIMIT!')
+        weight_avg = 3 * weight_err_avg
+        weight_err_avg = 999
+        limit = True

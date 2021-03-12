@@ -28,6 +28,7 @@ from frb.surveys import sdss
 from frb.surveys import wise
 from frb.surveys import panstarrs
 from frb.surveys import catalog_utils
+import pandas
 
 try:
     import extinction
@@ -52,6 +53,14 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 ebv_method = 'SandF'
+
+try:
+    hst_astrom = pandas.read_csv('../data/Galaxies/HST_astrom/hst_astrometryv2.csv')
+    hst_astrom = hst_astrom[hst_astrom.Filter == 'F160W']
+
+except:
+    warnings.warn("Need Mannings 2020 astrometry file")
+
 
 def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     """
