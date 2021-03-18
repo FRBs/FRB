@@ -1646,8 +1646,12 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     spec_fit = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
                             'HG200430_DEIMOS_ppxf.fits')
     if build_ppxf:
-        meta, spectrum = host200430.get_metaspec(instr='DEIMOS')
-        R = meta['R']
+        meta, spectrum = host200430.get_metaspec(instr='DEIMOS', 
+                                                 specdb_file=os.path.join(
+                                                     os.getenv('SPECDB'), 
+                                                     'specDB_CRAFT.hdf5'))
+        R = 1607.  # 600ZD and 1" assumed
+        # R = meta['R']
 
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(host200430.coord)['meanValue'])
