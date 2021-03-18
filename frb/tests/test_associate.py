@@ -1,18 +1,28 @@
+import os
 import numpy as np
 from pkg_resources import resource_filename
+
+import pandas
 
 from astropy import units
 
 from frb.associate import frbassociate
-from frb.associate import frbs
 
 import pytest
 
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                 reason='test requires dev suite')
+
+@remote_data
 def test_individual():
+    from frb.associate import frbs
     config = getattr(frbs, 'FRB180924'.lower())
     frbA = frbassociate.run_individual(config)
+    # Test
+    assert isinstance(frbA.candidates, pandas.DataFrame)
 
 
+@remote_data
 def test_step_by_step():
     from frb import frb
 
@@ -54,7 +64,7 @@ def test_step_by_step():
     # Theta
     theta_max = 10.  # in half-light units
     theta_u = dict(method='uniform',
-                   r_half=frbA_180924.candidates['half_light'].values,
+                   ang_size=frbA_180924.candidates['half_light'].values,
                    max=theta_max)
     frbA_180924.set_theta_prior(theta_u)
 
@@ -69,7 +79,7 @@ def test_step_by_step():
     # Theta
     theta_max = 10.  # in half-light units
     theta_c = dict(method='core', max=theta_max)
-    theta_c['r_half'] = frbA_180924.candidates['half_light'].values
+    theta_c['ang_size'] = frbA_180924.candidates['half_light'].values
     frbA_180924.set_theta_prior(theta_c)
 
     # Calcuate p(O_i|x)
@@ -85,7 +95,7 @@ def test_step_by_step():
     # Theta
     theta_max = 10.  # in half-light units
     theta_e = dict(method='exp', max=theta_max)
-    theta_e['r_half'] = frbA_180924.candidates['half_light'].values
+    theta_e['ang_size'] = frbA_180924.candidates['half_light'].values
     frbA_180924.set_theta_prior(theta_e)
 
     # Calcuate p(O_i|x)
@@ -95,7 +105,7 @@ def test_step_by_step():
     print(frbA_180924.candidates[['id', 'r', 'half_light',
                                   'separation', 'P_O', 'P_Ox']][final_cands])
 
-    assert np.isclose(np.max(frbA_180924.candidates.P_Ox), 0.9793614051180874)
+    assert np.isclose(np.max(frbA_180924.candidates.P_Ox), 0.9990933441057845)
 
 
 

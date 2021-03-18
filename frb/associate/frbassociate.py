@@ -14,8 +14,8 @@ from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
 
 from frb import frb
-from frb.associate import bayesian
-from frb.associate import chance
+from astropath import bayesian
+from astropath import chance
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -25,9 +25,16 @@ from IPython import embed
 
 class FRBAssociate():
     """
+    Class that guides the PATH analysis for an FRB
+    It is instantiated with an FRB object
+
+    Args:
+        frb (frb.frb.FRB): FRB object
+        image_file (str, optional): Name of image file
+        max_radius (float, optional): Maximum radius for analysis (arcsec)
 
     Attributes:
-        hdu:
+        hdu (fits.HDU: FITS header-data unit
         photom (pandas.DataFrame):  Photometry table
         candidate (pandas.DataFrame):  Candidates table
             Note, while this is derived from photom, it is a *separate* copy
@@ -38,11 +45,6 @@ class FRBAssociate():
     def __init__(self, frb, image_file=None, max_radius=1e9):
         """
 
-        Args:
-            frb:
-            image_file:
-            max_radius (float, optional):
-                Maximum radius for analysis (arcsec)
         """
         self.frb = frb
         self.image_file = image_file
@@ -88,12 +90,14 @@ class FRBAssociate():
         Calculate the Pchance values for the candidates
 
         self.Pchance filled in place
-        Addes as P_c to candidates
+        Added as P_c to candidates Table
 
         Args:
-            ndens_eval:
-
-        Returns:
+            ndens_eval (str, optional): Source of number density evaluation.
+                See frb.associate.chance.pchance for options
+            extinction_correct (bool, optional):
+                If True, apply an extinction correction to the photometry based
+                on the coordinates.
 
         """
         # Correct for extinction
@@ -112,7 +116,7 @@ class FRBAssociate():
         self.candidates['P_c'] = self.Pchance
         self.candidates['Sigma_m'] = self.Sigma_m
 
-    def calc_priors(self, prior_U, method='linear'):
+    def calc_priors(self, prior_U, method='inverse'):
         """
         Calulate the priors based on Pchance
         and the input method
@@ -124,8 +128,7 @@ class FRBAssociate():
             prior_S (float):
                 If the input value is <0, use the P_c product else use the input value
             method (str, optional):
-                'linear':  P(O) = 1 - Pchance
-                'inverse':  P(O) = 1 / Pchance
+                'inverse':  P(O) = 1 / Sigma(m)
         """
         if self.Pchance is None:
             raise IOError("Set Pchance before calling this method")
@@ -135,8 +138,11 @@ class FRBAssociate():
             self.prior_U = np.product(self.candidates['P_c'])
         else:
             self.prior_U = prior_U
+
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(self.Pchance, self.Sigma_m, method)
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.candidates[self.filter].values,
+                                                  Pchance=self.Pchance,
+                                                  half_light=self.candidates.half_light.values)
 
         # Normalize
         self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)
@@ -154,6 +160,10 @@ class FRBAssociate():
 
         Values are stored in self.P_Oix
         and the candidates table as P_Ox
+
+        Args:
+            kwargs (optional):  passed to self.calc_pxO
+
         """
 
         # Intermediate steps
@@ -168,18 +178,28 @@ class FRBAssociate():
         # P(S|x)
         self.P_Ux = self.prior_U * self.p_xU / self.p_x
 
-    def calc_pxO(self, **kwargs):
+    def calc_pxO(self, min_rellipse=0.3, **kwargs):
         """
         Calculate p(x|O) and assign to p_xOi
 
         self.p_xOi is set in place
+
+        Args:
+            min_rellipse (float, optional): Minimum value considered
+                for either axis of the error ellipse
+            kwargs (optional):  passed to frb.associate.bayesian.px_Oi
         """
 
-        # This hack sets the minimum localization to 0.2''
-        # TODO -- Do this better
+        # This hack sets the minimum localization to 0.3''
+        #  This is to avoid round-off issues for very small localizations
+        #  It will be superseded by Healpix approaches (soon)
+        # TODO -- Replace with Healpix
         eellipse = self.frb.eellipse.copy()
-        eellipse['a'] = max(self.frb.sig_a, 0.2)
-        warnings.warn("Need to improve the hack above")
+        if (self.frb.sig_a < min_rellipse) or (
+                self.frb.sig_b < min_rellipse):
+            warnings.warn("Enforcing a minimum semi-axis of {} for the localization".format(min_rellipse))
+        eellipse['a'] = max(self.frb.sig_a, min_rellipse)
+        eellipse['b'] = max(self.frb.sig_b, min_rellipse)
 
         # Do it
         self.p_xOi = bayesian.px_Oi(self.max_radius,
@@ -187,16 +207,13 @@ class FRBAssociate():
                                     eellipse,
                                     self.candidates['coords'].values,
                                     self.theta_prior, **kwargs)
+        self.candidates['p_xO'] = self.p_xOi
 
     def calc_pxU(self):
         """
         Calculate p(x|U) and assign to p_xU
         """
-        self.p_xU = bayesian.px_Oi(self.max_radius,
-                                   self.frb.coord,
-                                   self.frb_eellipse,
-                                   SkyCoord([self.frb.coord]),
-                                   self.theta_prior)[0]
+        self.p_xU = bayesian.px_U(self.max_radius)
 
     def calc_px(self):
         """
@@ -276,7 +293,7 @@ class FRBAssociate():
         Args:
             ZP (float):
                 Zero point magnitude
-            ifilter (str):
+            ifilter (str): Filter name to be used in the anaysis
             radius (float, optional):
                 Scaling for semimajor/minor axes for Elliptical apertures
             show:
@@ -468,14 +485,6 @@ class FRBAssociate():
     def view_candidates(self):
         """
         Convenience method to show candidate table
-
-        Args:
-            nsig:
-            box_size:
-            filter_size:
-
-        Returns:
-
         """
         items = ['id', self.filter, 'half_light', 'separation', 'P_c']
         for add_on in ['P_O', 'P_Ox']:
@@ -495,13 +504,22 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
     Run through the steps leading up to Bayes
 
     Args:
-        config:
-        show:
-        skip_bayesian:
-        verbose:
-
-    Returns:
-
+        config (dict):  Runs the PATH analysis
+            keys:
+                name (str): Name of the FRB, e.g. FRB121102
+                max_radius (float): Maximum radius in arcsec for the analysis
+                cut_size (float): Size to trim the image down to
+                deblend (bool): If True, apply the deblending algorithm
+                npixels (int): number of pixels in image segmentation
+                filter (str): filter name
+                ZP (float): Zero point value (magnitudes)
+                plate_scale (float): Plate scale in arcsec
+                cand_bright (float): Sources brighter than this are assumed stars and ignored
+        show (bool, optional):
+            Show a few things on the screen
+        skip_bayesian (bool, optional):
+            Skip the Bayesian part, i.e. only do the setup
+        verbose (bool, optional):
     """
     # FRB
     FRB = frb.FRB.by_name(config['name'])

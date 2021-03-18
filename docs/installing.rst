@@ -31,6 +31,11 @@ to install and/or update these packages.
 * `scipy <http://www.scipy.org/>`_ version 1.2 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
 * `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
+* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
+* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
+* `matplotlib <https://matplotlib.org/>`_ version 3.2 or greater
+* `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
+* `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 
@@ -46,7 +51,6 @@ for data that may be associated to an FRB:
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 * `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
-* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 
 The following package(s) is/are required to access FRB galaxy spectra:
 
@@ -55,10 +59,6 @@ The following package(s) is/are required to access FRB galaxy spectra:
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
 * `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
-
-The following are required to run spectral line analysis (e.g. frb.galaxies.nebular):
-
-* `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 
 The following are required to use our KCWI datacube handling tools:
 
@@ -69,7 +69,7 @@ The following are required to use our KCWI datacube handling tools:
 The following are required to run some of the halo codes:
 
 * `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
-* `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 
@@ -77,7 +77,10 @@ The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
 * `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
-* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
+
+The following is required to run the code in dm_kde:
+
+* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>` no versioning
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this

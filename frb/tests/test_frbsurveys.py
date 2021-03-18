@@ -2,8 +2,9 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+import astropy
 import pytest
-import os
+import os, warnings
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
@@ -13,8 +14,10 @@ from astropy.io.fits.hdu.image import PrimaryHDU
 from frb.surveys import survey_utils
 from PIL import Image
 
-remote_data = pytest.mark.remote_data
+remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
+                                 reason='test requires dev suite')
 
+@remote_data
 def test_sdss():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -76,6 +79,7 @@ def test_decals():
 
 
 
+@remote_data
 def test_first():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
@@ -86,6 +90,8 @@ def test_first():
     assert isinstance(first_tbl, Table)
     assert len(first_tbl) == 1
 
+
+@remote_data
 def test_panstarrs():
     #Test get_catalog
     coord = SkyCoord(0, 0,unit="deg")
@@ -105,3 +111,35 @@ def test_panstarrs():
     imghdu = ps_survey.get_image()
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
+
+def test_in_which_survey():
+    """
+    To test if `survey_utils.in_which_survey` works.
+    """
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    
+    with warnings.catch_warnings(record=True) as allwarns:
+        inside = survey_utils.in_which_survey(coord)
+
+    expected_dict = {'SDSS': True,
+                     'DES': False,
+                     'NVSS': False,
+                     'FIRST': False,
+                     'WENSS': False,
+                     'DECaL': True,
+                     'WISE': True,
+                     'Pan-STARRS': True}
+
+    for key in inside.keys():
+        assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
+    
+    # Test if warnings were produced the correct number of times.
+    # Only for stable versions. For some reason, the 4.3dev version
+    # returns empty table for the Heasarc surveys but 4.2 returns 1 or 2 objects.
+    # Strange.
+    if 'dev' not in astropy.__version__:
+        warncount = 0
+        for w in allwarns:
+            if "Check location manually" in w.message.args[0]:
+                warncount += 1
+        assert warncount == 2
