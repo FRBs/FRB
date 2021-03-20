@@ -148,3 +148,9 @@ with::
 .. _download-public:
 
 
+pPXF
+====
+
+Our pPXF wrapper currently uses an older version of the code 
+(v 6.7.17) and a few custom files.  Contact JXP if you wish 
+to use this.

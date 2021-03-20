@@ -55,7 +55,7 @@ ebv_method = 'SandF'
 
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     # Load redshift table
-    ztbl = Table.read(ztbl_file)
+    ztbl = Table.read(ztbl_file, format='ascii.fixed_width')
 
     z_coord = SkyCoord(ztbl['JCOORD'], unit=(units.hourangle, units.deg))  
     idx, d2d, _ = match_coordinates_sky(host.coord, z_coord, nthneighbor=1)
@@ -1641,7 +1641,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     #host200430.set_z(0.1608, 'spec')
 
     # PPXF
-    ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2019', 
+    ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
                                 'HG200430_DEIMOS_ppxf.ecsv')
     spec_fit = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
                             'HG200430_DEIMOS_ppxf.fits')
@@ -1662,9 +1662,8 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
         new_sig = spectrum.sig * 10**(Al/2.5)
         new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
 
-        # Mask
-        #atmos = [(7550, 7750)]
-        atmos = None
+        # Mask -- Trim edges
+        atmos = [(4000., 5100), (7590., 7610), (9500., 11000.)]
         ppxf.run(new_spec, R, host200430.z, 
                  results_file=ppxf_results_file, 
                  spec_fit=spec_fit, chk=True, atmos=atmos)
