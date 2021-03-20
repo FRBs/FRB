@@ -76,9 +76,6 @@ docs/_build/
 # PyBuilder
 target/
 
-# Galaxy DB
-Galaxy_DB/
-
 # IPython Notebook
 .ipynb_checkpoints
 
@@ -101,3 +98,6 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+# pytest
+.pytest_cache
