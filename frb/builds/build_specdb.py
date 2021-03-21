@@ -246,7 +246,8 @@ def generate_by_refs(input_refs, outfile, version):
             scale = 1e-17
         elif instr == 'DEIMOS':
             mdict = dict(TELESCOPE='Keck-2')
-            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 
+                          'INSTR': 'INSTRUME'}
             maxpix = 9000
             scale = 1e-17
         elif instr == 'XSHOOTER':
@@ -290,7 +291,9 @@ def main(inflg='all'):
 
     # Public
     if flg & (2**0):
-        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019'], 'FRB_specDB_Public.hdf5', 'v0.2')
+        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019',
+                          'Heintz2020', 'Simha2020'],
+                         'FRB_specDB_Public.hdf5', 'v0.3')
 
 
 # Command line execution

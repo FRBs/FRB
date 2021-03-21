@@ -53,6 +53,19 @@ if db_path is None:
 
 ebv_method = 'SandF'
 
+def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
+    # Load redshift table
+    ztbl = Table.read(ztbl_file, format='ascii.fixed_width')
+
+    z_coord = SkyCoord(ztbl['JCOORD'], unit=(units.hourangle, units.deg))  
+    idx, d2d, _ = match_coordinates_sky(host.coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        raise ValueError("No matching galaxy!")
+
+    # Set redshift 
+    host.set_z(ztbl['ZEM'][idx], 'spec')
+    
+
 def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     """
     Generate the JSON file for FRB 121102
@@ -879,6 +892,11 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
             photom['GMOS_S_r_err'] = 0.15
             photom['GMOS_S_i'] = 22.75
             photom['GMOS_S_i_err'] = 0.15
+            photom['VLT_FORS2_g'] = 24.11  # No extinction correction
+            photom['VLT_FORS2_g_err'] = 0.09
+            photom['VLT_FORS2_I'] = 22.41
+            photom['VLT_FORS2_I_err'] = 0.07
+
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         # Write
@@ -948,6 +966,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
     frbname = '190614'
     eazy_folder = './eazy'
 
+    frb190614 = FRB.by_name('FRB190614')
+
     #########################################################
     # A
     #########################################################
@@ -957,7 +977,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')  # J042017.713+734222.88
 
         # Instantiate
-        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614A.name = 'G190614_A'
 
         # Photometry
@@ -1061,7 +1082,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')   # J042017.872+734224.42
 
         # Instantiate
-        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614B.name = 'G190614_B'
 
         # Redshift -- JXP measured from FORS2
@@ -1167,7 +1189,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')
 
         # Instantiate
-        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
 
         # Redshift -- JXP measured from FORS2
         #    Should be refined
@@ -1612,8 +1635,40 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     #if np.min(d2d) > 0.5*units.arcsec:
     #    embed(header='190714')
 
-    # Redshift -- JXP measured from NOT
-    host200430.set_z(0.16, 'spec')
+    # Redshift -- JXP measured from DEIMOS
+    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    assign_z(ztbl_file, host200430)
+    #host200430.set_z(0.1608, 'spec')
+
+    # PPXF
+    ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                                'HG200430_DEIMOS_ppxf.ecsv')
+    spec_fit = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                            'HG200430_DEIMOS_ppxf.fits')
+    if build_ppxf:
+        meta, spectrum = host200430.get_metaspec(instr='DEIMOS', 
+                                                 specdb_file=os.path.join(
+                                                     os.getenv('SPECDB'), 
+                                                     'specDB_CRAFT.hdf5'))
+        R = 1607.  # 600ZD and 1" assumed
+        # R = meta['R']
+
+        # Correct for Galactic extinction
+        ebv = float(nebular.get_ebv(host200430.coord)['meanValue'])
+        AV = ebv * 3.1  # RV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+
+        # Mask -- Trim edges
+        atmos = [(4000., 5100), (7590., 7610), (9500., 11000.)]
+        ppxf.run(new_spec, R, host200430.z, 
+                 results_file=ppxf_results_file, 
+                 spec_fit=spec_fit, chk=True, atmos=atmos)
+
+    host200430.parse_ppxf(ppxf_results_file)
 
     # Photometry
     # Grab the table (requires internet)
@@ -1653,14 +1708,6 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
         # Rename
         os.system('cp -rp {:s} {:s}'.format(os.path.join(eazy_folder, outputdir_base),
                                             pub_path))
-    '''
-    # Redshift
-    zgrid, pzi, prior = frbeazy.getEazyPz(-1, MAIN_OUTPUT_FILE='photz',
-                                          OUTPUT_DIRECTORY=os.path.join(pub_path, outputdir_base),
-                                          CACHE_FILE='Same', binaries=None, get_prior=True)
-    zphot, sig_zphot = frbeazy.eazy_stats(zgrid, pzi)
-    host200430.set_z(zphot, 'phot')
-    '''
 
     # CIGALE
     cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG200430_CIGALE.fits')

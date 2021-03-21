@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-from IPython import embed
 import warnings
 import glob
 
@@ -20,10 +19,12 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
+from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
 
 from scipy.integrate import simps
 
+from IPython import embed
 
 class FRBGalaxy(object):
     """
@@ -273,6 +274,8 @@ class FRBGalaxy(object):
         if sep[row] > max_off:
             print("No photometric sources within {} of the galaxy".format(max_off))
             return
+        # Get a flux table
+        flux_tbl = convert_mags_to_flux(phot_tbl, fluxunits='mJy')
         # Fill
         for filter in defs.valid_filters:
             # Value
@@ -285,9 +288,14 @@ class FRBGalaxy(object):
                         pass
                     else:
                         self.photom[filter] = phot_tbl[filter][row]
+                        self.photom[filter+'_flux'] = flux_tbl[filter][row]
                         # Try error
                         if filter+'_err' in phot_tbl.keys():
                             self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+                            self.photom[filter+'_flux_err'] = flux_tbl[filter+'_err'][row]
+
+
+                        # Add entries for corresponding flux values.
         # EBV
         if EBV is not None:
             self.photom['EBV'] = EBV
@@ -463,17 +471,21 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True):
+    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
         """
         Parse an output GALFIT file
 
         Loaded into self.morphology
 
         Args:
-            galfit_file (str): processed out.fits file
+            galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
-            overwrite (bool, optional):
+            overwrite (bool, optional): Need to overwrite
+                the object's attributes?
+            twocomponent (bool, optional): Should the morphology
+                attribute generated contain fit parameters of
+                two components?
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
@@ -485,7 +497,10 @@ class FRBGalaxy(object):
             if 'mag' in key:
                 continue
             if (key not in self.morphology.keys()) or (overwrite):
-                self.morphology[key] = fit_tab[key][0] #Assumes single sersic profile in the fit params
+                if twocomponent:
+                    self.morphology[key] = fit_tab[key].data
+                else:
+                    self.morphology[key] = fit_tab[key][0]
         # reff kpc?
         if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
@@ -602,14 +617,13 @@ class FRBGalaxy(object):
         vet = True
         # Check
         assert attr in self.main_attr
-
         # Setup
         if attr == 'neb_lines':
             defs_list = defs.valid_neb_lines
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
-            defs_list = defs.valid_photom
+            defs_list = defs.valid_photom+defs.valid_flux
         elif attr == 'derived':
             defs_list = defs.valid_derived
         elif attr == 'redshift':
@@ -718,8 +732,7 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str):
-            Nomiker of the FRB, e.g. 121102
+        FRB (frb.FRB):
         z_frb (float, optional):
             Redshift of the host, expected to be provided
 

@@ -1,4 +1,5 @@
-""" Module for methods related to building FRB Assocation sandboxes"""
+""" Module for methods related to building FRB Assocation sandboxes
+Warning:  These methods are effectively deprecated. """
 
 import numpy as np
 

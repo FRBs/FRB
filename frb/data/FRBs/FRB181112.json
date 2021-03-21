@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 42.395814203084775
+        "value": 42.39581199488588
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -14,11 +14,11 @@
     "FRB": "FRB181112",
     "RM": {
         "unit": "rad / m2",
-        "value": 10.9
+        "value": 10.5
     },
     "RM_err": {
         "unit": "rad / m2",
-        "value": 0.9
+        "value": 0.4
     },
     "cosmo": "Planck15",
     "dec": -52.970925,
@@ -34,11 +34,38 @@
     },
     "fluence": {
         "unit": "Jy ms",
-        "value": 26.0
+        "value": 20.2
     },
     "fluence_err": {
         "unit": "Jy ms",
-        "value": 3.0
+        "value": 0.1
+    },
+    "pulse": {
+        "DM_smear": null,
+        "Wi": {
+            "unit": "ms",
+            "value": 0.016
+        },
+        "Wi_err": {
+            "unit": "ms",
+            "value": 0.001
+        },
+        "freq": {
+            "unit": "GHz",
+            "value": 1.2725
+        },
+        "scatt_index": null,
+        "scatt_index_err": null,
+        "t0": null,
+        "time_res": null,
+        "tscatt": {
+            "unit": "ms",
+            "value": 0.021
+        },
+        "tscatt_err": {
+            "unit": "ms",
+            "value": 0.001
+        }
     },
     "ra": 327.34845833333327,
     "refs": [

@@ -13,12 +13,10 @@ to parse the output automatically.
 """
 
 import numpy as np
-import pandas as pd
 import sys, os, subprocess
 import warnings
 
 from astropy.io import fits
-from astropy import units as u
 from astropy.stats import sigma_clipped_stats
 from astropy.table import Table
 from astropy.wcs import WCS
@@ -270,7 +268,7 @@ def _genconf(imgfile:str, psffile:str,
     # Done.
     return configfile
 
-def read_fitlog(outfile:str, initfile:str)->dict:
+def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
     """
     Reads the output fit.log
     file and returns the sersic fit parameters
@@ -299,28 +297,48 @@ def read_fitlog(outfile:str, initfile:str)->dict:
                     # sersic model fit.
                     # TODO: accommodate more complex fits.
                     instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
-
-    # only keep the latest one in case there are multiple runs
-    fit_out, line, err_out = instance[-1]
-
     # Use regex to identify all floats in fit_out and err_out
     float_regex = r"\d+\.\d+" # Any string of the form <int>.<int> (which is just a float)
 
-    # Find all instances of float in the strings and convert from string to float
-    fitparams = np.array(re.findall(float_regex, fit_out)).astype('float')
-    fiterrs = np.array(re.findall(float_regex, err_out)).astype('float')
+    if not twocomponent: # Assumes a single component fit
+        # only keep the latest one in case there are multiple runs
+        fit_out, _, err_out = instance[-1]
 
-    #Store values
-    pix_dict = {'x':fitparams[0], 'y':fitparams[1],
-              'mag':fitparams[2], 'reff':fitparams[3],
-              'n':fitparams[4], 'b/a':fitparams[5], 'PA':fitparams[6],
-              'x_err':fiterrs[0], 'y_err':fiterrs[1],
-              'mag_err':fiterrs[2], 'reff_err':fiterrs[3],
-              'n_err':fiterrs[4], 'b/a_err':fiterrs[5], 'PA_err':fiterrs[6],
-              }
+        # Find all instances of float in the strings and convert from string to float
+        fitparams = np.array(re.findall(float_regex, fit_out)).astype('float')
+        fiterrs = np.array(re.findall(float_regex, err_out)).astype('float')
+
+        #Store values
+        pix_dict = {'x':fitparams[0], 'y':fitparams[1],
+                'mag':fitparams[2], 'reff':fitparams[3],
+                'n':fitparams[4], 'b/a':fitparams[5], 'PA':fitparams[6],
+                'x_err':fiterrs[0], 'y_err':fiterrs[1],
+                'mag_err':fiterrs[2], 'reff_err':fiterrs[3],
+                'n_err':fiterrs[4], 'b/a_err':fiterrs[5], 'PA_err':fiterrs[6],
+                }
+    else: # If there are two components
+        fit_out_1, _, err_out_1 = instance[-2]
+        fit_out_2, _, err_out_2 = instance[-1]
+
+        # Find all instances of float in the strings and convert from string to float
+        fitparams_1 = np.array(re.findall(float_regex, fit_out_1)).astype('float')
+        fiterrs_1 = np.array(re.findall(float_regex, err_out_1)).astype('float')
+        fitparams_2 = np.array(re.findall(float_regex, fit_out_2)).astype('float')
+        fiterrs_2 = np.array(re.findall(float_regex, err_out_2)).astype('float')
+
+        fitparams = np.vstack([fitparams_1, fitparams_2])
+        fiterrs = np.vstack([fiterrs_1, fiterrs_2])
+        #Store values
+        pix_dict = {'x':fitparams[:,0], 'y':fitparams[:,1],
+                'mag':fitparams[:,2], 'reff':fitparams[:,3],
+                'n':fitparams[:,4], 'b/a':fitparams[:,5], 'PA':fitparams[:,6],
+                'x_err':fiterrs[:,0], 'y_err':fiterrs[:,1],
+                'mag_err':fiterrs[:,2], 'reff_err':fiterrs[:,3],
+                'n_err':fiterrs[:,4], 'b/a_err':fiterrs[:,5], 'PA_err':fiterrs[:,6],
+                }
     return pix_dict
 
-def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False)->dict:
+def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False,multicomponent:bool=False)->dict:
     """
     Takes the output table from galfit's
     fit.log file and converts all pixel
@@ -331,6 +349,10 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False)->dict:
         wcs (WCS): Input image WCS.
         table (bool, optional): Return as
             a table instead?
+        multicomponent (bool, optional): If
+            true, this snippet accounts out for
+            multiple sersic profiles in the same
+            model.
     Returns:
         sky_dict (dict/Table): pix_dict
             translated to angular units
@@ -364,7 +386,10 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False)->dict:
     sky_dict['PA_err'] = pix_dict['PA_err']
 
     if table:
-        sky_dict = Table([sky_dict])
+        if multicomponent:
+            sky_dict = Table(sky_dict)
+        else:
+            sky_dict = Table([sky_dict])
         # Reorder because dict-> Table messes it up
         sky_dict = sky_dict['ra','ra_err','dec','dec_err','mag',
                             'mag_err','reff_ang','reff_ang_err',
