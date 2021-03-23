@@ -319,7 +319,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     """
     fluxtable = photometry_table.copy()
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
-    convert = units.mJy.to(fluxunits)
+    convert = units.Jy.to(fluxunits)
     #If there's a "W" in the column name, it's from WISE
     # TODO -- We need to deal with this hack
     wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
