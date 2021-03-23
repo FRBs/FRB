@@ -297,11 +297,14 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         try:
             from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
             old_version = True
-            import pcigale
-            warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
         except ImportError:
             from pcigale_plots.plot_types.sed import sed
             old_version = False
+        
+        if old_version:
+            import pcigale
+            warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
+
         
         if old_version:
             sed(cigconf,"mJy",True)
