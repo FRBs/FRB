@@ -566,7 +566,9 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
 
     # PanStarrs
     # Grab the table (requires internet)
-    photom_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'ravi2019_photom.ascii')
+    #photom_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'ravi2019_photom.ascii')  # PSF mags!
+    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                               'bhandari2021_photom.ascii')
     if build_photom:
         search_r = 1 * units.arcsec
         ps_srvy = panstarrs.Pan_STARRS_Survey(S1_gal_coord, search_r)
@@ -1399,7 +1401,9 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # Photometry
     # Grab the table (requires internet)
-    photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
+    #photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii') # PSF mags
+    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                               'bhandari2021_photom.ascii')
     if build_photom:
         # Pan_STARRS
         search_r = 1 * units.arcsec
@@ -1672,7 +1676,9 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 
     # Photometry
     # Grab the table (requires internet)
-    photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
+    #photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
+    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                               'bhandari2021_photom.ascii') # PSF mags
     if build_photom:
         # Pan_STARRS
         search_r = 1 * units.arcsec
