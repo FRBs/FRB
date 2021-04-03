@@ -1,17 +1,30 @@
 """ Methods for MCMC analysis of the Macquart relation """
+from numba.core.typeinfer import DelItemConstraint
 import numpy as np
 from numba import njit, prange
 
 from scipy.stats import lognorm
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
-import pymc3 as pm
-import theano.tensor as tt
-from theano.compile.ops import as_op
+import warnings
+
+try:
+    import pymc3 as pm
+except ImportError:
+    warnings.warn("You need to install pymc3 to run mcmc codes")
+else:
+    import theano.tensor as tt
+    from theano.compile.ops import as_op
 
 from astropy.cosmology import Planck15
 
 from frb.dm import cosmic, igm
+
+from IPython import embed
+
+DM_values = np.linspace(1., 7000., 7000)
+Delta_values = np.linspace(1./400., 20., 20000)# / 400.  # Fiducial
+DM_MWhalo = 50.  # Fixed value for Macquart+20
 
 # Init as blank
 frbs = []
@@ -20,12 +33,9 @@ frb_zs = None #np.array([frb.z for frb in frbs])
 DM_FRBp_grid = None
 DMhost_grid = None #np.outer(DM_values, (1+z_FRB))  # Host rest-frame DMs
 DMvalues_grid = None # np.outer(DM_values, np.ones(DM_FRBp.size))
-
-DM_values = np.linspace(1., 70000., 7000)
-Delta_values = np.linspace(1./400., 20., 20000)# / 400.  # Fiducial
+Deltavalues_grid = None  #np.outer(Delta_values, np.ones_like(C0)), 
 
 #
-DM_MWhalo = 50.  # Fixed value for Macquart+20
 
 # DM Cosmic
 DM_cosmic, zeval = igm.average_DM(1., cosmo=Planck15, cumul=True)
@@ -66,7 +76,7 @@ def grab_parmdict(tight_ObH=False):
     parm_dict['Obh70']['unit'] = 'None' #$\\rm km \, s^{-1} Mpc^{-1}$'
     # Other info
     parm_dict['Other'] = dict(DM_MWhalo=50., zscale_host=True, floor=0.)
-    # Return
+    # Return    
     return parm_dict
 
 def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
@@ -153,8 +163,8 @@ def mcquinn_DM_PDF_grid(Delta_values, C0, sigma, alpha=3., beta=3.):
     #
     Dalpha_grid = Delta_values**(-1*alpha)
     Dbeta_grid = Delta_values**(-1*beta)
-    C0_grid = np.outer(np.ones(DM_values.shape[0]), C0)
-    sigma_grid = np.outer(np.ones(DM_values.shape[0]), sigma)
+    C0_grid = np.outer(np.ones(Delta_values.shape[0]), C0)
+    sigma_grid = np.outer(np.ones(Delta_values.shape[0]), sigma)
     # Evaluate
     PDF_grid = np.exp(-(Dalpha_grid-C0_grid)**2 / (
             2*alpha**2 * sigma_grid**2))*Dbeta_grid
@@ -192,7 +202,8 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
 
     # PDF Nuisance
     # Scale by redshift of the FRB
-    PDF_Nuisance_grid = lognorm.pdf(DMhost_grid, lognorm_s, lognorm_floor, mu)
+    PDF_Nuisance_grid = lognorm.pdf(DMhost_grid, lognorm_s, 
+                                    lognorm_floor, mu)
 
     # Sigma
     sigma = F / np.sqrt(z_FRB)
@@ -216,11 +227,12 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     Delta[~goodD] = 1.  # To avoid bad things
     PDF_Cosmic = mcquinn_DM_PDF_grid(Delta, C0, sigma, beta=beta)
     PDF_Cosmic[~goodD] = 0.
-    all_PDF_Cosmic = mcquinn_DM_PDF_grid(DMvalues_grid, #np.outer(Delta_values, np.ones_like(C0)), 
-                                         C0, sigma, beta=beta)
+
+    all_PDF_Cosmic = mcquinn_DM_PDF_grid(Deltavalues_grid, C0, sigma, beta=beta)
 
     # Integrate
-    Prob = np.sum(PDF_Nuisance_grid * PDF_Cosmic, axis=0) / np.sum(all_PDF_Cosmic, axis=0)
+    Prob = np.sum(PDF_Nuisance_grid * PDF_Cosmic, axis=0) / np.sum(
+        all_PDF_Cosmic, axis=0)
     log_like = np.sum(np.log(Prob))
 
     # Return
@@ -262,7 +274,20 @@ def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
     return np.array([ln_like])   # Should be log
 
 
-def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3., data='Real'):
+def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
+    """[summary]
+
+    Args:
+        parm_dict (dict): dict with the pymc3 parameters
+        tight_ObH (bool, optional): If True, restrict the ObH0 value based on CMB. Defaults to False.
+        beta (float, optional): PDF parameter. Defaults to 3..
+
+    Raises:
+        IOError: [description]
+
+    Returns:
+        pm.Model: pymc3 model
+    """
     # Load the model
     with pm.Model() as model:
         # Variables
@@ -281,10 +306,7 @@ def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3., data='Real
         if beta == 4.:
             like = pm.Potential('like', calc_likelihood_four(Obh70, F, mu, lognorm_s))
         elif beta == 3.:
-            if data == 'Real':
-                like = pm.Potential('like', calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s))
-            elif data == 'Monte':
-                like = pm.Potential('like', calc_likelihood_four_beta3_monte(Obh70, F, mu, lognorm_s))
+            like = pm.Potential('like', calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s))
         else:
             raise IOError
     return model
