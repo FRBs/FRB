@@ -224,7 +224,7 @@ Notes:
 """
 updates = dict(
     name='FRB191228',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Bhandari2021', 'FRB191228_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 'FRB191228_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.453 - 0.039, # Reported by FORS2 QC1 Archive + IRSA Dust Tool
@@ -242,7 +242,7 @@ Notes:
 """
 updates = dict(
     name='FRB200906',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Bhandari2021', 'FRB200906_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 'FRB200906_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.470 - 0.077, # Reported by FORS2 QC1 Archive + IRSA Dust Tool
@@ -253,7 +253,7 @@ updates = dict(
 )
 frb200906 = {**base_config, **updates}  # Use | in 3.9
 
- ##############################
+##############################
 # FRB 200430
 """
 Notes:
@@ -270,5 +270,25 @@ updates = dict(
     plate_scale=0.134*units.arcsec,
 )
 frb200430 = {**base_config, **updates}  # Use | in 3.9
+#
+#
+##############################
+# FRB 180301
+"""
+Notes:
+"""
+updates = dict(
+    name='FRB180301',
+    image_file=os.path.join(gdb_path, 'Realfast', 
+                            'Bhandari2021', 'FRB180301_GMOS_S_r.fits'),
+    cut_size = 30.,
+    filter = 'GMOS_S_r',
+    ZP = 32.94,  # Kasper
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.1616 * units.arcsec,
+)
+frb180301 = {**base_config, **updates}  # Use | in 3.9
 #
 #
