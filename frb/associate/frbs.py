@@ -224,7 +224,8 @@ Notes:
 """
 updates = dict(
     name='FRB191228',
-    image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 'FRB191228_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 
+                            'FRB191228_VLT-FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.453 - 0.039, # Reported by FORS2 QC1 Archive + IRSA Dust Tool
@@ -260,7 +261,9 @@ Notes:
 """
 updates = dict(
     name='FRB200906',
-    image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 'FRB200906_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'Realfast', 
+                            'Bhandari2021', 
+                            'FRB200906_VLT-FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
     ZP = 27.42 - 0.016, # Tied to DES g-band
