@@ -263,7 +263,7 @@ updates = dict(
     name='FRB200906',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 
-                            'FRB200906_VLT-FORS2_I.fits'),
+                            'FRB200906_VLT-FORS2_g.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
     ZP = 27.42 - 0.016, # Tied to DES g-band
