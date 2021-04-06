@@ -1,0 +1,27 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 411.0
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 123.16389701784578
+    },
+    "FRB": "FRB201124",
+    "cosmo": "Planck15",
+    "dec": 26.061061111111112,
+    "eellipse": {
+        "a": 0.29,
+        "a_sys": 0.7,
+        "b": 0.29,
+        "b_sys": 0.7,
+        "cl": 68.0,
+        "cl_sys": 68.0,
+        "theta": 0.0,
+        "theta_sys": 0.0
+    },
+    "ra": 77.01525833333332,
+    "refs": [],
+    "repeater": false,
+    "z": 0.0982
+}

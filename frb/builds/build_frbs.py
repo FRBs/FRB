@@ -459,6 +459,45 @@ def frb_191001():
     frb191001.write_to_json(path=path)
 
 
+def frb_201124():
+    """
+    ATEL only so far
+
+    """
+    # Taken from Bhandari, Table 1
+    FRB_201124_coord = SkyCoord("05h08m03.662s 26d03m39.82s", frame='icrs')
+    frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
+                        411. * units.pc / units.cm ** 3,
+                        z_frb=0.0982, repeater=False)
+    # Error ellipse [REQUIRED]
+    frb201124.set_ee(0.29, 0.29, theta=0., cl=68.) # ATEL
+    frb201124.set_ee(0.7, 0.7, theta=0., cl=68., stat=False)  
+    # Error in DM
+    #frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb201124.set_DMISM()
+    # RM and fluence (Bhandari+20b)
+    #frb201124.RM = 55.5 * units.rad / units.m**2
+    #frb201124.RM_err = 0.9 * units.rad / units.m**2
+    #frb201124.fluence = 143 * units.Jy * units.ms
+    #frb201124.fluence_err = 15 * units.Jy * units.ms
+
+    # Pulse properties
+    #frb191001.set_pulse(0.920*units.GHz,
+    #    Wi=0.22*units.ms,
+    #    Wi_err=0.03*units.ms,
+    #    tscatt=3.3*units.ms,
+    #    tscatt_err=0.2*units.ms)
+
+    # References
+    #frb191001.refs = ['Bhandari2020b']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb201124.write_to_json(path=path)
+
+
 
 def main(inflg='all'):
 
@@ -514,6 +553,10 @@ def main(inflg='all'):
     # FRB 191001      # 2048
     if flg & (2**11):
         frb_191001()
+
+    # FRB 191001      # 4096
+    if flg & (2**12):
+        frb_201124()
 
 
 # Command line execution
