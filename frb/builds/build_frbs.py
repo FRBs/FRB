@@ -554,7 +554,7 @@ def main(inflg='all'):
     if flg & (2**11):
         frb_191001()
 
-    # FRB 191001      # 4096
+    # FRB 201124      # 4096
     if flg & (2**12):
         frb_201124()
 
