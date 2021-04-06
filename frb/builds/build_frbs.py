@@ -465,7 +465,7 @@ def frb_201124():
 
     """
     # Taken from Bhandari, Table 1
-    FRB_201124_coord = SkyCoord("05h08m03.662s 26d03m39.82s", frame='icrs')
+    FRB_201124_coord = SkyCoord("05h08m03.662s +26d03m39.82s", frame='icrs')
     frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
                         411. * units.pc / units.cm ** 3,
                         z_frb=0.0982, repeater=False)
