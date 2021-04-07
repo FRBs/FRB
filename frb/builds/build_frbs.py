@@ -471,7 +471,7 @@ def frb_201124():
                         z_frb=0.0982, repeater=False)
     # Error ellipse [REQUIRED]
     frb201124.set_ee(0.29, 0.29, theta=0., cl=68.) # ATEL
-    frb201124.set_ee(0.7, 0.7, theta=0., cl=68., stat=False)  
+    #frb201124.set_ee(0.7, 0.7, theta=0., cl=68., stat=False)  
     # Error in DM
     #frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
 
