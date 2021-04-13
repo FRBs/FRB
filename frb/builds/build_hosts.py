@@ -60,7 +60,9 @@ mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data
                                           'Galaxies','Additional','Mannings2021', 
                                           'astrometry_v2.csv'))
 # Probably will rename this                                        
-mannings2021_astrom = mannings2021_astrom[mannings2021_astrom.Filter == 'F160W'].copy()
+mannings2021_astrom = mannings2021_astrom[
+    (mannings2021_astrom.Filter == 'F160W') | (
+        mannings2021_astrom.Filter == 'F110W')].copy()
 
 
 
@@ -89,7 +91,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     frb121102 = FRB.by_name('FRB121102')
     host121102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb121102)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host121102)
 
     # Redshift
@@ -254,7 +256,7 @@ def build_host_180924(build_photom=False, build_cigale=False):
     frb180924 = FRB.by_name('FRB180924')
     host180924 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180924)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host180924)
 
     # Redshift -- JXP measured from multiple data sources
@@ -448,7 +450,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     frb190102 = FRB.by_name('FRB190102')
     host190102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190102)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host190102)
 
     # Redshift -- Gaussian fit to [OIII 5007] in MagE
@@ -660,7 +662,7 @@ def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
     frb190608 = FRB.by_name('FRB190608')
     host190608 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190608)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host190608)
 
     # Load redshift table
@@ -763,7 +765,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     frb180916 = FRB.by_name('FRB180916')
     host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180916)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host180916)
 
     # Redshift
@@ -1289,7 +1291,7 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
     frb190711 = FRB.by_name('FRB190711')
     host190711 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190711)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host190711)
     '''
     # Load redshift table
@@ -1414,7 +1416,7 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     frb190714 = FRB.by_name('FRB190714')
     host190714 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190714)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host190714)
 
     # Load redshift table
@@ -1543,7 +1545,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     frb191001 = FRB.by_name('FRB191001')
     host191001 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb191001)
 
-    # UPDATE OFFSETS
+    # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host191001)
 
     '''

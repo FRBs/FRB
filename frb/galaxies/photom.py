@@ -21,7 +21,6 @@ from astropy.wcs import WCS
 from photutils import SkyCircularAperture
 from photutils import aperture_photometry
 
-from frb.galaxies import nebular
 from frb.galaxies import defs
 from frb import frb
 
@@ -329,6 +328,7 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
     uncertb = np.sqrt(uncertb ** 2 + sig2_gal_b) / plate_scale
 
 
+    # ?????
     if uncerta < 1:
         uncerta = 2
 
