@@ -14,7 +14,7 @@ from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
 from astropy.cosmology import Planck15 as cosmo
-from astropy.wcs import utils
+from astropy.wcs import utils as wcs_utils
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 
@@ -22,7 +22,6 @@ from photutils import SkyCircularAperture
 from photutils import aperture_photometry
 
 from frb.galaxies import defs
-from frb import frb
 
 try:
     import extinction
@@ -242,11 +241,9 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     # Add it back in
     photom[idx] = cut_photom
 
-
-
-def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
     """
 
+    :param cutout: 2d cutout (output from read_fits)
     :param frbname: string, e.g. FRB191001
     :param isize: int, length of one dimension of cutout around host
     :param UV: bool, if UV image, True
@@ -258,90 +255,63 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
 
 
 
-    frbdat = frb.FRB.by_name(frbname)
-    frbcoord = frbdat.coord
-    hg = frbdat.grab_host()
-    hgcoord = hg.coord
+def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS, 
+          fwhm=3., physical=False, min_uncert=2):
+    """ Measure the surface brightness at an FRB location
+    in a host galaxy
 
-    # Read data
-    hdu = fits.open(file)
-    header = hdu[0].header
-    hst_dat = hdu[0].data
+    Args:
+        host (Host object): [description]
+        cut_dat (np.ndarray): [description]
+        cut_err (np.ndarray): [description]
+        wcs (WCS): WCS for the cutout
+        fwhm (float, optional): FWHM of the PSF of the image in either
+            pixels or kpc. Defaults to 3 [pix].
+        physical (bool, optional): If True, FWHM is in kpc. Defaults to False.
+        min_uncert (int, optional): Minimum localization unceratainty
+            for the FRB, in pixels.  Defaults to 2.
 
-    # Read inverse variance
-    hduivm = fits.open(err_file)
-    headerivm = hduivm[0].header
-    hst_ivm = hduivm[0].data
-
-    isize = isize  # arcsec
-    size = units.Quantity((isize, isize), units.arcsec)
-    cutout = Cutout2D(hst_dat, hgcoord, size, wcs=WCS(header))
-    hg_ivm = Cutout2D(hst_ivm, hgcoord, size, wcs=WCS(header))
-
-    # get data from cutouts (data and error)
-    cut_dat = cutout.data
-    cut_err = hg_ivm.data
-
+    Returns:
+        tuple: sb_average, sb_average_err  [counts/sqarcsec]
+    """
+    # Generate the x,y grid of coordiantes
     x = np.arange(np.shape(cut_dat)[0])
     y = np.arange(np.shape(cut_dat)[1])
     xx, yy = np.meshgrid(x, y)
-    coords = utils.pixel_to_skycoord(xx, yy, cutout.wcs)
-    xfrb, yfrb = utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+    coords = wcs_utils.pixel_to_skycoord(xx, yy, wcs)
+    xfrb, yfrb = wcs_utils.skycoord_to_pixel(host.frb.coord, wcs)
     plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
 
-    uncerta = frbdat.eellipse['a'] / plate_scale
-    uncertb = frbdat.eellipse['b'] / plate_scale
-
-    if 'a_sys' in frbdat.eellipse.keys():
-        uncerta = np.sqrt(frbdat.eellipse['a'] ** 2 + frbdat.eellipse['a_sys'] ** 2)
-        uncertb = np.sqrt(frbdat.eellipse['b'] ** 2 + frbdat.eellipse['b_sys'] ** 2)
-    theta = frbdat.eellipse['theta']
-
     # set to zero, but change if we have astrometric and source errors
-    host_ra_sig_astro = 0
-    host_dec_sig_astro = 0
-    host_ra_sig_source = 0
-    host_dec_sig_source = 0
-    if 'ra_astrometric' in hg.positional_error.keys() and 'dec_astrometric' in hg.positional_error.keys():  # if they are in the sheet
+    if hasattr(host, 'positional_error'):
+        host_ra_sig = np.sqrt(host.positional_error['ra_astrometric']**2 +  
+            host.positional_error['ra_source']**2)
+        host_dec_sig = np.sqrt(host.positional_error['dec_astrometric']**2 + 
+            host.positional_error['dec_source']**2)
+    else:
+        host_ra_sig, host_dec_sig = 0., 0.
 
-        # Errors
-        host_ra_sig_astro = hg.positional_error['ra_astrometric']  # Are these arcsec or deg??
-        host_dec_sig_astro = hg.positional_error['dec_astrometric']
-
-    if 'ra_source' in hg.positional_error.keys() and 'dec_source' in hg.positional_error.keys():
-
-        host_ra_sig_source = hg.positional_error['ra_source']
-        host_dec_sig_source = hg.positional_error['dec_source']
-
-    # will be zero if no positional errors saved in host json file
-    host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
-    host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
-
+    # Rotate to the FRB frame
     # sigma**2
     # will be zero if no positional errors saved in host json file
+    theta = host.frb.eellipse['theta']
     sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
     sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
-    # Add em in
 
     # will only be FRB error if positional errors saved in host json file
-    uncerta = np.sqrt(uncerta ** 2 + sig2_gal_a) / plate_scale
-    uncertb = np.sqrt(uncertb ** 2 + sig2_gal_b) / plate_scale
+    #  Units are pixels
+    uncerta = np.sqrt(host.frb.sig_a**2 + sig2_gal_a) / plate_scale
+    uncertb = np.sqrt(host.frb.sig_b**2 + sig2_gal_b) / plate_scale
 
-
-    # ?????
-    if uncerta < 1:
-        uncerta = 2
-
-    if uncertb < 1:
-        uncertb = 2
+    # Set a minimum threshold
+    uncerta = max(uncerta, min_uncert)
+    uncertb = max(uncertb, min_uncert)
 
     # check if in ellipse -- pixel space!
-    in_ellipse = ((xx - xfrb.item()) * np.cos(theta) + (yy - yfrb.item()) * np.sin(theta)) ** 2 / (
-            uncerta ** 2) + (
-                         (xx - xfrb.item()) * np.sin(theta) - (yy - yfrb.item()) * np.cos(
-                     theta)) ** 2 / (
-                         uncertb ** 2) <= 1
-
+    in_ellipse = ((xx - xfrb.item()) * np.cos(theta) + 
+                  (yy - yfrb.item()) * np.sin(theta)) ** 2 / (uncerta ** 2) + (
+                      (xx - xfrb.item()) * np.sin(theta) - (
+                          yy - yfrb.item()) * np.cos(theta)) ** 2 / (uncertb ** 2) <= 1
     idx = np.where(in_ellipse)
     xval = xx[idx]
     yval = yy[idx]
@@ -354,16 +324,17 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
     ypfrb = xfrb.item() * np.cos(theta) + yfrb.item() * np.sin(theta)
 
     # convert fwhm from pixels to arcsec or kpc to arcsec
-    fwhm_as = fwhm * plate_scale * units.arcsec
     if physical:
-        fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(hg.z)
+        fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(host.z)
+    else:
+        fwhm_as = fwhm * plate_scale * units.arcsec
 
-    #print(fwhm_as)
+    # Aperture photometry at every pixel in the ellipse
     photom = []
     photom_var = []
     for i in np.arange(np.shape(idx)[1]):
         aper = SkyCircularAperture(coords[idx[0][i], idx[1][i]], fwhm_as)
-        apermap = aper.to_pixel(cutout.wcs)
+        apermap = aper.to_pixel(wcs)
 
         # aperture photometry for psf-size within the galaxy
         photo_frb = aperture_photometry(cut_dat, apermap)
@@ -373,24 +344,162 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
         photom_var.append(photo_err['aperture_sum'][0])
 
     # ff prob distribution
-    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * uncerta ** 2)) * np.exp(-(yp - ypfrb) ** 2 / (2 * uncertb ** 2))
+    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * uncerta ** 2)) * np.exp(
+        -(yp - ypfrb) ** 2 / (2 * uncertb ** 2))
     f_weight = (photom / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted photometry
     fvar_weight = (photom_var / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted sigma
 
-    weight_avg = np.sum(f_weight) / np.sum(p_ff)
-    weight_avg = weight_avg  # per unit area (arcsec^2)
-    var_off = np.sum((photom - weight_avg) ** 2 * p_ff) / np.sum(p_ff)
-    sig_off = np.sqrt(var_off)
-    #print(weight_avg)
+    weight_avg = np.sum(f_weight) / np.sum(p_ff) # per unit area (arcsec^2)
 
+    # Errors
     weight_var_avg = np.sum(fvar_weight) / np.sum(p_ff)
     weight_err_avg = np.sqrt(weight_var_avg)
 
-    limit = False
-    if 3 * weight_err_avg > weight_avg:
-        #print('LIMIT!')
-        weight_avg = 3 * weight_err_avg
-        weight_err_avg = 999
-        limit = True
-
     return weight_avg, weight_err_avg
+
+
+def fractional_flux(cutout, frbdat, hg, nsig=3):
+    '''
+
+        :param cutout: 2d cutout (output from read_fits)
+        :param frbcoord: skycoords of FRB event (output from read_frb)
+        :return:
+            avg_flux: average flux in the frb localization
+            frb_frac: fractional flux
+            Xplot: pixel values for x-axis
+            Yplot: fractional flux values for y-axis
+        '''
+    # get image data from cutout
+    cut_data = cutout.data
+    frbcoord = frbdat.coord
+
+    # make mesh grid
+
+    if np.shape(cut_data)[0] != np.shape(cut_data)[1]:
+        cut_data = np.resize(cut_data, (np.shape(cut_data)[1], np.shape(cut_data)[1]))
+
+    x = np.arange(np.shape(cut_data)[0])
+    y = np.arange(np.shape(cut_data)[1])
+
+    xx, yy = np.meshgrid(x, y)
+    print(np.shape(xx), np.shape(yy))
+    coords = utils.pixel_to_skycoord(xx, yy, cutout.wcs)
+    xfrb, yfrb = utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+    plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
+
+    # get a, b, and theta from frb object -- convert to pixel space
+
+    # Error ellipse
+    a = frbdat.eellipse['a']  # arcsec
+    b = frbdat.eellipse['b']  # arcsec
+
+    if 'a_sys' in frbdat.eellipse.keys():
+        a = np.sqrt(frbdat.eellipse['a_sys'] ** 2 + frbdat.eellipse['a'] ** 2)
+        b = np.sqrt(frbdat.eellipse['b_sys'] ** 2 + frbdat.eellipse['b'] ** 2)
+    theta = frbdat.eellipse['theta'] * units.deg
+
+    # Error ellipse - add in host and astrometric uncertainties
+    hst_idx = np.where(hst_astrom.FRB.values == int(frbdat.FRB[3:]))[0] # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        # Errors
+        host_ra_sig_astro = hst_row['Astrometric (GB to HST for F160W)']  # Are these arcsec or deg??
+        host_dec_sig_astro = hst_row['Astrometric (Ground-based to HST for F160W)']
+        host_ra_sig_source = hst_row['Host']
+        host_dec_sig_source = hst_row['Source Extractor (Host)']
+        host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
+        host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
+
+        # sigma**2
+        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
+        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
+        # Add em in
+
+        sig_a = np.sqrt(a ** 2 + sig2_gal_a) / plate_scale
+        sig_b = np.sqrt(b ** 2 + sig2_gal_b) / plate_scale
+
+    else:  # for those not in the excel sheet
+        sig_a = a / plate_scale
+        sig_b = b / plate_scale
+
+    # sigma
+    a = nsig * sig_a
+    if a < 1:
+        print('a is less than 1!')
+        a = 3
+
+    b = nsig * sig_b
+    if b < 1:
+        print('b is less than 1!')
+        b = 3
+
+    print(a,b)
+
+
+    # check if in ellipse -- pixel space!
+    in_ellipse = ((xx - xfrb.item()) * np.cos(theta).value + (yy - yfrb.item()) * np.sin(theta).value) ** 2 / (
+            a ** 2) + (
+                         (xx - xfrb.item()) * np.sin(theta).value - (yy - yfrb.item()) * np.cos(
+                     theta).value) ** 2 / (
+                         b ** 2) <= 1
+
+    print(frbdat.FRB, a, b, np.size(cut_data), np.size(cut_data[in_ellipse]))
+
+    # shift the data to above zero (all positive values)
+    shift_data = cut_data - np.min(cut_data)
+
+    idx = np.where(in_ellipse)
+    xval = xx[idx]
+    yval = yy[idx]
+
+    # x, y gal
+    xp = yval * np.cos(theta).value - xval * np.sin(theta).value
+    yp = xval * np.cos(theta).value + yval * np.sin(theta).value
+
+    xpfrb = yfrb.item() * np.cos(theta).value - xfrb.item() * np.sin(theta).value
+    ypfrb = xfrb.item() * np.cos(theta).value + yfrb.item() * np.sin(theta).value
+
+    # sigma clip data to exclude background
+    clipp = stats.sigma_clip(shift_data, sigma=1, maxiters=5)
+    mask = ma.getmask(clipp)
+    masked_dat = shift_data[mask]
+
+    # fractional flux for all values in ellipse
+    fprime_inlocal = []
+    for dat in shift_data[idx]:
+        fprime = np.sum(shift_data[shift_data < dat]) / np.sum(shift_data)
+        fprime_inlocal.append(fprime)
+
+    # from IPython import embed
+    # embed(header=('line 146: before probability'))
+
+    # ff prob distribution
+    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * a ** 2)) * np.exp(-(yp - ypfrb) ** 2 / (2 * b ** 2))
+    f_weight = fprime_inlocal * p_ff  # weighted fractional fluxes
+
+    avg_ff = np.sum(fprime_inlocal * p_ff) / np.sum(p_ff)
+    var_ff = np.sum((fprime_inlocal - avg_ff) ** 2 * p_ff) / np.sum(p_ff)
+    sig_ff = np.sqrt(var_ff)
+
+    med_ff = np.percentile(f_weight, 50)
+    l68, u68 = np.abs(np.percentile(f_weight, (16, 84)))
+
+    """
+    from IPython import embed
+    embed(header='line 188')
+    plt.hist(f_weight)
+    plt.axvline(med_ff, color='black')
+    plt.axvline(l68, color='gray')
+    plt.axvline(u68, color='gray')
+    plt.title(str(frbdat.FRB))
+    plt.show()
+    """
+    # make array into list for writing out
+    f_weight = np.array(f_weight).tolist()
+
+    # from IPython import embed
+    # embed(header='172 of fractional_flux')
+
+    # return med_ff, med_flux, fprime_inlocal
+    return med_ff, sig_ff, f_weight
