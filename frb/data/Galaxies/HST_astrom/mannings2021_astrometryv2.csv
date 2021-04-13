@@ -1,4 +1,4 @@
-FRB,Filter,RA,Dec,Host,FRB Positional,Astrometric (GB to HST for F160W),Astrometric (F160W-F300X),Source Extractor (Host),FRB Positional,Astrometric (Ground-based to HST for F160W),Astrometric (F160W-F300X),sigma_RA_tot,sigma_Dec_tot,sigma_host_tot,sigma_FRB_tot
+FRB,Filter,RA,Dec,RA_source_sig,FRB Positional,RA_astrom_sig,Astrometric (F160W-F300X),DEC_source_sig,FRB Positional,DEC_astrom_sig,Astrometric (F160W-F300X),sigma_RA_tot,sigma_Dec_tot,sigma_host_tot,sigma_FRB_tot
 121102,F160W,05:31:58.686,33:08:52.433,0.00571,,0.0139,0,0.00261,,0.0148,0,,,6.278232235,0
 121102,F763M,N/A (no obvious emission from host center),,0,,0.0139,0.00564,0,,0.0148,0.00526,,,0,0
 180916,F110W,1:58:00.292,#N/A,0.0014,,0.0167,,0.00108,,0.0232,,,,1.768162888,0

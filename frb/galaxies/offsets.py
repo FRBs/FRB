@@ -2,7 +2,10 @@
 
 import numpy as np
 
+import pandas
+
 from astropy import units
+from astropy.coordinates import SkyCoord
 
 from IPython import embed
 
@@ -77,19 +80,35 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
     # Return
     return avg_off, sig_off, best_off, sig_best
 
-def incorporate_hst(hst_astrom, host):
+
+def incorporate_hst(hst_astrom:pandas.DataFrame, host):
+    """Updates coordinates and offsets for galaxies
+    observed with HST
+
+    Currently for Mannings+2021 only
+
+    Args:
+        hst_astrom (pandas.DataFrame): [description]
+        host (frb.galaxies.frbgalaxy.FRBHost): [description]
+    """
 
     frb_index = host.frb.frb_name[3:]
     hst_idx = np.where(hst_astrom.FRB.values.astype('str') == frb_index)[0]  # get from excel csv
 
     hst_row = hst_astrom.iloc[hst_idx[0]]
 
-    host.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
-    host.positional_error['dec_astrometric'] = hst_row['Astrometric (Ground-based to HST for F160W)']
-    host.positional_error['ra_source'] = hst_row['Host']
-    host.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
+    # Set coordinate
+    host.coord = SkyCoord(
+        hst_row.RA + ' ' + hst_row.Dec, 
+        unit=(units.hourangle, units.deg), frame='icrs')
 
-    # combine errors
+    # Positional errors
+    host.positional_error['ra_astrometric'] = hst_row['RA_astrom_sig']
+    host.positional_error['dec_astrometric'] = hst_row['DEC_astrom_sig']
+    host.positional_error['ra_source'] = hst_row['RA_source_sig']
+    host.positional_error['dec_source'] = hst_row['DEC_source_sig']
+
+    # combine errors for offset estimation
     host_ra_sig = np.sqrt(host.positional_error['ra_astrometric'] ** 2 + host.positional_error['ra_source'] ** 2)
     host_dec_sig = np.sqrt( host.positional_error['dec_astrometric'] ** 2 + host.positional_error['dec_source'] ** 2)
 
