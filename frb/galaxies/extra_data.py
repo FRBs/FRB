@@ -29,6 +29,10 @@ def load_mannings2021():
                               comment='Surface density of Star formation at FRB position')
     tbl_units['SSFR_err'] = dict(unit=units.Unit('M_sun/yr/kpc**2'),
                               comment='Error in SSFR')
+    tbl_units['SMStar'] = dict(unit=units.Unit('M_sun/kpc**2'),
+                              comment='Surface density of Stars at FRB position')
+    tbl_units['SMStar_err'] = dict(unit=units.Unit('M_sun/kpc**2'),
+                              comment='Error in SMStar')
     tbl_units['reff_iso'] = dict(unit=units.Unit('arcsec'),
                               comment='Effective Isophotal radius (angular)')
     tbl_units['reff_iso_err'] = dict(unit=units.Unit('arcsec'),
