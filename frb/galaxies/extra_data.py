@@ -36,6 +36,7 @@ def load_mannings2021():
     tbl_units['UVff'] = dict(unit=None, comment='Fractional flux at FRB location in UV_filter')
     tbl_units['IRff'] = dict(unit=None, comment='Fractional flux at FRB location in IR_filter')
     tbl_units['IRfe'] = dict(unit=None, comment='Enclosed flux at FRB location in IR_filter')
+    tbl_units['IRlim'] = dict(unit=None, comment='Limiting IR flux (mag) at FRB location after subtracting off galfit model.')
 
     # Return
     return mannings2021, tbl_units
