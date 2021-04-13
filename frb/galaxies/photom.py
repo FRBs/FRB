@@ -298,29 +298,36 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
         uncertb = np.sqrt(frbdat.eellipse['b'] ** 2 + frbdat.eellipse['b_sys'] ** 2)
     theta = frbdat.eellipse['theta']
 
-    hst_idx = np.where(hst_astrom.FRB.values == int(frbdat.FRB[3:]))[0]  # get from excel csv
-    if len(hst_idx) > 0:  # if they are in the sheet
-        hst_row = hst_astrom.iloc[hst_idx[0]]
+    # set to zero, but change if we have astrometric and source errors
+    host_ra_sig_astro = 0
+    host_dec_sig_astro = 0
+    host_ra_sig_source = 0
+    host_dec_sig_source = 0
+    if 'ra_astrometric' in hg.positional_error.keys() and 'dec_astrometric' in hg.positional_error.keys():  # if they are in the sheet
 
         # Errors
-        host_ra_sig_astro = hst_row['Astrometric (GB to HST for F160W)']  # Are these arcsec or deg??
-        host_dec_sig_astro = hst_row['Astrometric (Ground-based to HST for F160W)']
-        host_ra_sig_source = hst_row['Host']
-        host_dec_sig_source = hst_row['Source Extractor (Host)']
-        host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
-        host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
+        host_ra_sig_astro = hg.positional_error['ra_astrometric']  # Are these arcsec or deg??
+        host_dec_sig_astro = hg.positional_error['dec_astrometric']
 
-        # sigma**2
-        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
-        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
-        # Add em in
+    if 'ra_source' in hg.positional_error.keys() and 'dec_source' in hg.positional_error.keys():
 
-        uncerta = np.sqrt(uncerta ** 2 + sig2_gal_a) / plate_scale
-        uncertb = np.sqrt(uncertb ** 2 + sig2_gal_b) / plate_scale
+        host_ra_sig_source = hg.positional_error['ra_source']
+        host_dec_sig_source = hg.positional_error['dec_source']
 
-    else:  # for those not in the excel sheet
-        uncerta = uncerta / plate_scale
-        uncertb = uncertb / plate_scale
+    # will be zero if no positional errors saved in host json file
+    host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
+    host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
+
+    # sigma**2
+    # will be zero if no positional errors saved in host json file
+    sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
+    sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
+    # Add em in
+
+    # will only be FRB error if positional errors saved in host json file
+    uncerta = np.sqrt(uncerta ** 2 + sig2_gal_a) / plate_scale
+    uncertb = np.sqrt(uncertb ** 2 + sig2_gal_b) / plate_scale
+
 
     if uncerta < 1:
         uncerta = 2
@@ -351,7 +358,7 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
     if physical:
         fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(hg.z)
 
-    print(fwhm_as)
+    #print(fwhm_as)
     photom = []
     photom_var = []
     for i in np.arange(np.shape(idx)[1]):
@@ -374,14 +381,16 @@ def photo(frbname, file, err_file, isize=8, UV=False, fwhm=3, physical=False):
     weight_avg = weight_avg  # per unit area (arcsec^2)
     var_off = np.sum((photom - weight_avg) ** 2 * p_ff) / np.sum(p_ff)
     sig_off = np.sqrt(var_off)
-    print(weight_avg)
+    #print(weight_avg)
 
     weight_var_avg = np.sum(fvar_weight) / np.sum(p_ff)
     weight_err_avg = np.sqrt(weight_var_avg)
 
     limit = False
     if 3 * weight_err_avg > weight_avg:
-        print('LIMIT!')
+        #print('LIMIT!')
         weight_avg = 3 * weight_err_avg
         weight_err_avg = 999
         limit = True
+
+    return weight_avg, weight_err_avg

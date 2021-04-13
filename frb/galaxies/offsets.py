@@ -77,6 +77,28 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
     # Return
     return avg_off, sig_off, best_off, sig_best
 
+def incorporate_hst(hst_astrom, host):
+
+    frb_index = host.frb.frb_name[3:]
+    hst_idx = np.where(hst_astrom.FRB.values.astype('str') == frb_index)[0]  # get from excel csv
+
+    hst_row = hst_astrom.iloc[hst_idx[0]]
+
+    host.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+    host.positional_error['dec_astrometric'] = hst_row['Astrometric (Ground-based to HST for F160W)']
+    host.positional_error['ra_source'] = hst_row['Host']
+    host.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
+
+    # combine errors
+    host_ra_sig = np.sqrt(host.positional_error['ra_astrometric'] ** 2 + host.positional_error['ra_source'] ** 2)
+    host_dec_sig = np.sqrt( host.positional_error['dec_astrometric'] ** 2 + host.positional_error['dec_source'] ** 2)
+
+    # Angular offset
+    host.offsets['ang_avg'], host.offsets['ang_avg_err'], \
+    host.offsets['ang_best'], host.offsets['ang_best_err'] \
+        = angular_offset(host.frb, host, gal_sig=(host_ra_sig, host_dec_sig))
+
+
 if __name__ == '__main__':
 
     from frb.frb import FRB

@@ -16,7 +16,7 @@ from astropy.table import Table
 from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB
-from frb.galaxies import frbgalaxy, defs
+from frb.galaxies import frbgalaxy, defs, offsets
 from frb.galaxies import photom as frbphotom
 try:
     from frb.galaxies import ppxf
@@ -54,12 +54,11 @@ if db_path is None:
 
 ebv_method = 'SandF'
 
-try:
-    hst_astrom = pandas.read_csv('../data/Galaxies/HST_astrom/hst_astrometryv2.csv')
-    hst_astrom = hst_astrom[hst_astrom.Filter == 'F160W']
 
-except:
-    warnings.warn("Need Mannings 2020 astrometry file")
+hst_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data'),
+                                          'Galaxies','HST_astrom','hst_astrometryv2.csv'))
+hst_astrom = hst_astrom[hst_astrom.Filter == 'F160W']
+
 
 
 def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
@@ -86,6 +85,9 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     # Instantiate
     frb121102 = FRB.by_name('FRB121102')
     host121102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb121102)
+
+    # UPDATE OFFSETS
+    offsets.incorporate_hst(hst_astrom, host121102)
 
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
@@ -242,6 +244,10 @@ def build_host_180924(build_photom=False, build_cigale=False):
     # Instantiate
     frb180924 = FRB.by_name('FRB180924')
     host180924 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180924)
+
+    #Update offsets
+    # UPDATE OFFSETS
+    offsets.incorporate_hst(hst_astrom, host180924)
 
     # Redshift -- JXP measured from multiple data sources
     host180924.set_z(0.3212, 'spec')
@@ -430,6 +436,16 @@ def build_host_190102(build_photom=False, build_cigale=False,
     # Instantiate
     frb190102 = FRB.by_name('FRB190102')
     host190102 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190102)
+
+    hst_idx = np.where(hst_astrom.FRB.values == 190102)[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        host190102.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+        host190102.positional_error['dec_astrometric']= hst_row['Astrometric (Ground-based to HST for F160W)']
+        host190102.positional_error['ra_source'] = hst_row['Host']
+        host190102.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
+
 
     # Redshift -- Gaussian fit to [OIII 5007] in MagE
     #  Looks great on the other lines
@@ -636,6 +652,15 @@ def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
     # Instantiate
     frb190608 = FRB.by_name('FRB190608')
     host190608 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190608)
+    hst_idx = np.where(hst_astrom.FRB.values == 190608)[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        host190608.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+        host190608.positional_error['dec_astrometric']= hst_row['Astrometric (Ground-based to HST for F160W)']
+        host190608.positional_error['ra_source'] = hst_row['Host']
+        host190608.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
+
 
     # Load redshift table
     ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
@@ -733,6 +758,15 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     # Instantiate
     frb180916 = FRB.by_name('FRB180916')
     host180916 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180916)
+
+    hst_idx = np.where(hst_astrom.FRB.values == 180916)[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        host180916.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+        host180916.positional_error['dec_astrometric'] = hst_row['Astrometric (Ground-based to HST for F160W)']
+        host180916.positional_error['ra_source'] = hst_row['Host']
+        host180916.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
 
     # Redshift
     host180916.set_z(0.0337, 'spec')
@@ -1253,6 +1287,16 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
     frb190711 = FRB.by_name('FRB190711')
     host190711 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190711)
 
+    hst_idx = np.where(hst_astrom.FRB.values == 190711)[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        host190711.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+        host190711.positional_error['dec_astrometric'] = hst_row['Astrometric (Ground-based to HST for F160W)']
+        host190711.positional_error['ra_source'] = hst_row['Host']
+        host190711.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
+
+
     '''
     # Load redshift table
     ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
@@ -1371,6 +1415,15 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     # Instantiate
     frb190714 = FRB.by_name('FRB190714')
     host190714 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb190714)
+
+    hst_idx = np.where(hst_astrom.FRB.values == 190714)[0]  # get from excel csv
+    if len(hst_idx) > 0:  # if they are in the sheet
+        hst_row = hst_astrom.iloc[hst_idx[0]]
+
+        host190714.positional_error['ra_astrometric'] = hst_row['Astrometric (GB to HST for F160W)']
+        host190714.positional_error['dec_astrometric'] = hst_row['Astrometric (Ground-based to HST for F160W)']
+        host190714.positional_error['ra_source'] = hst_row['Host']
+        host190714.positional_error['dec_source'] = hst_row['Source Extractor (Host)']
 
     # Load redshift table
     ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Heintz2020', 'z_hand.ascii'),
@@ -1772,5 +1825,6 @@ def main(inflg='all', options=None):
 
 # Command line execution
 if __name__ == '__main__':
-    pass
+    main()
+
 
