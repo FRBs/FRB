@@ -8,6 +8,12 @@ import pandas
 from astropy import units
 
 def load_mannings2021():
+    """ Load a table of measurements from the 
+    Mannings+2021 paper
+
+    Returns:
+        tuple: measurements (pandas.DataFrame), units and description (dict)
+    """
     mannings2021_file = os.path.join(resource_filename('frb','data'),
                                           'Galaxies','Additional','Mannings2021', 
                                           'galaxy_measurements.csv')
@@ -27,6 +33,9 @@ def load_mannings2021():
                               comment='Effective Isophotal radius (angular)')
     tbl_units['reff_iso_err'] = dict(unit=units.Unit('arcsec'),
                               comment='Error in reff_iso')
+    tbl_units['UVff'] = dict(unit=None, comment='Fractional flux at FRB location in UV_filter')
+    tbl_units['IRff'] = dict(unit=None, comment='Fractional flux at FRB location in IR_filter')
+    tbl_units['IRfe'] = dict(unit=None, comment='Enclosed flux at FRB location in IR_filter')
 
     # Return
     return mannings2021, tbl_units
