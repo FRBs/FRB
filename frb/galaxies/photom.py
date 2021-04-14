@@ -17,6 +17,7 @@ from astropy.cosmology import Planck15 as cosmo
 from astropy.wcs import utils as wcs_utils
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
+from astropy import stats
 
 from photutils import SkyCircularAperture
 from photutils import aperture_photometry
@@ -282,32 +283,19 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
     xfrb, yfrb = wcs_utils.skycoord_to_pixel(host.frb.coord, wcs)
     plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
 
-    # set to zero, but change if we have astrometric and source errors
-    if hasattr(host, 'positional_error'):
-        host_ra_sig = np.sqrt(host.positional_error['ra_astrometric']**2 +  
-            host.positional_error['ra_source']**2)
-        host_dec_sig = np.sqrt(host.positional_error['dec_astrometric']**2 + 
-            host.positional_error['dec_source']**2)
-    else:
-        host_ra_sig, host_dec_sig = 0., 0.
+    # Calculate total a, b uncertainty (FRB frame)
+    uncerta, uncertb = host.calc_tot_uncert()
 
-    # Rotate to the FRB frame
-    # sigma**2
-    # will be zero if no positional errors saved in host json file
-    theta = host.frb.eellipse['theta']
-    sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
-    sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
-
-    # will only be FRB error if positional errors saved in host json file
-    #  Units are pixels
-    uncerta = np.sqrt(host.frb.sig_a**2 + sig2_gal_a) / plate_scale
-    uncertb = np.sqrt(host.frb.sig_b**2 + sig2_gal_b) / plate_scale
+    # Put in pixel space
+    uncerta /= plate_scale 
+    uncertb /= plate_scale 
 
     # Set a minimum threshold
     uncerta = max(uncerta, min_uncert)
     uncertb = max(uncertb, min_uncert)
-
+        
     # check if in ellipse -- pixel space!
+    theta = host.frb.eellipse['theta']
     in_ellipse = ((xx - xfrb.item()) * np.cos(theta) + 
                   (yy - yfrb.item()) * np.sin(theta)) ** 2 / (uncerta ** 2) + (
                       (xx - xfrb.item()) * np.sin(theta) - (
@@ -355,73 +343,47 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
     weight_var_avg = np.sum(fvar_weight) / np.sum(p_ff)
     weight_err_avg = np.sqrt(weight_var_avg)
 
+
     return weight_avg, weight_err_avg
 
 
-def fractional_flux(cutout, frbdat, hg, nsig=3):
-    '''
+def fractional_flux(cutout, frbdat, hg, nsig=3.):
+    """Calculate the fractional flux at the FRB location
 
-        :param cutout: 2d cutout (output from read_fits)
-        :param frbcoord: skycoords of FRB event (output from read_frb)
-        :return:
-            avg_flux: average flux in the frb localization
-            frb_frac: fractional flux
-            Xplot: pixel values for x-axis
-            Yplot: fractional flux values for y-axis
-        '''
+    Args:
+        cutout (WCS Cutout2D): [description]
+        frbdat (frb.FRB): [description]
+        hg (frb.galaxies.frbgalaxy.FRBHost): [description]
+        nsig (float, optional): [description]. Defaults to 3.
+
+    Returns:
+        tuple: median_ff, sig_ff, ff_weight 
+    """
+
     # get image data from cutout
     cut_data = cutout.data
     frbcoord = frbdat.coord
 
-    # make mesh grid
+    # shift the data to above zero (all positive values)
+    shift_data = cut_data - np.min(cut_data)
 
+    # make mesh grid
     if np.shape(cut_data)[0] != np.shape(cut_data)[1]:
         cut_data = np.resize(cut_data, (np.shape(cut_data)[1], np.shape(cut_data)[1]))
-
     x = np.arange(np.shape(cut_data)[0])
     y = np.arange(np.shape(cut_data)[1])
-
     xx, yy = np.meshgrid(x, y)
-    print(np.shape(xx), np.shape(yy))
-    coords = utils.pixel_to_skycoord(xx, yy, cutout.wcs)
-    xfrb, yfrb = utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+    coords = wcs_utils.pixel_to_skycoord(xx, yy, cutout.wcs)
+    xfrb, yfrb = wcs_utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+
+    # Calc plate scale
     plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
 
     # get a, b, and theta from frb object -- convert to pixel space
-
-    # Error ellipse
-    a = frbdat.eellipse['a']  # arcsec
-    b = frbdat.eellipse['b']  # arcsec
-
-    if 'a_sys' in frbdat.eellipse.keys():
-        a = np.sqrt(frbdat.eellipse['a_sys'] ** 2 + frbdat.eellipse['a'] ** 2)
-        b = np.sqrt(frbdat.eellipse['b_sys'] ** 2 + frbdat.eellipse['b'] ** 2)
-    theta = frbdat.eellipse['theta'] * units.deg
-
-    # Error ellipse - add in host and astrometric uncertainties
-    hst_idx = np.where(hst_astrom.FRB.values == int(frbdat.FRB[3:]))[0] # get from excel csv
-    if len(hst_idx) > 0:  # if they are in the sheet
-        hst_row = hst_astrom.iloc[hst_idx[0]]
-
-        # Errors
-        host_ra_sig_astro = hst_row['Astrometric (GB to HST for F160W)']  # Are these arcsec or deg??
-        host_dec_sig_astro = hst_row['Astrometric (Ground-based to HST for F160W)']
-        host_ra_sig_source = hst_row['Host']
-        host_dec_sig_source = hst_row['Source Extractor (Host)']
-        host_ra_sig = np.sqrt(host_ra_sig_astro ** 2 + host_ra_sig_source ** 2)
-        host_dec_sig = np.sqrt(host_dec_sig_astro ** 2 + host_dec_sig_source ** 2)
-
-        # sigma**2
-        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
-        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
-        # Add em in
-
-        sig_a = np.sqrt(a ** 2 + sig2_gal_a) / plate_scale
-        sig_b = np.sqrt(b ** 2 + sig2_gal_b) / plate_scale
-
-    else:  # for those not in the excel sheet
-        sig_a = a / plate_scale
-        sig_b = b / plate_scale
+    sig_a, sig_b = hg.calc_tot_uncert()
+    # Put in pixel space
+    sig_a /= plate_scale 
+    sig_b /= plate_scale 
 
     # sigma
     a = nsig * sig_a
@@ -434,20 +396,16 @@ def fractional_flux(cutout, frbdat, hg, nsig=3):
         print('b is less than 1!')
         b = 3
 
-    print(a,b)
-
 
     # check if in ellipse -- pixel space!
+    theta = hg.frb.eellipse['theta']
     in_ellipse = ((xx - xfrb.item()) * np.cos(theta).value + (yy - yfrb.item()) * np.sin(theta).value) ** 2 / (
             a ** 2) + (
                          (xx - xfrb.item()) * np.sin(theta).value - (yy - yfrb.item()) * np.cos(
                      theta).value) ** 2 / (
                          b ** 2) <= 1
 
-    print(frbdat.FRB, a, b, np.size(cut_data), np.size(cut_data[in_ellipse]))
-
-    # shift the data to above zero (all positive values)
-    shift_data = cut_data - np.min(cut_data)
+    #print(frbdat.FRB, a, b, np.size(cut_data), np.size(cut_data[in_ellipse]))
 
     idx = np.where(in_ellipse)
     xval = xx[idx]
@@ -462,7 +420,7 @@ def fractional_flux(cutout, frbdat, hg, nsig=3):
 
     # sigma clip data to exclude background
     clipp = stats.sigma_clip(shift_data, sigma=1, maxiters=5)
-    mask = ma.getmask(clipp)
+    mask = np.ma.getmask(clipp)
     masked_dat = shift_data[mask]
 
     # fractional flux for all values in ellipse
@@ -470,9 +428,6 @@ def fractional_flux(cutout, frbdat, hg, nsig=3):
     for dat in shift_data[idx]:
         fprime = np.sum(shift_data[shift_data < dat]) / np.sum(shift_data)
         fprime_inlocal.append(fprime)
-
-    # from IPython import embed
-    # embed(header=('line 146: before probability'))
 
     # ff prob distribution
     p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * a ** 2)) * np.exp(-(yp - ypfrb) ** 2 / (2 * b ** 2))
@@ -485,21 +440,8 @@ def fractional_flux(cutout, frbdat, hg, nsig=3):
     med_ff = np.percentile(f_weight, 50)
     l68, u68 = np.abs(np.percentile(f_weight, (16, 84)))
 
-    """
-    from IPython import embed
-    embed(header='line 188')
-    plt.hist(f_weight)
-    plt.axvline(med_ff, color='black')
-    plt.axvline(l68, color='gray')
-    plt.axvline(u68, color='gray')
-    plt.title(str(frbdat.FRB))
-    plt.show()
-    """
     # make array into list for writing out
     f_weight = np.array(f_weight).tolist()
-
-    # from IPython import embed
-    # embed(header='172 of fractional_flux')
 
     # return med_ff, med_flux, fprime_inlocal
     return med_ff, sig_ff, f_weight

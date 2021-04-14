@@ -250,6 +250,39 @@ class FRBGalaxy(object):
         # Calculate
         SFR = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'], self.cosmo, AV=AV)
         self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
+    
+    def calc_tot_uncert(self):
+        """Calculate total uncertainty in arcsec of 
+        FRB localization + Host localization in the 
+        reference frame of the FRB
+
+        Returns:
+            tuple: uncerta, uncertb [arcsec]
+        """
+            # set to zero, but change if we have astrometric and source errors
+        if hasattr(self, 'positional_error'):
+            host_ra_sig = np.sqrt(self.positional_error['ra_astrometric']**2 +  
+                self.positional_error['ra_source']**2)
+            host_dec_sig = np.sqrt(self.positional_error['dec_astrometric']**2 + 
+                self.positional_error['dec_source']**2)
+        else:
+            host_ra_sig, host_dec_sig = 0., 0.
+
+        # Rotate to the FRB frame
+        # sigma**2
+        # will be zero if no positional errors saved in host json file
+        theta = self.frb.eellipse['theta']
+        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
+        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
+
+        # will only be FRB error if positional errors saved in host json file
+        #  Units are pixels
+        uncerta = np.sqrt(self.frb.sig_a**2 + sig2_gal_a)
+        uncertb = np.sqrt(self.frb.sig_b**2 + sig2_gal_b) 
+
+        # Return
+        return uncerta, uncertb
+
 
     def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True, EBV=None):
         """
