@@ -505,16 +505,16 @@ def build_host_190102(build_photom=False, build_cigale=False,
         spec_fit = os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'HG190102_MagE_ppxf.fits')
         meta, spectrum = host190102.get_metaspec(instr='MagE')
         R = meta['R']
+
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(host190102.coord)['meanValue'])
         AV = ebv * 3.1  # RV
-        #alAV = nebular.load_extinction('MW')
-        #Al = alAV(spectrum.wavelength.value) * AV
         Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
         # New spec
         new_flux = spectrum.flux * 10**(Al/2.5)
         new_sig = spectrum.sig * 10**(Al/2.5)
         new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+
         # Mask
         atmos = [(7550, 7750)]
         ppxf.run(new_spec, R, host190102.z, results_file=results_file, spec_fit=spec_fit, chk=True, atmos=atmos)
@@ -995,6 +995,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
     frbname = '190614'
     eazy_folder = './eazy'
 
+    frb190614 = FRB.by_name('FRB190614')
+
     #########################################################
     # A
     #########################################################
@@ -1004,7 +1006,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')  # J042017.713+734222.88
 
         # Instantiate
-        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614A = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614A.name = 'G190614_A'
 
         # Photometry
@@ -1108,7 +1111,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')   # J042017.872+734224.42
 
         # Instantiate
-        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614B = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
         host190614B.name = 'G190614_B'
 
         # Redshift -- JXP measured from FORS2
@@ -1214,7 +1218,8 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
                              unit='deg')
 
         # Instantiate
-        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frbname)
+        host190614C = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                        gal_coord.dec.value, frb190614)
 
         # Redshift -- JXP measured from FORS2
         #    Should be refined

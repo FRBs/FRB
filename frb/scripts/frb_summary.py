@@ -67,5 +67,7 @@ def main(pargs):
             # photometry
             print('photom: \n {}'.format(pjson(hg.photom)))
             print('derived: \n {}'.format(pjson(hg.derived)))
+            print('morphology: \n {}'.format(pjson(hg.morphology)))
+            print('neb_lines: \n {}'.format(pjson(hg.neb_lines)))
 
 

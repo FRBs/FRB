@@ -19,6 +19,7 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
+from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
 
 from scipy.integrate import simps
@@ -307,6 +308,8 @@ class FRBGalaxy(object):
         if sep[row] > max_off:
             print("No photometric sources within {} of the galaxy".format(max_off))
             return
+        # Get a flux table
+        flux_tbl = convert_mags_to_flux(phot_tbl, fluxunits='mJy')
         # Fill
         for filter in defs.valid_filters:
             # Value
@@ -319,9 +322,14 @@ class FRBGalaxy(object):
                         pass
                     else:
                         self.photom[filter] = phot_tbl[filter][row]
+                        self.photom[filter+'_flux'] = flux_tbl[filter][row]
                         # Try error
                         if filter+'_err' in phot_tbl.keys():
                             self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+                            self.photom[filter+'_flux_err'] = flux_tbl[filter+'_err'][row]
+
+
+                        # Add entries for corresponding flux values.
         # EBV
         if EBV is not None:
             self.photom['EBV'] = EBV
@@ -643,14 +651,13 @@ class FRBGalaxy(object):
         vet = True
         # Check
         assert attr in self.main_attr
-
         # Setup
         if attr == 'neb_lines':
             defs_list = defs.valid_neb_lines
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
-            defs_list = defs.valid_photom
+            defs_list = defs.valid_photom+defs.valid_flux
         elif attr == 'derived':
             defs_list = defs.valid_derived
         elif attr == 'redshift':
@@ -761,8 +768,7 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str):
-            Nomiker of the FRB, e.g. 121102
+        FRB (frb.FRB):
         z_frb (float, optional):
             Redshift of the host, expected to be provided
 

@@ -63,7 +63,7 @@ for band in GMOS_bands:
     valid_filters.append('GMOS_N_{:s}'.format(band))
 
 #NOT
-NOT_bands = ['z']
+NOT_bands = ['g','r','i','z']
 for band in NOT_bands:
     valid_filters.append('NOT_{:s}'.format(band))
 
@@ -102,6 +102,7 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
+valid_flux = [entry+'_flux' for entry in valid_filters]
 
 valid_photom = valid_filters + ['EBV']  # Galactic
 

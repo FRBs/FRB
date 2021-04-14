@@ -55,12 +55,20 @@
         "EBV": 0.1406,
         "GMOS_S_g": 23.472845284135243,
         "GMOS_S_g_err": 0.2,
+        "GMOS_S_g_flux": 1.4820466725444407e-06,
+        "GMOS_S_g_flux_err": 2.9976533229881946e-07,
         "GMOS_S_i": 22.948638095581078,
         "GMOS_S_i_err": 0.15,
+        "GMOS_S_i_flux": 2.401843776279627e-06,
+        "GMOS_S_i_flux_err": 3.558418537255756e-07,
         "GMOS_S_r": 23.492236341934035,
         "GMOS_S_r_err": 0.15,
+        "GMOS_S_r_flux": 1.455812545222748e-06,
+        "GMOS_S_r_flux_err": 2.1568390079534464e-07,
         "WFC3_F160W": 22.7329929981078,
-        "WFC3_F160W_err": 0.012
+        "WFC3_F160W_err": 0.012,
+        "WFC3_F160W_flux": 2.929562683914521e-06,
+        "WFC3_F160W_flux_err": 3.2558315822870125e-08
     },
     "positional_error": {
         "dec_astrometric": 0.0355,

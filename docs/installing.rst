@@ -35,6 +35,7 @@ to install and/or update these packages.
 * `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
 * `matplotlib <https://matplotlib.org/>`_ version 3.2 or greater
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
+* `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
 
 If you are using Anaconda, you can check the presence of these packages with::
 
@@ -68,7 +69,7 @@ The following are required to use our KCWI datacube handling tools:
 The following are required to run some of the halo codes:
 
 * `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
-* `hmf_emulator <https://github.com/profxj/hmf_emulator.git>`_  WARNING: This is JXP's fork.
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 
