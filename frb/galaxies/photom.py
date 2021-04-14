@@ -242,20 +242,6 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     # Add it back in
     photom[idx] = cut_photom
 
-    """
-
-    :param cutout: 2d cutout (output from read_fits)
-    :param frbname: string, e.g. FRB191001
-    :param isize: int, length of one dimension of cutout around host
-    :param UV: bool, if UV image, True
-    :param fwhm: size of the aperture for photometry (either in pixel or kpc)
-    :param physical: is the fwhm in physical units?
-    :return:
-
-    """
-
-
-
 def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS, 
           fwhm=3., physical=False, min_uncert=2):
     """ Measure the surface brightness at an FRB location
