@@ -143,6 +143,16 @@ valid_offsets = [
     'physical',   # Physical offset in kpc;  Uses ang_best
     ]
 
+
+##############################################################
+# Positional  (Astrometric and Source) Errors
+valid_positional_error = [
+    'ra_astrometric',   # error for astrometric tie in RA; arcsec
+    'dec_astrometric',  # error for astrometric tie in Dec; arcsec
+    'ra_source',        # RA error for source position (e.g. from source extractor); arcsec
+    'dec_source',       # Dec error for source position; arcsec
+]
+
 ##############################################################
 # Derived quantities
 

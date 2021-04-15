@@ -100,6 +100,7 @@ ENV/
 .ropeproject
 
 # pytest
+<<<<<<< HEAD
 .pytest_cache
 
 frb/data/FRBs/FRB191228.json
@@ -119,3 +120,6 @@ frb/data/Galaxies/20181030A/
 frb/data/Galaxies/20200120E/
 frb/data/Galaxies/extra/
 frb/data/Public/.DS_Store
+=======
+.pytest_cache
+>>>>>>> 901caf04231a06ca01bbc38354986c98e709f483
