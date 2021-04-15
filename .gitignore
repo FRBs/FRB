@@ -101,3 +101,21 @@ ENV/
 
 # pytest
 .pytest_cache
+
+frb/data/FRBs/FRB191228.json
+frb/data/FRBs/FRB200430.json
+frb/data/FRBs/FRB20181030A.json
+frb/data/FRBs/FRB20200120E.json
+frb/data/Galaxies/.DS_Store
+frb/data/Galaxies/180301/FRB180301_host_original.json
+frb/data/Galaxies/190611/FRB190611_host_git.json
+frb/data/Galaxies/190611/FRB190611_host_original.json
+frb/data/Galaxies/191228/
+frb/data/Galaxies/200430/FRB200430_host_myrun.json
+frb/data/Galaxies/200906/#FRB200906_host.json#
+frb/data/Galaxies/200906/FRB200906_host_original.json
+frb/data/Galaxies/200906/FRB200906_host_use.json
+frb/data/Galaxies/20181030A/
+frb/data/Galaxies/20200120E/
+frb/data/Galaxies/extra/
+frb/data/Public/.DS_Store
