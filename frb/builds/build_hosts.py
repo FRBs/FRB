@@ -1669,7 +1669,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
                  spec_fit=spec_fit, chk=True, atmos=atmos)
 
     host200430.parse_ppxf(ppxf_results_file)
-
+    '''
     # Photometry
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
@@ -1718,16 +1718,16 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     host200430.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Derived quantities
-
+    '''
     # AV
-    #host190714.calc_nebular_AV('Ha/Hb')
+    host200430.calc_nebular_AV('Ha/Hb')
 
     # SFR
-    #host190714.calc_nebular_SFR('Ha')
+    host200430.calc_nebular_SFR('Ha')
     
     # Galfit
-    host200430.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
-                                         'HG200430_SDSS_i_galfit.fits'))
+    #host200430.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG200430_SDSS_i_galfit.fits'))
 
     # Vet all
     assert host200430.vet_all()
@@ -1810,5 +1810,5 @@ def main(inflg='all', options=None):
 
 # Command line execution
 if __name__ == '__main__':
-    pass
-
+   # pass
+   main(inflg=2**12)

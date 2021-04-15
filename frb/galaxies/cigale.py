@@ -303,7 +303,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         
         if old_version:
             import pcigale
-            warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
+            #warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
             sed(cigconf,"mJy",True)
         else:
             # TODO: Let the user customize the plot.
