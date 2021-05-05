@@ -23,8 +23,8 @@ from specdb.build import utils as spbu
 from frb.surveys import sdss
 
 # Globals
-all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 'LRISr', 'DEIMOS',
-                   'XSHOOTER']
+all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 'LRISr', 
+                   'DEIMOS', 'XSHOOTER', 'GMOS-N']
 db_path = os.getenv('FRB_GDB')
 
 
@@ -239,6 +239,12 @@ def generate_by_refs(input_refs, outfile, version):
             parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 'DISPERSER': 'DISPNAME'}
             maxpix = 3500
             scale = 1e-17
+        elif instr == 'GMOS-N':
+            mdict = dict(TELESCOPE='Gemini-N', INSTR='GMOS-N')
+            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 
+                          'DISPERSER': 'DISPNAME'}
+            maxpix = 3500
+            scale = 1e-17
         elif instr == 'LRISr':
             mdict = dict(TELESCOPE='Keck-1')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
@@ -256,6 +262,7 @@ def generate_by_refs(input_refs, outfile, version):
             scale = 1e-17
         else:
             embed(header='172')
+        
 
         # Meta
         full_meta = pbuild.mk_meta(fits_files, allz_tbl, mdict=mdict, fname=fname,
@@ -291,8 +298,8 @@ def main(inflg='all'):
     # Public
     if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019',
-                          'Heintz2020', 'Simha2020'],
-                         'FRB_specDB_Public.hdf5', 'v0.3')
+                          'Heintz2020', 'Simha2020', 'Tendulkar2017'],
+                         'FRB_specDB_Public.hdf5', 'v0.4')
 
 
 # Command line execution
