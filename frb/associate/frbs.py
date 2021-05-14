@@ -306,7 +306,7 @@ updates = dict(
                             'fong2021', 'FRB201124_Pan-STARRS_r.fits'),
     cut_size = 30.,
     filter = 'Pan-STARRS_r',
-    ZP = 32.29,  # Guess
+    ZP = 32.29,  # Refined using catalog
     deblend=True,
     cand_bright=17.,
     cand_separation=10*units.arcsec,
