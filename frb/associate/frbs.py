@@ -294,3 +294,24 @@ updates = dict(
 frb180301 = {**base_config, **updates}  # Use | in 3.9
 #
 #
+
+##############################
+# FRB 201124
+"""
+Notes:
+"""
+updates = dict(
+    name='FRB201124',
+    image_file=os.path.join(gdb_path, 'F4', 
+                            'fong2021', 'FRB201124_Pan-STARRS_r.fits'),
+    cut_size = 30.,
+    filter = 'Pan-STARRS_r',
+    ZP = 32.29,  # Guess
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.250 * units.arcsec,
+)
+frb201124 = {**base_config, **updates}  # Use | in 3.9
+#
+#

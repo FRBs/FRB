@@ -1805,6 +1805,152 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     host200430.write_to_json(path=path)
 
 
+def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
+    """ Build the host galaxy data for FRB 201124
+
+    Args:
+        build_photom (bool, optional):
+        build_cigale (bool, optional):
+        build_ppxf (bool, optional):
+    """
+    frbname = '201124'
+    print("Building Host galaxy for FRB{}".format(frbname))
+    # THIS SHOULD BE DOUBLE-CHECKED!
+    warnings.warn("These coords should be double checked")
+    gal_coord = SkyCoord('05h08m03.48s +26d03m38.0s', frame='icrs') # SDSS
+    # Instantiate
+    frb201124 = FRB.by_name('FRB'+frbname)
+    host201124 = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                                   gal_coord.dec.value, frb201124)
+
+    '''
+    # Load redshift table
+    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+                      format='ascii.fixed_width')
+    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        embed(header='190608')
+    '''
+    # Redshift -- JXP measured from FORS2
+    #    Should be refined
+    warnings.warn("Update 191228 redshift!")
+    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host201124.set_z(0.0981, 'spec')
+
+    # Morphology
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_galfit_FORS2_I.log'), 0.252)
+
+    # Photometry
+
+    # Grab the table (requires internet)
+    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                               'bhandari2021_photom.ascii')
+    if build_photom:
+        # PS1
+        #search_r = 1 * units.arcsec
+        #ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        #ps1_tbl = ps1_srvy.get_catalog(print_query=True)
+        #ps1_tbl['Name'] = host200906.name
+
+        #Panstarrs
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host191228.coord.ra.value
+        photom['dec'] = host191228.coord.dec.value
+        # VLT
+        photom['VLT_FORS2_g'] = 22.7  # No galactic extinction correction
+        photom['VLT_FORS2_g_err'] = 0.5
+        photom['VLT_FORS2_I'] = 22.0
+        photom['VLT_FORS2_I_err'] = 0.4
+
+        #Merge and write
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        print("Wrote photometry to: {}".format(photom_file))
+
+    # Load
+    #photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correct
+    #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    #frbphotom.correct_photom_table(photom, EBV, 'HG191228')
+    # Parse
+    #host191228.parse_photom(photom, EBV=EBV)
+
+    #print(host200906.photom.keys())
+    # CIGALE
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG191228_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        #cut_photom = Table()
+        # Let's stick to DES only
+        #for key in host200906.photom.keys():
+         #   if 'DES' not in key:
+         #       continue
+         #   cut_photom[key] = [host200906.photom[key]]
+        # Run
+        #print(cut_photom)
+        print("Running cigale")
+        #cut_photom = None
+        # Run
+        cigale.host_run(host191228,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
+    # Parse
+    #host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
+
+
+    # PPXF
+    ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                                     'HG191228_DEIMOS_ppxf.ecsv')
+    spec_fit_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                                 'HG191228_DEIMOS_ppxf.fits')
+    if build_ppxf:
+        # LRIS??
+        meta, spectrum = host191228.get_metaspec(instr='DEIMOS', 
+                                                 specdb_file=os.path.join(
+                                                 os.getenv('SPECDB'), 
+                                                 'specDB_CRAFT.hdf5'))
+        # Correct for Galactic extinction
+        AV = EBV * 3.1  # RV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        #
+        R = 1607.
+
+        ppxf.run(new_spec, R, host191228.z, results_file=ppxf_results_file,
+                 spec_fit=spec_fit_file,
+                 atmos=[[3000., 5000.], [7580, 7750.]],
+                 gaps=[[6675., 6725.]], chk=True)
+    #host200906.parse_ppxf(ppxf_results_file)
+
+
+    # Derived quantities
+
+    # AV
+    #host200906.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    #host200906.calc_nebular_SFR('Ha')
+
+    # Galfit
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_VLT_i_galfit.fits'))
+    host201124.morphology['reff_ang'] = 1.0
+
+    # Vet all
+    assert host201124.vet_all()
+
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host201124.write_to_json(path=path)
+
+
 def main(inflg='all', options=None):
     # Options
     build_photom, build_cigale, build_ppxf = False, False, False
@@ -1874,6 +2020,10 @@ def main(inflg='all', options=None):
     # 200430
     if flg & (2**12):  # 4096
         build_host_200430(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+
+    # 201124
+    if flg & (2**13):  # 8192
+        build_host_201124(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
 
 
 # Command line execution
