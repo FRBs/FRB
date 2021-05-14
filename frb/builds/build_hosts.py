@@ -1823,19 +1823,9 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
     host201124 = frbgalaxy.FRBHost(gal_coord.ra.value, 
                                    gal_coord.dec.value, frb201124)
 
-    '''
-    # Load redshift table
-    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
-                      format='ascii.fixed_width')
-    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
-    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
-    if np.min(d2d) > 0.5*units.arcsec:
-        embed(header='190608')
-    '''
-    # Redshift -- JXP measured from FORS2
+    # Redshift -- 
     #    Should be refined
-    warnings.warn("Update 191228 redshift!")
-    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
     #assign_z(ztbl_file, host200906)
     host201124.set_z(0.0981, 'spec')
 
@@ -1860,11 +1850,6 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
         photom['Name'] = ['HG{}'.format(frbname)]
         photom['ra'] = host191228.coord.ra.value
         photom['dec'] = host191228.coord.dec.value
-        # VLT
-        photom['VLT_FORS2_g'] = 22.7  # No galactic extinction correction
-        photom['VLT_FORS2_g_err'] = 0.5
-        photom['VLT_FORS2_I'] = 22.0
-        photom['VLT_FORS2_I_err'] = 0.4
 
         #Merge and write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
@@ -1872,7 +1857,7 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
         print("Wrote photometry to: {}".format(photom_file))
 
     # Load
-    #photom = Table.read(photom_file, format=frbphotom.table_format)
+    photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correct
     #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
     #frbphotom.correct_photom_table(photom, EBV, 'HG191228')
@@ -1940,13 +1925,13 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
     # Galfit
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
     #                                     'HG191001_VLT_i_galfit.fits'))
+    warnings.warn("This needs to be modified")
     host201124.morphology['reff_ang'] = 1.0
 
     # Vet all
     assert host201124.vet_all()
 
-
-    # Write -- BUT DO NOT ADD TO REPO (YET)
+    # Write 
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host201124.write_to_json(path=path)
 
