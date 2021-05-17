@@ -23,6 +23,7 @@ try:
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
+from frb.galaxies import utils as galaxy_utils
 from frb.surveys import des
 from frb.surveys import sdss
 from frb.surveys import wise
@@ -518,12 +519,13 @@ def build_host_190102(build_photom=False, build_cigale=False,
 
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(host190102.coord)['meanValue'])
-        AV = ebv * 3.1  # RV
-        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        new_spec = galaxy_utils.deredden_spec(spectrum, ebv)
+        #AV = ebv * 3.1  # RV
+        #Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
         # New spec
-        new_flux = spectrum.flux * 10**(Al/2.5)
-        new_sig = spectrum.sig * 10**(Al/2.5)
-        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        #new_flux = spectrum.flux * 10**(Al/2.5)
+        #new_sig = spectrum.sig * 10**(Al/2.5)
+        #new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
 
         # Mask
         atmos = [(7550, 7750)]
@@ -1836,34 +1838,42 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
     # Photometry
 
     # Grab the table (requires internet)
-    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
-                               'bhandari2021_photom.ascii')
+    photom_file = os.path.join(db_path, 'F4', 'fong2021', 
+                               'fong2021_photom.ascii')
     if build_photom:
         # PS1
-        #search_r = 1 * units.arcsec
-        #ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
-        #ps1_tbl = ps1_srvy.get_catalog(print_query=True)
-        #ps1_tbl['Name'] = host200906.name
+        search_r = 1 * units.arcsec
+        ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        ps1_tbl = ps1_srvy.get_catalog(print_query=True)
+        ps1_tbl['Name'] = host200906.name
 
         #Panstarrs
-        photom = Table()
-        photom['Name'] = ['HG{}'.format(frbname)]
-        photom['ra'] = host191228.coord.ra.value
-        photom['dec'] = host191228.coord.dec.value
+        #photom = Table()
+        #photom['Name'] = ['HG{}'.format(frbname)]
+        #photom['ra'] = host191228.coord.ra.value
+        #photom['dec'] = host191228.coord.dec.value
 
         #Merge and write
-        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom = frbphotom.merge_photom_tables(ps1_tbl, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
         print("Wrote photometry to: {}".format(photom_file))
 
     # Load
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correct
-    #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
-    #frbphotom.correct_photom_table(photom, EBV, 'HG191228')
+    EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    frbphotom.correct_photom_table(photom, EBV, 'HG191228')
     # Parse
-    #host191228.parse_photom(photom, EBV=EBV)
+    host191228.parse_photom(photom, EBV=EBV)
 
+    # HERE BEGINS PROSPECTOR
+
+    # Read Propsector output file
+    prospector_file = os.path.join(db_path, 'F4', 'fong2021', 
+                               'HG201124_prospector.h5')
+    host201124.parse_prospector(prospector_file)                            
+
+    '''
     #print(host200906.photom.keys())
     # CIGALE
     cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG191228_CIGALE.fits')
@@ -1912,6 +1922,7 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
                  atmos=[[3000., 5000.], [7580, 7750.]],
                  gaps=[[6675., 6725.]], chk=True)
     #host200906.parse_ppxf(ppxf_results_file)
+    '''
 
 
     # Derived quantities
