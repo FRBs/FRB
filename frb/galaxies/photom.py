@@ -344,6 +344,7 @@ def fractional_flux(cutout, frbdat, hg, nsig=3.):
 
     Returns:
         tuple: median_ff, sig_ff, ff_weight [no units]
+            Median fractional flux, uncertainty
     """
 
     # get image data from cutout
@@ -384,7 +385,7 @@ def fractional_flux(cutout, frbdat, hg, nsig=3.):
 
 
     # check if in ellipse -- pixel space!
-    theta = hg.frb.eellipse['theta']
+    theta = hg.frb.eellipse['theta'] * units.deg
     in_ellipse = ((xx - xfrb.item()) * np.cos(theta).value + (yy - yfrb.item()) * np.sin(theta).value) ** 2 / (
             a ** 2) + (
                          (xx - xfrb.item()) * np.sin(theta).value - (yy - yfrb.item()) * np.cos(
