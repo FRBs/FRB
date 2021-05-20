@@ -124,6 +124,9 @@ class FRBAssociate():
         prior_Mi and prior_S are set in place
         The candidates table is updated with P_O
 
+        Note that there is no correction for Galactic extinction here.
+        Do that yourself as desired
+
         Args:
             prior_S (float):
                 If the input value is <0, use the P_c product else use the input value
@@ -140,7 +143,8 @@ class FRBAssociate():
             self.prior_U = prior_U
 
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.candidates[self.filter].values,
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, 
+                                                  self.candidates[self.filter].values,
                                                   Pchance=self.Pchance,
                                                   half_light=self.candidates.half_light.values)
 
@@ -499,7 +503,8 @@ class FRBAssociate():
         return (txt)
 
 
-def run_individual(config, show=False, skip_bayesian=False, verbose=False):
+def run_individual(config, show=False, skip_bayesian=False, verbose=False,
+                   extinction_correct=False):
     """
     Run through the steps leading up to Bayes
 
@@ -519,6 +524,8 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
             Show a few things on the screen
         skip_bayesian (bool, optional):
             Skip the Bayesian part, i.e. only do the setup
+        extinction_correct (bool, optional):
+            If True, correct for Galactic extinction
         verbose (bool, optional):
     """
     # FRB
@@ -557,7 +564,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
                         separation=config['cand_separation'])
 
     # Chance probability
-    frbA.calc_pchance(ndens_eval='driver')
+    frbA.calc_pchance(ndens_eval='driver', extinction_correct=extinction_correct)
 
     if verbose:
         print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
