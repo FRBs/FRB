@@ -248,9 +248,9 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
     in a host galaxy
 
     Args:
-        host (Host object): [description]
-        cut_dat (np.ndarray): [description]
-        cut_err (np.ndarray): [description]
+        host (Host object): host galaxy object from frb repo
+        cut_dat (np.ndarray): data (data from astorpy 2D Cutout object)
+        cut_err (np.ndarray): inverse variance of data (from astropy 2D Cutout object)
         wcs (WCS): WCS for the cutout
         fwhm (float, optional): FWHM of the PSF of the image in either
             pixels or kpc. Defaults to 3 [pix].
@@ -337,13 +337,14 @@ def fractional_flux(cutout, frbdat, hg, nsig=3.):
     """Calculate the fractional flux at the FRB location
 
     Args:
-        cutout (WCS Cutout2D): [description]
-        frbdat (frb.FRB): [description]
-        hg (frb.galaxies.frbgalaxy.FRBHost): [description]
-        nsig (float, optional): [description]. Defaults to 3.
+        cutout (WCS Cutout2D): astropy 2D Cutout of data around host galaxy
+        frbdat (frb.FRB): frb object loaded from frb repo
+        hg (frb.galaxies.frbgalaxy.FRBHost): host galaxy object loaded from frb repo
+        nsig (float, optional): sigma for FRB localization within which the measurement should be made. Defaults to 3.
 
     Returns:
-        tuple: median_ff, sig_ff, ff_weight 
+        tuple: median_ff, sig_ff, ff_weight [no units]
+            Median fractional flux, uncertainty
     """
 
     # get image data from cutout
@@ -384,7 +385,7 @@ def fractional_flux(cutout, frbdat, hg, nsig=3.):
 
 
     # check if in ellipse -- pixel space!
-    theta = hg.frb.eellipse['theta']
+    theta = hg.frb.eellipse['theta'] * units.deg
     in_ellipse = ((xx - xfrb.item()) * np.cos(theta).value + (yy - yfrb.item()) * np.sin(theta).value) ** 2 / (
             a ** 2) + (
                          (xx - xfrb.item()) * np.sin(theta).value - (yy - yfrb.item()) * np.cos(

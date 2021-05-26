@@ -6,11 +6,16 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pytest
 import os
 import numpy as np
+from pkg_resources import resource_filename
 
 from astropy.table import Table
-from astropy import units
+from astropy import units 
+from astropy.io import fits 
 from astropy.coordinates import SkyCoord
+from astropy.nddata import Cutout2D
+from astropy.wcs import WCS
 
+from frb import frb
 from frb.galaxies import photom
 from frb.surveys.catalog_utils import convert_mags_to_flux
 
@@ -43,3 +48,27 @@ def test_flux_conversion():
     assert np.isclose(fluxtab['DES_r_err'], 0.02123618797770558), "Check AB flux error."
     assert np.isclose(fluxtab['WISE_W1_err'], 0.0018104783879441312), "Check WISE flux error."
     assert np.isclose(fluxtab['VISTA_Y_err'], 0.012208592584879318), "Check VISTA flux error."
+
+
+def test_fractional_flux():
+    isize = 5
+    # FRB and HG
+    frbname = 'FRB180924'
+    frbdat = frb.FRB.by_name(frbname)
+    # frbcoord = frbdat.coord
+    hg = frbdat.grab_host()
+    # Read cutout
+    cutout_file = os.path.join(resource_filename('frb','tests'), 'files',
+                               'FRB180924_cutout.fits')
+    hdul = fits.open(cutout_file)
+
+    hgcoord = hg.coord
+    size = units.Quantity((isize, isize), units.arcsec)
+    cutout = Cutout2D(hdul[0].data, hgcoord, size, wcs=WCS(hdul[0].header))
+
+    # Run
+    med_ff, sig_ff, f_weight = photom.fractional_flux(cutout, frbdat, hg)    
+
+    assert np.isclose(sig_ff, 0.29401563154693383)
+
+
