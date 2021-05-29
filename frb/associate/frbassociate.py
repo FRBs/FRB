@@ -16,6 +16,7 @@ from astropy import wcs as astropy_wcs
 from frb import frb
 from astropath import bayesian
 from astropath import chance
+from astropath import localization
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -201,12 +202,17 @@ class FRBAssociate():
         eellipse['a'] = max(self.frb.sig_a, min_rellipse)
         eellipse['b'] = max(self.frb.sig_b, min_rellipse)
 
+        # Localization
+        localiz = dict(type='eellipse', 
+                       center_coord=self.frb.coord, 
+                       eellipse=eellipse)
+        assert localization.vette_localization(localiz)
+
         # Do it
-        self.p_xOi = bayesian.px_Oi(self.max_radius,
-                                    self.frb.coord,
-                                    eellipse,
-                                    self.candidates['coords'].values,
-                                    self.theta_prior, **kwargs)
+        self.p_xOi = bayesian.px_Oi_fixedgrid(
+            self.max_radius, localiz, 
+            self.candidates['coords'].values,
+            self.theta_prior, **kwargs)
         self.candidates['p_xO'] = self.p_xOi
 
     def calc_pxU(self):
