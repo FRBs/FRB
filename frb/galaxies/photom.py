@@ -8,12 +8,20 @@ from pkg_resources import resource_filename
 
 from IPython import embed
 
+from astropy.io import fits
 from astropy.table import Table, hstack, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
+from astropy.cosmology import Planck15 as cosmo
+from astropy.wcs import utils as wcs_utils
+from astropy.nddata import Cutout2D
+from astropy.wcs import WCS
+from astropy import stats
 
-from frb.galaxies import nebular
+from photutils import SkyCircularAperture
+from photutils import aperture_photometry
+
 from frb.galaxies import defs
 
 try:
@@ -233,3 +241,194 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         cut_photom[key] += mag_dust
     # Add it back in
     photom[idx] = cut_photom
+
+def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS, 
+          fwhm=3., physical=False, min_uncert=2):
+    """ Measure the surface brightness at an FRB location
+    in a host galaxy
+
+    Args:
+        host (Host object): host galaxy object from frb repo
+        cut_dat (np.ndarray): data (data from astorpy 2D Cutout object)
+        cut_err (np.ndarray): inverse variance of data (from astropy 2D Cutout object)
+        wcs (WCS): WCS for the cutout
+        fwhm (float, optional): FWHM of the PSF of the image in either
+            pixels or kpc. Defaults to 3 [pix].
+        physical (bool, optional): If True, FWHM is in kpc. Defaults to False.
+        min_uncert (int, optional): Minimum localization unceratainty
+            for the FRB, in pixels.  Defaults to 2.
+
+    Returns:
+        tuple: sb_average, sb_average_err  [counts/sqarcsec]
+    """
+    # Generate the x,y grid of coordiantes
+    x = np.arange(np.shape(cut_dat)[0])
+    y = np.arange(np.shape(cut_dat)[1])
+    xx, yy = np.meshgrid(x, y)
+    coords = wcs_utils.pixel_to_skycoord(xx, yy, wcs)
+    xfrb, yfrb = wcs_utils.skycoord_to_pixel(host.frb.coord, wcs)
+    plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
+
+    # Calculate total a, b uncertainty (FRB frame)
+    uncerta, uncertb = host.calc_tot_uncert()
+
+    # Put in pixel space
+    uncerta /= plate_scale 
+    uncertb /= plate_scale 
+
+    # Set a minimum threshold
+    uncerta = max(uncerta, min_uncert)
+    uncertb = max(uncertb, min_uncert)
+        
+    # check if in ellipse -- pixel space!
+    theta = host.frb.eellipse['theta']
+    in_ellipse = ((xx - xfrb.item()) * np.cos(theta) + 
+                  (yy - yfrb.item()) * np.sin(theta)) ** 2 / (uncerta ** 2) + (
+                      (xx - xfrb.item()) * np.sin(theta) - (
+                          yy - yfrb.item()) * np.cos(theta)) ** 2 / (uncertb ** 2) <= 1
+    idx = np.where(in_ellipse)
+    xval = xx[idx]
+    yval = yy[idx]
+
+    # x, y gal on the tilted grid (same for frb coords)
+    xp = yval * np.cos(theta) - xval * np.sin(theta)
+    yp = xval * np.cos(theta) + yval * np.sin(theta)
+
+    xpfrb = yfrb.item() * np.cos(theta) - xfrb.item() * np.sin(theta)
+    ypfrb = xfrb.item() * np.cos(theta) + yfrb.item() * np.sin(theta)
+
+    # convert fwhm from pixels to arcsec or kpc to arcsec
+    if physical:
+        fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(host.z)
+    else:
+        fwhm_as = fwhm * plate_scale * units.arcsec
+
+    # Aperture photometry at every pixel in the ellipse
+    photom = []
+    photom_var = []
+    for i in np.arange(np.shape(idx)[1]):
+        aper = SkyCircularAperture(coords[idx[0][i], idx[1][i]], fwhm_as)
+        apermap = aper.to_pixel(wcs)
+
+        # aperture photometry for psf-size within the galaxy
+        photo_frb = aperture_photometry(cut_dat, apermap)
+        photo_err = aperture_photometry(1 / cut_err, apermap)
+
+        photom.append(photo_frb['aperture_sum'][0])
+        photom_var.append(photo_err['aperture_sum'][0])
+
+    # ff prob distribution
+    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * uncerta ** 2)) * np.exp(
+        -(yp - ypfrb) ** 2 / (2 * uncertb ** 2))
+    f_weight = (photom / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted photometry
+    fvar_weight = (photom_var / (np.pi * fwhm_as.value ** 2)) * p_ff  # weighted sigma
+
+    weight_avg = np.sum(f_weight) / np.sum(p_ff) # per unit area (arcsec^2)
+
+    # Errors
+    weight_var_avg = np.sum(fvar_weight) / np.sum(p_ff)
+    weight_err_avg = np.sqrt(weight_var_avg)
+
+
+    return weight_avg, weight_err_avg
+
+
+def fractional_flux(cutout, frbdat, hg, nsig=3.):
+    """Calculate the fractional flux at the FRB location
+
+    Args:
+        cutout (WCS Cutout2D): astropy 2D Cutout of data around host galaxy
+        frbdat (frb.FRB): frb object loaded from frb repo
+        hg (frb.galaxies.frbgalaxy.FRBHost): host galaxy object loaded from frb repo
+        nsig (float, optional): sigma for FRB localization within which the measurement should be made. Defaults to 3.
+
+    Returns:
+        tuple: median_ff, sig_ff, ff_weight [no units]
+            Median fractional flux, uncertainty
+    """
+
+    # get image data from cutout
+    cut_data = cutout.data
+    frbcoord = frbdat.coord
+
+    # shift the data to above zero (all positive values)
+    shift_data = cut_data - np.min(cut_data)
+
+    # make mesh grid
+    if np.shape(cut_data)[0] != np.shape(cut_data)[1]:
+        cut_data = np.resize(cut_data, (np.shape(cut_data)[1], np.shape(cut_data)[1]))
+    x = np.arange(np.shape(cut_data)[0])
+    y = np.arange(np.shape(cut_data)[1])
+    xx, yy = np.meshgrid(x, y)
+    coords = wcs_utils.pixel_to_skycoord(xx, yy, cutout.wcs)
+    xfrb, yfrb = wcs_utils.skycoord_to_pixel(frbcoord, cutout.wcs)
+
+    # Calc plate scale
+    plate_scale = coords[0, 0].separation(coords[0, 1]).to('arcsec').value
+
+    # get a, b, and theta from frb object -- convert to pixel space
+    sig_a, sig_b = hg.calc_tot_uncert()
+    # Put in pixel space
+    sig_a /= plate_scale 
+    sig_b /= plate_scale 
+
+    # sigma
+    a = nsig * sig_a
+    if a < 1:
+        print('a is less than 1!')
+        a = 3
+
+    b = nsig * sig_b
+    if b < 1:
+        print('b is less than 1!')
+        b = 3
+
+
+    # check if in ellipse -- pixel space!
+    theta = hg.frb.eellipse['theta'] * units.deg
+    in_ellipse = ((xx - xfrb.item()) * np.cos(theta).value + (yy - yfrb.item()) * np.sin(theta).value) ** 2 / (
+            a ** 2) + (
+                         (xx - xfrb.item()) * np.sin(theta).value - (yy - yfrb.item()) * np.cos(
+                     theta).value) ** 2 / (
+                         b ** 2) <= 1
+
+    #print(frbdat.FRB, a, b, np.size(cut_data), np.size(cut_data[in_ellipse]))
+
+    idx = np.where(in_ellipse)
+    xval = xx[idx]
+    yval = yy[idx]
+
+    # x, y gal
+    xp = yval * np.cos(theta).value - xval * np.sin(theta).value
+    yp = xval * np.cos(theta).value + yval * np.sin(theta).value
+
+    xpfrb = yfrb.item() * np.cos(theta).value - xfrb.item() * np.sin(theta).value
+    ypfrb = xfrb.item() * np.cos(theta).value + yfrb.item() * np.sin(theta).value
+
+    # sigma clip data to exclude background
+    clipp = stats.sigma_clip(shift_data, sigma=1, maxiters=5)
+    mask = np.ma.getmask(clipp)
+    masked_dat = shift_data[mask]
+
+    # fractional flux for all values in ellipse
+    fprime_inlocal = []
+    for dat in shift_data[idx]:
+        fprime = np.sum(shift_data[shift_data < dat]) / np.sum(shift_data)
+        fprime_inlocal.append(fprime)
+
+    # ff prob distribution
+    p_ff = np.exp(-(xp - xpfrb) ** 2 / (2 * a ** 2)) * np.exp(-(yp - ypfrb) ** 2 / (2 * b ** 2))
+    f_weight = fprime_inlocal * p_ff  # weighted fractional fluxes
+
+    avg_ff = np.sum(fprime_inlocal * p_ff) / np.sum(p_ff)
+    var_ff = np.sum((fprime_inlocal - avg_ff) ** 2 * p_ff) / np.sum(p_ff)
+    sig_ff = np.sqrt(var_ff)
+
+    med_ff = np.percentile(f_weight, 50)
+    l68, u68 = np.abs(np.percentile(f_weight, (16, 84)))
+
+    # make array into list for writing out
+    f_weight = np.array(f_weight).tolist()
+
+    # return med_ff, med_flux, fprime_inlocal
+    return med_ff, sig_ff, f_weight

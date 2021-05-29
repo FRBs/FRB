@@ -464,19 +464,20 @@ def frb_201124():
     ATEL only so far
 
     """
-    # Taken from Bhandari, Table 1
-    FRB_201124_coord = SkyCoord("05h08m03.662s +26d03m39.82s", frame='icrs')
+    # ATEL 14603 (VLBI)
+    FRB_201124_coord = SkyCoord("05h08m03.5077s 26d03m38.504s", frame='icrs')
     frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
                         411. * units.pc / units.cm ** 3,
                         z_frb=0.0982, repeater=False)
     # Error ellipse [REQUIRED]
-    frb201124.set_ee(0.29, 0.29, theta=0., cl=68.) # ATEL
-    #frb201124.set_ee(0.7, 0.7, theta=0., cl=68., stat=False)  
+    frb201124.set_ee(0.004, 0.004, theta=0., cl=68.) # ATEL
+
     # Error in DM
     #frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
 
     # NE2001
     frb201124.set_DMISM()
+
     # RM and fluence (Bhandari+20b)
     #frb201124.RM = 55.5 * units.rad / units.m**2
     #frb201124.RM_err = 0.9 * units.rad / units.m**2
