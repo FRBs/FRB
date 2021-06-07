@@ -769,8 +769,6 @@ class FRBHost(FRBGalaxy):
         ra (float): RA in deg
         dec (float): DEC in deg
         FRB (frb.FRB):
-        z_frb (float, optional):
-            Redshift of the host, expected to be provided
 
     """
     @classmethod
@@ -778,7 +776,7 @@ class FRBHost(FRBGalaxy):
         """
         
         Args:
-            frb (FRB):  FRB object
+            frb (frb.FRB):  FRB object
             **kwargs: 
 
         Returns:

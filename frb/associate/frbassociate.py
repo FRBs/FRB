@@ -4,7 +4,6 @@ from matplotlib import pyplot as plt
 
 from astropy.wcs import WCS
 from astropy.nddata import Cutout2D
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel
 from astropy.stats import gaussian_fwhm_to_sigma
@@ -16,6 +15,8 @@ from astropy import wcs as astropy_wcs
 from frb import frb
 from astropath import bayesian
 from astropath import chance
+from astropath import path
+from astropath import localization
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -23,10 +24,16 @@ import photutils
 
 from IPython import embed
 
-class FRBAssociate():
+class FRBAssociate(path.PATH):
     """
     Class that guides the PATH analysis for an FRB
-    It is instantiated with an FRB object
+    It is instantiated with an FRB object 
+
+    This is mainly used to do the candidate slurping
+    from images.
+
+    Use PATH methods for the Bayesian analysis
+    
 
     Args:
         frb (frb.frb.FRB): FRB object
@@ -39,13 +46,15 @@ class FRBAssociate():
         candidate (pandas.DataFrame):  Candidates table
             Note, while this is derived from photom, it is a *separate* copy
         Pchance (np.ndarray): Chance probability
-        Sigma_m (np.ndarray): Surface density of sources on the sky
     """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
         """
 
         """
+        # Init PATH
+        super().__init__()
+
         self.frb = frb
         self.image_file = image_file
         self.max_radius = max_radius
@@ -109,13 +118,14 @@ class FRBAssociate():
         # Do it
         self.Pchance, self.Sigma_m = chance.pchance(self.candidates[self.filter],
                                         self.candidates['separation'],
-                                        self.candidates['half_light'],
+                                        self.candidates['ang_size'],
                                         self.sigR.to('arcsec').value, ndens_eval=ndens_eval)
 
         # Add to table
         self.candidates['P_c'] = self.Pchance
         self.candidates['Sigma_m'] = self.Sigma_m
 
+    '''
     def calc_priors(self, prior_U, method='inverse'):
         """
         Calulate the priors based on Pchance
@@ -123,6 +133,9 @@ class FRBAssociate():
 
         prior_Mi and prior_S are set in place
         The candidates table is updated with P_O
+
+        Note that there is no correction for Galactic extinction here.
+        Do that yourself as desired
 
         Args:
             prior_S (float):
@@ -140,9 +153,10 @@ class FRBAssociate():
             self.prior_U = prior_U
 
         # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, self.candidates[self.filter].values,
+        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, 
+                                                  self.candidates[self.filter].values,
                                                   Pchance=self.Pchance,
-                                                  half_light=self.candidates.half_light.values)
+                                                  ang_size=self.candidates.ang_size.values)
 
         # Normalize
         self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)
@@ -201,12 +215,17 @@ class FRBAssociate():
         eellipse['a'] = max(self.frb.sig_a, min_rellipse)
         eellipse['b'] = max(self.frb.sig_b, min_rellipse)
 
+        # Localization
+        localiz = dict(type='eellipse', 
+                       center_coord=self.frb.coord, 
+                       eellipse=eellipse)
+        assert localization.vet_localization(localiz)
+
         # Do it
-        self.p_xOi = bayesian.px_Oi(self.max_radius,
-                                    self.frb.coord,
-                                    eellipse,
-                                    self.candidates['coords'].values,
-                                    self.theta_prior, **kwargs)
+        self.p_xOi = bayesian.px_Oi_fixedgrid(
+            self.max_radius, localiz, 
+            self.candidates['coords'].values,
+            self.theta_prior, **kwargs)
         self.candidates['p_xO'] = self.p_xOi
 
     def calc_pxU(self):
@@ -224,6 +243,7 @@ class FRBAssociate():
 
         """
         self.p_x = self.prior_U * self.p_xU + np.sum(self.prior_Oi * self.p_xOi)
+    '''
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
         """
@@ -279,7 +299,7 @@ class FRBAssociate():
             self.candidates = self.candidates[cut_seps]
 
         # Half light
-        self.candidates['half_light'] = self.candidates['semimajor_axis_sigma'] * plate_scale
+        self.candidates['ang_size'] = self.candidates['semimajor_axis_sigma'] * plate_scale
 
     def photometry(self, ZP, ifilter, radius=3., show=False, outfile=None):
         """
@@ -353,6 +373,7 @@ class FRBAssociate():
             if show:
                 plt.show()
 
+    '''
     def run_bayes(self, prior, fill_half_light=True, verbose=True):
         """
         Run the main steps of the Bayesian analysis
@@ -383,6 +404,7 @@ class FRBAssociate():
         #
         if verbose:
             print("All done with Bayes")
+    '''
 
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None,
                 deblend=False):
@@ -443,6 +465,7 @@ class FRBAssociate():
             if show:
                 plt.show()
 
+    '''
     def set_theta_prior(self, theta_dict):
         """
 
@@ -452,6 +475,7 @@ class FRBAssociate():
         """
         self.theta_max = theta_dict['max']
         self.theta_prior = theta_dict
+    '''
 
     def threshold(self, nsig=1.5, box_size=(50,50), filter_size=(3,3)):
         """
@@ -499,7 +523,8 @@ class FRBAssociate():
         return (txt)
 
 
-def run_individual(config, show=False, skip_bayesian=False, verbose=False):
+def run_individual(config, show=False, skip_bayesian=False, verbose=False,
+                   extinction_correct=False):
     """
     Run through the steps leading up to Bayes
 
@@ -519,6 +544,8 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
             Show a few things on the screen
         skip_bayesian (bool, optional):
             Skip the Bayesian part, i.e. only do the setup
+        extinction_correct (bool, optional):
+            If True, correct for Galactic extinction
         verbose (bool, optional):
     """
     # FRB
@@ -557,7 +584,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False):
                         separation=config['cand_separation'])
 
     # Chance probability
-    frbA.calc_pchance(ndens_eval='driver')
+    frbA.calc_pchance(ndens_eval='driver', extinction_correct=extinction_correct)
 
     if verbose:
         print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])

@@ -11,16 +11,19 @@
     "cosmo": "Planck15",
     "dec": -29.59361111111111,
     "eellipse": {
-        "a": 0.275,
-        "a_sys": 0.531,
-        "b": 0.262,
-        "b_sys": 0.488,
+        "a": 0.343,
+        "a_sys": 0.95,
+        "b": 0.34,
+        "b_sys": 0.874,
         "cl": 68.0,
         "cl_sys": 68.0,
-        "theta": 0.0,
-        "theta_sys": 0.0
+        "theta": 90.0,
+        "theta_sys": 90.0
     },
     "ra": 344.4301666666666,
-    "refs": [],
+    "refs": [
+        "Bhandari2021",
+        "Day2021"
+    ],
     "repeater": false
 }
