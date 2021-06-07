@@ -625,13 +625,13 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     '''
 
     # CIGALE -- PanStarrs photometry but our own CIGALE analysis
-    cigale_file = os.path.join(db_path, 'DSA', 'Ravi2019', 'S1_190523_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'S1_190523_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         cigale.host_run(host190523_S1, cigale_file=cigale_file)
     # Parse
     host190523_S1.parse_cigale(cigale_file, sfh_file=sfh_file)
-
+    
     # Nebular flux measured by a hand (Gaussian fit) by JXP on 2020-05-19
     #   Corrected for Galactic extinction but not internal
     neb_lines = {}
@@ -642,13 +642,13 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
 
     # SFR
     host190523_S1.calc_nebular_SFR('Hb')
-
+    
     # Derived quantities
     #host190523_S1.derived['SFR_nebular'] = 1.3
     #host190523_S1.derived['SFR_nebular_err'] = -999.
 
     # Galfit
-    host190523_S1.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    host190523_S1.parse_galfit(os.path.join(db_path, 'Realfast', 'Heintz2020',
                                    'HG190523_LRIS_r_galfit.fits'))
     # Vet all
     host190523_S1.vet_all()
@@ -1440,9 +1440,9 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, host190714)
-
+    '''
     # Load redshift table
-    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Heintz2020', 'z_hand.ascii'),
+    ztbl = Table.read(os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii'),
                       format='ascii.fixed_width')
     z_coord = SkyCoord(ztbl['JCOORD'], unit=(units.hourangle, units.deg))  # from DES
     idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
@@ -1451,7 +1451,9 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # Redshift -- JXP measured from LRISr
     host190714.set_z(ztbl['ZEM'][idx], 'spec')
-
+    '''
+    host190714.set_z( 0.2365, 'spec')
+    
     # Photometry
     # Grab the table (requires internet)
     #photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii') # PSF mags
@@ -1500,7 +1502,7 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     host190714.parse_photom(photom, EBV=EBV)
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG190714_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG190714_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         # Prep
@@ -1702,9 +1704,9 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     #    embed(header='190714')
 
     # Redshift -- JXP measured from DEIMOS
-    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
-    assign_z(ztbl_file, host200430)
-    #host200430.set_z(0.1608, 'spec')
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200430)
+    host200430.set_z(0.1608, 'spec')
 
     # PPXF
     ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
@@ -1735,12 +1737,13 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
                  spec_fit=spec_fit, chk=True, atmos=atmos)
 
     host200430.parse_ppxf(ppxf_results_file)
-    '''
+    
     # Photometry
     # Grab the table (requires internet)
     #photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
     photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
                                'bhandari2021_photom.ascii') # PSF mags
+    
     if build_photom:
         # Pan_STARRS
         search_r = 1 * units.arcsec
@@ -1760,7 +1763,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     frbphotom.correct_photom_table(photom, EBV, 'HG200430')
     # Parse
     host200430.parse_photom(photom, EBV=EBV)
-
+    '''
     # EAZY
     pub_path = os.path.join(db_path, 'CRAFT', 'Heintz2020')
     outputdir_base = 'EAZY_OUTPUT_{}'.format(host200430.name)
@@ -1776,9 +1779,9 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
         # Rename
         os.system('cp -rp {:s} {:s}'.format(os.path.join(eazy_folder, outputdir_base),
                                             pub_path))
-
+    '''
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG200430_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG200430_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         cigale.host_run(host200430, cigale_file=cigale_file)
@@ -1786,7 +1789,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     host200430.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # Derived quantities
-    '''
+    
     # AV
     host200430.calc_nebular_AV('Ha/Hb')
 
@@ -1794,8 +1797,8 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     host200430.calc_nebular_SFR('Ha')
     
     # Galfit
-    #host200430.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
-    #                                     'HG200430_SDSS_i_galfit.fits'))
+    host200430.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+                                         'HG200430_SDSS_i_galfit.fits'))
 
     # Vet all
     assert host200430.vet_all()
@@ -1807,7 +1810,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 
 def main(inflg='all', options=None):
     # Options
-    build_photom, build_cigale, build_ppxf = False, False, False
+    build_photom, build_cigale, build_ppxf = False, True, False
     if options is not None:
         if 'photom' in options:
             build_photom = True
@@ -1861,15 +1864,15 @@ def main(inflg='all', options=None):
 
     # 190711
     if flg & (2**9):  # 512
-        build_host_190711(build_photom=build_photom, build_cigale=build_cigale)
+        build_host_190711()#build_photom=build_photom, build_cigale=build_cigale)
 
     # 190714
     if flg & (2**10):  # 1024
-        build_host_190714(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+        build_host_190714()#build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
 
     # 191001
     if flg & (2**11):  # 2048
-        build_host_191001(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+        build_host_191001()#build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
 
     # 200430
     if flg & (2**12):  # 4096
@@ -1878,11 +1881,7 @@ def main(inflg='all', options=None):
 
 # Command line execution
 if __name__ == '__main__':
-<<<<<<< HEAD
    # pass
-   main(inflg=2**12)
-=======
-    pass
+   main(inflg=2**9)
 
 
->>>>>>> 901caf04231a06ca01bbc38354986c98e709f483

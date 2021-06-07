@@ -290,7 +290,7 @@ def frb_190611():
     Macquart al. Nature
     Day et al. 2020  https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
-    FRB_190611_coord = SkyCoord('J212258.91-792351.3',  # Day+2020
+    FRB_190611_coord = SkyCoord('J212258.94-792351.3',  # Day+2021
                                 unit=(units.hourangle, units.deg))
     frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
                         332.63 * units.pc / units.cm**3,
@@ -359,7 +359,7 @@ def frb_190711():
       https://ui.adsabs.harvard.edu/abs/2020MNRAS.497.3335D/abstract
     """
     fname = 'FRB190711'
-    frb190711 = frb.FRB(fname, 'J215740.68-802128.8',  # MacQuarter+2020, Day+2020
+    frb190711 = frb.FRB(fname, 'J215740.62-802128.8',  # MacQuarter+2020, Day+2021
                         587.9 * units.pc / units.cm ** 3,    # Day+2020
                         z_frb=0.52172, repeater=True)
     # Error ellipse
@@ -393,7 +393,8 @@ def frb_190714():
 
     """
     # Taken from Slack; Cherie posted on 19 June 2020
-    FRB_190714_coord = SkyCoord('J121555.12-130115.7',
+    # Updated as per Day 2021
+    FRB_190714_coord = SkyCoord('J121555.13-130115.5',
                                 unit=(units.hourangle, units.deg))
     frb190714 = frb.FRB('FRB190714', FRB_190714_coord,
                         504.13 * units.pc / units.cm ** 3,
@@ -426,7 +427,8 @@ def frb_191001():
 
     """
     # Taken from Bhandari, Table 1
-    FRB_191001_coord = SkyCoord("21h33m24.373s -54d44m51.86s", frame='icrs')
+    # Updated Day 2021
+    FRB_191001_coord = SkyCoord("21h33m24.313s -54d44m51.86s", frame='icrs')
     frb191001 = frb.FRB('FRB191001', FRB_191001_coord,
                         507.90 * units.pc / units.cm ** 3,
                         z_frb=0.2340, repeater=False)
@@ -564,7 +566,10 @@ def main(inflg='all'):
 #  Use the Build script to build
 if __name__ == '__main__':
     # FRB 121102
-    frb_121102()
+    frb_190611()
+    frb_190711()
+    frb_190714()
+    frb_191001()
 
 
 
