@@ -86,6 +86,16 @@ VISTA_bands = ['Y','J','H','Ks']
 for band in VISTA_bands:
     valid_filters.append('VISTA_{:s}'.format(band))
 
+#MMT
+MMIRS_bands = ['J','H','K']
+for band in MMIRS_bands:
+    valid_filters.append('MMIRS_{:s}'.format(band))
+
+#2MASS
+MASS_bands = ['J','H','K']
+for band in MASS_bands:
+    valid_filters.append('2MASS_{:s}'.format(band))
+
 # HST instruments
 # WFC3
 WFC3_bands = ['F300X', 'F110W', 'F160W', 'F763M']
@@ -101,6 +111,7 @@ for band in WISE_bands:
 Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
+
 
 valid_flux = [entry+'_flux' for entry in valid_filters]
 

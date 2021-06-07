@@ -1,28 +1,27 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 380.1
+        "value": 380.0
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 27
-    },
-    "DM_err": {
-        "unit": "pc / cm3",
-        "value": 1.0
+        "value": 27.01954158783831
     },
     "FRB": "FRB200430",
     "cosmo": "Planck15",
-    "dec": 12.376888888888889,
+    "dec": 12.376750000000001,
     "eellipse": {
-        "a": 0.8,
-        "b": 0.4,
+        "a": 0.24,
+        "a_sys": 1.04,
+        "b": 0.16,
+        "b_sys": 0.25,
         "cl": 68.0,
-        "theta": 67.0
+        "cl_sys": 68.0,
+        "theta": 0.0,
+        "theta_sys": 0.0
     },
     "ra": 229.70641666666663,
-    "refs": [
-        "Law2020"
-    ],
-    "repeater": false
+    "refs": [],
+    "repeater": false,
+    "z": 0.161
 }
