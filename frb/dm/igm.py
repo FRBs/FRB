@@ -228,7 +228,7 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
     zeval, dz = np.linspace(0., z, neval,retstep=True)
 
     # Get n_e as a function of z
-    n_e = ne_cosmic(zeval)
+    n_e = ne_cosmic(zeval, cosmo=cosmo)
 
     # Cosmology -- 2nd term is the (1+z) factor for DM
     denom = cosmo.H(zeval) * (1+zeval) * (1+zeval)
