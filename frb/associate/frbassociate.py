@@ -510,7 +510,7 @@ class FRBAssociate(path.PATH):
         """
         Convenience method to show candidate table
         """
-        items = ['id', self.filter, 'half_light', 'separation', 'P_c']
+        items = ['id', self.filter, 'ang_size', 'separation', 'P_c']
         for add_on in ['P_O', 'P_Ox']:
             if add_on in self.candidates.keys():
                 items += [add_on]
@@ -587,7 +587,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False,
     frbA.calc_pchance(ndens_eval='driver', extinction_correct=extinction_correct)
 
     if verbose:
-        print(frbA.candidates[['id', config['filter'], 'half_light', 'separation', 'P_c']])
+        print(frbA.candidates[['id', config['filter'], 'ang_size', 'separation', 'P_c']])
 
     # Return here?
     if skip_bayesian:

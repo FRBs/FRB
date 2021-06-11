@@ -2234,7 +2234,8 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     host200906.write_to_json(path=path)
 
 
-def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
+def build_host_201124(build_ppxf=False, 
+                      build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 201124
 
     Args:
@@ -2246,17 +2247,24 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
     print("Building Host galaxy for FRB{}".format(frbname))
     # THIS SHOULD BE DOUBLE-CHECKED!
     warnings.warn("These coords should be double checked")
-    gal_coord = SkyCoord('05h08m03.48s +26d03m38.0s', frame='icrs') # SDSS
+    gal_coord = SkyCoord('05h08m03.477s +26d03m37.93s', frame='icrs') # SDSS
+
     # Instantiate
     frb201124 = FRB.by_name('FRB'+frbname)
     host201124 = frbgalaxy.FRBHost(gal_coord.ra.value, 
                                    gal_coord.dec.value, frb201124)
 
+    # More accurate offsets with error                                  
+    host201124.offsets['ang_avg'], host201124.offsets['ang_avg_err'], \
+    host201124.offsets['ang_best'], host201124.offsets['ang_best_err'] \
+        = offsets.angular_offset(host201124.frb, host201124, 
+                                 gal_sig=(0.012, 0.012)) # Fong 2021
+
     # Redshift -- 
     #    Should be refined
     #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
     #assign_z(ztbl_file, host200906)
-    host201124.set_z(0.0981, 'spec')
+    host201124.set_z(0.0979, 'spec')  # Kasper emission-line fit
 
     # Morphology
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
@@ -2272,7 +2280,7 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
         search_r = 1 * units.arcsec
         ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
         ps1_tbl = ps1_srvy.get_catalog(print_query=True)
-        ps1_tbl['Name'] = host200906.name
+        ps1_tbl['Name'] = host201124.name
 
         #Panstarrs
         #photom = Table()
@@ -2289,38 +2297,16 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
     photom = Table.read(photom_file, format=frbphotom.table_format)
     # Dust correct
     EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
-    frbphotom.correct_photom_table(photom, EBV, 'HG191228')
+    frbphotom.correct_photom_table(photom, EBV, 'HG201124')
     # Parse
-    host191228.parse_photom(photom, EBV=EBV)
+    host201124.parse_photom(photom, EBV=EBV)
 
     # HERE BEGINS PROSPECTOR
 
     # Read Propsector output file
     prospector_file = os.path.join(db_path, 'F4', 'fong2021', 
                                'HG201124_prospector.h5')
-    host201124.parse_prospector(prospector_file)                            
-
-    '''
-    #print(host200906.photom.keys())
-    # CIGALE
-    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG191228_CIGALE.fits')
-    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
-    if build_cigale:
-        # Prep
-        #cut_photom = Table()
-        # Let's stick to DES only
-        #for key in host200906.photom.keys():
-         #   if 'DES' not in key:
-         #       continue
-         #   cut_photom[key] = [host200906.photom[key]]
-        # Run
-        #print(cut_photom)
-        print("Running cigale")
-        #cut_photom = None
-        # Run
-        cigale.host_run(host191228,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
-    # Parse
-    #host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
+    #host201124.parse_prospector(prospector_file)                            
 
 
     # PPXF
@@ -2349,16 +2335,32 @@ def build_host_201124(build_ppxf=False, build_photom=False, build_cigale=False):
                  atmos=[[3000., 5000.], [7580, 7750.]],
                  gaps=[[6675., 6725.]], chk=True)
     #host200906.parse_ppxf(ppxf_results_file)
-    '''
 
-
-    # Derived quantities
+    # Nebular lines
+    neb_lines = {}
+    neb_lines['Halpha'] = 11.87e-15
+    neb_lines['Halpha_err'] = 0.18e-15
+    #
+    neb_lines['Hbeta'] = 1.85e-15
+    neb_lines['Hbeta_err'] = 0.12e-15
+    #
+    neb_lines['[OIII] 5007'] = 0.66e-15
+    neb_lines['[OIII] 5007_err'] = 0.10e-15
+    #
+    neb_lines['[NII] 6584'] = 4.12e-15
+    neb_lines['[NII] 6584_err'] = 0.15e-15
+    host201124.neb_lines = neb_lines
 
     # AV
-    #host200906.calc_nebular_AV('Ha/Hb')
+    host201124.calc_nebular_AV('Ha/Hb', min_AV=0.)
 
     # SFR
-    #host200906.calc_nebular_SFR('Ha')
+    host201124.calc_nebular_SFR('Ha')
+
+    # O/H
+    logOH, logOH_errp, logOH_errm = nebular.calc_logOH(
+        host201124.neb_lines, 'O3N2')
+    print('logOH = {} +{} -{}'.format(logOH, logOH_errp, logOH_errm))
 
     # Galfit
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
@@ -2446,8 +2448,7 @@ def main(inflg='all', options=None):
 
     # 201124
     if flg & (2**13):  # 8192
-        pass
-        #build_host_201124(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+        build_host_201124(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
 
     # 180301
     if flg & (2**14):  # 16384

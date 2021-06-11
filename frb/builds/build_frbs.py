@@ -613,7 +613,7 @@ def frb_200906():
 
 def frb_201124():
     """
-    ATEL only so far
+    ATELs only so far
 
     """
     # ATEL 14603 (VLBI)
@@ -621,6 +621,7 @@ def frb_201124():
     frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
                         411. * units.pc / units.cm ** 3,
                         z_frb=0.0982, repeater=False)
+
     # Error ellipse [REQUIRED]
     frb201124.set_ee(0.004, 0.004, theta=0., cl=68.) # ATEL
 
