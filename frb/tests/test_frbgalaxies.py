@@ -69,6 +69,8 @@ def test_frbhost():
     # Write
     outfile = data_path('test_frbhost.json')
     host121102.write_to_json(outfile=outfile)
+    # Remove
+    os.remove(outfile)
 
 
 def test_read_frbhost():
