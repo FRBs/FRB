@@ -195,6 +195,7 @@ def generate_by_refs(input_refs, outfile, version):
     gdict = {}
 
     # Loop on Instruments
+    #pair_groups = ['MUSE']
     pair_groups = []
     badf = None
     for instr in all_instruments:
@@ -273,10 +274,7 @@ def generate_by_refs(input_refs, outfile, version):
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
-        try:
-            maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, first=(flag_g==1), close_pairs=(instr in pair_groups))
-        except:
-            embed(header='251 in build_specdb')
+        maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, first=(flag_g==1), close_pairs=(instr in pair_groups))
 
         # Ingest --
         pbuild.ingest_spectra(hdf, instr, full_meta, max_npix=maxpix, verbose=False,
