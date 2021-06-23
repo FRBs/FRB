@@ -11,6 +11,7 @@ def parser(options=None):
     parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
     parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (photom,cigale,ppxf)")
+    parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
 
     if options is None:
         pargs = parser.parse_args()
@@ -26,6 +27,7 @@ def main(pargs):
     from frb.builds import build_specdb
     from frb.builds import build_frbs
     from frb.builds import build_hosts
+    from frb.builds import new_build_hosts
     from frb.builds import build_fg
 
     # Parse
@@ -33,7 +35,14 @@ def main(pargs):
     if item == 'frbs':
         build_frbs.main(inflg=pargs.flag)
     elif item == 'hosts':
-        build_hosts.main(inflg=pargs.flag, options=pargs.galaxy_options)
+        if pargs.frb is None:
+            print("You must specify --frb")
+            return
+        # 
+        frbs = pargs.frb.split(',')
+        frbs = [ifrb.strip() for ifrb in frbs]
+        new_build_hosts.main(frbs, inflg=pargs.flag, 
+                             options=pargs.galaxy_options) 
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':

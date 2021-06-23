@@ -5,6 +5,8 @@ import numpy as np
 import pdb
 
 import os
+import pandas
+
 from astropy import units
 from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
@@ -201,3 +203,17 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
         return 1 - np.exp(-1 * num_gals), num_gals
     else:
         return 1 - np.exp(-1 * num_gals)
+
+def load_host_tbl(hosts_file=None):
+    galaxy_path = os.path.join(resource_filename('frb', 'data'), 
+                               'Galaxies')
+    if hosts_file is None:
+        hosts_file = os.path.join(galaxy_path, 'public_hosts.csv')
+    host_tbl = pandas.read_csv(hosts_file)
+
+    # Reformat a few columns
+    sfrbs = [str(ifrb) for ifrb in host_tbl.FRB.values]
+    host_tbl['FRB'] = sfrbs
+
+    # Return
+    return host_tbl
