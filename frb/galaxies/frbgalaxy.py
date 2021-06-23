@@ -12,9 +12,9 @@ from pkg_resources import resource_filename
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck15
 from astropy.table import Table
 
+from frb import defs as frb_defs
 from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
@@ -126,7 +126,7 @@ class FRBGalaxy(object):
 
         # Cosmology
         if cosmo is None:
-            self.cosmo = Planck15
+            self.cosmo = frb_defs.frb_cosmo
         else:
             self.cosmo = cosmo
 
@@ -293,6 +293,7 @@ class FRBGalaxy(object):
 
         Args:
             phot_tbl (astropy.table.Table):
+                ra, dec entires are required
             max_off (Angle, optional):
             overwrite (bool, optional):
             EBV (float, optional):  Galactic reddening.  If included, the photometry
@@ -799,11 +800,8 @@ class FRBHost(FRBGalaxy):
         super(FRBHost, self).__init__(ra, dec, frb, **kwargs)
 
         # Name
-        if frb.frb_name[0:3] == 'FRB':
-            name = frb.frb_name[3:]
-        else:
-            name = frb.frb_name
-        self.name = 'HG{}'.format(name)
+        idname = utils.parse_frb_name(frb.frb_name, prefix='')
+        self.name = 'HG{}'.format(idname)
 
         # Optional
         if z_frb is not None:

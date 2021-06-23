@@ -1,0 +1,1 @@
+from astropy.cosmology import Planck18 as frb_cosmo

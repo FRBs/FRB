@@ -298,3 +298,17 @@ def Tsky(nu):
     """
     # TODO  -- Need some guidance here
     return 34*units.K * (nu/(408*units.MHz))**(-2.6)
+
+def parse_frb_name(name:str, prefix='FRB'):
+    
+    if name[0:3] == 'FRB':
+        # Strip FRB
+        return parse_frb_name(name[3:], prefix=prefix)
+    elif len(name) == 6: # Original YYMMDD
+        # Append 20
+        return parse_frb_name('20'+name, prefix=prefix)
+    elif len(name) == 8: # YYYYMMDD
+        # All set
+        return prefix+name
+    else:
+        raise IOError("Not prepared for this type of format")

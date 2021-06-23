@@ -20,7 +20,7 @@ def frb_121102():
         05h31m58.7013s +/- 4 mas
         +33d08m52.5536s +/- 2.3 mas
     """
-    frb121102 = frb.FRB('FRB121102', 'J053158.7013+330852.5536',
+    frb121102 = frb.FRB('FRB20121102', 'J053158.7013+330852.5536',
                         558.1*units.pc/units.cm**3,
                         z_frb=0.19273, repeater=True)
     # NE2001
@@ -52,7 +52,7 @@ def frb_180301():
     """
     Bhandari+2021
     """
-    frbname = 'FRB180301'
+    frbname = 'FRB20180301'
 
     #FRB_180301_coord = SkyCoord("6h12m54.6748s +4d40m14.5457s", frame='icrs')  # Slack Sep 20 2020
     FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
@@ -87,7 +87,7 @@ def frb_180916():
         https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
     """
     coord = SkyCoord("01h58m00.75017s 65d43m00.3152s", frame='icrs')
-    name = 'FRB180916'
+    name = 'FRB20180916'
     frb180916 = frb.FRB(name, coord,
                         348.76*units.pc / units.cm**3,
                         z_frb=0.0337, repeater=True)
@@ -127,7 +127,7 @@ def frb_180924():
 
         Uncertinties in FRB localization updated by Day et al. 2021
     """
-    frb180924 = frb.FRB('FRB180924', 'J214425.255-405400.10',
+    frb180924 = frb.FRB('FRB20180924', 'J214425.255-405400.10',
                         362.16*units.pc / units.cm**3,
                         z_frb=0.3212, repeater=False)
 
@@ -173,7 +173,7 @@ def frb_181112():
     FRB position and localization updated by Day+2021
 
     """
-    frb181112 = frb.FRB('FRB181112', 
+    frb181112 = frb.FRB('FRB20181112', 
                         'J214923.63-525815.4',
                         589.27 * units.pc / units.cm**3,
                         z_frb=0.4755, repeater=False)
@@ -212,7 +212,7 @@ def frb_190102():
     and scattering time from Day et al. 2020
     Update systematic uncertainty in FRB localization from Day+2021
     """
-    fname = 'FRB190102'
+    fname = 'FRB20190102'
     #wv_oiii = 6466.48
     #z_OIII = wv_oiii / 5008.239 - 1
     frb190102 = frb.FRB(fname, 'J212939.76-792832.5', # Day+20
@@ -253,7 +253,7 @@ def frb_190523():
     """Ravi+19, Nature --
         https://ui.adsabs.harvard.edu/abs/2019Natur.572..352R/abstract
     """
-    fname = 'FRB190523'
+    fname = 'FRB20190523'
     frb190523 = frb.FRB(fname, 'J134815.6+722811',
                         760.8 * units.pc / units.cm**3,
                         z_frb=0.660, repeater=False)
@@ -293,7 +293,7 @@ def frb_190608():
 
     Update systematic uncertainty in FRB localization from Day+2021
     """
-    fname = 'FRB190608'
+    fname = 'FRB20190608'
     frb190608 = frb.FRB(fname, "J221604.77-075353.7",  # Pulled from Slack on 2020 Mar 18
                         340.05 * units.pc / units.cm**3,
                         z_frb=0.1177805, repeater=False)  # Taken from the SDSS table
@@ -337,7 +337,7 @@ def frb_190611():
     """
     FRB_190611_coord = SkyCoord('J212258.94-792351.3',  # Day+2021
                                 unit=(units.hourangle, units.deg))
-    frb190611 = frb.FRB('FRB190611', FRB_190611_coord,
+    frb190611 = frb.FRB('FRB20190611', FRB_190611_coord,
                         332.63 * units.pc / units.cm**3,
                         z_frb=0.3778, repeater=False)  # Bright
     # Error ellipse 
@@ -375,7 +375,7 @@ def frb_190614():
     Law+2020 https://ui.adsabs.harvard.edu/abs/2020ApJ...899..161L/abstract
 
     """
-    fname = 'FRB190614'
+    fname = 'FRB20190614'
     FRB_190614_coord = SkyCoord(ra=65.07552, dec=73.70674, unit='deg')
     frb190614 = frb.FRB(fname, FRB_190614_coord,
                         959 * units.pc / units.cm ** 3, repeater=False)
@@ -405,7 +405,7 @@ def frb_190711():
 
     Updated FRB localization + error from Day+2021
     """
-    fname = 'FRB190711'
+    fname = 'FRB20190711'
     frb190711 = frb.FRB(fname,'J215740.62-802128.8',  # MacQuarter+2020, Day+2020
                         587.9 * units.pc / units.cm ** 3,    # Day+2020
                         z_frb=0.52172, repeater=True)
@@ -443,7 +443,7 @@ def frb_190714():
     # Updated as per Day 2021
     FRB_190714_coord = SkyCoord('J121555.13-130115.6',
                                 unit=(units.hourangle, units.deg))
-    frb190714 = frb.FRB('FRB190714', FRB_190714_coord,
+    frb190714 = frb.FRB('FRB20190714', FRB_190714_coord,
                         504.13 * units.pc / units.cm ** 3,
                         z_frb=0.2365, repeater=False)
 
@@ -478,7 +478,7 @@ def frb_191001():
     # Taken from Bhandari, Table 1
     # Updated Day 2021
     FRB_191001_coord = SkyCoord("21h33m24.313s -54d44m51.86s", frame='icrs')
-    frb191001 = frb.FRB('FRB191001', FRB_191001_coord,
+    frb191001 = frb.FRB('FRB20191001', FRB_191001_coord,
                         507.90 * units.pc / units.cm ** 3,
                         z_frb=0.2340, repeater=False)
     # Error ellipse [REQUIRED]
@@ -516,7 +516,7 @@ def frb_191228():
 
     Updated FRB localization + error from Day+2021
     """
-    frbname = 'FRB191228'
+    frbname = 'FRB20191228'
     FRB_191228_coord = SkyCoord('22h57m43.24s -29d35m37.0s',  frame='icrs') # Taken from Slack on 11 Oct 2020
     frb191228 = frb.FRB(frbname, FRB_191228_coord,
                         298 * units.pc / units.cm ** 3,
@@ -548,7 +548,7 @@ def frb_200430():
 
     Updated FRB localization + error from Day+2021
     """
-    frbname = 'FRB200430'
+    frbname = 'FRB20200430'
 
     FRB_200430_coord = SkyCoord('15h18m49.54s +12d22m36.3s', frame='icrs')
     frb200430 = frb.FRB(frbname, FRB_200430_coord,
@@ -583,7 +583,7 @@ def frb_200906():
 
     Updated FRB localization + error from Day+2021
     """
-    frbname = 'FRB200906'
+    frbname = 'FRB20200906'
 
     FRB_200906_coord = SkyCoord("03h33m59.08s -14d04m59.46s", frame='icrs')  # Slack Sep 2020
     frb200906 = frb.FRB(frbname, FRB_200906_coord,
@@ -618,7 +618,7 @@ def frb_201124():
     """
     # ATEL 14603 (VLBI)
     FRB_201124_coord = SkyCoord("05h08m03.5077s 26d03m38.504s", frame='icrs')
-    frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
+    frb201124 = frb.FRB('FRB20201124', FRB_201124_coord,
                         411. * units.pc / units.cm ** 3,
                         z_frb=0.0982, repeater=False)
 

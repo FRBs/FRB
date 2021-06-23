@@ -10,6 +10,8 @@ from IPython import embed
 
 import numpy as np
 
+import pandas
+
 from astropy.coordinates import SkyCoord
 from astropy import units
 from astropy.table import Table
@@ -24,11 +26,14 @@ except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
 from frb.galaxies import utils as galaxy_utils
+from frb.galaxies import hosts
 from frb.surveys import des
 from frb.surveys import sdss
 from frb.surveys import wise
 from frb.surveys import panstarrs
 from frb.surveys import catalog_utils
+from frb.surveys import survey_utils
+from frb import utils
 import pandas
 
 try:
@@ -2376,7 +2381,166 @@ def build_host_201124(build_ppxf=False,
     host201124.write_to_json(path=path)
 
 
-def main(inflg='all', options=None, frb=None):
+def run(host_input:pandas.core.series.Series, 
+        build_ppxf=False, build_photom=False, 
+        build_cigale=False):
+    """ Build the host galaxy 
+    """
+
+    frbname = utils.parse_frb_name(host_input.FRB)
+    print(f"Building Host galaxy for {frbname}")
+    gal_coord = SkyCoord(host_input.Coord, frame='icrs')
+
+    # Instantiate
+    Frb = FRB.by_name(frbname)
+    Host = frbgalaxy.FRBHost(gal_coord.ra.value, 
+                             gal_coord.dec.value, 
+                             Frb)
+
+    # UPDATE RA, DEC, OFFSETS
+    offsets.incorporate_hst(mannings2021_astrom, Host)
+
+    '''
+    # Load redshift table
+    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+                      format='ascii.fixed_width')
+    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        embed(header='190608')
+    '''
+    # Redshift -- JXP measured from FORS2
+    #    Should be refined
+    Host.set_z(host_input.z, 'spec')
+
+
+    # ####################
+    # Photometry
+
+    # Grab the table (requires internet)
+    project_list = host_input.Projects.split(',')
+    ref_list = host_input.References.split(',')
+    if len(project_list) > 1:
+        embed(header='2422 -- not ready for this yet')
+    GDB_path = os.path.join(db_path, project_list[0],
+        ref_list[0])
+    photom_file = os.path.join(GDB_path, 
+                               ref_list[0].lower()+'_photom.ascii')
+    if build_photom:
+        search_r = 1 * units.arcsec
+
+        # Find all the surveys
+        inside = survey_utils.in_which_survey(Frb.coord)
+
+        # Loop
+        merge_tbl = None
+        for key in inside.keys():
+            # Skip? 
+            if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
+                continue
+            # Skip WISE?
+            if key in ['WISE'] and inside['DES']:
+                continue
+            # Slurp
+            survey = survey_utils.load_survey_by_name(key, 
+                                                      gal_coord, 
+                                                      search_r)
+            srvy_tbl = survey.get_catalog(print_query=True)
+            if len(srvy_tbl) == 0:
+                continue
+            # Merge
+            if merge_tbl is None:
+                merge_tbl = srvy_tbl
+            else:
+                merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+
+        '''
+        # VLT
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host191001.coord.ra.value
+        photom['dec'] = host191001.coord.dec.value
+        photom['VLT_FORS2_g'] = 19.00
+        photom['VLT_FORS2_g_err'] = 0.1
+        photom['VLT_FORS2_I'] = 17.89
+        photom['VLT_FORS2_I_err'] = 0.1
+        # Add in DES
+        for key in host191001.photom.keys():
+            photom[key] = host191001.photom[key]
+        '''
+        # Write
+        # Merge with table from disk
+        photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        print("Wrote photometry to: {}".format(photom_file))
+
+    # Load photometry
+    photom = Table.read(photom_file, format=frbphotom.table_format)
+
+    # Dust correct
+    EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    frbphotom.correct_photom_table(photom, EBV, Host.name)
+
+    # Parse
+    Host.parse_photom(photom, EBV=EBV)
+
+    # CIGALE
+    cigale_file = os.path.join(GDB_path, 
+                               Host.name+'_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        cut_photom = Table()
+        # Let's stick to DES only
+        for key in host191001.photom.keys():
+            if 'DES' not in key:
+                continue
+            cut_photom[key] = [host191001.photom[key]]
+        # Run
+        cigale.host_run(host191001, cut_photom=cut_photom, cigale_file=cigale_file)
+
+    # Parse
+    Host.parse_cigale(cigale_file, sfh_file=sfh_file)
+
+    # PPXF
+    ppxf_results_file = os.path.join(GDB_path, 
+                               Host.name+f'_{host_input.Spectrum}_ppxf.ecsv')
+    #ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 
+    #                                 'HG191001_GMOS_ppxf.ecsv')
+    #spec_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_GMOS_ppxf.fits')
+    spec_file = ppxf_results_file.replace('ecsv', 'fits')
+    if build_ppxf:
+        meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
+        R = meta['R']
+        ppxf.run(spectrum, R, host191001.z, results_file=ppxf_results_file, spec_fit=spec_file,
+                 atmos=[[7150., 7300.], [7580, 7750.]],
+                 gaps=[[6675., 6725.]], chk=True)
+    Host.parse_ppxf(ppxf_results_file)
+
+    # Derived quantities
+
+    # AV
+    Host.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    Host.calc_nebular_SFR('Ha')
+
+    # Galfit
+    embed(header='2532 of new')
+    '''
+    Host.parse_galfit(os.path.join(db_path, 'F4', 'mannings2020',
+                                   'HG191001_galfit.fits'))
+    '''
+
+    # Vet all
+    assert Host.vet_all()
+
+    # Write
+    out_path = os.path.join(resource_filename('frb', 'data'),
+        'Galaxies', f'{frbname[3:]}')
+    Host.write_to_json(path=out_path)
+
+def main(frbs, inflg='all', options=None):
     # Options
     build_photom, build_cigale, build_ppxf = False, True, False
     if options is not None:
@@ -2387,10 +2551,22 @@ def main(inflg='all', options=None, frb=None):
         if 'ppxf' in options:
             build_ppxf = True
 
-    if inflg == 'all':
-        flg = np.sum(np.array( [2**ii for ii in range(25)]))
-    else:
-        flg = int(inflg)
+    # Read public host table
+    host_tbl = hosts.load_host_tbl()
+
+    # Loop me
+    if frbs == 'all':
+        idx = np.arange(len(host_tbl))
+    elif isinstance(frbs, list):
+        idx = []
+        for frb in frbs:
+            frb_name = utils.parse_frb_name(frb, prefix='')
+            mt_idx = host_tbl.FRB == frb_name
+            idx += np.where(mt_idx)[0].tolist()
+
+    # Do it!
+    for ii in idx:
+        run(host_tbl.iloc[ii], build_photom=build_photom)
 
     # 121102
     if flg & (2**0):

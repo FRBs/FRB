@@ -81,7 +81,9 @@ class GenericFRB(object):
 
         # FRB coord
         if 'ra' in idict.keys():
-            slf.coord = SkyCoord(ra=idict['ra'], dec=idict['dec'], unit='deg')
+            slf.coord = SkyCoord(ra=idict['ra'], 
+                                 dec=idict['dec'], 
+                                 unit='deg')
 
         # Check cosmology
         if slf.cosmo.name != idict['cosmo']:
@@ -386,19 +388,19 @@ class FRB(GenericFRB):
         return slf
 
     @classmethod
-    def by_name(cls, frb, **kwargs):
+    def by_name(cls, frb_name, **kwargs):
         """
         Method to instantiate an FRB by its name
 
         Args:
-            frb (str):
+            frb_name (str):
               Name of the FRB,
             **kwargs:
 
         Returns:
 
         """
-        path = os.path.join(resource_filename('frb', 'data/FRBs/'), frb)
+        path = os.path.join(resource_filename('frb', 'data'), 'FRBs', frb_name)
         json_file = path + '.json'
         slf = cls.from_json(json_file, **kwargs)
         return slf
@@ -541,4 +543,3 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     # Return
     return frb_tbl, tbl_units
-
