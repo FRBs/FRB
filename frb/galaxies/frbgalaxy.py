@@ -285,7 +285,8 @@ class FRBGalaxy(object):
         return uncerta, uncertb
 
 
-    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True, EBV=None):
+    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, 
+                     overwrite=True, EBV=None):
         """
         Parse photometry from an input table
 

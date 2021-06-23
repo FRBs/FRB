@@ -41,8 +41,7 @@ def main(pargs):
         # 
         frbs = pargs.frb.split(',')
         frbs = [ifrb.strip() for ifrb in frbs]
-        new_build_hosts.main(frbs, inflg=pargs.flag, 
-                             options=pargs.galaxy_options) 
+        new_build_hosts.main(frbs, options=pargs.galaxy_options) 
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':
