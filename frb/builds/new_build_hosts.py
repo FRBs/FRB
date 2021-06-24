@@ -82,11 +82,23 @@ def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     host.set_z(ztbl['ZEM'][idx], 'spec')
 
 def search_for_file(projects, references, root,
-                    prefix='ref'):
+                    prefix='ref', return_last_file=False):
+    found_file = None
+    found = False
     for project, ref in zip(projects, references):
         GDB_path = os.path.join(db_path, project, ref)
         if prefix == 'ref':
-            filename = os.path.join()
+            filename = os.path.join(GDB_path, ref.lower()+root)
+        else:
+            filename = os.path.join(GDB_path, prefix+root)
+        # Is it there?
+        if os.path.isfile(filename):
+            found_file = filename
+            found = True
+    if not found and return_last_file:
+        found_file = filename
+    #
+    return found, found_file
             
 
 
@@ -134,9 +146,10 @@ def run(host_input:pandas.core.series.Series,
         embed(header='2422 -- not ready for this yet')
     GDB_path = os.path.join(db_path, project_list[0],
         ref_list[0])
-    photom_file_root = '_photom.ascii'
-    photom_file = os.path.join(GDB_path, 
-                               ref_list[0].lower()+'_photom.ascii')
+    found_photom, photom_file = search_for_file(
+        project_list, ref_list, '_photom.ascii', 
+        return_last_file=True)
+    #                           ref_list[0].lower()+'_photom.ascii')
     if build_photom:
         search_r = 1 * units.arcsec
 
@@ -187,16 +200,19 @@ def run(host_input:pandas.core.series.Series,
         photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
         print("Wrote photometry to: {}".format(photom_file))
+        found_photom = True
 
     # Load photometry
-    photom = Table.read(photom_file, format=frbphotom.table_format)
-
-    # Dust correct
-    EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
-    frbphotom.correct_photom_table(photom, EBV, Host.name)
-
-    # Parse
-    Host.parse_photom(photom, EBV=EBV)
+    if found_photom:
+        photom = Table.read(photom_file, format=frbphotom.table_format)
+        # Dust correct
+        EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+        frbphotom.correct_photom_table(photom, EBV, Host.name)
+        # Parse
+        Host.parse_photom(photom, EBV=EBV)
+    else:
+        print(f"No photom file found {file_root}")
+        
 
     # CIGALE
     cigale_file = os.path.join(GDB_path, 
