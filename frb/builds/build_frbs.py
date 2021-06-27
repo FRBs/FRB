@@ -55,14 +55,15 @@ def frb_180301():
     frbname = 'FRB180301'
 
     #FRB_180301_coord = SkyCoord("6h12m54.6748s +4d40m14.5457s", frame='icrs')  # Slack Sep 20 2020
-    FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
+    #FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
+    FRB_180301_coord = SkyCoord("06h12m54.47s +04d40m15.6s", frame='icrs') # Bhadari+2021
     frb180301 = frb.FRB(frbname, FRB_180301_coord,
                         528 * units.pc / units.cm ** 3,
                         z_frb=0.33044, repeater=True)  # Slack posting
     # Error ellipse (Statistical)
     frb180301.set_ee(0.15, 0.15, 0., 68.)
     # Error ellipse (Systematic)
-    #frb180301.set_ee(1.0, 1.0, 0., 68., stat=False)
+    frb180301.set_ee(1.0, 1.0, 0., 68., stat=False)
 
     # Error in DM
     #frb191001.DM_err = 1 * units.pc / units.cm ** 3
@@ -585,7 +586,7 @@ def frb_200906():
     """
     frbname = 'FRB200906'
 
-    FRB_200906_coord = SkyCoord("03h33m59.08s -14d04m59.46s", frame='icrs')  # Slack Sep 2020
+    FRB_200906_coord = SkyCoord("03h33m59.08s -14d04m59.46s", frame='icrs')  # Day+2021
     frb200906 = frb.FRB(frbname, FRB_200906_coord,
                         577.84 * units.pc / units.cm**3,
                         z_frb=0.36879,

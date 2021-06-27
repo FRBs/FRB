@@ -2378,7 +2378,7 @@ def build_host_201124(build_ppxf=False,
 
 def main(inflg='all', options=None):
     # Options
-    build_photom, build_cigale, build_ppxf = False, True, False
+    build_photom, build_cigale, build_ppxf = False, False, False
     if options is not None:
         if 'photom' in options:
             build_photom = True
