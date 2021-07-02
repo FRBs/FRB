@@ -274,6 +274,8 @@ def generate_by_refs(input_refs, outfile, version):
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
+        if 'MUSE' in instr:
+            embed(header='207 of build specdb')
         maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, first=(flag_g==1), close_pairs=(instr in pair_groups))
 
         # Ingest --
