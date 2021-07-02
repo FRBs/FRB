@@ -118,6 +118,8 @@ def run(host_input:pandas.core.series.Series,
                             
     # File root
     file_root = Host.name if is_host else utils.name_from_coord(Host.coord)
+    project_list = host_input.Projects.split(',')
+    ref_list = host_input.References.split(',')
 
     # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, Host)
@@ -131,76 +133,98 @@ def run(host_input:pandas.core.series.Series,
     if np.min(d2d) > 0.5*units.arcsec:
         embed(header='190608')
     '''
-    # Redshift -- JXP measured from FORS2
-    #    Should be refined
+    # Redshift 
+    warnings.warn("We should be using the z Table..")
     Host.set_z(host_input.z, 'spec')
 
 
     # ####################
     # Photometry
 
-    # Grab the table (requires internet)
-    project_list = host_input.Projects.split(',')
-    ref_list = host_input.References.split(',')
-    if len(project_list) > 1:
-        embed(header='2422 -- not ready for this yet')
-    GDB_path = os.path.join(db_path, project_list[0],
-        ref_list[0])
-    found_photom, photom_file = search_for_file(
-        project_list, ref_list, '_photom.ascii', 
-        return_last_file=True)
+    #found_photom, photom_file = search_for_file(
+    #    project_list, ref_list, '_photom.ascii', 
+    #    return_last_file=build_photom)
     #                           ref_list[0].lower()+'_photom.ascii')
-    if build_photom:
-        search_r = 1 * units.arcsec
+    search_r = 1 * units.arcsec
 
-        # Find all the surveys
-        inside = survey_utils.in_which_survey(Frb.coord)
+    # Survey data
+    inside = survey_utils.in_which_survey(Frb.coord)
 
-        # Loop
-        merge_tbl = None
-        for key in inside.keys():
-            # Skip? 
-            if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
-                continue
-            # Skip WISE?
-            if key in ['WISE'] and inside['DES']:
-                continue
-            # Slurp
-            survey = survey_utils.load_survey_by_name(key, 
-                                                      gal_coord, 
-                                                      search_r)
-            srvy_tbl = survey.get_catalog(print_query=True)
-            if len(srvy_tbl) == 0:
-                continue
-            # Merge
-            if merge_tbl is None:
-                merge_tbl = srvy_tbl
+    # Loop on em
+    merge_tbl = None
+    for key in inside.keys():
+        # Skip? 
+        if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
+            continue
+        # Skip WISE?
+        if key in ['WISE'] and inside['DES']:
+            continue
+        # Slurp
+        survey = survey_utils.load_survey_by_name(key, 
+                                                    gal_coord, 
+                                                    search_r)
+        srvy_tbl = survey.get_catalog(print_query=True)
+        if len(srvy_tbl) == 0:
+            continue
+        warnings.warn("We need a way to reference the survey")
+        # Merge
+        if merge_tbl is None:
+            merge_tbl = srvy_tbl
+            merge_tbl['Name'] = file_root
+        else:
+            merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+    
+    # Literature time
+    lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
+        'Literature', 'photom_refs.csv')
+    lit_tbls = pandas.read_csv(lit_refs)
+
+    for kk in range(len(lit_tbls)):
+        lit_entry = lit_tbls.iloc[kk]
+        # Load table
+        photom_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
+            'Literature', lit_entry.Table)
+        lit_tbl = Table.read(photom_file, format=lit_entry.Format)
+        # Search for a match
+        tbl_coord = SkyCoord(ra=lit_tbl['ra'], dec=lit_tbl['dec'], unit='deg')
+        sep = Host.coord.separation(tbl_coord)
+        match = sep < 1*units.arcsec
+        nmatch = np.sum(match)
+        if nmatch == 0:
+            continue
+        elif nmatch == 1:
+            idx = int(np.where(match)[0])
+            sub_tbl = lit_tbl[idx:idx+1]
+            if merge_tbl is not None:
+                merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
-                merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+                merge_tbl = sub_tbl
+                merge_tbl['Name'] = file_root
+        else:
+            raise ValueError("More than one match in the table!!!")
 
-        # Add name
-        merge_tbl['Name'] = file_root
+    embed(header='206 of new')
 
-        '''
-        # VLT
-        photom = Table()
-        photom['Name'] = ['HG{}'.format(frbname)]
-        photom['ra'] = host191001.coord.ra.value
-        photom['dec'] = host191001.coord.dec.value
-        photom['VLT_FORS2_g'] = 19.00
-        photom['VLT_FORS2_g_err'] = 0.1
-        photom['VLT_FORS2_I'] = 17.89
-        photom['VLT_FORS2_I_err'] = 0.1
-        # Add in DES
-        for key in host191001.photom.keys():
-            photom[key] = host191001.photom[key]
-        '''
-        # Write
-        # Merge with table from disk
-        photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
-        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-        print("Wrote photometry to: {}".format(photom_file))
-        found_photom = True
+    '''
+    # VLT
+    photom = Table()
+    photom['Name'] = ['HG{}'.format(frbname)]
+    photom['ra'] = host191001.coord.ra.value
+    photom['dec'] = host191001.coord.dec.value
+    photom['VLT_FORS2_g'] = 19.00
+    photom['VLT_FORS2_g_err'] = 0.1
+    photom['VLT_FORS2_I'] = 17.89
+    photom['VLT_FORS2_I_err'] = 0.1
+    # Add in DES
+    for key in host191001.photom.keys():
+        photom[key] = host191001.photom[key]
+    '''
+    # Write
+    # Merge with table from disk
+    photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
+    photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+    print("Wrote photometry to: {}".format(photom_file))
+    found_photom = True
 
     # Load photometry
     if found_photom:
@@ -215,9 +239,15 @@ def run(host_input:pandas.core.series.Series,
         
 
     # CIGALE
-    cigale_file = os.path.join(GDB_path, 
-                               file_root+'_CIGALE.fits')
-    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    found_cigale, cigale_file = search_for_file(
+        project_list, ref_list, '_CIGALE.fits',
+        prefix=file_root,
+        return_last_file=build_cigale)
+    #cigale_file = os.path.join(GDB_path, 
+    #                           file_root+'_CIGALE.fits')
+    if cigale_file is not None:
+        sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+
     if build_cigale:
         # Prep
         cut_photom = Table()
@@ -228,17 +258,23 @@ def run(host_input:pandas.core.series.Series,
             cut_photom[key] = [host191001.photom[key]]
         # Run
         cigale.host_run(host191001, cut_photom=cut_photom, cigale_file=cigale_file)
+        found_cigale = True
 
     # Parse
-    if os.path.isfile(cigale_file):
+    if found_cigale:
         Host.parse_cigale(cigale_file, sfh_file=sfh_file)
     else:
         print(f"No CIGALE file to read for {file_root}")
 
     # PPXF
-    ppxf_results_file = os.path.join(GDB_path, 
-                               Host.name+f'_{host_input.Spectrum}_ppxf.ecsv')
-    spec_file = ppxf_results_file.replace('ecsv', 'fits')
+    found_ppxf, ppxf_results_file = search_for_file(
+        project_list, ref_list, '_ppxf.ecsv',
+        prefix=file_root+f'_{host_input.Spectrum}',
+        return_last_file=build_ppxf)
+    #ppxf_results_file = os.path.join(GDB_path, 
+    #                           Host.name+f'_{host_input.Spectrum}_ppxf.ecsv')
+    if ppxf_results_file is not None:
+        spec_file = ppxf_results_file.replace('ecsv', 'fits')
 
     if build_ppxf:
         meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
@@ -246,8 +282,9 @@ def run(host_input:pandas.core.series.Series,
         ppxf.run(spectrum, R, host191001.z, results_file=ppxf_results_file, spec_fit=spec_file,
                  atmos=[[7150., 7300.], [7580, 7750.]],
                  gaps=[[6675., 6725.]], chk=True)
+        found_ppxf = True
     # Load
-    if os.path.isfile(ppxf_results_file):
+    if found_ppxf:
         Host.parse_ppxf(ppxf_results_file)
     else:
         print(f"No pPXF file to read for {file_root}")
@@ -255,17 +292,19 @@ def run(host_input:pandas.core.series.Series,
     # Derived quantities
 
     # AV
-    Host.calc_nebular_AV('Ha/Hb')
+    if 'Halpha' in Host.neb_lines.keys() and 'Hbeta' in Host.neb_lines.keys():
+        Host.calc_nebular_AV('Ha/Hb')
 
     # SFR
-    Host.calc_nebular_SFR('Ha')
+    if 'Halpha' in Host.neb_lines.keys():
+        Host.calc_nebular_SFR('Ha')
 
     # Galfit
-    warnings.warn("ADD GALFIT BACK!!")
-    '''
-    Host.parse_galfit(os.path.join(db_path, 'F4', 'mannings2020',
-                                   'HG191001_galfit.fits'))
-    '''
+    found_galfit, galfit_file = search_for_file(
+        project_list, ref_list, '_galfit.fits',
+        prefix=file_root)
+    if found_galfit:
+        Host.parse_galfit(galfit_file)
 
     # Vet all
     assert Host.vet_all()

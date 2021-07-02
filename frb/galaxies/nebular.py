@@ -45,8 +45,6 @@ def calc_dust_extinct(neb_lines, method):
         float: A_V in magnitudes
 
     """
-
-
     if method == 'Ha/Hb':
         wave1 = 6564.6  # redder
         wave2 = 4862.7
