@@ -132,6 +132,7 @@ valid_neb_lines = [
     '[OIII] 4959',  # [OII] 4959 flux erg/s/cm^2; 
     '[OIII] 5007',  # [OII] 5007 flux erg/s/cm^2; pPXF
 ]
+valid_neb_ref = [entry+'_ref' for entry in valid_neb_lines]
 
 ##############################################################
 # Morphology

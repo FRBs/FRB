@@ -100,7 +100,30 @@ def search_for_file(projects, references, root,
     #
     return found, found_file
             
-
+def read_lit_table(lit_entry, coord=None):
+    lit_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
+        'Literature', lit_entry.Table)
+    if lit_entry.Format == 'csv':
+        lit_tbl = pandas.read_csv(lit_file)
+    else:
+        lit_tbl = Table.read(lit_file, format=lit_entry.Format)
+    
+    # 
+    if coord is not None:
+        tbl_coord = SkyCoord(ra=lit_tbl['ra'], dec=lit_tbl['dec'], unit='deg')
+        sep = coord.separation(tbl_coord)
+        match = sep < 1*units.arcsec
+        nmatch = np.sum(match)
+        if nmatch == 0:
+            return None
+        elif nmatch == 1:
+            idx = int(np.where(match)[0])
+            return lit_tbl[idx:idx+1]
+        else:
+            raise ValueError("More than one match in the table!!!")
+    else:
+        # Return
+        return lit_tbl
 
 def run(host_input:pandas.core.series.Series, 
         build_ppxf=False, build_photom=False, 
@@ -182,19 +205,8 @@ def run(host_input:pandas.core.series.Series,
     for kk in range(len(lit_tbls)):
         lit_entry = lit_tbls.iloc[kk]
         # Load table
-        photom_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-            'Literature', lit_entry.Table)
-        lit_tbl = Table.read(photom_file, format=lit_entry.Format)
-        # Search for a match
-        tbl_coord = SkyCoord(ra=lit_tbl['ra'], dec=lit_tbl['dec'], unit='deg')
-        sep = Host.coord.separation(tbl_coord)
-        match = sep < 1*units.arcsec
-        nmatch = np.sum(match)
-        if nmatch == 0:
-            continue
-        elif nmatch == 1:
-            idx = int(np.where(match)[0])
-            sub_tbl = lit_tbl[idx:idx+1]
+        sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
+        if sub_tbl is not None:
             # Add Ref
             for key in sub_tbl.keys():
                 if 'err' in key:
@@ -206,31 +218,8 @@ def run(host_input:pandas.core.series.Series,
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
-        else:
-            raise ValueError("More than one match in the table!!!")
 
-    '''
-    # VLT
-    photom = Table()
-    photom['Name'] = ['HG{}'.format(frbname)]
-    photom['ra'] = host191001.coord.ra.value
-    photom['dec'] = host191001.coord.dec.value
-    photom['VLT_FORS2_g'] = 19.00
-    photom['VLT_FORS2_g_err'] = 0.1
-    photom['VLT_FORS2_I'] = 17.89
-    photom['VLT_FORS2_I_err'] = 0.1
-    # Add in DES
-    for key in host191001.photom.keys():
-        photom[key] = host191001.photom[key]
-    # Write
-    # Merge with table from disk
-    photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
-    photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
-    print("Wrote photometry to: {}".format(photom_file))
-    found_photom = True
-    '''
-
-    # Load photometry
+    # Finish
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
@@ -267,6 +256,7 @@ def run(host_input:pandas.core.series.Series,
         Host.parse_cigale(cigale_file, sfh_file=sfh_file)
     else:
         print(f"No CIGALE file to read for {file_root}")
+    
 
     # PPXF
     found_ppxf, ppxf_results_file = search_for_file(
@@ -292,7 +282,26 @@ def run(host_input:pandas.core.series.Series,
     else:
         print(f"No pPXF file to read for {file_root}")
 
-    # Derived quantities
+    # Slurp in literature Nebular
+    lit_neb_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
+        'Literature', 'nebular_refs.csv')
+    lit_neb_tbls = pandas.read_csv(lit_neb_refs)
+    # Loop on em
+    for kk in range(len(lit_neb_tbls)):
+        lit_entry = lit_neb_tbls.iloc[kk]
+        # Load table
+        lit_tbl = read_lit_table(lit_entry, coord=Host.coord)
+        if lit_tbl is None:
+            continue
+        # Fill me in 
+        for key in lit_tbl.keys():
+            if 'err' in key:
+                Host.neb_lines[key] = float(lit_tbl[key].values[0])
+                newkey = key.replace('err', 'ref')
+                Host.neb_lines[newkey] = lit_entry.Reference
+                # Value
+                newkey = newkey.replace('_ref', '')
+                Host.neb_lines[newkey] = float(lit_tbl[newkey].values[0])
 
     # AV
     if 'Halpha' in Host.neb_lines.keys() and 'Hbeta' in Host.neb_lines.keys():

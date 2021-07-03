@@ -658,7 +658,7 @@ class FRBGalaxy(object):
         assert attr in self.main_attr
         # Setup
         if attr == 'neb_lines':
-            defs_list = defs.valid_neb_lines
+            defs_list = defs.valid_neb_lines + defs.valid_neb_ref
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
