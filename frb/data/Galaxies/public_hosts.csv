@@ -1,3 +1,3 @@
 FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter
+20121102,05h31m58.686s +33d08m52.433s,0.19273,"Repeater,F4","Bassa2017,mannings2020",,,,WFC3_F160W
 20191001,21h33m24.44s -54d44m54.65s ,0.23400,"CRAFT,F4","Heintz2020,mannings2020",,GMOS-S,"[7150., 7300.],[7580, 7750.],[6675., 6725.]",VLT_i
-20191001,21h33m24.44s -54d44m52.65s ,0.23400,CRAFT,Heintz2020,,GMOS-S,"[7150., 7300.],[7580, 7750.],[6675., 6725.]",VLT_i
