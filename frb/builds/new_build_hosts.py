@@ -195,6 +195,12 @@ def run(host_input:pandas.core.series.Series,
         elif nmatch == 1:
             idx = int(np.where(match)[0])
             sub_tbl = lit_tbl[idx:idx+1]
+            # Add Ref
+            for key in sub_tbl.keys():
+                if 'err' in key:
+                    newkey = key.replace('err', 'ref')
+                    sub_tbl[newkey] = lit_entry.Reference
+            # Merge?
             if merge_tbl is not None:
                 merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
@@ -202,8 +208,6 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl['Name'] = file_root
         else:
             raise ValueError("More than one match in the table!!!")
-
-    embed(header='206 of new')
 
     '''
     # VLT
@@ -218,24 +222,23 @@ def run(host_input:pandas.core.series.Series,
     # Add in DES
     for key in host191001.photom.keys():
         photom[key] = host191001.photom[key]
-    '''
     # Write
     # Merge with table from disk
     photom = frbphotom.merge_photom_tables(merge_tbl, photom_file)
     photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
     print("Wrote photometry to: {}".format(photom_file))
     found_photom = True
+    '''
 
     # Load photometry
-    if found_photom:
-        photom = Table.read(photom_file, format=frbphotom.table_format)
+    if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
-        frbphotom.correct_photom_table(photom, EBV, Host.name)
+        frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
         # Parse
-        Host.parse_photom(photom, EBV=EBV)
+        Host.parse_photom(merge_tbl, EBV=EBV)
     else:
-        print(f"No photom file found {file_root}")
+        print(f"No photometry for {file_root}")
         
 
     # CIGALE
@@ -249,12 +252,11 @@ def run(host_input:pandas.core.series.Series,
         sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
 
     if build_cigale:
+        embed(header='251 -- not ready for this!')
         # Prep
         cut_photom = Table()
-        # Let's stick to DES only
-        for key in host191001.photom.keys():
-            if 'DES' not in key:
-                continue
+        # Cut me!
+        for key in Host.photom.keys():
             cut_photom[key] = [host191001.photom[key]]
         # Run
         cigale.host_run(host191001, cut_photom=cut_photom, cigale_file=cigale_file)
@@ -277,7 +279,8 @@ def run(host_input:pandas.core.series.Series,
         spec_file = ppxf_results_file.replace('ecsv', 'fits')
 
     if build_ppxf:
-        meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
+        embed(header='278 -- not ready for this!')
+        meta, spectrum = Host.get_metaspec(instr=host_input.Spectrum)
         R = meta['R']
         ppxf.run(spectrum, R, host191001.z, results_file=ppxf_results_file, spec_fit=spec_file,
                  atmos=[[7150., 7300.], [7580, 7750.]],
@@ -302,7 +305,7 @@ def run(host_input:pandas.core.series.Series,
     # Galfit
     found_galfit, galfit_file = search_for_file(
         project_list, ref_list, '_galfit.fits',
-        prefix=file_root)
+        prefix=file_root+'_'+host_input.Galfit_filter)
     if found_galfit:
         Host.parse_galfit(galfit_file)
 

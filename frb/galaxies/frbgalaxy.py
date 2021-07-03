@@ -329,6 +329,9 @@ class FRBGalaxy(object):
                         if filter+'_err' in phot_tbl.keys():
                             self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
                             self.photom[filter+'_flux_err'] = flux_tbl[filter+'_err'][row]
+                        # Try reference
+                        if filter+'_ref' in phot_tbl.keys():
+                            self.photom[filter+'_ref'] = phot_tbl[filter+'_ref'][row]
 
 
                         # Add entries for corresponding flux values.
@@ -659,7 +662,7 @@ class FRBGalaxy(object):
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
-            defs_list = defs.valid_photom+defs.valid_flux
+            defs_list = defs.valid_photom+defs.valid_flux+defs.valid_ref
         elif attr == 'derived':
             defs_list = defs.valid_derived
         elif attr == 'redshift':

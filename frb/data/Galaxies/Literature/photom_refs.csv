@@ -1,2 +1,3 @@
 Table,Format,Reference,DOI
-Heintz2020_photom.ascii,ascii.fixed_width,Heintz2020,10.3847/1538-4357/abb6fb 
+bassa2017_photom.ascii,ascii.fixed_width,Bassa2017,10.3847/2041-8213/aa7a0c
+heintz2020_photom.ascii,ascii.fixed_width,Heintz2020,10.3847/1538-4357/abb6fb 

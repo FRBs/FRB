@@ -114,6 +114,7 @@ for band in Spitzer_bands:
 
 
 valid_flux = [entry+'_flux' for entry in valid_filters]
+valid_ref = [entry+'_ref' for entry in valid_filters]
 
 valid_photom = valid_filters + ['EBV']  # Galactic
 
