@@ -393,8 +393,8 @@ def specdb_to_marz(dbfile:str, specsource:str, marzfile:str=None)->fits.HDUList:
     can be read by MARZ.
     Args:
         dbfile (str): Path to a specDB hdf5 file.
-        specsource (str, optional): Source of spectrum. Should be one of
-            keys in the specdb file. E.g. DEIMOS, GMOS-S, MUSE etc. All
+        specsource (str): Source of spectrum. Should be one of
+            groups in the specdb file. E.g. DEIMOS, GMOS-S, MUSE etc. All
             spectra are read if a source is not specified.
         marzfile (str, optional): Path to the marz fits file to be written.
             If it is not specified, then the fits file will be named
