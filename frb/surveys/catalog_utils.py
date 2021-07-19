@@ -5,7 +5,12 @@ from astropy.coordinates import SkyCoord
 from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
+from astropy.io import fits
+
 from frb.galaxies.defs import valid_filters
+
+import h5py, os
+
 import warnings
 
 from IPython import embed
@@ -382,7 +387,63 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[mag][uplimit] = fluxtable[mag][uplimit] / 9.
     return fluxtable
     
+def specdb_to_marz(dbfile:str, specsource:str, marzfile:str=None)->fits.HDUList:
+    """
+    Take in a specdb file and convert it so that it
+    can be read by MARZ.
+    Args:
+        dbfile (str): Path to a specDB hdf5 file.
+        specsource (str, optional): Source of spectrum. Should be one of
+            keys in the specdb file. E.g. DEIMOS, GMOS-S, MUSE etc. All
+            spectra are read if a source is not specified.
+        marzfile (str, optional): Path to the marz fits file to be written.
+            If it is not specified, then the fits file will be named
+            <specsource>_marz.fits and will be written to the current working directory.
+        
+    Returns:
+        marz_hdu (fits.HDUList): The fits hdulist that will be written.
+    """
+    # Validation
+    assert os.path.isfile(dbfile), "File not found: {:s}".format(dbfile)
     
+    # Read
+    hdf = h5py.File(dbfile)
+
+    # More validation and prepare for parsing spectra
+    assert specsource in hdf.keys(), "{:s} is not present in the given dbfile".format(specsource)
+    print("Reading {:s} spectra ...".format(specsource))
+    # TODO: Make it so that all sources can be read and written to a MARZ file
+    # At the moment, because the spectra in different sources have diffferent
+    # array sizes, this is not implemented. Need to figure out how to pad correctly.
+
+    # Parsing
+    spectab = hdf[specsource]['spec']
+    metatab = hdf[specsource]['meta']
+    wave = spectab['wave']
+    flux = spectab['flux']
+    sig = spectab['sig']
+    # Because sky spectrum is not stored in specDB at the moment,
+    sky = np.zeros_like(wave)
+
+    if marzfile is None:
+        marzfile = specsource+"_marz.fits"
+
+
+    # Instantiate fits hdus
+    extnames = ['INTENSITY', 'VARIANCE', 'SKY', 'WAVELENGTH']
+    datalist = [flux, sig**2, sky, wave]
+    marz_hdu = fits.HDUList()
+
+    for ext, data in zip(extnames, datalist):
+        hdu = fits.ImageHDU(data)
+        hdu.header.set('extname', ext)
+        marz_hdu.append(hdu)
+    # Add the meta table at the end
+    marz_hdu.append(fits.BinTableHDU(np.array(metatab)))
+    marz_hdu.writeto(marzfile, overwrite=True)
+
+    return marz_hdu
+
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
     def xmatch_gaia(catalog,max_sep = 5*u.arcsec,racol='ra',deccol='dec'):
