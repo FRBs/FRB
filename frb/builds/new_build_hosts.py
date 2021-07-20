@@ -312,11 +312,16 @@ def run(host_input:pandas.core.series.Series,
         Host.calc_nebular_SFR('Ha')
 
     # Galfit
-    found_galfit, galfit_file = search_for_file(
-        project_list, ref_list, '_galfit.fits',
-        prefix=file_root+'_'+host_input.Galfit_filter)
-    if found_galfit:
-        Host.parse_galfit(galfit_file)
+    if host_input.Galfit_filter:
+        found_galfit, galfit_file = search_for_file(
+            project_list, ref_list, '_galfit.fits',
+            prefix=file_root+'_'+host_input.Galfit_filter)
+        if found_galfit:
+            Host.parse_galfit(galfit_file)
+        else:
+            print(f"Galfit file {galfit_file} not found!")
+    else:
+        print("Galfit analysis not enabled")
 
     # Vet all
     assert Host.vet_all()
