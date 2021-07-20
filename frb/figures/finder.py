@@ -207,7 +207,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         apermap.plot(color='purple', lw=1)
         
-        plt.text(0.5, -0.1, 'Slit PA={} deg'.format(pa_deg), color='purple',
+        plt.text(0.5, -0.2, 'Slit PA={} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
@@ -218,7 +218,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
 
     # Extra text
     if extra_text is not None:
-        ax.text(-0.1, -0.25, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
+        ax.text(-0.1, -0.35, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
     # Sources
 
     # Labels
