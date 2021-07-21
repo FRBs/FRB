@@ -161,6 +161,7 @@ def f_diffuse(z, cosmo=Planck15, return_rho = False):
     return_rho (bool, optional): If true, 
       the diffuse gas density
       is returned too.
+
   Returns:
     f_diffuse (float, ndarray): Diffuse gas baryon fraction.
     rho_diffuse (Quantity): Physical diffuse gas density.
