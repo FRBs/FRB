@@ -43,8 +43,8 @@ Use the `build_table_of_hosts()` method to generate a
 `pandas <https://pandas.pydata.org/>`_ table of
 key quantities::
 
-    from frb.galaxies import frbgalaxy
-    host_tbl, tbl_units = frbgalaxy.build_table_of_hosts()
+    from frb.galaxies import utils
+    host_tbl, tbl_units = utils.build_table_of_hosts()
 
 This includes items like the photometry, nebular emission
 line fluxes, and derived quantities (e.g. stellar mass).
