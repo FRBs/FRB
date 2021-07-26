@@ -149,13 +149,9 @@ def run(host_input:pandas.core.series.Series,
 
     '''
     # Load redshift table
-    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
-                      format='ascii.fixed_width')
-    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
-    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
-    if np.min(d2d) > 0.5*units.arcsec:
-        embed(header='190608')
+    assign_z()
     '''
+
     # Redshift 
     warnings.warn("We should be using the z Table..")
     Host.set_z(host_input.z, 'spec')
@@ -164,10 +160,6 @@ def run(host_input:pandas.core.series.Series,
     # ####################
     # Photometry
 
-    #found_photom, photom_file = search_for_file(
-    #    project_list, ref_list, '_photom.ascii', 
-    #    return_last_file=build_photom)
-    #                           ref_list[0].lower()+'_photom.ascii')
     search_r = 1 * units.arcsec
 
     # Survey data
