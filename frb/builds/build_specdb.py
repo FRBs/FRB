@@ -256,8 +256,9 @@ def generate_by_refs(input_refs, outfile, version):
             maxpix = 9000
             scale = 1e-17
         elif instr == 'Goodman':
-            mdict = dict(TELESCOPE='SOAR', INSTR='Goodman', R=2000.)
-            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME'}
+            mdict = dict(TELESCOPE='SOAR', INSTR='Goodman')
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME',
+                          'R': True}
             maxpix = 2048
             scale = 1e-17
         elif instr == 'XSHOOTER':

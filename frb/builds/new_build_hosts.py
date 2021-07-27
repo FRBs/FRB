@@ -261,12 +261,29 @@ def run(host_input:pandas.core.series.Series,
         spec_file = ppxf_results_file.replace('ecsv', 'fits')
 
     if build_ppxf:
-        embed(header='278 -- not ready for this!')
         meta, spectrum = Host.get_metaspec(instr=host_input.Spectrum)
         R = meta['R']
-        ppxf.run(spectrum, R, host191001.z, results_file=ppxf_results_file, spec_fit=spec_file,
-                 atmos=[[7150., 7300.], [7580, 7750.]],
-                 gaps=[[6675., 6725.]], chk=True)
+        gaps_str = host_input.ppxf_cuts.split(';')
+        gaps = []
+        for gap in gaps_str:
+            gaps.append([float(item) for item in gap.split(',')])
+
+        # Correct for Galactic extinction
+        ebv = float(nebular.get_ebv(Host.coord)['meanValue'])
+        print(f'Correcting the spectrum for Galactic extinction with reddening E(B-V)={ebv}')
+        AV = ebv * 3.1  # RV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+
+        #
+        ppxf.run(new_spec, R, host_input.z, 
+                 results_file=ppxf_results_file, 
+                 spec_fit=spec_file,
+                 #atmos=[[7150., 7300.], [7580, 7750.]],
+                 gaps=gaps, chk=True)
         found_ppxf = True
     # Load
     if found_ppxf:
