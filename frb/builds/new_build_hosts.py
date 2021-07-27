@@ -304,7 +304,7 @@ def run(host_input:pandas.core.series.Series,
         Host.calc_nebular_SFR('Ha')
 
     # Galfit
-    if host_input.Galfit_filter:
+    if isinstance(host_input.Galfit_filter, str):
         found_galfit, galfit_file = search_for_file(
             project_list, ref_list, '_galfit.fits',
             prefix=file_root+'_'+host_input.Galfit_filter)

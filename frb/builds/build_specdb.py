@@ -24,7 +24,7 @@ from frb.surveys import sdss
 
 # Globals
 all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 
-                   'LRISb', 'LRISr', 'DEIMOS', 'XSHOOTER']
+                   'LRISb', 'LRISr', 'DEIMOS', 'XSHOOTER', 'Goodman']
 db_path = os.getenv('FRB_GDB')
 
 
@@ -254,6 +254,11 @@ def generate_by_refs(input_refs, outfile, version):
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 
                           'INSTR': 'INSTRUME'}
             maxpix = 9000
+            scale = 1e-17
+        elif instr == 'Goodman':
+            mdict = dict(TELESCOPE='SOAR', INSTR='Goodman', R=2000.)
+            parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME'}
+            maxpix = 2048
             scale = 1e-17
         elif instr == 'XSHOOTER':
             mdict = dict(TELESCOPE='VLT')
