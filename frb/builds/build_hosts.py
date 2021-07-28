@@ -260,7 +260,8 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
     """
     frbname = '180301'
     print("Building Host galaxy for FRB{}".format(frbname))
-    gal_coord = SkyCoord('6h12m54.4392s +4d40m13.717s', frame='icrs')
+    gal_coord = SkyCoord('6h12m54.4392s +4d40m13.717s', 
+                         frame='icrs')
 
     # Instantiate
     frb180301 = FRB.by_name('FRB180301')
@@ -341,8 +342,7 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
 
         ppxf.run(new_spec, R, host180301.z, results_file=ppxf_results_file, 
                  spec_fit=spec_fit_file,
-                 atmos=[[3000., 5000.],  
-                        [7150., 7300.], [7580, 7750.]],
+                 atmos=[[3000., 5000.],  [7150., 7300.], [7580, 7750.]],
                  gaps=[[6675., 6725.]], chk=True)
     host180301.parse_ppxf(ppxf_results_file)
     

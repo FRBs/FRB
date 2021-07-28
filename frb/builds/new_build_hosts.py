@@ -245,6 +245,7 @@ def run(host_input:pandas.core.series.Series,
 
     # Parse
     if found_cigale:
+        print(f"Slupring in CIGALE outputs from {cigale_file}")
         Host.parse_cigale(cigale_file, sfh_file=sfh_file)
     else:
         print(f"No CIGALE file to read for {file_root}")
@@ -287,6 +288,7 @@ def run(host_input:pandas.core.series.Series,
         found_ppxf = True
     # Load
     if found_ppxf:
+        print(f"Slupring in pPXF outputs from {ppxf_results_file}")
         Host.parse_ppxf(ppxf_results_file)
     else:
         print(f"No pPXF file to read for {file_root}")
