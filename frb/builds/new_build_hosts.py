@@ -179,7 +179,7 @@ def run(host_input:pandas.core.series.Series,
                                                     gal_coord, 
                                                     search_r)
         srvy_tbl = survey.get_catalog(print_query=True)
-        if len(srvy_tbl) == 0:
+        if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         warnings.warn("We need a way to reference the survey")
         # Merge

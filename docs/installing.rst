@@ -47,10 +47,9 @@ out all the packages and their version numbers.
 The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.1
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.1 only (maybe)
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
-* `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 
 The following package(s) is/are required to access FRB galaxy spectra:
 
