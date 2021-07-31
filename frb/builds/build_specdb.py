@@ -24,7 +24,8 @@ from frb.surveys import sdss
 
 # Globals
 all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S', 
-                   'LRISb', 'LRISr', 'DEIMOS', 'XSHOOTER', 'Goodman']
+                   'LRISb', 'LRISr', 'DEIMOS', 'XSHOOTER', 'Goodman',
+                   'GMOS-N']
 db_path = os.getenv('FRB_GDB')
 
 
@@ -195,6 +196,7 @@ def generate_by_refs(input_refs, outfile, version):
     gdict = {}
 
     # Loop on Instruments
+    #pair_groups = ['MUSE']
     pair_groups = []
     badf = None
     for instr in all_instruments:
@@ -243,6 +245,11 @@ def generate_by_refs(input_refs, outfile, version):
             mdict = dict(TELESCOPE='Keck-1')
             parse_head = {'DATE-OBS': 'MJD', 'DISPERSER': 'DISPNAME', 'INSTR': 'INSTRUME'}
             maxpix = 2050  # 2x binning
+        elif instr == 'GMOS-N':
+            mdict = dict(TELESCOPE='Gemini-N', INSTR='GMOS-N')
+            parse_head = {'R': True, 'DATE-OBS': 'MJD-OBS', 
+                          'DISPERSER': 'DISPNAME'}
+            maxpix = 3500
             scale = 1e-17
         elif instr == 'LRISr':
             mdict = dict(TELESCOPE='Keck-1')
@@ -268,6 +275,7 @@ def generate_by_refs(input_refs, outfile, version):
             scale = 1e-17
         else:
             embed(header='172')
+        
 
         # Meta
         full_meta = pbuild.mk_meta(fits_files, allz_tbl, mdict=mdict, fname=fname,
@@ -278,10 +286,12 @@ def generate_by_refs(input_refs, outfile, version):
         # Survey flag
         flag_g = spbu.add_to_group_dict(instr, gdict, skip_for_debug=True)
         # IDs
-        try:
-            maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, first=(flag_g==1), close_pairs=(instr in pair_groups))
-        except:
-            embed(header='251 in build_specdb')
+        #if 'MUSE' in instr:
+        #    embed(header='278 of build specdb')
+        maindb = spbu.add_ids(maindb, full_meta, flag_g, tkeys, id_key, 
+                              first=(flag_g==1), 
+                              mtch_toler=1.*units.arcsec,
+                              close_pairs=(instr in pair_groups))
 
         # Ingest --
         pbuild.ingest_spectra(hdf, instr, full_meta, max_npix=maxpix, verbose=False,
@@ -303,8 +313,8 @@ def main(inflg='all'):
     # Public
     if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019',
-                          'Heintz2020', 'Simha2020'],
-                         'FRB_specDB_Public.hdf5', 'v0.3')
+                          'Heintz2020', 'Simha2020', 'Tendulkar2017'],
+                         'FRB_specDB_Public.hdf5', 'v0.4')
 
 
 # Command line execution
