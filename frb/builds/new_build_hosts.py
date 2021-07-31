@@ -101,8 +101,21 @@ def search_for_file(projects, references, root,
     return found, found_file
             
 def read_lit_table(lit_entry, coord=None):
-    lit_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-        'Literature', lit_entry.Table)
+    """ Reade a literature table
+
+    Args:
+        lit_entry (pandas row): Row of the overview table
+        coord (astropy.coordiantes.SkyCoord, optional): [description]. Defaults to None.
+
+    Raises:
+        ValueError: [description]
+
+    Returns:
+        astropy.table.Table: table of literature data
+    """
+    literature_path = os.path.join(resource_filename('frb', 'data'), 
+                                       'Galaxies', 'Literature')
+    lit_file = os.path.join(literature_path, lit_entry.Table)
     if lit_entry.Format == 'csv':
         lit_tbl = pandas.read_csv(lit_file)
     else:
@@ -127,6 +140,7 @@ def read_lit_table(lit_entry, coord=None):
 
 def run(host_input:pandas.core.series.Series, 
         build_ppxf=False, build_photom=False, 
+        lit_refs=None,
         build_cigale=False, is_host=True):
 
     frbname = utils.parse_frb_name(host_input.FRB)
@@ -190,12 +204,15 @@ def run(host_input:pandas.core.series.Series,
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
     
     # Literature time
-    lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-        'Literature', 'photom_refs.csv')
+    if lit_refs is None:
+        lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
+            'Literature', 'all_refs.csv')
     lit_tbls = pandas.read_csv(lit_refs)
 
     for kk in range(len(lit_tbls)):
         lit_entry = lit_tbls.iloc[kk]
+        if 'photom' not in lit_entry.Table:
+            continue
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
         if sub_tbl is not None:
@@ -300,6 +317,8 @@ def run(host_input:pandas.core.series.Series,
     # Loop on em
     for kk in range(len(lit_neb_tbls)):
         lit_entry = lit_neb_tbls.iloc[kk]
+        if 'nebular' not in lit_entry.Table:
+            continue
         # Load table
         lit_tbl = read_lit_table(lit_entry, coord=Host.coord)
         if lit_tbl is None:
@@ -345,7 +364,7 @@ def run(host_input:pandas.core.series.Series,
         #utils.name_from_coord(Host.coord) + '_{}.json'.format(frbname)
     Host.write_to_json(path=out_path, outfile=outfile)
 
-def main(frbs, options=None):
+def main(frbs, options=None, hosts_file=None, lit_refs=None):
     # Options
     build_photom, build_cigale, build_ppxf = False, False, False
     if options is not None:
@@ -357,7 +376,7 @@ def main(frbs, options=None):
             build_ppxf = True
 
     # Read public host table
-    host_tbl = hosts.load_host_tbl()
+    host_tbl = hosts.load_host_tbl(hosts_file=hosts_file)
 
     # Loop me
     if frbs == 'all':
@@ -375,6 +394,9 @@ def main(frbs, options=None):
         for ii in idx:
             run(host_tbl.iloc[ii], build_photom=build_photom, 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
-                is_host=is_host)
+                is_host=is_host, lit_refs=lit_refs)
             # Any additional ones are treated as candidates
             is_host = False
+
+    # 
+    print("All done!")

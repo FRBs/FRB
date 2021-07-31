@@ -12,6 +12,8 @@ def parser(options=None):
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
     parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (photom,cigale,ppxf)")
     parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
+    parser.add_argument("--hosts_file", type=str, help="Alternate file for hosts than the default public_hosts.csv")
+    parser.add_argument("--lit_refs", type=str, help="Alternate file for literature sources than all_refs.csv")
 
     if options is None:
         pargs = parser.parse_args()
@@ -41,7 +43,9 @@ def main(pargs):
         # 
         frbs = pargs.frb.split(',')
         frbs = [ifrb.strip() for ifrb in frbs]
-        new_build_hosts.main(frbs, options=pargs.galaxy_options) 
+        new_build_hosts.main(frbs, options=pargs.galaxy_options, 
+                             hosts_file=pargs.hosts_file,
+                             lit_refs=pargs.lit_refs) 
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':
