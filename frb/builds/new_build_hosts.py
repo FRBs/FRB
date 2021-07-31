@@ -297,6 +297,7 @@ def run(host_input:pandas.core.series.Series,
         new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
 
         #
+        embed(header='300 of new')
         ppxf.run(new_spec, R, host_input.z, 
                  results_file=ppxf_results_file, 
                  spec_fit=spec_file,
@@ -311,12 +312,8 @@ def run(host_input:pandas.core.series.Series,
         print(f"No pPXF file to read for {file_root}")
 
     # Slurp in literature Nebular
-    lit_neb_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-        'Literature', 'nebular_refs.csv')
-    lit_neb_tbls = pandas.read_csv(lit_neb_refs)
-    # Loop on em
-    for kk in range(len(lit_neb_tbls)):
-        lit_entry = lit_neb_tbls.iloc[kk]
+    for kk in range(len(lit_tbls)):
+        lit_entry = lit_tbls.iloc[kk]
         if 'nebular' not in lit_entry.Table:
             continue
         # Load table
@@ -340,6 +337,8 @@ def run(host_input:pandas.core.series.Series,
     # SFR
     if 'Halpha' in Host.neb_lines.keys():
         Host.calc_nebular_SFR('Ha')
+    elif 'Hbeta' in Host.neb_lines.keys():
+        Host.calc_nebular_SFR('Hb')
 
     # Galfit
     if isinstance(host_input.Galfit_filter, str):
