@@ -10,7 +10,7 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Build parts of the CASBAH database; Output_dir = $CASBAH_GALAXIES [v1.1]')
     parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
-    parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (photom,cigale,ppxf)")
+    parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (cigale,ppxf)")
     parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
     parser.add_argument("--hosts_file", type=str, help="Alternate file for hosts than the default public_hosts.csv")
     parser.add_argument("--lit_refs", type=str, help="Alternate file for literature sources than all_refs.csv")
