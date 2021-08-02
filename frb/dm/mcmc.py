@@ -1,7 +1,6 @@
 """ Methods for MCMC analysis of the Macquart relation """
-from numba.core.typeinfer import DelItemConstraint
 import numpy as np
-from numba import njit, prange
+from numba import njit 
 
 from scipy.stats import lognorm
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -252,40 +251,43 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
 
 
 
-@as_op(itypes=[tt.dscalar, tt.dscalar, tt.dscalar, tt.dscalar], otypes=[tt.dvector])
-def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
-    """
-    Calculate likelihood for the real data
+try:
+    @as_op(itypes=[tt.dscalar, tt.dscalar, tt.dscalar, tt.dscalar], otypes=[tt.dvector])
+    def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
+        """
+        Calculate likelihood for the real data
 
-    Args:
-        Obh70 (float): Value of Omega_b * H_0 
-        F (float): Feedback parameter
-        mu (float): Mean of log-normal PDF
-        lognorm_s (float): Sigma of log-normal PDF
+        Args:
+            Obh70 (float): Value of Omega_b * H_0 
+            F (float): Feedback parameter
+            mu (float): Mean of log-normal PDF
+            lognorm_s (float): Sigma of log-normal PDF
 
-    Returns:
-        np.ndarray:  Array of log likelihood values, one per FRB
-            in the global variable frbs
+        Returns:
+            np.ndarray:  Array of log likelihood values, one per FRB
+                in the global variable frbs
 
-    """
+        """
 
-    lognorm_floor=0.
-    # Loop on the FRBs
-    ln_like = 0.
-    one_by_one = False
-    if one_by_one:
-        for frb in frbs:
-            prob = one_prob(Obh70, F, frb.DM.value - frb.DMISM.value, frb.z,
-                        mu=mu, lognorm_s=lognorm_s, lognorm_floor=lognorm_floor,
-                        beta=3., orig=False)
-            ln_like += np.log(prob)
-    else:
-        # The loop above is much faster for only ~10 events
-        ln_like = all_prob(Obh70, F, frb_DMs, frb_zs, #frb.DM.value - frb.DMISM.value, frb.z,
-                    mu=mu, lognorm_s=lognorm_s, lognorm_floor=lognorm_floor, beta=3.)
+        lognorm_floor=0.
+        # Loop on the FRBs
+        ln_like = 0.
+        one_by_one = False
+        if one_by_one:
+            for frb in frbs:
+                prob = one_prob(Obh70, F, frb.DM.value - frb.DMISM.value, frb.z,
+                            mu=mu, lognorm_s=lognorm_s, lognorm_floor=lognorm_floor,
+                            beta=3., orig=False)
+                ln_like += np.log(prob)
+        else:
+            # The loop above is much faster for only ~10 events
+            ln_like = all_prob(Obh70, F, frb_DMs, frb_zs, #frb.DM.value - frb.DMISM.value, frb.z,
+                        mu=mu, lognorm_s=lognorm_s, lognorm_floor=lognorm_floor, beta=3.)
 
-    # Return
-    return np.array([ln_like])   # Should be log
+        # Return
+        return np.array([ln_like])   # Should be log
+except: # Hiding this theano method in a try/except
+    pass
 
 
 def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
