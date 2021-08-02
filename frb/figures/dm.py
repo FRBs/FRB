@@ -270,6 +270,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
 
     Returns:
         dict:
+        ax (optional): if outfile is None
 
     """
     # Init

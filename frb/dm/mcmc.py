@@ -82,20 +82,27 @@ def grab_parmdict(tight_ObH=False):
 def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
              lognorm_floor=0., orig=False, beta=4.):
     """
+    Calculate the probability for a single FRB
 
     Args:
-        Obh70:
-        F:
-        DM_FRBp:
-        z_FRB:
-        mu:
-        lognorm_s:
-        lognorm_floor:
-        orig:
-        beta:
+        Obh70 (float): Value of Omega_b * H_0 
+        F (float): Feedback parameter
+        DM_FRBp (np.ndarray): Values of DM_FRBp for analysis
+        z_FRB (np.ndarray): z values for evaluation
+        mu (float, optional):
+            Mean of log-normal PDF
+        lognorm_s (float, optional):
+            Sigma of log-normal PDF
+        lognorm_floor (float, optional):
+            Floor to the log-normal PDF
+        orig (bool, optional):
+            if True (not recommended!), use the original approach to 
+            calculating sigma
+        beta (float, optional):
+            Parameter for DM PDF
 
     Returns:
-        float: Likelihood
+        float: Likelihood probability
 
     """
     # Update DM_FRBp with MW halo (global)
@@ -175,17 +182,22 @@ def mcquinn_DM_PDF_grid(Delta_values, C0, sigma, alpha=3., beta=3.):
 def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
              lognorm_floor=0., beta=3.):
     """
+    Calculate the probability for a set of FRBs
 
     Args:
-        Obh70:
-        F:
-        in_DM_FRBp (np.ndarray):
-        z_FRB (np.ndarray):
-        mu:
-        lognorm_s:
-        lognorm_floor:
-        orig:
-        beta:
+        Obh70 (float): Value of Omega_b * H_0 
+        F (float): Feedback parameter
+        in_DM_FRBp (np.ndarray): Values of DM_FRBp for analysis
+            Not used?!
+        z_FRB (np.ndarray): z values for evaluation
+        mu (float, optional):
+            Mean of log-normal PDF
+        lognorm_s (float, optional):
+            Sigma of log-normal PDF
+        lognorm_floor (float, optional):
+            Floor to the log-normal PDF
+        beta (float, optional):
+            Parameter for DM PDF
 
     Returns:
         float:  Log like-lihood
@@ -243,15 +255,17 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
 @as_op(itypes=[tt.dscalar, tt.dscalar, tt.dscalar, tt.dscalar], otypes=[tt.dvector])
 def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
     """
-    For the real data
+    Calculate likelihood for the real data
 
     Args:
-        Obh70:
-        F:
-        mu:
-        lognorm_s:
+        Obh70 (float): Value of Omega_b * H_0 
+        F (float): Feedback parameter
+        mu (float): Mean of log-normal PDF
+        lognorm_s (float): Sigma of log-normal PDF
 
     Returns:
+        np.ndarray:  Array of log likelihood values, one per FRB
+            in the global variable frbs
 
     """
 
@@ -275,7 +289,7 @@ def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
 
 
 def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
-    """[summary]
+    """ Builds a pymc3 model for the 4-parameter MCMC
 
     Args:
         parm_dict (dict): dict with the pymc3 parameters
