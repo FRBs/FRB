@@ -15,6 +15,14 @@ Galaxy_DB/
 *.npy
 *.hdf5
 
+# Tests
+./pytest_cache
+frb/tests/files/0/
+frb/tests/files/1/
+frb/tests/files/2/
+frb/tests/files/3/
+frb/tests/files/mcmc/
+
 # Distribution / packaging
 .Python
 env/
@@ -101,3 +109,4 @@ ENV/
 
 # Rope project settings
 .ropeproject
+

@@ -8,6 +8,14 @@ or re-generate JSON files for FRB host galaxies.
 Best run by developers only.
 
 -------
+Additional
+
+Data beyond that which is incorporated
+in build_hosts.py
+
+Should be limited to published literature
+
+-------
 SDSS
 
 -------
