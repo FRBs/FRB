@@ -10,6 +10,7 @@ from astropy.io import fits
 from frb.galaxies.defs import valid_filters
 
 import h5py, os
+from specdb.specdb import SpecDB
 
 import warnings
 
@@ -387,18 +388,20 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[mag][uplimit] = fluxtable[mag][uplimit] / 9.
     return fluxtable
     
-def specdb_to_marz(dbfile:str, specsource:str, marzfile:str=None)->fits.HDUList:
+def specdb_to_marz(dbfile:str, qdict:dict, marzfile:str=None, rebin_size:int=9000)->fits.HDUList:
     """
     Take in a specdb file and convert it so that it
     can be read by MARZ.
     Args:
         dbfile (str): Path to a specDB hdf5 file.
-        specsource (str): Source of spectrum. Should be one of
-            groups in the specdb file. E.g. DEIMOS, GMOS-S, MUSE etc. All
-            spectra are read if a source is not specified.
+        qdict (dict): Meta query dict for retrieving spectra. See specdb
+            documentation on how to construct these.
+            e.g. https://specdb.readthedocs.io/en/latest/spectra.html 
         marzfile (str, optional): Path to the marz fits file to be written.
             If it is not specified, then the fits file will be named
             <specsource>_marz.fits and will be written to the current working directory.
+        rebin_size (int, optional): Length of the wavelength array to be
+            used for rebinning.
         
     Returns:
         marz_hdu (fits.HDUList): The fits hdulist that will be written.
@@ -407,26 +410,38 @@ def specdb_to_marz(dbfile:str, specsource:str, marzfile:str=None)->fits.HDUList:
     assert os.path.isfile(dbfile), "File not found: {:s}".format(dbfile)
     
     # Read
-    hdf = h5py.File(dbfile)
+    db = SpecDB(dbfile)
 
-    # More validation and prepare for parsing spectra
-    assert specsource in hdf.keys(), "{:s} is not present in the given dbfile".format(specsource)
-    print("Reading {:s} spectra ...".format(specsource))
+    # Get spectra
+    qmeta = db.query_meta(qdict)
+    spectra = db.spectra_from_meta(qmeta) # XSpectrum1D object
+
+    # Find out the lowest and highest wavelengths
+    lowest = np.inf
+    highest = 0
+    for sp in spectra:
+        low, high = sp.wavelength[[0, -1]].value
+        if low<lowest:
+            lowest = low
+        if high>highest:
+            highest = high
+
+    # Construct new wavelength array for rebinning
+    new_wv = np.linspace(lowest, highest, rebin_size)*units.AA
+    rebinned = spectra.rebin(new_wv, all = True, do_sig = True)
     # TODO: Make it so that all sources can be read and written to a MARZ file
     # At the moment, because the spectra in different sources have diffferent
     # array sizes, this is not implemented. Need to figure out how to pad correctly.
 
     # Parsing
-    spectab = hdf[specsource]['spec']
-    metatab = hdf[specsource]['meta']
-    wave = spectab['wave']
-    flux = spectab['flux']
-    sig = spectab['sig']
+    wave = rebinned.data['wave'].data
+    flux = rebinned.data['flux'].data
+    sig = rebinned.data['sig'].data
     # Because sky spectrum is not stored in specDB at the moment,
     sky = np.zeros_like(wave)
 
     if marzfile is None:
-        marzfile = specsource+"_marz.fits"
+        marzfile = "input_marz.fits"
 
 
     # Instantiate fits hdus
@@ -439,7 +454,7 @@ def specdb_to_marz(dbfile:str, specsource:str, marzfile:str=None)->fits.HDUList:
         hdu.header.set('extname', ext)
         marz_hdu.append(hdu)
     # Add the meta table at the end
-    marz_hdu.append(fits.BinTableHDU(np.array(metatab)))
+    marz_hdu.append(fits.BinTableHDU(qmeta))
     marz_hdu.writeto(marzfile, overwrite=True)
 
     return marz_hdu
