@@ -21,6 +21,7 @@ def init_hmf():
     We may refactor to use the more accurate, new version
 
     Returns:
+        hmfe (hmf_emulator.hmf_emulator): An Aemulus halo mass function emulator.
 
     """
     # Hidden here to avoid it becoming a dependency
@@ -47,7 +48,7 @@ def init_hmf():
 try:
     import hmf_emulator
 except:
-    pass
+    warnings.warn("hmf_emulator not imported.  Hope you are not intending to use the hmf.py module..")
 else:
     hmfe = init_hmf()
 
@@ -143,8 +144,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
     """
     # Mlow limit
     if Mlow < 2e10:
-        warnings.warn("Calculations are limited to Mlow > 2e10")
-        return
+        raise IOError("Calculations are limited to Mlow > 2e10")
     # HMF
     if hmfe is None:
         hmfe = init_hmf()

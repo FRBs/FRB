@@ -810,7 +810,7 @@ class Virgo(ICM):
 
 
 def rad3d2(xyz):
-    """ Calculate radius to x,y,z inputted
+    """ Calculate radius squared to x,y,z inputted
     Assumes the origin is 0,0,0
 
     Parameters
