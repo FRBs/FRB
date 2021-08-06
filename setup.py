@@ -62,7 +62,6 @@ setup_keywords['setup_requires']=['pytest-runner']
 setup_keywords['tests_require']=['pytest']
 
 # Autogenerate command-line scripts.
-#
 # setup_keywords['entry_points'] = {'console_scripts':['desiInstall = desiutil.install.main:main']}
 
 #

@@ -10,14 +10,13 @@ import numpy as np
 from astropy.table import Table
 
 from frb.galaxies.frbgalaxy import FRBHost
+from frb.galaxies import eazy as frbeazy
+from frb.frb import FRB
 
-try:
-    from frb.galaxies import eazy as frbeazy
-except ImportError:
-    pass
+from distutils.spawn import find_executable
 
-remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
-                                 reason='test requires dev suite')
+eazy_exec = pytest.mark.skipif(find_executable('eazy') is None,
+                                 reason='test requires galfit')
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -43,13 +42,14 @@ def host_obj():
     photom['NIRI_J_err'] = 0.2
 
     #
-    host190613A = FRBHost(photom['ra'], photom['dec'], photom['Name'])
+
+    host190613A = FRBHost(photom['ra'], photom['dec'], FRB.by_name('FRB121102'))
     host190613A.parse_photom(photom)
     host190613A.name = 'G_TEST'
 
     return host190613A
 
-@remote_data
+@eazy_exec
 def test_eazy(host_obj):
     if os.path.isdir(data_path('eazy')):
         shutil.rmtree(data_path('eazy'))
@@ -80,5 +80,4 @@ def test_eazy(host_obj):
     assert np.isclose(zphot, 0.5929259648750858, rtol=1e-4)
 
     # Remove
-    pytest.set_trace()
     shutil.rmtree(data_path('eazy'))

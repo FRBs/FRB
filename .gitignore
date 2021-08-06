@@ -6,8 +6,22 @@ __pycache__/
 # C extensions
 *.so
 
-# Spectra
+# Data
 Spectra/
+Galaxy_DB/
+*.fits
+*.fits.gz
+*.fit.gz
+*.npy
+*.hdf5
+
+# Tests
+./pytest_cache
+frb/tests/files/0/
+frb/tests/files/1/
+frb/tests/files/2/
+frb/tests/files/3/
+frb/tests/files/mcmc/
 
 # Data
 *.fits
@@ -102,3 +116,4 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
