@@ -17,7 +17,7 @@ from astropy.utils import isiterable
 from astropy.cosmology import Planck15
 from astropy import constants
 
-from frb import halos
+from frb.halos import hmf as frb_hmf
 from frb import mw
 
 def fukugita04_dict():
@@ -139,7 +139,7 @@ def z_from_DM(DM, cosmo=Planck15, coord=None, corr_nuisance=True):
         DM_use -= 100 * units.pc/units.cm**3
 
     # Calculate DMs
-    all_DM, zeval = average_DM(20., cosmo=cosmo, neval=20000, cumul=True)
+    all_DM, zeval = average_DM(5., cosmo=cosmo, neval=20000, cumul=True)
     # Interpolate
     fint = interp1d(all_DM.value, zeval)
     # Evaluate
@@ -277,7 +277,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, ne
 
     # Fraction of total mass in halos
     zvals = np.linspace(0, z, 20)
-    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 1e16, rmax = rmax)
+    fhalos = frb_hmf.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 1e16, rmax = rmax)
     fhalos_interp = IUS(zvals, fhalos)(zeval)
 
     # Electron number density in halos only

@@ -92,7 +92,7 @@ def test_pm():
         # Save a plot
         plt.clf()
         _ = pm.plot_trace(trace)
-        plt.savefig(os.path.join(outroot, 'traceplot.png'))
+        #plt.savefig(os.path.join(outroot, 'traceplot.png'))
         # Parameters
         jdict = utils.jsonify(parm_dict)
         utils.savejson(os.path.join(outroot, 'parms.json'), jdict, easy_to_read=True)
