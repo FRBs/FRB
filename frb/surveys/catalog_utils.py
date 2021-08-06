@@ -454,7 +454,10 @@ def specdb_to_marz(dbfile:str, qdict:dict, marzfile:str=None, rebin_size:int=900
         hdu.header.set('extname', ext)
         marz_hdu.append(hdu)
     # Add the meta table at the end
+
+    qmeta.rename_columns(['RA_GROUP', 'DEC_GROUP'], ['RA', 'DEC'])
     marz_hdu.append(fits.BinTableHDU(qmeta))
+    marz_hdu[4].header.set('extname', 'FIBRES')
     marz_hdu.writeto(marzfile, overwrite=True)
 
     return marz_hdu
