@@ -6,8 +6,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pytest
 import os
 
-from astropy.table import Table
-
 from frb.experiment import Experiment
 
 #def data_path(filename):

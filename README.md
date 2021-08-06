@@ -7,6 +7,8 @@ Brought to you by:
 J. Xavier Prochaska,
 Sunil Simha,
 Nicholas Tejos,
+Kasper Heintz,
+Alexandra Mannings,
 Casey Law
 and others 
 

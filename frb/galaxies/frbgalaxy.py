@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import os
-from IPython import embed
 import warnings
 import glob
 
@@ -20,10 +19,12 @@ from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
+from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
 
 from scipy.integrate import simps
 
+from IPython import embed
 
 class FRBGalaxy(object):
     """
@@ -137,8 +138,9 @@ class FRBGalaxy(object):
         self.kinematics = {}
         self.derived = {}
         self.offsets = {}
+        self.positional_error = {}
         self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
-                          'kinematics', 'derived', 'offsets')
+                          'kinematics', 'derived', 'offsets', 'positional_error')
 
         # Angular offset
         self.offsets['ang_avg'], self.offsets['ang_avg_err'], \
@@ -249,6 +251,39 @@ class FRBGalaxy(object):
         # Calculate
         SFR = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'], self.cosmo, AV=AV)
         self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
+    
+    def calc_tot_uncert(self):
+        """Calculate total uncertainty in arcsec of 
+        FRB localization + Host localization in the 
+        reference frame of the FRB
+
+        Returns:
+            tuple: uncerta, uncertb [arcsec]
+        """
+            # set to zero, but change if we have astrometric and source errors
+        if hasattr(self, 'positional_error'):
+            host_ra_sig = np.sqrt(self.positional_error['ra_astrometric']**2 +  
+                self.positional_error['ra_source']**2)
+            host_dec_sig = np.sqrt(self.positional_error['dec_astrometric']**2 + 
+                self.positional_error['dec_source']**2)
+        else:
+            host_ra_sig, host_dec_sig = 0., 0.
+
+        # Rotate to the FRB frame
+        # sigma**2
+        # will be zero if no positional errors saved in host json file
+        theta = self.frb.eellipse['theta']
+        sig2_gal_a = host_dec_sig ** 2 * np.cos(theta) ** 2 + host_ra_sig ** 2 * np.sin(theta) ** 2
+        sig2_gal_b = host_ra_sig ** 2 * np.cos(theta) ** 2 + host_dec_sig ** 2 * np.sin(theta) ** 2
+
+        # will only be FRB error if positional errors saved in host json file
+        #  Units are pixels
+        uncerta = np.sqrt(self.frb.sig_a**2 + sig2_gal_a)
+        uncertb = np.sqrt(self.frb.sig_b**2 + sig2_gal_b) 
+
+        # Return
+        return uncerta, uncertb
+
 
     def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True, EBV=None):
         """
@@ -273,6 +308,8 @@ class FRBGalaxy(object):
         if sep[row] > max_off:
             print("No photometric sources within {} of the galaxy".format(max_off))
             return
+        # Get a flux table
+        flux_tbl = convert_mags_to_flux(phot_tbl, fluxunits='mJy')
         # Fill
         for filter in defs.valid_filters:
             # Value
@@ -285,9 +322,14 @@ class FRBGalaxy(object):
                         pass
                     else:
                         self.photom[filter] = phot_tbl[filter][row]
+                        self.photom[filter+'_flux'] = flux_tbl[filter][row]
                         # Try error
                         if filter+'_err' in phot_tbl.keys():
                             self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
+                            self.photom[filter+'_flux_err'] = flux_tbl[filter+'_err'][row]
+
+
+                        # Add entries for corresponding flux values.
         # EBV
         if EBV is not None:
             self.photom['EBV'] = EBV
@@ -463,17 +505,21 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True):
+    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
         """
         Parse an output GALFIT file
 
         Loaded into self.morphology
 
         Args:
-            galfit_file (str): processed out.fits file
+            galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
-            overwrite (bool, optional):
+            overwrite (bool, optional): Need to overwrite
+                the object's attributes?
+            twocomponent (bool, optional): Should the morphology
+                attribute generated contain fit parameters of
+                two components?
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
@@ -485,7 +531,10 @@ class FRBGalaxy(object):
             if 'mag' in key:
                 continue
             if (key not in self.morphology.keys()) or (overwrite):
-                self.morphology[key] = fit_tab[key][0] #Assumes single sersic profile in the fit params
+                if twocomponent:
+                    self.morphology[key] = fit_tab[key].data
+                else:
+                    self.morphology[key] = fit_tab[key][0]
         # reff kpc?
         if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
@@ -602,20 +651,21 @@ class FRBGalaxy(object):
         vet = True
         # Check
         assert attr in self.main_attr
-
         # Setup
         if attr == 'neb_lines':
             defs_list = defs.valid_neb_lines
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
-            defs_list = defs.valid_photom
+            defs_list = defs.valid_photom+defs.valid_flux
         elif attr == 'derived':
             defs_list = defs.valid_derived
         elif attr == 'redshift':
             defs_list = defs.valid_z
         elif attr == 'offsets':
             defs_list = defs.valid_offsets
+        elif attr == 'positional_error':
+            defs_list = defs.valid_positional_error
         else:
             return True
         # Vet
@@ -718,8 +768,7 @@ class FRBHost(FRBGalaxy):
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
-        FRB (str):
-            Nomiker of the FRB, e.g. 121102
+        FRB (frb.FRB):
         z_frb (float, optional):
             Redshift of the host, expected to be provided
 

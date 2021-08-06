@@ -233,8 +233,9 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         ax2.axhline(y=FRB_DM, ls='--', color='black', lw=3)
 
 
-def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False,
-               widen=False, show_nuisance=False, ax=None,
+def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False, 
+               F = 0.2, 
+               widen=False, show_nuisance=False, ax=None, zmax=0.75,
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
@@ -246,6 +247,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         multi_model (deprecated):
         no_curves (bool, optional):
             If True, just show the data
+        F (float, optional):
+            Feedback parameter
         widen (bool, optional):
             If True, make the plot wide
         show_nuisance (bool, optional):
@@ -262,8 +265,12 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             List of gold standard FRBs
         ax (matplotlib.Axis, optional):
             Use this axis instead of creating one
+        zmax (float, optional):
+            Max redshift for the MR line
 
     Returns:
+        dict:
+        ax (optional): if outfile is None
 
     """
     # Init
@@ -275,6 +282,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
 
     bias_clr = 'darkgray'
 
+    return_stuff = {}
+
     # Start the plot
     if ax is None:
         if widen:
@@ -285,12 +294,13 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         ax = plt.gca()
 
     # DM_cosmic from cosmology
-    zmax = 0.75
     DM_cosmic, zeval = frb_igm.average_DM(zmax, cumul=True)
+    return_stuff['zeval'] = zeval
+    return_stuff['DM_cosmic'] = DM_cosmic
     DMc_spl = IUS(zeval, DM_cosmic)
     if not no_curves:
         #ax.plot(zeval, DM_cosmic, 'k-', label=r'DM$_{\rm cosmic} (z) \;\; [\rm Planck15]$')
-        ax.plot(zeval, DM_cosmic, 'k-', label='Planck15')
+        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15', lw=2)
 
     if multi_model:
         # Change Omega_b
@@ -304,9 +314,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
 
     if show_sigmaDM:
         #f_C0 = frb_cosmology.build_C0_spline()
-        f_C0_3 = cosmic.grab_C0_spline(beta=3.)
+        f_C0_3 = cosmic.grab_C0_spline(beta=beta)
         # Updated
-        F = 0.2
         nstep=50
         sigma_DM = F * zeval**(-0.5) #* DM_cosmic.value
         sub_sigma_DM = sigma_DM[::nstep]
@@ -320,7 +329,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             sigmas.append(isigma)
             C0s.append(float(f_C0_3(isigma)))
             # PDF
-            PDF = cosmic.DMcosmic_PDF(cosmic.Delta_values, C0s[-1], sigma=sigmas[-1], beta=beta)
+            PDF = cosmic.DMcosmic_PDF(cosmic.Delta_values, C0s[-1], sigma=sigmas[-1], 
+                                      beta=beta)
             cumsum = np.cumsum(PDF) / np.sum(PDF)
             #if sub_DM[kk] > 200.:
             #    embed(header='131')
@@ -410,6 +420,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         plt.savefig(outfile, dpi=400)
         print('Wrote {:s}'.format(outfile))
         plt.close()
+        return return_stuff
     else:
-        return ax
+        return ax, return_stuff
 

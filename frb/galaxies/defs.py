@@ -63,7 +63,7 @@ for band in GMOS_bands:
     valid_filters.append('GMOS_N_{:s}'.format(band))
 
 #NOT
-NOT_bands = ['z']
+NOT_bands = ['g','r','i','z']
 for band in NOT_bands:
     valid_filters.append('NOT_{:s}'.format(band))
 
@@ -88,7 +88,7 @@ for band in VISTA_bands:
 
 # HST instruments
 # WFC3
-WFC3_bands = ['F300X', 'F110W', 'F160W']
+WFC3_bands = ['F300X', 'F110W', 'F160W', 'F763M']
 for band in WFC3_bands:
     valid_filters.append('WFC3_{:s}'.format(band))
 
@@ -102,6 +102,7 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
+valid_flux = [entry+'_flux' for entry in valid_filters]
 
 valid_photom = valid_filters + ['EBV']  # Galactic
 
@@ -141,6 +142,16 @@ valid_offsets = [
     'ang_avg',    # Angular offset in arcsec averaging over localization
     'physical',   # Physical offset in kpc;  Uses ang_best
     ]
+
+
+##############################################################
+# Positional  (Astrometric and Source) Errors
+valid_positional_error = [
+    'ra_astrometric',   # error for astrometric tie in RA; arcsec
+    'dec_astrometric',  # error for astrometric tie in Dec; arcsec
+    'ra_source',        # RA error for source position (e.g. from source extractor); arcsec
+    'dec_source',       # Dec error for source position; arcsec
+]
 
 ##############################################################
 # Derived quantities

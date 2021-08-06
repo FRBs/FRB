@@ -44,8 +44,8 @@ def DMcosmic_PDF(Delta, C0, sigma, A=1., alpha=3., beta=3.):
         float or np.ndarray:
 
     """
-    PDF = A * np.exp(-(Delta ** (-alpha) - C0) ** 2 / (
-            2 * alpha ** 2 * sigma ** 2)) * Delta ** (-beta)
+    PDF = A * np.exp(-(Delta**(-alpha) - C0) ** 2 / (
+            2 * alpha**2 * sigma**2)) * Delta**(-beta)
     return PDF
 
 
