@@ -27,7 +27,7 @@ def main(pargs):
     from linetools.scripts.utils import coord_arg_to_coord
 
     from frb.galaxies import nebular
-    from frb import frb
+    from frb import mw
 
     # Deal with coord
     icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
@@ -37,3 +37,7 @@ def main(pargs):
     AV = EBV * 3.1  # RV
 
     print("AV = {}".format(AV))
+
+    # NE 2001
+    DM_ISM = mw.ismDM(icoord)
+    print(f"NE2001 = {DM_ISM}")
