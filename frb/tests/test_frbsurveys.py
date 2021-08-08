@@ -112,6 +112,7 @@ def test_panstarrs():
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
 
+@remote_data
 def test_in_which_survey():
     """
     To test if `survey_utils.in_which_survey` works.

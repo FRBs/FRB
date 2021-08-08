@@ -68,9 +68,10 @@ The following are required to use our KCWI datacube handling tools:
 The following are required to run some of the halo codes:
 
 * `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
-* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
+* `Aemulator <https://github.com/AemulusProject/Aemulator>`_  pip is broken..
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
 
 The following are required to build host galaxy objects:
 
@@ -80,6 +81,10 @@ The following are required to build host galaxy objects:
 The following is required to run the code in dm_kde:
 
 * `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>` no versioning
+
+The following is required to run the MCMC DM code in dm.mcmc.py:
+
+* `numba <https://github.com/https://github.com/numba/numba>` version >= 0.50
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this

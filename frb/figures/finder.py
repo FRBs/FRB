@@ -59,7 +59,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
              cutout=None,
              primary_coord=None, secondary_coord=None,
              third_coord=None, slit=None,
-             vmnx=None, extra_text=None, outfile=None):
+             vmnx=None, extra_text=None, outfile=None, figsize=None):
     """
     Basic method to generate a Finder chart figure
 
@@ -99,6 +99,8 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         outfile (str, optional):
           Filename for the figure.  File type will be according
           to the extension
+        figsize (tuple, optional):
+          tuple to define the figure size. It goes within the fig=plt.figure(figsize=figsize)
 
     Returns:
         matplotlib.pyplot.figure, matplotlib.pyplot.Axis
@@ -108,8 +110,12 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     utils.set_mplrc()
 
     plt.clf()
-    fig = plt.figure(figsize=(7,8.5))
-    # fig.set_size_inches(7.5,10.5)
+    
+    if figsize is not None:
+        fig = plt.figure(figsize=figsize)
+    else: 
+        fig = plt.figure(figsize=(8.5,10.5))
+        # fig.set_size_inches(7.5,10.5)
 
     # Cutout?
     if cutout is not None:
@@ -207,7 +213,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         apermap.plot(color='purple', lw=1)
         
-        plt.text(0.5, -0.1, 'Slit PA={} deg'.format(pa_deg), color='purple',
+        plt.text(0.5, -0.15, 'Slit PA={} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
@@ -218,7 +224,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
 
     # Extra text
     if extra_text is not None:
-        ax.text(-0.1, -0.25, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
+        ax.text(-0.1, -0.3, extra_text, fontsize=20, horizontalalignment='left', transform=ax.transAxes)
     # Sources
 
     # Labels
