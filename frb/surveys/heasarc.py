@@ -41,6 +41,7 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         Returns:
             astropy.table.Table:  Catalog of sources returned
         """
+        import pdb; pdb.set_trace()
         try:
             catalog = self.heasarc.query_region(self.coord,
                                                 mission=self.mission,
@@ -49,14 +50,18 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
             self.catalog = Table()
         else:
             # Clean
-            catalog.rename_column("RA", "ra")
-            catalog.rename_column("DEC", "dec")
-            for key in ['ra', 'dec']:
-                catalog[key].unit = units.deg
-            # Sort
-            self.catalog = catalog_utils.sort_by_separation(catalog,
-                                                            self.coord,
-                                                            radec=('ra', 'dec'))
+            if len(catalog)!=0:
+                
+                catalog.rename_column("RA", "ra")
+                catalog.rename_column("DEC", "dec")
+                for key in ['ra', 'dec']:
+                    catalog[key].unit = units.deg
+                # Sort
+                self.catalog = catalog_utils.sort_by_separation(catalog,
+                                                                self.coord,
+                                                                radec=('ra', 'dec'))
+            else:
+                self.catalog = catalog
         # Add meta, etc.
         self.catalog.meta['radius'] = self.radius
         self.catalog.meta['survey'] = self.survey
