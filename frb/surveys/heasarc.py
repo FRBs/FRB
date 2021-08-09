@@ -41,7 +41,6 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         Returns:
             astropy.table.Table:  Catalog of sources returned
         """
-        import pdb; pdb.set_trace()
         try:
             catalog = self.heasarc.query_region(self.coord,
                                                 mission=self.mission,
