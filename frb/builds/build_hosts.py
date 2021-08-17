@@ -248,6 +248,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     host121102.write_to_json(path=path, overwrite=True)
 
 
+
 def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 180301
 
@@ -267,15 +268,15 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
     host180301 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb180301)
 
     # Redshift -- JXP measured from DEIMOS
-    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
-    assign_z(ztbl_file, host180301)
-
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host180301)
+    host180301.set_z(0.3304, 'spec')
 
     # Photometry
 
     # Grab the table (requires internet)
     photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
-                               'bhandari2021_photom.ascii')
+                               'bhandari2021_photom_180301.ascii')
     if build_photom:
         # NOT (these are observed, not Galactic-extinction corrected)
         photom = Table()
@@ -292,6 +293,12 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
         photom['NOT_z_err'] = 0.11
         photom['NOT_u'] = 23.7
         photom['NOT_u_err'] = 0.3
+        photom['MMIRS_J'] = 20.907
+        photom['MMIRS_J_err'] = 0.066
+        photom['MMIRS_H'] = 20.611
+        photom['MMIRS_H_err'] = 0.0827
+        photom['MMIRS_K'] = 20.638
+        photom['MMIRS_K_err'] = 0.076
         # Merge/write
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
@@ -1795,8 +1802,6 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
 def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 191228
 
-    Bhandari+2021
-
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -1805,8 +1810,9 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     frbname = '191228'
     print("Building Host galaxy for FRB{}".format(frbname))
     # THIS SHOULD BE DOUBLE-CHECKED!
-    warnings.warn("These coords should be double checked")
-    gal_coord = SkyCoord('22h57m43.39s -29d35m39.1s', frame='icrs')
+    #warnings.warn("These coords should be double checked")
+    #gal_coord = SkyCoord('22h57m43.39s -29d35m39.1s', frame='icrs')
+    gal_coord = SkyCoord('22h57m43.405s -29d35m39.1344s', frame='icrs') # From Lachlan
     # Instantiate
     frb191228 = FRB.by_name('FRB'+frbname)
     host191228 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb191228)
@@ -1814,8 +1820,11 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     # Redshift -- JXP measured from LRISr
     #    Should be refined
     warnings.warn("Update 191228 redshift!")
-    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
-    assign_z(ztbl_file, host191228)
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host191228.set_z(0.2432, 'spec')
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host191228)
 
     # Morphology
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
@@ -1848,6 +1857,7 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
         photom = frbphotom.merge_photom_tables(photom, photom_file)
         photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
         print("Wrote photometry to: {}".format(photom_file))
+    
 
     # Load
     photom = Table.read(photom_file, format=frbphotom.table_format)
@@ -1856,9 +1866,11 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     frbphotom.correct_photom_table(photom, EBV, 'HG191228')
     # Parse
     host191228.parse_photom(photom, EBV=EBV)
+    
 
     #print(host200906.photom.keys())
     # CIGALE
+    
     cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG191228_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
@@ -1876,8 +1888,12 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
         # Run
         cigale.host_run(host191228,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
     # Parse
-    warnings.warn("TURN 191228 photometry on")
+    #warnings.warn("TURN 191228 on")
     #host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
+    
+
+    warnings.warn("TURN 191228 photometry on")
+    host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # PPXF
     ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
@@ -2063,8 +2079,6 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 200906
 
-    Bhandary+2021
-
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -2072,8 +2086,8 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     """
     frbname = '200906'
     print("Building Host galaxy for FRB{}".format(frbname))
-    gal_coord = SkyCoord(ra=53.49580897, dec=-14.08313553,  # aka 91100534958080596 in PS1
-                          unit='deg')
+    #gal_coord = SkyCoord(ra=53.49580897, dec=-14.08313553,unit='deg') # aka 91100534958080596 in PS1
+    gal_coord = SkyCoord(ra=53.4958459, dec=-14.083159, unit = 'deg') # From Lachlan
                           # J033358.99-140459.29
     # Instantiate
     frb200906 = FRB.by_name('FRB200906')
@@ -2090,9 +2104,9 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     '''
     # Redshift -- JXP measured from FORS2
     #    Should be refined
-    ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
-    assign_z(ztbl_file, host200906)
-
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host200906.set_z(0.3688, 'spec')
     # Morphology
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
     #                                     'HG191001_galfit_FORS2_I.log'), 0.252)
@@ -2163,6 +2177,7 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     # Parse
     host200906.parse_photom(photom, EBV=EBV)
     #print(host200906.photom.keys())
+    
     # CIGALE
     cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG200906_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
@@ -2184,7 +2199,7 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     # Parse
     #warnings.warn("TURN 200906 CIGALE back on")
     host200906.parse_cigale(cigale_file, sfh_file=sfh_file)
-
+    
 
     # PPXF
     ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
@@ -2375,6 +2390,486 @@ def build_host_201124(build_ppxf=False,
     path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
     host201124.write_to_json(path=path)
 
+def build_host_20201124a(build_ppxf=False, build_photom=False, build_cigale=False):
+    """ Build the host galaxy data for FRB 200906
+
+    Args:
+        build_photom (bool, optional):
+        build_cigale (bool, optional):
+        build_ppxf (bool, optional):
+    """
+    frbname = '20201124a'
+    print("Building Host galaxy for FRB{}".format(frbname))
+    gal_coord = SkyCoord(ra=77.0145, dec=26.06056111,  # aka 91100534958080596 in PS1
+                          unit='deg')
+                          # J033358.99-140459.29
+    # Instantiate
+    frb20201124a = FRB.by_name('FRB20201124a')
+    host20201124a = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb20201124a)
+
+    '''
+    # Load redshift table
+    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+                      format='ascii.fixed_width')
+    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        embed(header='190608')
+    '''
+    # Redshift -- JXP measured from FORS2
+    #    Should be refined
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host20201124a.set_z(0.098, 'spec')
+    # Morphology
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_galfit_FORS2_I.log'), 0.252)
+
+    # Photometry
+
+    # Grab the table (requires internet)
+    db_path = '/Users/bha03n/GDB/'
+    #photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021','photom_chime.ascii')
+    if build_photom:
+        # PS1
+        #search_r = 1 * units.arcsec
+        #ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        #ps1_tbl = ps1_srvy.get_catalog(print_query=True)
+        #ps1_tbl['Name'] = host20201124a.name
+
+        #Panstarrs
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host20201124a.coord.ra.value
+        photom['dec'] = host20201124a.coord.dec.value
+        photom['Pan-STARRS_g'] = 20.621999740600586
+        photom['Pan-STARRS_g_err'] = 0.028522999957203865
+        photom['Pan-STARRS_i'] = 18.709299087524414
+        photom['Pan-STARRS_i_err'] = 0.013850999996066093
+        photom['Pan-STARRS_r'] = 19.516300201416016
+        photom['Pan-STARRS_r_err'] = 0.01395499985665083
+        photom['Pan-STARRS_z'] = 18.238800048828125
+        photom['Pan-STARRS_z_err'] = 0.015918999910354614
+        photom['Pan-STARRS_y'] = 18.095199584960938
+        photom['Pan-STARRS_y_err'] = 0.0250410009175539
+        photom['WISE_W1'] = 14.511
+        photom['WISE_W1_err'] = 0.036
+        photom['WISE_W2'] = 14.285
+        photom['WISE_W2_err'] = 0.068
+        photom['WISE_W3'] = 9.884
+        photom['WISE_W3_err'] = 0.054
+        photom['WISE_W4'] = 7.916
+        photom['WISE_W4_err']=0.221
+        #photom['2MASS_J'] = 16.534 
+        #photom['2MASS_J_err'] = 0.119
+        #photom['2MASS_H'] = 15.681
+        #photom['2MASS_H_err'] = 0.123
+        #photom['2MASS_K'] = 15.113
+        #photom['2MASS_K_err'] = 0.115
+        # VLT
+        # photom = Table()
+        # photom['Name'] = ['HG{}'.format(frbname)]
+        # photom['ra'] = host200906.coord.ra.value
+        # photom['ra'] = host200906.coord.ra.value
+        # photom['VLT_FORS2_g'] = 19.00
+        # photom['VLT_FORS2_g_err'] = 0.1
+        # photom['VLT_FORS2_I'] = 17.89
+        # photom['VLT_FORS2_I_err'] = 0.1
+        # Add in DES
+        # for key in host200906.photom.keys():
+        #    photom[key] = host200906.photom[key]
+        
+
+        #Merge and write
+        #photom = frbphotom.merge_photom_tables(photom, photom_file)
+        #photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        #print("Wrote photometry to: {}".format(photom_file))
+    # Load
+    #photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correct
+    #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    #frbphotom.correct_photom_table(photom, EBV, 'HG20201124a')
+    # Parse
+    #host20201124a.parse_photom(photom, EBV=EBV)
+    #print(host200906.photom.keys())
+    
+    # CIGALE
+    #cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG20201124a_CIGALE.fits')
+    #sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        #cut_photom = Table()
+        # Let's stick to DES only
+        #for key in host200906.photom.keys():
+         #   if 'DES' not in key:
+         #       continue
+         #   cut_photom[key] = [host200906.photom[key]]
+        # Run
+        #print(cut_photom)
+        print("Running cigale")
+        #cut_photom = None
+        # Run
+        print(host20201124a.z)
+        cigale.host_run(host20201124a,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
+    # Parse
+    #warnings.warn("TURN 200906 CIGALE back on")
+    #host20201124a.parse_cigale(cigale_file, sfh_file=sfh_file)
+    
+
+    # PPXF
+    #ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+     #                                'HG20201124a_DEIMOS_ppxf.ecsv')
+    #spec_fit_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+    #                             'HG20201124a_DEIMOS_ppxf.fits')
+    if build_ppxf:
+        meta, spectrum = host200906.get_metaspec(instr='DEIMOS', 
+                                                 specdb_file=os.path.join(
+                                                 os.getenv('SPECDB'), 
+                                                 'specDB_CRAFT.hdf5'))
+        # Correct for Galactic extinction
+        AV = EBV * 3.1  # RV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        #
+        R = 1607.
+
+        ppxf.run(new_spec, R, host200906.z, results_file=ppxf_results_file, 
+                 spec_fit=spec_fit_file,
+                 atmos=[[3000., 5000.], [7580, 7750.]],
+                 gaps=[[6675., 6725.]], chk=True)
+    #host200906.parse_ppxf(ppxf_results_file)
+    
+
+    # Derived quantities
+    host20201124a.derived['Mstar'] = 1.70e10
+    host20201124a.derived['Mstar_err'] = 0.11e10
+    host20201124a.derived['SFR_nebular'] = 2.12
+    host20201124a.derived['SFR_nebular_err'] = 0.69
+    host20201124a.derived['M_r'] = -20.41
+    host20201124a.derived['M_r_err'] = 0.03
+    host20201124a.derived['u-r'] = 2.06
+    host20201124a.derived['u-r_err'] = 0.55
+
+    
+    host20201124a.neb_lines['Halpha'] = 56.9e-16
+    host20201124a.neb_lines['Halpha_err'] = 14.9e-16
+    host20201124a.neb_lines['Hbeta'] = 12.3e-16
+    host20201124a.neb_lines['Hbeta_err'] = 3.0e-16
+
+    host20201124a.neb_lines['[NII] 6584'] = 25.3e-16
+    host20201124a.neb_lines['[NII] 6584_err'] = 6.0e-16
+    host20201124a.neb_lines['[OIII] 5007'] = 3.8e-16
+    host20201124a.neb_lines['[OIII] 5007_err'] = 2.1e-16
+
+
+    # AV
+    #host200906.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    #host200906.calc_nebular_SFR('Ha')
+
+    # Galfit
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_VLT_i_galfit.fits'))
+
+    # Vet all
+    assert host20201124a.vet_all()
+
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host20201124a.write_to_json(path=path)
+
+def build_host_20200120E(build_ppxf=False, build_photom=False, build_cigale=False):
+    """ Build the host galaxy data for FRB 20200120E
+
+    Args:
+        build_photom (bool, optional):
+        build_cigale (bool, optional):
+        build_ppxf (bool, optional):
+    """
+    frbname = '20200120E'
+    print("Building Host galaxy for FRB{}".format(frbname))
+    # THIS SHOULD BE DOUBLE-CHECKED!
+    warnings.warn("These coords should be double checked")
+    gal_coord = SkyCoord('09h55m33.1730s +69d03m55.061s', frame='icrs') #Position for M81 in NED database
+    # Instantiate
+    frb20200120E = FRB.by_name('FRB'+frbname)
+    host20200120E = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb20200120E)
+
+    # Redshift -- JXP measured from LRISr
+    #    Should be refined
+    #warnings.warn("Update 20200120E redshift!")
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host20200120E.set_z(0.0008, 'spec')
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host191228)
+
+    # Morphology
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_galfit_FORS2_I.log'), 0.252)
+
+    # Photometry
+
+    # Grab the table (requires internet)
+    #photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+    #                           'bhandari2021_photom.ascii')
+    if build_photom:
+        # PS1
+        #search_r = 1 * units.arcsec
+        #ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        #ps1_tbl = ps1_srvy.get_catalog(print_query=True)
+        #ps1_tbl['Name'] = host200906.name
+
+        #Panstarrs
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host191228.coord.ra.value
+        photom['dec'] = host191228.coord.dec.value
+        # VLT
+        #photom['VLT_FORS2_g'] = 22.7  # No galactic extinction correction
+        #photom['VLT_FORS2_g_err'] = 0.5
+        #photom['VLT_FORS2_I'] = 22.0
+        #photom['VLT_FORS2_I_err'] = 0.4
+
+        #Merge and write
+        #photom = frbphotom.merge_photom_tables(photom, photom_file)
+        #photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        #print("Wrote photometry to: {}".format(photom_file))
+    
+
+    # Load
+    #photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correct
+    #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    #frbphotom.correct_photom_table(photom, EBV, 'HG')
+    # Parse
+    #host191228.parse_photom(photom, EBV=EBV)
+    
+
+    #print(host200906.photom.keys())
+    # CIGALE
+    
+    #cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG191228_CIGALE.fits')
+    #sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        #cut_photom = Table()
+        # Let's stick to DES only
+        #for key in host200906.photom.keys():
+         #   if 'DES' not in key:
+         #       continue
+         #   cut_photom[key] = [host200906.photom[key]]
+        # Run
+        #print(cut_photom)
+        print("Running cigale")
+        #cut_photom = None
+        # Run
+        #cigale.host_run(host20200120E,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
+    # Parse
+    #warnings.warn("TURN 191228 on")
+    #host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
+    
+
+    #warnings.warn("TURN 191228 photometry on")
+    #host191228.parse_cigale(cigale_file, sfh_file=sfh_file)
+
+    # PPXF
+    #ppxf_results_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+     #                                'HG191228_LRISr_ppxf.ecsv')
+    #spec_fit_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+     #                            'HG191228_LRISr_ppxf.fits')
+    if build_ppxf:
+        # LRIS??
+        meta, spectrum = host191228.get_metaspec(instr='LRISr', 
+                                                 specdb_file=os.path.join(
+                                                 os.getenv('SPECDB'), 
+                                                 'specDB_CRAFT.hdf5'))
+        # Correct for Galactic extinction
+        AV = EBV * 3.1  # RV
+        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+        # New spec
+        new_flux = spectrum.flux * 10**(Al/2.5)
+        new_sig = spectrum.sig * 10**(Al/2.5)
+        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        #
+        R = 1607.
+
+        ppxf.run(new_spec, R, host191228.z, results_file=ppxf_results_file,
+                 spec_fit=spec_fit_file,
+                 atmos=[[3000., 5000.], [7580, 7750.]],
+                 gaps=[[6675., 6725.]], chk=True)
+    #host191228.parse_ppxf(ppxf_results_file)
+
+
+    # Derived quantities from Bhardwaj2021
+    host20200120E.derived['M_r'] = -19.78
+    host20200120E.derived['Mstar'] = 7.20e10
+    host20200120E.derived['Mstar_err'] = 1.70e10
+    host20200120E.derived['SFR_nebular'] = 0.89
+    host20200120E.derived['SFR_nebular_err'] = 0.27
+    host20200120E.derived['u-r'] = 2.773
+    host20200120E.derived['u-r_err'] = 0.004
+
+    # AV
+    #host200906.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    #host191228.calc_nebular_SFR('Ha')
+
+    # Galfit
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_VLT_i_galfit.fits'))
+
+    # Vet all
+    assert host20200120E.vet_all()
+
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host20200120E.write_to_json(path=path)
+
+def build_host_171020(build_ppxf=False, build_photom=False, build_cigale=False):
+    """ Build the host galaxy data for FRB 200906
+
+    Args:
+        build_photom (bool, optional):
+        build_cigale (bool, optional):
+        build_ppxf (bool, optional):
+    """
+    frbname = '171020'
+    print("Building Host galaxy for FRB{}".format(frbname))
+    #gal_coord = SkyCoord(ra=333.852, dec=-19.586,  # aka 91100534958080596 in PS1
+    #                      unit='deg')
+                          # J033358.99-140459.29
+    gal_coord = SkyCoord('22h15m24.48s -19d35m09.6s', frame='icrs') #From ESO Survey
+    # Instantiate
+    frb171020 = FRB.by_name('FRB171020')
+    host171020 = frbgalaxy.FRBHost(gal_coord.ra.value, gal_coord.dec.value, frb171020)
+
+    '''
+    # Load redshift table
+    ztbl = Table.read(os.path.join(db_path, 'CRAFT', 'Bhandari2019', 'z_SDSS.ascii'),
+                      format='ascii.fixed_width')
+    z_coord = SkyCoord(ra=ztbl['RA'], dec=ztbl['DEC'], unit='deg')
+    idx, d2d, _ = match_coordinates_sky(gal_coord, z_coord, nthneighbor=1)
+    if np.min(d2d) > 0.5*units.arcsec:
+        embed(header='190608')
+    '''
+    # Redshift -- JXP measured from FORS2
+    #    Should be refined
+    #ztbl_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'z_hand.ascii')
+    #assign_z(ztbl_file, host200906)
+    host171020.set_z(0.00867, 'spec')
+    # Morphology
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_galfit_FORS2_I.log'), 0.252)
+
+    # Photometry
+
+    # Grab the table (requires internet)
+    #photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+    #                           'bhandari2021_photom_liz.ascii')
+    if build_photom:
+        # PS1
+        #search_r = 1 * units.arcsec
+        #ps1_srvy = panstarrs.Pan_STARRS_Survey(gal_coord, search_r)
+        #ps1_tbl = ps1_srvy.get_catalog(print_query=True)
+        #ps1_tbl['Name'] = host200906.name
+
+        #Panstarrs
+        photom = Table()
+        photom['Name'] = ['HG{}'.format(frbname)]
+        photom['ra'] = host171020.coord.ra.value
+        photom['dec'] = host171020.coord.dec.value
+        photom['Pan-STARRS_g'] = 15.489
+        photom['Pan-STARRS_g_err'] = 0.009
+        photom['Pan-STARRS_r'] = 15.36
+        photom['Pan-STARRS_r_err'] = 0.02
+        photom['Pan-STARRS_i'] = 15.28 
+        photom['Pan-STARRS_i_err'] = 0.01
+        photom['Pan-STARRS_z'] = 15.361
+        photom['Pan-STARRS_z_err'] = 0.005
+        photom['Pan-STARRS_y'] = 15.41
+        photom['Pan-STARRS_y_err'] = 0.02
+        photom['WISE_W1'] = 14.667
+        photom['WISE_W1_err'] = 0.037
+        photom['WISE_W2'] = 14.581
+        photom['WISE_W2_err'] = 0.066
+        photom['WISE_W3'] = 11.541
+        photom['WISE_W3_err'] = 0.234
+        photom['WISE_W4'] = 8.395   
+        photom['WISE_W4_err']= 0.435
+        photom['VISTA_Y'] = 14.53
+        photom['VISTA_Y_err'] = 0.0079
+        photom['VISTA_J'] = 14.53
+        photom['VISTA_J_err'] = 0.0142
+        photom['VISTA_Ks'] = 14.53
+        photom['VISTA_Ks_err'] = 0.0342
+
+        #Merge and write
+        photom = frbphotom.merge_photom_tables(photom, photom_file)
+        photom.write(photom_file, format=frbphotom.table_format, overwrite=True)
+        print("Wrote photometry to: {}".format(photom_file))
+    # Load
+    #photom = Table.read(photom_file, format=frbphotom.table_format)
+    # Dust correct
+    #EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+    #frbphotom.correct_photom_table(photom, EBV, 'HG171020')
+    # Parse
+    #host171020.parse_photom(photom, EBV=EBV)
+    #print(host200906.photom.keys())
+    
+    # CIGALE
+    #cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG171020_CIGALE.fits')
+    #sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        #cut_photom = Table()
+        # Let's stick to DES only
+        #for key in host200906.photom.keys():
+         #   if 'DES' not in key:
+         #       continue
+         #   cut_photom[key] = [host200906.photom[key]]
+        # Run
+        #print(cut_photom)
+        print("Running cigale")
+        #cut_photom = None
+        # Run
+        print(host171020.z)
+        cigale.host_run(host171020,cigale_file=cigale_file) #, cut_photom=cut_photom, cigale_file=cigale_file)
+    # Parse
+    #warnings.warn("TURN 200906 CIGALE back on")
+    #host171020.parse_cigale(cigale_file, sfh_file=sfh_file)
+
+    # Derived quantities from Mahony2018
+    host171020.derived['M_r'] = -17.9
+    host171020.derived['Mstar'] = 0.09e10
+    host171020.derived['SFR_nebular'] = 0.13
+    
+
+    # AV
+    #host200906.calc_nebular_AV('Ha/Hb')
+
+    # SFR
+    #host200906.calc_nebular_SFR('Ha')
+
+    # Galfit
+    #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
+    #                                     'HG191001_VLT_i_galfit.fits'))
+
+    # Vet all
+    assert host171020.vet_all()
+
+
+    # Write -- BUT DO NOT ADD TO REPO (YET)
+    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    host171020.write_to_json(path=path)
+
 
 def main(inflg='all', options=None):
     # Options
@@ -2462,10 +2957,27 @@ def main(inflg='all', options=None):
     if flg & (2**16):  # 65536
         build_host_191228(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
 
+    # 20201124a
+    if flg & (2**17):  # 
+        build_host_20201124a(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+
+    # 20200120E
+    if flg & (2**18):  # 
+        build_host_20200120E(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+
+    # 171020
+    if flg & (2**19):  # 
+        build_host_171020(build_photom=build_photom, build_cigale=build_cigale, build_ppxf=build_ppxf)
+
+
 
 # Command line execution
 if __name__ == '__main__':
    # pass
-   main(inflg=2**9)
-
+   #main(inflg=2**14)
+   #main(inflg=2**15)
+   #main(inflg=2**16)
+   main(inflg=2**17)
+   main(inflg=2**18)
+   main(inflg=2**19)
 

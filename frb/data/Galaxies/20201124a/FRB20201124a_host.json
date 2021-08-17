@@ -1,0 +1,41 @@
+{
+    "FRB": "FRB20201124a",
+    "cosmo": "Planck15",
+    "dec": 26.06056111,
+    "dec_FRB": 26.060695555555558,
+    "derived": {
+        "M_r": -20.41,
+        "M_r_err": 0.03,
+        "Mstar": 17000000000.0,
+        "Mstar_err": 1100000000.0,
+        "SFR_nebular": 2.12,
+        "SFR_nebular_err": 0.69,
+        "u-r": 2.06,
+        "u-r_err": 0.55
+    },
+    "neb_lines": {
+        "Halpha": 5.69e-15,
+        "Halpha_err": 1.49e-15,
+        "Hbeta": 1.23e-15,
+        "Hbeta_err": 3e-16,
+        "[NII] 6584": 2.53e-15,
+        "[NII] 6584_err": 6e-16,
+        "[OIII] 5007": 3.8e-16,
+        "[OIII] 5007_err": 2.1e-16
+    },
+    "offsets": {
+        "ang_avg": NaN,
+        "ang_avg_err": NaN,
+        "ang_best": 0.6112118278239058,
+        "ang_best_err": NaN,
+        "physical": 1.1434365839981557,
+        "physical_err": NaN
+    },
+    "ra": 77.0145,
+    "ra_FRB": 77.01461541666666,
+    "redshift": {
+        "z": 0.098,
+        "z_FRB": 0.098,
+        "z_spec": 0.098
+    }
+}

@@ -1,0 +1,26 @@
+{
+    "FRB": "FRB171020",
+    "cosmo": "Planck15",
+    "dec": -19.586,
+    "dec_FRB": -19.666666666666668,
+    "derived": {
+        "M_r": -17.9,
+        "Mstar": 900000000.0,
+        "SFR_nebular": 0.13
+    },
+    "offsets": {
+        "ang_avg": NaN,
+        "ang_avg_err": NaN,
+        "ang_best": 451.61488585208974,
+        "ang_best_err": NaN,
+        "physical": 83.12153502808697,
+        "physical_err": NaN
+    },
+    "ra": 333.8519999999999,
+    "ra_FRB": 333.74999999999994,
+    "redshift": {
+        "z": 0.00867,
+        "z_FRB": 0.00867,
+        "z_spec": 0.00867
+    }
+}

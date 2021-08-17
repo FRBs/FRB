@@ -1,0 +1,10 @@
+Please ignore all the values in the json except:
+
+SFR = 0.89 derived from IR observations in Gordon et al 2004.
+Mstar = 7.2e10
+Mstar_err = 1.7e10
+u-r = 2.773
+u-r_err = 0.004
+z = 0.00001
+M_r = -19.78
+M_r_err = Some value.

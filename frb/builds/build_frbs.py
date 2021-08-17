@@ -56,17 +56,19 @@ def frb_180301():
 
     #FRB_180301_coord = SkyCoord("6h12m54.6748s +4d40m14.5457s", frame='icrs')  # Slack Sep 20 2020
     #FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
-    FRB_180301_coord = SkyCoord("06h12m54.47s +04d40m15.6s", frame='icrs') # Bhadari+2021
+    FRB_180301_coord = SkyCoord("06h12m54.42s +04d40m15.9s", frame='icrs') # Bhadari+2021
     frb180301 = frb.FRB(frbname, FRB_180301_coord,
-                        528 * units.pc / units.cm ** 3,
+                        536 * units.pc / units.cm ** 3,
                         z_frb=0.33044, repeater=True)  # Slack posting
-    # Error ellipse (Statistical)
-    frb180301.set_ee(0.15, 0.15, 0., 68.)
+    
+    # Error ellipse (Statistical) # These errors will need to be updated.
+    frb180301.set_ee(0.01142,0.00825, 0., 68.)
     # Error ellipse (Systematic)
-    frb180301.set_ee(1.0, 1.0, 0., 68., stat=False)
+    frb180301.set_ee(0.619, 0.603, 0., 68., stat=False)
+
 
     # Error in DM
-    #frb191001.DM_err = 1 * units.pc / units.cm ** 3
+    frb180301.DM_err = 13 * units.pc / units.cm ** 3
 
     # NE2001
     frb180301.set_DMISM()
@@ -518,15 +520,15 @@ def frb_191228():
     Updated FRB localization + error from Day+2021
     """
     frbname = 'FRB191228'
-    FRB_191228_coord = SkyCoord('22h57m43.24s -29d35m37.0s',  frame='icrs') # Taken from Slack on 11 Oct 2020
+    FRB_191228_coord = SkyCoord('22h57m43.30s -29d35m38.7s',  frame='icrs') # Taken from Slack on 11 Oct 2020
     frb191228 = frb.FRB(frbname, FRB_191228_coord,
                         298 * units.pc / units.cm ** 3,
                         repeater=False)  # First Slack posting
     # Error ellipse : Day+2021
-    frb191228.set_ee(0.343, 0.340, 90., 68.)
-    frb191228.set_ee(0.950, 0.874, 90., 68., stat=False)
+    frb191228.set_ee(0.34, 0.34, 0., 68.)
+    frb191228.set_ee(0.830, 0.823, 0., 68., stat=False)
     # Error in DM
-    #frb191001.DM_err = 1 * units.pc / units.cm ** 3
+    frb191228.DM_err = 0.05 * units.pc / units.cm ** 3
 
     # NE2001
     frb191228.set_DMISM()
@@ -540,6 +542,60 @@ def frb_191228():
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb191228.write_to_json(path=path)
+
+def frb_20200120E():
+    frbname = 'FRB20200120E'
+
+    FRB_20200120E_coord = SkyCoord("09h57m54.68s  +68d49m08.0s", frame='icrs')    # From EVN localisation
+    frb20200120E = frb.FRB(frbname, FRB_20200120E_coord,
+                        87.818 * units.pc / units.cm ** 3,z_frb=0.0008,repeater=True)  
+    # Error ellipse (Statistical)
+    frb20200120E.set_ee(0.,0., 0., 68.)
+    # Error ellipse (Systematic)
+    frb20200120E.set_ee(0., 0., 0., 68., stat=False)
+
+    # Error in DM
+    frb20200120E.DM_err = 0.007 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb20200120E.set_DMISM()
+    # RM
+    # frb190102.RM = 10 * units.rad / units.m**2
+    # frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb20200120E.refs = ['Bhardwaj2021','Kirsten2021']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb20200120E.write_to_json(path=path)
+
+def frb_171020():
+    frbname = 'FRB171020'
+
+    FRB_171020_coord = SkyCoord("22h15m00s  -19d40m00s", frame='icrs')    # From Shannon+18
+    frb171020 = frb.FRB(frbname, FRB_171020_coord,
+                        114.1 * units.pc / units.cm ** 3,z_frb=0.00867,repeater=False)  
+    # Error ellipse (Statistical)
+    frb171020.set_ee(0.,0., 0., 68.)
+    # Error ellipse (Systematic)
+    frb171020.set_ee(0., 0., 0., 68., stat=False)
+
+    # Error in DM
+    frb171020.DM_err = 0.2 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb171020.set_DMISM()
+    # RM
+    # frb190102.RM = 10 * units.rad / units.m**2
+    # frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb171020.refs = ['Shannon2018','Mahony2018']
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb171020.write_to_json(path=path)
 
 
 def frb_200430():
@@ -592,12 +648,12 @@ def frb_200906():
                         z_frb=0.36879,
                         repeater=False)  # Slack posting
     # Error ellipse (Statistical)
-    frb200906.set_ee(0.11, 0.099, 0., 68.)
+    frb200906.set_ee(0.11, 0.102, 0., 68.)
     # Error ellipse (Systematic)
     frb200906.set_ee(0.55, 0.340, 0., 68., stat=False)
 
     # Error in DM
-    frb200906.DM_err = 0.2 * units.pc / units.cm ** 3
+    frb200906.DM_err = 0.02 * units.pc / units.cm ** 3
 
     # NE2001
     frb200906.set_DMISM()
@@ -652,7 +708,32 @@ def frb_201124():
     path = resource_filename('frb', 'data/FRBs')
     frb201124.write_to_json(path=path)
 
+def frb_20201124a():
+    frbname = 'FRB20201124a'
 
+    FRB_20201124a_coord = SkyCoord("05h08m03.5077s  +26d03m38.504s", frame='icrs')    # From VLBI localisation
+    frb20201124a = frb.FRB(frbname, FRB_20201124a_coord,
+                        413.52 * units.pc / units.cm ** 3,z_frb=0.0982,repeater=True)  # Slack posting
+    # Error ellipse (Statistical)
+    frb20201124a.set_ee(0.,0., 0., 68.)
+    # Error ellipse (Systematic)
+    frb20201124a.set_ee(0., 0., 0., 68., stat=False)
+
+    # Error in DM
+    #frb191001.DM_err = 1 * units.pc / units.cm ** 3
+
+    # NE2001
+    frb20201124a.set_DMISM()
+    # RM
+    # frb190102.RM = 10 * units.rad / units.m**2
+    # frb190102.RM_err = 1 * units.rad / units.m**2
+
+    # References
+    frb20201124a.refs = []
+
+    # Write
+    path = resource_filename('frb', 'data/FRBs')
+    frb20201124a.write_to_json(path=path)
 
 def main(inflg='all'):
 
@@ -736,10 +817,13 @@ def main(inflg='all'):
 #  Use the Build script to build
 if __name__ == '__main__':
     # FRB 121102
-    frb_190611()
-    frb_190711()
-    frb_190714()
-    frb_191001()
-
-
-
+    #frb_190611()
+    #frb_190711()
+    #frb_190714()
+    #frb_191001()
+    #frb_180301()
+    #frb_200906()
+    #frb_191228()
+    #frb_171020()
+    #frb_20200120E()
+    frb_20201124a()
