@@ -21,7 +21,9 @@
         "theta_sys": 0.0
     },
     "ra": 77.01461541666666,
-    "refs": ['Fong2021'],
+    "refs": [
+        "Fong2021"
+    ],
     "repeater": true,
     "z": 0.0982
 }
