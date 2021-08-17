@@ -156,7 +156,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
 
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'HG121102_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Repeater', 'Bassa2017', 'HG20121102_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         # Run
@@ -225,7 +225,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
 
     # Galfit -- Mannings+2021
     host121102.parse_galfit(os.path.join(db_path, 'F4', 'mannings2020',
-                                   'HG121102_galfit.fits'))
+                                   'HG20121102_WFC3_F160W_galfit.fits'))
 
     # Derived quantities
     if use_orig:
@@ -748,7 +748,8 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     '''
 
     # CIGALE -- PanStarrs photometry but our own CIGALE analysis
-    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'S1_190523_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 
+                               'S1_190523_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         cigale.host_run(host190523_S1, cigale_file=cigale_file)
@@ -771,7 +772,7 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     #host190523_S1.derived['SFR_nebular_err'] = -999.
 
     # Galfit
-    host190523_S1.parse_galfit(os.path.join(db_path, 'Realfast', 'Heintz2020',
+    host190523_S1.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
                                    'HG190523_LRIS_r_galfit.fits'))
     # Vet all
     host190523_S1.vet_all()
@@ -1750,7 +1751,8 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     host191001.parse_photom(photom, EBV=EBV)
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 
+                               'HG20191001_CIGALE.fits')
     sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
     if build_cigale:
         # Prep
@@ -1766,8 +1768,10 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     host191001.parse_cigale(cigale_file, sfh_file=sfh_file)
 
     # PPXF
-    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_GMOS_ppxf.ecsv')
-    spec_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_GMOS_ppxf.fits')
+    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 
+                                     'HG20191001_GMOS-S_ppxf.ecsv')
+    spec_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 
+                             'HG20191001_GMOS-S_ppxf.fits')
     if build_ppxf:
         meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
         R = meta['R']
@@ -1789,7 +1793,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     #                                     'HG191001_VLT_i_galfit.fits'))
     # Galfit -- Mannings+2021
     host191001.parse_galfit(os.path.join(db_path, 'F4', 'mannings2020',
-                                   'HG191001_galfit.fits'))
+                                   'HG20191001_WFC3_F160W_galfit.fits'))
 
     # Vet all
     assert host191001.vet_all()
@@ -1952,7 +1956,6 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
         build_cigale (bool, optional):
         run_ppxf (bool, optional):
     """
-    eazy_folder = './eazy'
     frbname = '200430'
     print("Building Host galaxy for FRB{}".format(frbname))
     gal_coord = SkyCoord('J151849.52+122235.8', unit=(units.hourangle, units.deg)) # SDSS
