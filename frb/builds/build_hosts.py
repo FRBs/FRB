@@ -1005,13 +1005,11 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     host180916.write_to_json(path=path)
 
 
-def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, source='faint'):
+
+def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, source='bright'):
     """ Build the host galaxy data for FRB 190611
-
     There are 2 sources in play.
-
     Heintz+2020
-
     Args:
         build_photom (bool, optional):
     """
@@ -1044,7 +1042,7 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
     print("EBV={} for the host of {}".format(EBV, frbname))
 
     # Grab the table (requires internet)
-    photom_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'heintz2020_photom.ascii')
+    photom_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'bhandari2021_photom.ascii')
     if build_photom:
         photom = Table()
         photom['Name'] = [host190611.name]
@@ -1079,7 +1077,15 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
     host190611.parse_photom(photom, EBV=EBV)
 
     # CIGALE
-    cigale_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG190611_CIGALE.fits')
+    cigale_file = os.path.join(db_path, 'Realfast', 'Bhandari2021', 'HG190611_CIGALE.fits')
+    sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
+    if build_cigale:
+        # Prep
+        #cut_photom = None
+        # Run
+        cigale.host_run(host190611, cigale_file=cigale_file) #cut_photom=cut_photom, 
+        # Parse
+    host190611.parse_cigale(cigale_file, sfh_file=sfh_file)
     # NOT ENOUGH PHOTOMETRY
 
 
@@ -2977,10 +2983,10 @@ def main(inflg='all', options=None):
 # Command line execution
 if __name__ == '__main__':
    # pass
-   #main(inflg=2**14)
-   #main(inflg=2**15)
-   #main(inflg=2**16)
-   main(inflg=2**17)
-   main(inflg=2**18)
-   main(inflg=2**19)
+   main(inflg=2**3)
+   main(inflg=2**7)
+   main(inflg=2**10)
+   main(inflg=2**12)
+   #main(inflg=2**18)
+   #main(inflg=2**19)
 
