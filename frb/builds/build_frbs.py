@@ -550,7 +550,7 @@ def frb_20200120E():
     frb20200120E = frb.FRB(frbname, FRB_20200120E_coord,
                         87.818 * units.pc / units.cm ** 3,z_frb=0.0008,repeater=True)  
     # Error ellipse (Statistical)
-    frb20200120E.set_ee(0.,0., 0., 68.)
+    frb20200120E.set_ee(0.4,0.4, 0., 68.)
     # Error ellipse (Systematic)
     frb20200120E.set_ee(0., 0., 0., 68., stat=False)
 
@@ -573,11 +573,11 @@ def frb_20200120E():
 def frb_171020():
     frbname = 'FRB171020'
 
-    FRB_171020_coord = SkyCoord("22h15m00s  -19d40m00s", frame='icrs')    # From Shannon+18
+    FRB_171020_coord = SkyCoord("22h15m18.55s  -19d40m11.23s", frame='icrs')    # From Shannon+18
     frb171020 = frb.FRB(frbname, FRB_171020_coord,
                         114.1 * units.pc / units.cm ** 3,z_frb=0.00867,repeater=False)  
     # Error ellipse (Statistical)
-    frb171020.set_ee(0.,0., 0., 68.)
+    frb171020.set_ee(600,600, 0., 68.)
     # Error ellipse (Systematic)
     frb171020.set_ee(0., 0., 0., 68., stat=False)
 
@@ -715,7 +715,7 @@ def frb_20201124a():
     frb20201124a = frb.FRB(frbname, FRB_20201124a_coord,
                         413.52 * units.pc / units.cm ** 3,z_frb=0.0982,repeater=True)  # Slack posting
     # Error ellipse (Statistical)
-    frb20201124a.set_ee(0.,0., 0., 68.)
+    frb20201124a.set_ee(0.004,0.004, 0., 68.) #Atel
     # Error ellipse (Systematic)
     frb20201124a.set_ee(0., 0., 0., 68., stat=False)
 
@@ -729,7 +729,7 @@ def frb_20201124a():
     # frb190102.RM_err = 1 * units.rad / units.m**2
 
     # References
-    frb20201124a.refs = []
+    frb20201124a.refs = ['Fong2021']
 
     # Write
     path = resource_filename('frb', 'data/FRBs')
@@ -824,6 +824,6 @@ if __name__ == '__main__':
     #frb_180301()
     #frb_200906()
     #frb_191228()
-    #frb_171020()
-    #frb_20200120E()
+    frb_171020()
+    frb_20200120E()
     frb_20201124a()

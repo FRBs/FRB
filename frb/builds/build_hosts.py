@@ -2983,10 +2983,10 @@ def main(inflg='all', options=None):
 # Command line execution
 if __name__ == '__main__':
    # pass
-   main(inflg=2**3)
-   main(inflg=2**7)
-   main(inflg=2**10)
-   main(inflg=2**12)
-   #main(inflg=2**18)
+   #main(inflg=2**3)
+   #main(inflg=2**7)
+   main(inflg=2**17)
+   main(inflg=2**18)
+   main(inflg=2**19)
    #main(inflg=2**19)
 

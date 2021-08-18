@@ -24,12 +24,12 @@
         "[OIII] 5007_err": 2.1e-16
     },
     "offsets": {
-        "ang_avg": NaN,
-        "ang_avg_err": NaN,
+        "ang_avg": 0.6112249165236722,
+        "ang_avg_err": 0.003999927800407,
         "ang_best": 0.6112118278239058,
-        "ang_best_err": NaN,
+        "ang_best_err": 0.003999949214993908,
         "physical": 1.1434365839981557,
-        "physical_err": NaN
+        "physical_err": 0.007482983899121221
     },
     "ra": 77.0145,
     "ra_FRB": 77.01461541666666,

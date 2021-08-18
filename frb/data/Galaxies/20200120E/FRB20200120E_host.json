@@ -13,12 +13,12 @@
         "u-r_err": 0.004
     },
     "offsets": {
-        "ang_avg": NaN,
-        "ang_avg_err": NaN,
+        "ang_avg": 1169.8412600214488,
+        "ang_avg_err": 0.3999970504228012,
         "ang_best": 1169.8411916371015,
-        "ang_best_err": NaN,
+        "ang_best_err": 0.39999705626836773,
         "physical": 20.060392866757677,
-        "physical_err": NaN
+        "physical_err": 0.006859134514712149
     },
     "ra": 148.8882208333333,
     "ra_FRB": 149.47783333333328,
