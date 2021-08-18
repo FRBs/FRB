@@ -28,6 +28,7 @@ def main(pargs):
 
     from frb.galaxies import nebular
     from frb import mw
+    from frb.surveys import survey_utils
 
     # Deal with coord
     icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
@@ -41,3 +42,8 @@ def main(pargs):
     # NE 2001
     DM_ISM = mw.ismDM(icoord)
     print(f"NE2001 = {DM_ISM}")
+
+    # Surveys
+    print("Checking the imaging surveys...")
+    inside = survey_utils.in_which_survey(icoord)
+    print(inside)
