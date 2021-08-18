@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script calculates stuff towards a coord
+"""
+
+from frb.scripts import sightline
+
+if __name__ == '__main__':
+    args = sightline.parser()
+    sightline.main(args)

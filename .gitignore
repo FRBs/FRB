@@ -15,6 +15,21 @@ Galaxy_DB/
 *.npy
 *.hdf5
 
+# Tests
+./pytest_cache
+frb/tests/files/0/
+frb/tests/files/1/
+frb/tests/files/2/
+frb/tests/files/3/
+frb/tests/files/mcmc/
+
+# Data
+*.fits
+*.fits.gz
+*.fit.gz
+*.npy
+*.hdf5
+
 # Distribution / packaging
 .Python
 env/

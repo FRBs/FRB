@@ -17,7 +17,7 @@ else:
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 
-from frb import halos
+from frb.halos import models as halos
 
 dummy_xyz = np.reshape(np.array([10., 10., 10.]), (3,1))
 

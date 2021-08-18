@@ -8,7 +8,7 @@ import numpy as np
 from astropy import units
 import warnings
 
-from frb.halos import ModifiedNFW
+from frb.halos.models import ModifiedNFW
 
 from ne2001 import density
 
