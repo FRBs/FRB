@@ -1,3 +1,9 @@
+##########################################################################################
+Most updated astrometrically corrected positions of ASKAP FRBs as published in Day2021. 
+These positions and uncertainties are used for building FRBs.
+
+###########################################################################################
+
 180924 — originally published Bannister et al. 2019 but corrected in Macquart et al. 2020
 RA: 21h44m25.255s +/- 0.010 s (statistical; systematic: +/- 0.006 s; +/- 0.008) s)
                       0.1140 arcsec (statistical; systematic: +/- 0.070^ arcsec; +/- 0.090^^ arcsec)*

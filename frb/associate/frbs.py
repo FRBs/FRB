@@ -218,7 +218,7 @@ updates = dict(
 frb191001 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
-# FRB 1911228
+# FRB 191228
 """
 Notes:
 """
