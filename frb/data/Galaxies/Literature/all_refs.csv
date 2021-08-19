@@ -2,4 +2,3 @@ Table,Format,Reference,DOI
 bassa2017_photom.ascii,ascii.fixed_width,Bassa2017,10.3847/2041-8213/aa7a0c
 heintz2020_photom.ascii,ascii.fixed_width,Heintz2020,10.3847/1538-4357/abb6fb 
 tendulkar2017_nebular.csv,csv,Tendulkar2017,10.3847/2041-8213/834/2/L7
-mannings2021_photom.ascii,ascii.fixed_width,Mannings2020,arXiv:2012.11617
