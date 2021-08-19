@@ -1,0 +1,61 @@
+{
+    "FRB": "FRB201124",
+    "cosmo": "Planck15",
+    "dec": 26.060536111111112,
+    "dec_FRB": 26.060695555555558,
+    "derived": {
+        "AV_nebular": 2.1542457267548083,
+        "SFR_nebular": 7.044736113832976
+    },
+    "morphology": {
+        "reff_ang": 1.0
+    },
+    "neb_lines": {
+        "Halpha": 1.187e-14,
+        "Halpha_err": 1.8e-16,
+        "Hbeta": 1.85e-15,
+        "Hbeta_err": 1.2e-16,
+        "[NII] 6584": 4.12e-15,
+        "[NII] 6584_err": 1.5e-16,
+        "[OIII] 5007": 6.6e-16,
+        "[OIII] 5007_err": 1e-16
+    },
+    "offsets": {
+        "ang_avg": 0.7076495435801223,
+        "ang_avg_err": 0.012648006898909134,
+        "ang_best": 0.7075364678292382,
+        "ang_best_err": 0.012648512348900602,
+        "physical": 1.3224399814704306,
+        "physical_err": 0.0236410407051211
+    },
+    "photom": {
+        "EBV": 0.7315,
+        "Pan-STARRS_g": 17.979498092179877,
+        "Pan-STARRS_g_err": 0.028522999957203865,
+        "Pan-STARRS_g_flux": 0.2334536978401382,
+        "Pan-STARRS_g_flux_err": 0.006214250089979062,
+        "Pan-STARRS_i": 17.331062618460653,
+        "Pan-STARRS_i_err": 0.013850999996066093,
+        "Pan-STARRS_i_flux": 0.4242041832048734,
+        "Pan-STARRS_i_flux_err": 0.005446341899049938,
+        "Pan-STARRS_r": 17.614833731417562,
+        "Pan-STARRS_r_err": 0.01395499985665083,
+        "Pan-STARRS_r_flux": 0.32663784505246135,
+        "Pan-STARRS_r_flux_err": 0.004225382287855864,
+        "Pan-STARRS_y": 17.21327655385607,
+        "Pan-STARRS_y_err": 0.0250410009175539,
+        "Pan-STARRS_y_flux": 0.4728129605693817,
+        "Pan-STARRS_y_flux_err": 0.011031499830573702,
+        "Pan-STARRS_z": 17.16905221619984,
+        "Pan-STARRS_z_err": 0.015918999910354614,
+        "Pan-STARRS_z_flux": 0.4924692382926244,
+        "Pan-STARRS_z_flux_err": 0.007273748123634368
+    },
+    "ra": 77.0144875,
+    "ra_FRB": 77.01461541666666,
+    "redshift": {
+        "z": 0.0979,
+        "z_FRB": 0.0979,
+        "z_spec": 0.0979
+    }
+}
