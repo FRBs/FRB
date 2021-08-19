@@ -80,7 +80,8 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
+    def get_catalog(self, query=None, query_fields=None, 
+                    print_query=False, grab_wise=False, **kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
@@ -88,6 +89,8 @@ class DES_Survey(dlsurvey.DL_Survey):
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
+            grab_wise (bool): Attempt to grab WISE data too.
+                This is not recommended.
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
@@ -101,18 +104,19 @@ class DES_Survey(dlsurvey.DL_Survey):
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'])
 
         # WISE
-        wise_query = self._gen_cat_query(qtype='wise')
-        wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query,**kwargs)
-        wise_cat = catalog_utils.clean_cat(wise_cat, photom['DES-WISE'], fill_mask=-999.)
-        # Match em up
-        if len(wise_cat) > 0:
-            idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
-            # Fill me
-            for band in DES_WISE_bands:
-                main_cat['WISE_{:s}'.format(band)] = -999.
-                main_cat['WISE_{:s}'.format(band)][idx] = wise_cat[band.replace("W","WISE")]
-                main_cat['WISE_{:s}_err'.format(band)] = -999.
-                main_cat['WISE_{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band.replace("W","WISE"))]
+        if grab_wise:
+            wise_query = self._gen_cat_query(qtype='wise')
+            wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query,**kwargs)
+            wise_cat = catalog_utils.clean_cat(wise_cat, photom['DES-WISE'], fill_mask=-999.)
+            # Match em up
+            if len(wise_cat) > 0:
+                idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
+                # Fill me
+                for band in DES_WISE_bands:
+                    main_cat['WISE_{:s}'.format(band)] = -999.
+                    main_cat['WISE_{:s}'.format(band)][idx] = wise_cat[band.replace("W","WISE")]
+                    main_cat['WISE_{:s}_err'.format(band)] = -999.
+                    main_cat['WISE_{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band.replace("W","WISE"))]
 
         # Finish
         self.catalog = main_cat
@@ -136,7 +140,7 @@ class DES_Survey(dlsurvey.DL_Survey):
                 for key,value in photom['DES'].items():
                     query_fields += [value]
                 database = self.database
-            elif qtype == 'wise':
+            elif qtype == 'wise':  # THIS HAS BEEN DEPRECATED!
                 for key,value in photom['DES-WISE'].items():
                     query_fields += [value]
                 database = "des_dr1.des_allwise"
