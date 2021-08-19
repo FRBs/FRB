@@ -144,6 +144,7 @@ def run(host_input:pandas.core.series.Series,
         build_cigale=False, is_host=True):
 
     frbname = utils.parse_frb_name(host_input.FRB)
+    print("--------------------------------------")
     print(f"Building Host galaxy for {frbname}")
     gal_coord = SkyCoord(host_input.Coord, frame='icrs')
 
@@ -152,7 +153,7 @@ def run(host_input:pandas.core.series.Series,
     Host = frbgalaxy.FRBHost(gal_coord.ra.value, 
                              gal_coord.dec.value, 
                              Frb)
-                            
+
     # File root
     file_root = Host.name if is_host else utils.name_from_coord(Host.coord)
     project_list = host_input.Projects.split(',')
