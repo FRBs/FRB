@@ -69,6 +69,6 @@ def test_fractional_flux():
     # Run
     med_ff, sig_ff, f_weight = photom.fractional_flux(cutout, frbdat, hg)    
 
-    assert np.isclose(sig_ff, 0.29401563154693383)
+    assert np.isclose(sig_ff, 0.2906803236219953)
 
 
