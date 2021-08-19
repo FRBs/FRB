@@ -21,6 +21,15 @@ from linetools.spectra import xspectrum1d
 from frb import frb
 
 def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
+    """ Deredden the input spectrum using the input EBV value
+
+    Args:
+        spectrum (xspectrum1d.XSpectrum1D): Spectrum
+        ebv (float): Galactic reddening
+
+    Returns:
+        xspectrum1d.XSpectrum1D: De-reddened spectrum
+    """
 
     # Correct for Galactic extinction
     AV = ebv * 3.1  # RV
