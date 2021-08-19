@@ -54,14 +54,12 @@ def frb_180301():
     """
     frbname = 'FRB180301'
 
-    #FRB_180301_coord = SkyCoord("6h12m54.6748s +4d40m14.5457s", frame='icrs')  # Slack Sep 20 2020
-    #FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
     FRB_180301_coord = SkyCoord("06h12m54.42s +04d40m15.9s", frame='icrs') # Bhadari+2021
     frb180301 = frb.FRB(frbname, FRB_180301_coord,
                         536 * units.pc / units.cm ** 3,
                         z_frb=0.33044, repeater=True)  # Slack posting
     
-    # Error ellipse (Statistical) # These errors will need to be updated.
+    # Error ellipse (Statistical) # 
     frb180301.set_ee(0.01142,0.00825, 0., 68.)
     # Error ellipse (Systematic)
     frb180301.set_ee(0.619, 0.603, 0., 68., stat=False)
@@ -668,46 +666,6 @@ def frb_200906():
     path = resource_filename('frb', 'data/FRBs')
     frb200906.write_to_json(path=path)
 
-def frb_201124():
-    """
-    ATELs only so far
-
-    """
-    # ATEL 14603 (VLBI)
-    FRB_201124_coord = SkyCoord("05h08m03.5077s 26d03m38.504s", frame='icrs')
-    frb201124 = frb.FRB('FRB201124', FRB_201124_coord,
-                        411. * units.pc / units.cm ** 3,
-                        z_frb=0.0982, repeater=False)
-
-    # Error ellipse [REQUIRED]
-    frb201124.set_ee(0.004, 0.004, theta=0., cl=68.) # ATEL
-
-    # Error in DM
-    #frb191001.DM_err = 0.07 * units.pc / units.cm ** 3
-
-    # NE2001
-    frb201124.set_DMISM()
-
-    # RM and fluence (Bhandari+20b)
-    #frb201124.RM = 55.5 * units.rad / units.m**2
-    #frb201124.RM_err = 0.9 * units.rad / units.m**2
-    #frb201124.fluence = 143 * units.Jy * units.ms
-    #frb201124.fluence_err = 15 * units.Jy * units.ms
-
-    # Pulse properties
-    #frb191001.set_pulse(0.920*units.GHz,
-    #    Wi=0.22*units.ms,
-    #    Wi_err=0.03*units.ms,
-    #    tscatt=3.3*units.ms,
-    #    tscatt_err=0.2*units.ms)
-
-    # References
-    #frb191001.refs = ['Bhandari2020b']
-
-    # Write
-    path = resource_filename('frb', 'data/FRBs')
-    frb201124.write_to_json(path=path)
-
 def frb_20201124a():
     frbname = 'FRB20201124a'
 
@@ -790,9 +748,9 @@ def main(inflg='all'):
     if flg & (2**11):
         frb_191001()
 
-    # FRB 201124      # 4096
+    # FRB 201124a      # 4096
     if flg & (2**12):
-        frb_201124()
+        frb_20201124a()
 
     # FRB 180301      # 8192
     if flg & (2**13):
