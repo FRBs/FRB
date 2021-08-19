@@ -54,14 +54,12 @@ def frb_180301():
     """
     frbname = 'FRB180301'
 
-    #FRB_180301_coord = SkyCoord("6h12m54.6748s +4d40m14.5457s", frame='icrs')  # Slack Sep 20 2020
-    #FRB_180301_coord = SkyCoord("06h12m54.75s +04d40m15.6s", frame='icrs') # Slack on 11 Oct 2020
     FRB_180301_coord = SkyCoord("06h12m54.42s +04d40m15.9s", frame='icrs') # Bhadari+2021
     frb180301 = frb.FRB(frbname, FRB_180301_coord,
                         536 * units.pc / units.cm ** 3,
                         z_frb=0.33044, repeater=True)  # Slack posting
     
-    # Error ellipse (Statistical) # These errors will need to be updated.
+    # Error ellipse (Statistical) # 
     frb180301.set_ee(0.01142,0.00825, 0., 68.)
     # Error ellipse (Systematic)
     frb180301.set_ee(0.619, 0.603, 0., 68., stat=False)
@@ -707,33 +705,8 @@ def frb_201124():
     # Write
     path = resource_filename('frb', 'data/FRBs')
     frb201124.write_to_json(path=path)
+    
 
-def frb_20201124a():
-    frbname = 'FRB20201124a'
-
-    FRB_20201124a_coord = SkyCoord("05h08m03.5077s  +26d03m38.504s", frame='icrs')    # From VLBI localisation
-    frb20201124a = frb.FRB(frbname, FRB_20201124a_coord,
-                        413.52 * units.pc / units.cm ** 3,z_frb=0.0982,repeater=True)  # Slack posting
-    # Error ellipse (Statistical)
-    frb20201124a.set_ee(0.004,0.004, 0., 68.) #Atel
-    # Error ellipse (Systematic)
-    frb20201124a.set_ee(0., 0., 0., 68., stat=False)
-
-    # Error in DM
-    #frb191001.DM_err = 1 * units.pc / units.cm ** 3
-
-    # NE2001
-    frb20201124a.set_DMISM()
-    # RM
-    # frb190102.RM = 10 * units.rad / units.m**2
-    # frb190102.RM_err = 1 * units.rad / units.m**2
-
-    # References
-    frb20201124a.refs = ['Fong2021']
-
-    # Write
-    path = resource_filename('frb', 'data/FRBs')
-    frb20201124a.write_to_json(path=path)
 
 def main(inflg='all'):
 
@@ -790,7 +763,7 @@ def main(inflg='all'):
     if flg & (2**11):
         frb_191001()
 
-    # FRB 201124      # 4096
+    # FRB 201124a      # 4096
     if flg & (2**12):
         frb_201124()
 
@@ -826,4 +799,4 @@ if __name__ == '__main__':
     #frb_191228()
     frb_171020()
     frb_20200120E()
-    frb_20201124a()
+    #frb_20201124a()

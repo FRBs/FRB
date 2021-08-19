@@ -69,26 +69,32 @@ def test_frbhost():
     # Write
     outfile = data_path('test_frbhost.json')
     host121102.write_to_json(outfile=outfile)
-    # Remove
-    os.remove(outfile)
 
 
 def test_read_frbhost():
     # This test will fail if the previous failed
+    outfile = data_path('test_frbhost.json')
     frb121102 = FRB.by_name('FRB121102')
-    host121102 = frbgalaxy.FRBHost.from_json(frb121102, data_path('test_frbhost.json'))
+    host121102 = frbgalaxy.FRBHost.from_json(frb121102, 
+                                             outfile)
     # Test
     assert host121102.frb.frb_name == 'FRB121102'
     assert np.isclose(host121102.morphology['b/a'], 0.25)
     assert host121102.vet_all()
 
+
 def test_luminosity():
+    # This test will fail if the previous failed
+    outfile = data_path('test_frbhost.json')
     frb121102 = FRB.by_name('FRB121102')
-    host121102 = frbgalaxy.FRBHost.from_json(frb121102, data_path('test_frbhost.json'))
+    host121102 = frbgalaxy.FRBHost.from_json(frb121102, outfile)
     Lum_Ha, Lum_Ha_err = host121102.calc_nebular_lum('Halpha')
     # Test
     assert Lum_Ha.unit == units.erg/units.s
     assert np.isclose(Lum_Ha.value, 2.93961853e+40)
+
+    # Remove
+    os.remove(outfile)
 
 
 def test_get_spectra():

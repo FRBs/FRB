@@ -7,6 +7,7 @@ import numpy as np
 import pytest
 
 from astropy import units as u
+from astropy.cosmology import Planck15, FlatLambdaCDM
 
 from frb.dm import igm
 
@@ -40,3 +41,17 @@ def test_z_from_DM():
     z = igm.z_from_DM(1000.*u.pc/u.cm**3)
     # Test
     assert np.isclose(z, 0.98050945, rtol=0.001)
+
+def test_igmDM_varyH0():
+    DM = igm.average_DM(1., cosmo=Planck15)
+
+    # New cosmology
+    cosmo2 = FlatLambdaCDM(H0=Planck15.H0.value*2, 
+                          Ob0=Planck15.Ob0, 
+                          Om0=Planck15.Om0, 
+                          Neff=Planck15.Neff,
+                          Tcmb0=2.725)
+    DM2 = igm.average_DM(1., cosmo=cosmo2)
+
+    # Test
+    assert DM2 > DM*2   # Not sure why it is so much higher
