@@ -116,3 +116,27 @@ ENV/
 
 # pytest
 .pytest_cache
+frb/HG190523_S1/
+frb/HG190714/
+frb/HG200430/
+frb/builds/.DS_Store
+frb/data/.DS_Store
+frb/data/FRBs/NP/
+frb/data/Galaxies/.DS_Store
+frb/data/Galaxies/180301/FRB180301_host_copy.json
+frb/data/Galaxies/190523/FRB190523_host_original.json
+frb/data/Galaxies/190611/FRB190611_host_copy.json
+frb/data/Galaxies/190611/FRB190611_host_git.json
+frb/data/Galaxies/190711/FRB190711_host_cp.json
+frb/data/Galaxies/190714/FRB190714_host_copy.json
+frb/data/Galaxies/190714/FRB190714_host_original.json
+frb/data/Galaxies/191001/FRB191001_host_copy.json
+frb/data/Galaxies/191228/FRB191228_host_copy.json
+frb/data/Galaxies/200430/FRB200430_host_copy.json
+frb/data/Galaxies/200430/FRB200430_host_myrun.json
+frb/data/Galaxies/200430/FRB200430_host_original.json
+frb/data/Galaxies/200906/#FRB200906_host.json#
+frb/data/Galaxies/200906/FRB200906_host_original.json
+frb/data/Galaxies/200906/FRB200906_host_use.json
+frb/data/Galaxies/extra/
+frb/data/Public/.DS_Store
