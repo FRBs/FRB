@@ -118,7 +118,7 @@ def read_lit_table(lit_entry, coord=None):
                                        'Galaxies', 'Literature')
     lit_file = os.path.join(literature_path, lit_entry.Table)
     if lit_entry.Format == 'csv':
-        lit_tbl = pandas.read_csv(lit_file)
+        lit_tbl = Table.from_pandas(pandas.read_csv(lit_file))
     else:
         lit_tbl = Table.read(lit_file, format=lit_entry.Format)
     
