@@ -13,7 +13,7 @@ import pandas as pd
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck15
+from astropy.cosmology import Planck18
 
 from linetools import utils as ltu
 
@@ -137,7 +137,7 @@ class GenericFRB(object):
             self.coord = None
         # Cosmology
         if cosmo is None:
-            self.cosmo = Planck15
+            self.cosmo = Planck18
         else:
             self.cosmo = cosmo
 

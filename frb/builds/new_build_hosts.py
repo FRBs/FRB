@@ -59,6 +59,7 @@ if db_path is None:
     #embed(header='You need to set $FRB_GDB')
 
 ebv_method = 'SandF'
+fill_value = -999.
 
 # New astrometry
 mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data'),
@@ -196,12 +197,15 @@ def run(host_input:pandas.core.series.Series,
         srvy_tbl = survey.get_catalog(print_query=True)
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
+        elif len(srvy_tbl) > 1:
+            raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
             merge_tbl = srvy_tbl
             merge_tbl['Name'] = file_root
         else:
+            embed(header='207 of new')
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
     
     # Literature time
@@ -224,6 +228,15 @@ def run(host_input:pandas.core.series.Series,
                     sub_tbl[newkey] = lit_entry.Reference
             # Merge?
             if merge_tbl is not None:
+                for key in sub_tbl.keys():
+                    if key in merge_tbl.keys():
+                        if sub_tbl[key] == fill_value:
+                            continue
+                        else:
+                            merge_tbl[key] = sub_tbl[key]
+                    else:
+                        if sub_tbl[key] != fill_value:
+                            merge_tbl[key] = sub_tbl[key]
                 merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
                 merge_tbl = sub_tbl
