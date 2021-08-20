@@ -11,7 +11,7 @@
         "unit": "pc / cm3",
         "value": 0.1
     },
-    "FRB": "FRB180916",
+    "FRB": "FRB20180916",
     "RM": {
         "unit": "rad / m2",
         "value": -114.6
@@ -20,7 +20,7 @@
         "unit": "rad / m2",
         "value": 0.6
     },
-    "cosmo": "Planck15",
+    "cosmo": "Planck18",
     "dec": 65.71675422222222,
     "eellipse": {
         "a": 0.0011,

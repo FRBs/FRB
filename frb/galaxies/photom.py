@@ -49,7 +49,6 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
             Merged tables
 
     """
-    fill_value = -999.
     # File or tbl?
     if isinstance(old_file, str):
         # New file?
@@ -74,6 +73,7 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
         new_tbl['dec'] = old_tbl['dec'][idx[0]]
         # Join
         merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
+        #merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
     elif np.sum(match) == 0:
         merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
     else:
