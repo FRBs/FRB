@@ -82,8 +82,23 @@ def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     # Set redshift 
     host.set_z(ztbl['ZEM'][idx], 'spec')
 
-def search_for_file(projects, references, root,
+def search_for_file(projects, references, root:str,
                     prefix='ref', return_last_file=False):
+    """ Search for a given data file
+
+    If multiple files are found, the *last* one is returned
+
+    Args:
+        projects ([type]): [description]
+        references ([type]): [description]
+        root (str): [description]
+        prefix (str, optional): [description]. Defaults to 'ref'.
+        return_last_file (bool, optional): [description]. Defaults to False.
+
+    Returns:
+        tuple: bool, str  [file was found?, name of file with path]
+    """
+    
     found_file = None
     found = False
     for project, ref in zip(projects, references):
@@ -343,6 +358,14 @@ def run(host_input:pandas.core.series.Series,
                 # Value
                 newkey = newkey.replace('_ref', '')
                 Host.neb_lines[newkey] = float(lit_tbl[newkey].values[0])
+
+    # Remove bad lines
+    if isinstance(host_input.Bad_EM_lines, str):
+        lines = host_input.Bad_EM_lines.split(',')
+        for line in lines:
+            Host.neb_lines.pop(line)
+            Host.neb_lines.pop(line+'_err')
+    embed(header='363 of new')
 
     # AV
     if 'Halpha' in Host.neb_lines.keys() and 'Hbeta' in Host.neb_lines.keys():
