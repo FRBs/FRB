@@ -365,7 +365,6 @@ def run(host_input:pandas.core.series.Series,
         for line in lines:
             Host.neb_lines.pop(line)
             Host.neb_lines.pop(line+'_err')
-    embed(header='363 of new')
 
     # AV
     if 'Halpha' in Host.neb_lines.keys() and 'Hbeta' in Host.neb_lines.keys():
