@@ -165,56 +165,6 @@ def gen_cigale_tab(stacked_photom:Table, n_groups:int=10, n_cores:int=25):
                 outdir=cigale_outdir, cores=n_cores, variables=compute_variables, save_sed=False)
     return
 
-def create_interpolators(datafolder:str, frb_name:str="FRB180924"):
-    """
-    Produce interpolator functions
-    for key quantities required
-    for the analysis.
-    """
-
-    # DM for a variety of halo parameters.
-    hdulist = fits.open(os.path.join(datafolder, "halo_dm_data.fits"))
-    redshifts = hdulist[1].data
-    offsets = hdulist[2].data
-    log_mhalos = hdulist[3].data
-    dm_grid = hdulist[4].data
-
-    dm_interpolator = RegularGridInterpolator((redshifts, offsets, log_mhalos), dm_grid,bounds_error=False, fill_value=0.)
-
-    # Halo mass mean and variance from stellar mass
-    frb = FRB.by_name(frb_name)
-
-    realization_files = glob.glob(os.path.join(datafolder, "mhalo_realization_z*.fits"))
-    realization_files.sort()
-
-    # Define redshift grid
-    zgrid = np.linspace(0, frb.z, 10)
-    
-    # Now initialize arrays to store mean and std.dev.
-    mean_arrays = []
-    stddev_arrays = []
-    # Loop through files, compute mean & std.dev of log_mhalo for log_mstar
-    for file in realization_files:
-        hdulist = fits.open(file)
-        log_mhalo = hdulist[2].data
-        mean_mhalo, _, stddev_mhalo = sigma_clipped_stats(log_mhalo, sigma = 20, axis=1)
-        mean_arrays.append(mean_mhalo)
-        stddev_arrays.append(stddev_mhalo)
-    
-    # hdulist is going to be from the last file in the loop. The first HDU contains
-    # stellar mass array.
-    log_mstar = hdulist[1].data
-    mean_interp = interp2d(log_mstar, zgrid, np.array(mean_arrays), bounds_error=False)
-    stddev_interp = interp2d(log_mstar, zgrid, np.array(stddev_arrays), bounds_error=False)
-
-    # Angular diameter distance
-    z = np.linspace(0,7, 10000)
-    ang_dia_dist = p15.angular_diameter_distance(z).to('kpc').value
-    ang_dia_interp = interp1d(z, ang_dia_dist, bounds_error=False, fill_value='extrapolate')
-
-    # Return interpolators
-    return dm_interpolator, mean_interp, stddev_interp, ang_dia_interp
-
 def load_cigale_results(cigale_input, cigale_output):
     """
     Load the CIGALE stellar mass data.
@@ -276,15 +226,93 @@ def sample_eazy_redshifts(gal_ID, eazy_outdir, ndraws = 1000):
     sample_z = cdf_interp(sample_u)
     return sample_z
 
-def mhalo_realizations(log_mstar, log_mstar_err, z, mean_interp, stddev_interp, n_mstar=100, n_norm=10):
+def _mhalo_lookup_table(z, fits_out = "m_halo_realizations.fits"):
+    """
+    For a given z, produce realizations of m_halo for relevant
+    m_star values using only the uncertainty in the SHMR relation.
+    Internal function. Use directly if you know what you're doing.
+    """
+
+    # Define a range of stellar masses
+    n_star = 1000
+    log_mstar_array = np.linspace(6, 11, n_star)
+
+    # Instantiate a 2D array
+    n_halo = 10000
+    log_mhalo_array = np.zeros((n_star, n_halo))
+
+    def mhalo_factory(log_mstar:float, z:float, ncores = 8)->np.ndarray:
+        """
+        Parallelize m_halo computations for a given log_mstar array
+        Args:
+            log_mstar (float): log stellar mass of a galaxy.
+            z (float): galaxy redshift.
+            n (int, optional): number of realizations
+                of log_mhalo to be generated.
+            ncores (int, optional): Number of CPU threads to use.
+        Returns:
+            log_mhalo_array (float): log halo mass realizations.
+        """    
+        p = Pool(ncores)
+        func = lambda x: halomass_from_stellarmass(x, z = z, randomize=True)
+        log_mhalo_array = p.map(func, log_mstar)
+        
+        return log_mhalo_array
+
+
+    # Loop over log_mstar:
+    for idx, log_mstar in enumerate(log_mstar_array):
+        temp_log_mstar = np.full(n_halo, log_mstar)
+        log_mhalo_array[idx] = mhalo_factory(temp_log_mstar, z = z, ncores = 10)
+    
+    # Store this in a fits file
+    prihdu  = fits.PrimaryHDU()
+    starhdu = fits.ImageHDU(log_mstar_array, name = "MSTAR")
+    halohdu = fits.ImageHDU(log_mhalo_array, name = "MHALO")
+    hdulist = fits.HDUList([prihdu, starhdu, halohdu])
+    hdulist.writeto(fits_out, overwrite = True)
+
+    return
+
+def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER):
+    """
+    For each z in z_grid, produces a fits file containing m_halo values
+    corresponding to a fixed grid of m_star values. The values are produced
+    by sampling the Moster+13 SHMR relation. The fits files can then be
+    used to produce interpolation functions of the moments of the m_halo
+    distribution (e.g. mean, std.dev) as a function of redshift and log_mstar.
+    """
+
+    # Just loop over z_grid and produce the fits files.
+    for z in z_grid:
+        realization_file = os.path.join(datafolder, "mhalo_realization_z_{:0.2f}.fits".format(z))
+        _mhalo_lookup_table(z, realization_file)
+
+    return
+
+def _mhalo_realizations(log_mstar, log_mstar_err, z, mean_interp, stddev_interp, n_mstar=100, n_norm=10):
+    """
+    Using the lookup tables generated (see function mhalo_lookup_tables), produce
+    realiztions of mhalo. This takes into account both the stellar mass uncertainty
+    and the uncertainty in the SMHR relation from Moster+13. Internal function.
+    Use directly if you know what you're doing.
+    """
+
+    # First produce realizations of mstar from a normal distribution.
     mstar_reals = np.random.normal(log_mstar, log_mstar_err, n_mstar)
+
+    # Then get mean values of halo masses for each stellar mass.
     mean_mhalo_reals = mean_interp(mstar_reals, z)
-    # Set a cutoff for the mean halo mass
-    mean_mhalo_reals[mean_mhalo_reals>12.8] = 12.8
+    mean_mhalo_reals[mean_mhalo_reals>12.8] = 12.8 # Set a cutoff for the mean halo mass
+
+    # Then get the std. dev of the halo masses for each stellar mass.
     stddev_mhalo_reals = stddev_interp(mstar_reals, z)
 
+    # Finally, produce mhalo realizations assuming a normal distribution
+    # with the means and std.devs from above.
     dummy_normal = np.random.normal(0,1, (n_norm,n_mstar))
     mhalo_reals = np.ravel(stddev_mhalo_reals*dummy_normal+mean_mhalo_reals)
+
     return mhalo_reals
 
 def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, dm_interpolator, ncores = 8):
@@ -312,7 +340,7 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
     log_mstar_array = log_mstar_interp(z_draws)
     log_mstar_err_array = log_mstar_err_interp(z_draws)
 
-    func = lambda idx: mhalo_realizations(log_mstar_array[idx], log_mstar_err_array[idx], z_draws[idx], mean_interp, stddev_interp)
+    func = lambda idx: _mhalo_realizations(log_mstar_array[idx], log_mstar_err_array[idx], z_draws[idx], mean_interp, stddev_interp)
 
 
 
@@ -327,23 +355,116 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
 
     return dm_values, z_draws.astype('float32')
 
-def main(frb:FRB, datafolder:str, master_cat:Table=None, ngals:int = None):
+def dm_grid(frb_z:float, outfile:str=None)->None:
+    """
+    Produce DM estimates for a 3D grid of
+    redshift, offsets and log_halo_masses and write
+    them to disk.
+    """
+    # Redshift grid
+    n_z = 100
+    redshifts = np.linspace(0, frb_z, n_z)
+
+    # Offset grid
+    n_o = 100
+    offsets = np.linspace(0, 600, n_o)
+
+    # Mass grid
+    n_m = 100
+    log_halo_masses = np.linspace(8, 16, n_m)
+
+    ZZ, OO, MM = np.meshgrid(redshifts, offsets, log_halo_masses, indexing='ij')
+    raveled_z = ZZ.ravel()
+    raveled_o = OO.ravel()
+    raveled_m = MM.ravel()
+
+    def halo_dm(idx):
+        if raveled_m[idx] > 12.8:
+            return -99.0
+        else:
+            mnfw = ModifiedNFW(raveled_m[idx], alpha = 2, y0 = 2, z = raveled_z[idx])
+        return mnfw.Ne_Rperp(raveled_o[idx]*u.kpc).to('pc/cm**3').value/(1+raveled_z[idx])
+
+    p = Pool(8)
+
+    raveled_dm = np.array(p.map(halo_dm, np.arange(n_z*n_o*n_m)))
+    # Dm grid
+    dm_grid = raveled_dm.reshape((n_z, n_o, n_m))
+    if not outfile:
+        outfile = DEFAULT_DATA_FOLDER+"/halo_dm_data.fits"
+    
+    prihdu = fits.PrimaryHDU()
+    z_hdu = fits.ImageHDU(data = redshifts, name = "redshift")
+    offset_hdu = fits.ImageHDU(data = offsets, name = "offsets")
+    mhalo_hdu =  fits.ImageHDU(data = log_halo_masses, name = "m_halo")
+    dm_hdu = fits.ImageHDU(data = dm_grid, name = "dm")
+    hdulist = fits.HDUList([prihdu, z_hdu, offset_hdu, mhalo_hdu, dm_hdu])
+    hdulist.writeto(outfile, overwrite=True)
+
+    return
+
+def instantiate_intepolators(datafolder:str, dmfilename:str=None, frb_name:str="FRB180924"):
+    """
+    Produce interpolator functions
+    for key quantities required
+    for the analysis.
+    """
+
+    # DM for a variety of halo parameters.
+    if not dmfilename:
+        dmfilename = "halo_dm_data.fits" 
+    hdulist = fits.open(os.path.join(datafolder, dmfilename))
+    redshifts = hdulist[1].data
+    offsets = hdulist[2].data
+    log_mhalos = hdulist[3].data
+    dm_grid = hdulist[4].data
+
+    dm_interpolator = RegularGridInterpolator((redshifts, offsets, log_mhalos), dm_grid,bounds_error=False, fill_value=0.)
+
+    # Halo mass mean and variance from stellar mass
+    frb = FRB.by_name(frb_name)
+
+    realization_files = glob.glob(os.path.join(datafolder, "mhalo_realization_z*.fits"))
+    realization_files.sort()
+
+    # Define redshift grid
+    zgrid = np.linspace(0, frb.z, 10)
+    
+    # Now initialize arrays to store mean and std.dev.
+    mean_arrays = []
+    stddev_arrays = []
+    # Loop through files, compute mean & std.dev of log_mhalo for log_mstar
+    for file in realization_files:
+        hdulist = fits.open(file)
+        log_mhalo = hdulist[2].data
+        mean_mhalo, _, stddev_mhalo = sigma_clipped_stats(log_mhalo, sigma = 20, axis=1)
+        mean_arrays.append(mean_mhalo)
+        stddev_arrays.append(stddev_mhalo)
+    
+    # hdulist is going to be from the last file in the loop. The first HDU contains
+    # stellar mass array.
+    log_mstar = hdulist[1].data
+    mean_interp = interp2d(log_mstar, zgrid, np.array(mean_arrays), bounds_error=False)
+    stddev_interp = interp2d(log_mstar, zgrid, np.array(stddev_arrays), bounds_error=False)
+
+    # Angular diameter distance
+    z = np.linspace(0,7, 10000)
+    ang_dia_dist = p15.angular_diameter_distance(z).to('kpc').value
+    ang_dia_interp = interp1d(z, ang_dia_dist, bounds_error=False, fill_value='extrapolate')
+
+    # Return interpolators
+    return dm_interpolator, mean_interp, stddev_interp, ang_dia_interp
+
+def run_photoz_analysis(frb:FRB, master_cat:Table, datafolder:str, ngals:int = None):
     """
     Run the analysis on all galaxies.
     """
-    
-
-    if master_cat is None:
-        # Create data file
-        master_cat = get_des_data(frb.coord)
-        print("Downloaded the catalog.")
-
     # Create a CIGALE input file
     stacked_photom = create_cigale_in(master_cat)
     print("Created a CIGALE input file.")
 
     # Prepare interpolator functions
-    dm_interpolator, mean_interp, stddev_interp, ang_dia_interp = create_interpolators(datafolder)
+    dm_interpolator, mean_interp, stddev_interp, ang_dia_interp = instantiate_intepolators(datafolder)
     print("Interpolators created.")
 
     # Load CIGALE results
