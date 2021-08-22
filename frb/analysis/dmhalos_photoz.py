@@ -48,7 +48,7 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
                                   radius. These stars will be removed.
         write (bool, optional): Write output table to file?
         outfile (str, optional): Path to the output file. If not given and write is True,
-                                 the table will be written to "DES_cat_J{coords}_{radius}arcmin.fits"
+                                 the table will be written to "photom_cat_J{coords}_{radius}arcmin.fits"
                                  in the current working directory.
     Returns:
         des_data (Table): Table of DES galaxies within the search radius.
@@ -69,7 +69,7 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
     cat = cat[['ID']+cat_colnames]
 
     # Make brightness and morphology cuts
-    des_cat = cat[(cat['star_flag_r']<starflagval)&(cat['DES_r']>starbright)]
+    photom_cat = cat[(cat['star_flag_r']<starflagval)&(cat['DES_r']>starbright)]
 
     # Remove GAIA stars if given
     if gaiacat:
@@ -78,23 +78,31 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
         idx, d2d, _ = gaia_coords.match_to_catalog_sky(des_coords)
         matched_des = cat[idx][d2d<1*u.arcsec]
         matched_gaia = gaia_tab[d2d<1*u.arcsec]
-        des_cat = Table(np.setdiff1d(des_cat, matched_des))
+        photom_cat = Table(np.setdiff1d(photom_cat, matched_des))
 
     if write:
         if outfile is None:
             coordstr = coords.to_string(style='hmsdms', sep="", precision=2).replace(" ", "")
-            outfile = "DES_cat_J{:s}_{:0.1f}_arcmin.fits".format(coordstr,radius.to('arcmin').value) 
-        des_cat.write(outfile, overwrite=True)
+            outfile = "photom_cat_J{:s}_{:0.1f}_arcmin.fits".format(coordstr,radius.to('arcmin').value) 
+        photom_cat.write(outfile, overwrite=True)
     
-    return des_cat
+    return photom_cat
 
-def gen_eazy_tab(des_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", out_dir="eazy_out", output_tab="no_stars_eazy.fits"):
+def _gen_eazy_tab(photom_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", out_dir="eazy_out", output_tab="no_stars_eazy.fits")->Table:
     """
     Run EAZY on the photometry and produce p(z) estimates.
+    Args:
+        photom_cat (Table): Photometry catalog.
+        input_dir (str, optional): Folder where EAZY config files are written.
+        name (str, optional): frb name
+        out_dir (str, optional): Folder where EAZY output is stored.
+        output_tab (str, optional): Name of the output summary table fits file.
+    Returns:
+        joined_tab (Table): EAZY results table conjoined with photom_cat.
     """
     
     # Prepare EAZY
-    frb_ez.eazy_input_files(des_cat, input_dir, name, out_dir,
+    frb_ez.eazy_input_files(photom_cat, input_dir, name, out_dir,
                             prior_filter="r", zmin=0.01)
     
     # Run it
@@ -107,31 +115,42 @@ def gen_eazy_tab(des_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", o
     eazy_tab.rename_column('id','ID')
     
     # Combine the input catalog with EAZY output
-    joined_tab = join(des_cat, eazy_tab, 'ID')
+    joined_tab = join(photom_cat, eazy_tab, 'ID')
     joined_tab.write(output_tab, overwrite=True)
 
     return joined_tab
 
-def create_cigale_in(des_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:int = 35, cigale_input:str = "cigin_minz_zfrb.fits"):
+def _create_cigale_in(photom_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:int = 35, cigale_input:str = "cigin_minz_zfrb.fits")->Table:
     """
     Take the photometry table and
     create a new table with redshifts.
     For each galaxy, create multiple entries
     with different redshifts from 0 to 2.
     These redshifts will be uniformly spaced.
+    Args:
+        photom_cat (Table): Photometry catalog
+        zmin (float, optional): Minimum redshift for analysis.
+        zmax (float, optional): Maximum redshift for analysis.
+        n_z (int, optional): Number of redshift grid points.
+        cigale_input (str, optional): Nameof input file to be produced.
+    Returns:
+        stacked_photom (Table): A table with multiple groups, one for each galaxy.
+            Each entry in a group has the same photometry but different redshift values.
+            This way, CIGALE can be run on the same galaxy at multiple redshift guesses
+            in one go.
     """
     # Define z values
     z_range = np.linspace(zmin, zmax, n_z) # Go up in steps of 0.01
 
-    des_cat['redshift'] = z_range[0] # Set up initial redshift value
-    des_cat['ID'] = des_cat['ID'].astype(str) # Convert form int to str
-    des_cat.sort("separation")
-    des_cat['ID'] = [ID.zfill(5)+"_{:0.2f}".format(z_range[0]) for ID in des_cat['ID']]
+    photom_cat['redshift'] = z_range[0] # Set up initial redshift value
+    photom_cat['ID'] = photom_cat['ID'].astype(str) # Convert form int to str
+    photom_cat.sort("separation")
+    photom_cat['ID'] = [ID.zfill(5)+"_{:0.2f}".format(z_range[0]) for ID in photom_cat['ID']]
 
     # Create new table
-    stacked_photom = des_cat.copy()
+    stacked_photom = photom_cat.copy()
     for z in z_range[1:]:
-        newphotom = des_cat.copy()
+        newphotom = photom_cat.copy()
         newphotom['redshift'] = z
         for entry in newphotom:
             entry['ID'] = entry['ID'].replace("_0.01", "_{:0.2f}".format(z))
@@ -146,14 +165,26 @@ def create_cigale_in(des_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:int 
     print("Wrote to disk {:s}".format(cigale_input))
     return stacked_photom
 
-def gen_cigale_tab(stacked_photom:Table, n_groups:int=10, n_cores:int=25):
-    chunk_size = int(len(stacked_photom.groups)/n_groups)
+def _gen_cigale_tab(stacked_photom:Table, n_chunks:int=10, n_cores:int=25, outdir:str=DEFAULT_DATA_FOLDER)->Table:
+    """
+    Run CIGALE and produce a table of results.
+    Args:
+        stacked_photom (Table): Table with a group for each galaxy. Output of _create_cigale_in.
+        n_chunks (int, optional): How many chunks do you want to split stacked_photom.groups into?
+            Just so that galaxies are not redone in case of a crash.
+        n_cores (int, optional): Number of CPU threads to be used.
+        outdir (str, optional): Path to the output directory.
+    Returns:
+        full_results (Table): CIGALE output with stellar mass and error for all entries
+            in stakced_photom.
+    """
+    chunk_size = int(len(stacked_photom.groups)/n_chunks)
 
     # Only compute SFH and Stellar mass.
-    compute_variables = ['sfh.sfr','sfh.tau_main','sfh.age_main','stellar.m_star']
+    compute_variables = ['stellar.m_star']
 
-    for num in range(n_groups):
-        cigale_outdir = os.path.join(DEFAULT_DATA_FOLDER,"out_minz_zfrb_chunk{}".format(num))
+    for num in range(n_chunks):
+        cigale_outdir = os.path.join(outdir,"out_minz_zfrb_chunk{}".format(num))
         # Check if a chunk has already been computed
         if os.path.isdir(cigale_outdir):
             print("Chunk {} has already been analyzed.".format(num))
@@ -163,11 +194,27 @@ def gen_cigale_tab(stacked_photom:Table, n_groups:int=10, n_cores:int=25):
             # Run cigale on each chunk of galaxies.
             frbcig.run(cig_photom, 'redshift', plot=False,
                 outdir=cigale_outdir, cores=n_cores, variables=compute_variables, save_sed=False)
-    return
+    
+    # Read and combine the CIGALE results
+    cigfolders = glob.glob(os.path.join(outdir, "out_minz_zfrb_chunk*"))
+    relevant_cols = ['id', 'bayes.stellar.m_star', 'bayes.stellar.m_star_err']
+    all_results = []
+    for folder in cigfolders:
+        results = Table.read(os.path.join(folder, "results.fits"))
+        all_results.append(results[relevant_cols])
 
-def load_cigale_results(cigale_input, cigale_output):
+    full_results = vstack(all_results)
+    full_results.write(os.path.join(outdir, "cigale_full_output.fits"), overwrite=True)
+    return full_results 
+
+def _load_cigale_results(cigale_input:str, cigale_output:str)->Table:
     """
     Load the CIGALE stellar mass data.
+    Args:
+        cigale_input (str): cigale input file path.
+        cigale_output (str): cigale_output file path.
+    Returns:
+        trim_tab (Table): Summary table with CIGALE results.
     """
     cigin = Table.read(cigale_input)
     cigtab = Table.read(cigale_output)
@@ -203,10 +250,16 @@ def load_cigale_results(cigale_input, cigale_output):
 
     return trim_tab
 
-def sample_eazy_redshifts(gal_ID, eazy_outdir, ndraws = 1000):
+def _sample_eazy_redshifts(gal_ID:int, eazy_outdir:str, ndraws:int = 1000)->np.ndarray:
     """
     Returns a sample of redshifts drawn from the
     EAZY photo-z PDF of galaxy <gal_iD>.
+    Args:
+        gal_ID(int): ID number of the galaxy in the EAZY table.
+        eazy_outdir(str): Path to the EAZY results folder
+        ndraws(int, optional): Number of redshift samples desired.
+    Returns:
+        sample_z (np.ndarray): Redshift sample array of length ndraws.
     """
     # Get posterior
     zgrid, pz = ez.getEazyPz(gal_ID-1,OUTPUT_DIRECTORY=eazy_outdir)
@@ -226,11 +279,14 @@ def sample_eazy_redshifts(gal_ID, eazy_outdir, ndraws = 1000):
     sample_z = cdf_interp(sample_u)
     return sample_z
 
-def _mhalo_lookup_table(z, fits_out = "m_halo_realizations.fits"):
+def _mhalo_lookup_table(z:float, fits_out:str = "m_halo_realizations.fits"):
     """
     For a given z, produce realizations of m_halo for relevant
     m_star values using only the uncertainty in the SHMR relation.
     Internal function. Use directly if you know what you're doing.
+    Args:
+        z (float): redshift
+        fits_out(str, optional): output file path.
     """
 
     # Define a range of stellar masses
@@ -241,19 +297,11 @@ def _mhalo_lookup_table(z, fits_out = "m_halo_realizations.fits"):
     n_halo = 10000
     log_mhalo_array = np.zeros((n_star, n_halo))
 
-    def mhalo_factory(log_mstar:float, z:float, ncores = 8)->np.ndarray:
+    def mhalo_factory(log_mstar:float, z:float, n_cores = 8)->np.ndarray:
         """
-        Parallelize m_halo computations for a given log_mstar array
-        Args:
-            log_mstar (float): log stellar mass of a galaxy.
-            z (float): galaxy redshift.
-            n (int, optional): number of realizations
-                of log_mhalo to be generated.
-            ncores (int, optional): Number of CPU threads to use.
-        Returns:
-            log_mhalo_array (float): log halo mass realizations.
+        Parallelize m_halo computations for a given log_mstar array.
         """    
-        p = Pool(ncores)
+        p = Pool(n_cores)
         func = lambda x: halomass_from_stellarmass(x, z = z, randomize=True)
         log_mhalo_array = p.map(func, log_mstar)
         
@@ -263,7 +311,7 @@ def _mhalo_lookup_table(z, fits_out = "m_halo_realizations.fits"):
     # Loop over log_mstar:
     for idx, log_mstar in enumerate(log_mstar_array):
         temp_log_mstar = np.full(n_halo, log_mstar)
-        log_mhalo_array[idx] = mhalo_factory(temp_log_mstar, z = z, ncores = 10)
+        log_mhalo_array[idx] = mhalo_factory(temp_log_mstar, z = z, n_cores = 10)
     
     # Store this in a fits file
     prihdu  = fits.PrimaryHDU()
@@ -281,6 +329,9 @@ def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER):
     by sampling the Moster+13 SHMR relation. The fits files can then be
     used to produce interpolation functions of the moments of the m_halo
     distribution (e.g. mean, std.dev) as a function of redshift and log_mstar.
+    Args:
+        z_grid (list or np.ndarray): List of redshift values to be sampled.
+        datafolder (str, optional): Path to the directory where the results will be stored.
     """
 
     # Just loop over z_grid and produce the fits files.
@@ -290,12 +341,23 @@ def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER):
 
     return
 
-def _mhalo_realizations(log_mstar, log_mstar_err, z, mean_interp, stddev_interp, n_mstar=100, n_norm=10):
+def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
+                        mean_interp:interp2d, stddev_interp:interp2d,
+                        n_mstar:int=100, n_norm:int=10)->np.ndarray:
     """
     Using the lookup tables generated (see function mhalo_lookup_tables), produce
     realiztions of mhalo. This takes into account both the stellar mass uncertainty
-    and the uncertainty in the SMHR relation from Moster+13. Internal function.
-    Use directly if you know what you're doing.
+    and the uncertainty in the SMHR relation from Moster+13.
+    Args:
+        log_mstar (float): log stellar mass in M_sun.
+        log_mstar_err (float): log error in log_mstar
+        z (float): redshift
+        mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
+        stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
+        n_mstrar (int, optional): Number of m_star samples to be produced.
+        n_norm (int, optional): Number of m_halo samples for each m_star sample.
+    Returns:
+        mhalo_reals (np.ndarray): log_mhalo realizations.
     """
 
     # First produce realizations of mstar from a normal distribution.
@@ -315,7 +377,10 @@ def _mhalo_realizations(log_mstar, log_mstar_err, z, mean_interp, stddev_interp,
 
     return mhalo_reals
 
-def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, dm_interpolator, ncores = 8):
+def _dm_pdf(cigale_tab:Table, eazy_outdir:str,
+            mean_interp:interp2d, stddev_interp:interp2d,
+            ang_dia_interp:interp1d, dm_interpolator:RegularGridInterpolator,
+            n_cores:int = 8):
     """
     For a given galaxy, compute its PDF of
     DM from the CIGALE and EAZY inputs.
@@ -324,6 +389,15 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
             from the full cigale result. This
             group contains data on only one galaxy
             at various assumed redshifts. 
+        eazy_outdir (str): Path to the directory with EAZY output
+        mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
+        stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
+        ang_dia_interp (interp1d): angular_diameter_distance(z) (Planck15)
+        dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
+        n_cores (int, optional): Number of CPU threads to use.
+    Returns:
+        dm_values (np.ndarray): Array containing DM realizations for the galaxy.
+        z_draws (np.ndarray): Array containing redshift draws from which dm_values were produced.
     """
     
     # Prepare interpolation functions from the
@@ -332,7 +406,7 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
     log_mstar_err_interp = interp1d(cigale_tab['redshift'], cigale_tab['log_mstar_err'], bounds_error=False, fill_value=1)
 
     # Get 1000 random redshift draws from EAZY
-    z_draws = sample_eazy_redshifts(cigale_tab['gal_ID'][0], eazy_outdir)
+    z_draws = _sample_eazy_redshifts(cigale_tab['gal_ID'][0], eazy_outdir)
     if np.isscalar(z_draws):
         return -99.
 
@@ -342,11 +416,9 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
 
     func = lambda idx: _mhalo_realizations(log_mstar_array[idx], log_mstar_err_array[idx], z_draws[idx], mean_interp, stddev_interp)
 
-
-
     # Draw stellar mass values from a normal distribution and produce halo
     # masses, halo_mass errors
-    p = Pool(ncores)
+    p = Pool(n_cores)
     log_mhalos = p.map(func, np.arange(len(z_draws)))
     zz_draws = np.repeat(z_draws, len(log_mhalos[0]))
     offsets = ang_dia_interp(z_draws)*cigale_tab['sep_ang'][0]*u.arcmin.to('rad')
@@ -355,11 +427,15 @@ def dm_pdf(cigale_tab, eazy_outdir, mean_interp, stddev_interp, ang_dia_interp, 
 
     return dm_values, z_draws.astype('float32')
 
-def dm_grid(frb_z:float, outfile:str=None)->None:
+def dm_grid(frb_z:float, outdir:str=DEFAULT_DATA_FOLDER, outfile:str=None)->None:
     """
     Produce DM estimates for a 3D grid of
     redshift, offsets and log_halo_masses and write
     them to disk.
+    Args:
+        frb_z(float): frb redshift
+        outdir(str, optional): data directory to store results
+        outfile(str, optional): name of results fits file (within outdir).
     """
     # Redshift grid
     n_z = 100
@@ -403,11 +479,20 @@ def dm_grid(frb_z:float, outfile:str=None)->None:
 
     return
 
-def instantiate_intepolators(datafolder:str, dmfilename:str=None, frb_name:str="FRB180924"):
+def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str=None, frb_name:str="FRB180924")->list:
     """
     Produce interpolator functions
     for key quantities required
     for the analysis.
+    Args:
+        datfolder(str, optional): Folder where the interpolation data files exist
+        dmfilename(str, optional): file name (within datafolder) for the DM interpolation data.
+        frb_name(str, optional): Assumes "FRB180924" by default.
+    Returns:
+        dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
+        mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
+        stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
+        ang_dia_interp (interp1d): angular_diameter_distance(z) (Planck15)
     """
 
     # DM for a variety of halo parameters.
@@ -455,31 +540,49 @@ def instantiate_intepolators(datafolder:str, dmfilename:str=None, frb_name:str="
     # Return interpolators
     return dm_interpolator, mean_interp, stddev_interp, ang_dia_interp
 
-def run_photoz_analysis(frb:FRB, master_cat:Table, datafolder:str, ngals:int = None):
+def dm_for_all_galaxies(frb:FRB, input_catfile:str, datafolder:str,
+                        n_cores:int=8, n_gals:int = None):
     """
-    Run the analysis on all galaxies.
+    Produce DM estimates for all the galaxies provided by the user. Creates
+    two files : "DM_halos_zdraws.npz" which contains all the redshift draws
+    used for the DM realizations and "DM_halos_final.npz" which contains the
+    DM realizations themselves. Each row in each of these files corresponds to
+    one galaxy and each z draw corresponds to 1000 DM realizations for a galaxy.
+    Args:
+        frb (FRB): The FRB object of interest.
+        input_catfile (str): Path to the input catalog of photometry. Assumed
+            to be from DES for now.
+        datafolder (str): Path to the folder in which results will be saved.
+        n_cores (int, optional): Number of CPU threads to be used for computation.
+        n_gals (int, optional): Limit analysis to n_gals galaxies for testing purposes.
+    
     """
+    # Load the input catalog
+    master_cat = Table.read(input_catfile)
+    # First run EAZY on that master_cat
+    print("Running EAZY on the input catalog first ...")
+    eazy_outdir = os.path.join(datafolder, "eazy_output")
+    eazy_tab = _gen_eazy_tab(master_cat, datafolder, frb.frb_name, eazy_outdir)
+    print("Done")
+
     # Create a CIGALE input file
-    stacked_photom = create_cigale_in(master_cat)
-    print("Created a CIGALE input file.")
-
-    # Prepare interpolator functions
-    dm_interpolator, mean_interp, stddev_interp, ang_dia_interp = instantiate_intepolators(datafolder)
-    print("Interpolators created.")
-
+    print("Creating a CIGALE input file...")
+    stacked_photom = _create_cigale_in(master_cat, zmax = frb.z+0.03)
+    print("Running CIGALE ...")
+    cigale_output = _gen_cigale_tab(stacked_photom, outdir=datafolder, n_cores=n_cores)
     # Load CIGALE results
-    cigale_input = os.path.join(datafolder, "180924_fg_DES_WISE.fits")
-    cigale_output = os.path.join(datafolder,"cigresults_180924fg_DES_WISE_bayes.fits")
-    cigale_tab = load_cigale_results(cigale_input, cigale_output)
+    cigale_input = input_catfile
+    cigale_output = os.path.join(datafolder,"cigale_full_output.fits")
+    cigale_tab = _load_cigale_results(cigale_input, cigale_output)
     print("CIGALE results loaded.")
 
-    # Load EAZY results
-    eazy_outdir = os.path.join(datafolder, "eazy_output")
-    eazy_tab = Table.read(os.path.join(datafolder, "no_stars_eazy.fits"))
+    # Prepare interpolator functions
+    dm_interpolator, mean_interp, stddev_interp, ang_dia_interp = _instantiate_intepolators(datafolder)
+    print("Interpolators created.")
 
     # Reduce the sample size for testing purposes.
-    if (ngals!=None) & (type(ngals)==int):
-        eazy_tab = eazy_tab[:ngals]
+    if (n_gals!=None) & (type(n_gals)==int):
+        eazy_tab = eazy_tab[:n_gals]
     
     # Loop through galaxies
     print("Computing DM realizations for all galaxies ...")
@@ -494,9 +597,9 @@ def run_photoz_analysis(frb:FRB, master_cat:Table, datafolder:str, ngals:int = N
             if np.any(np.isnan(cigale_galaxy['log_mstar'])):
                 continue
             else:
-                dm_realizations[idx], z_draws[idx] = dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
+                dm_realizations[idx], z_draws[idx] = _dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
                                         stddev_interp, ang_dia_interp, dm_interpolator,
-                                        ncores = 20)
+                                        n_cores = 20)
                 
             bar.update(idx)
     # Save results to file
@@ -508,3 +611,5 @@ def run_photoz_analysis(frb:FRB, master_cat:Table, datafolder:str, ngals:int = N
     #hdulist = fits.HDUList([prihdu, gal_idhdu, dmhdu])
     #hdulist.writeto(os.path.join(datafolder,"DM_halos_final.fits"), overwrite=True)
     print("Done calculating")
+    return
+
