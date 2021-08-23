@@ -1,34 +1,32 @@
 import numpy as np, os, glob
 
-from astropy.io import fits
 from astropy.table import Table, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.cosmology import Planck15 as p15
-from astropy import visualization as vis
-from astropy.wcs import WCS
 from astropy.stats import sigma_clipped_stats
 
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from scipy.sparse import lil_matrix, save_npz
-from scipy import stats as sci_st
-from scipy.integrate import simps
 
 from frb.halos.models import ModifiedNFW, halomass_from_stellarmass
 from frb.frb import FRB
 from frb.galaxies import cigale as frbcig
 from frb.galaxies import eazy as frb_ez
 from frb.surveys import des
-from frb.surveys.catalog_utils import convert_mags_to_flux
 
-from pathos.multiprocessing import ProcessingPool as Pool
-import progressbar
-
-from matplotlib import pyplot as plt
-
-from threedhst import eazyPy as ez
-
-from importlib import reload
+try:
+    from pathos.multiprocessing import ProcessingPool as Pool
+except ImportError:
+    print("You will need to run 'pip install pathos' to use some functions in this module.")
+try:
+    import progressbar
+except ImportError:
+    print("You will need to run 'pip install progressbar2' to use some functions in this module.")
+try:
+    from threedhst import eazyPy as ez
+except ImportError:
+    print("You will need to run 'pip install threedhst' to read EAZY output.")
 
 DEFAULT_DATA_FOLDER = "data"
 
