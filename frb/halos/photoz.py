@@ -332,7 +332,7 @@ def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER, n_cores
     Args:
         z_grid (list or np.ndarray): List of redshift values to be sampled.
         datafolder (str, optional): Path to the directory where the results will be stored.
-        n_cores (int, optional): Number of CPU threads used ofr parallel processing.
+        n_cores (int, optional): Number of CPU threads used for parallel processing.
     """
 
     # Just loop over z_grid and produce the fits files.
