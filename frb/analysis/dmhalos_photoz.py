@@ -45,7 +45,9 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
                                        flag. Objects more point-like (i.e. higher value)
                                        will be filtered out.
         gaicat (str, optional): Optional file with gaia catalog of stars within the same search
-                                  radius. These stars will be removed.
+                                  radius. These stars will be removed. Must contain at least two
+                                  columns: "ra" and "dec". The values must be in decimal degrees
+                                  and the column names are case sensitive. 
         write (bool, optional): Write output table to file?
         outfile (str, optional): Path to the output file. If not given and write is True,
                                  the table will be written to "photom_cat_J{coords}_{radius}arcmin.fits"
@@ -88,17 +90,19 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
     
     return photom_cat
 
-def _gen_eazy_tab(photom_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", out_dir="eazy_out", output_tab="no_stars_eazy.fits")->Table:
+def _gen_eazy_tab(photom_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", out_dir:str="eazy_out", output_tab:str="no_stars_eazy.fits")->Table:
     """
     Run EAZY on the photometry and produce p(z) estimates.
     Args:
         photom_cat (Table): Photometry catalog.
         input_dir (str, optional): Folder where EAZY config files are written.
-        name (str, optional): frb name
+        name (str, optional): frb name. Will be passed onto frb.galaxies.eazy.eazy_input_files
+            to generate input files.
         out_dir (str, optional): Folder where EAZY output is stored.
         output_tab (str, optional): Name of the output summary table fits file.
     Returns:
-        joined_tab (Table): EAZY results table conjoined with photom_cat.
+        joined_tab (Table): EAZY results table joined (type:inner) with photom_cat based
+            on the id/ID columns. 
     """
     
     # Prepare EAZY
@@ -132,7 +136,7 @@ def _create_cigale_in(photom_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:
         zmin (float, optional): Minimum redshift for analysis.
         zmax (float, optional): Maximum redshift for analysis.
         n_z (int, optional): Number of redshift grid points.
-        cigale_input (str, optional): Nameof input file to be produced.
+        cigale_input (str, optional): Name of input file to be produced.
     Returns:
         stacked_photom (Table): A table with multiple groups, one for each galaxy.
             Each entry in a group has the same photometry but different redshift values.
@@ -140,7 +144,7 @@ def _create_cigale_in(photom_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:
             in one go.
     """
     # Define z values
-    z_range = np.linspace(zmin, zmax, n_z) # Go up in steps of 0.01
+    z_range = np.linspace(zmin, zmax, n_z)
 
     photom_cat['redshift'] = z_range[0] # Set up initial redshift value
     photom_cat['ID'] = photom_cat['ID'].astype(str) # Convert form int to str
@@ -279,14 +283,15 @@ def _sample_eazy_redshifts(gal_ID:int, eazy_outdir:str, ndraws:int = 1000)->np.n
     sample_z = cdf_interp(sample_u)
     return sample_z
 
-def _mhalo_lookup_table(z:float, fits_out:str = "m_halo_realizations.fits"):
+def _mhalo_lookup_table(z:float, npz_out:str = "m_halo_realizations", n_cores:int = 8):
     """
     For a given z, produce realizations of m_halo for relevant
     m_star values using only the uncertainty in the SHMR relation.
     Internal function. Use directly if you know what you're doing.
     Args:
         z (float): redshift
-        fits_out(str, optional): output file path.
+        npz_out(str, optional): output .npz file path.
+        n_cores(int, optional): Number of CPU threads used for parallel processing.
     """
 
     # Define a range of stellar masses
@@ -297,7 +302,7 @@ def _mhalo_lookup_table(z:float, fits_out:str = "m_halo_realizations.fits"):
     n_halo = 10000
     log_mhalo_array = np.zeros((n_star, n_halo))
 
-    def mhalo_factory(log_mstar:float, z:float, n_cores = 8)->np.ndarray:
+    def mhalo_factory(log_mstar:float, z:float, n_cores = n_cores)->np.ndarray:
         """
         Parallelize m_halo computations for a given log_mstar array.
         """    
@@ -311,18 +316,13 @@ def _mhalo_lookup_table(z:float, fits_out:str = "m_halo_realizations.fits"):
     # Loop over log_mstar:
     for idx, log_mstar in enumerate(log_mstar_array):
         temp_log_mstar = np.full(n_halo, log_mstar)
-        log_mhalo_array[idx] = mhalo_factory(temp_log_mstar, z = z, n_cores = 10)
+        log_mhalo_array[idx] = mhalo_factory(temp_log_mstar, z = z, n_cores = n_cores)
     
-    # Store this in a fits file
-    prihdu  = fits.PrimaryHDU()
-    starhdu = fits.ImageHDU(log_mstar_array, name = "MSTAR")
-    halohdu = fits.ImageHDU(log_mhalo_array, name = "MHALO")
-    hdulist = fits.HDUList([prihdu, starhdu, halohdu])
-    hdulist.writeto(fits_out, overwrite = True)
-
+    # Store this in an .npz file
+    np.savez_compressed(npz_out, MSTAR=log_mstar_array, MHALO=log_mhalo_array)
     return
 
-def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER):
+def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER, n_cores:int=8):
     """
     For each z in z_grid, produces a fits file containing m_halo values
     corresponding to a fixed grid of m_star values. The values are produced
@@ -332,18 +332,19 @@ def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER):
     Args:
         z_grid (list or np.ndarray): List of redshift values to be sampled.
         datafolder (str, optional): Path to the directory where the results will be stored.
+        n_cores (int, optional): Number of CPU threads used ofr parallel processing.
     """
 
     # Just loop over z_grid and produce the fits files.
     for z in z_grid:
-        realization_file = os.path.join(datafolder, "mhalo_realization_z_{:0.2f}.fits".format(z))
-        _mhalo_lookup_table(z, realization_file)
+        realization_file = os.path.join(datafolder, "mhalo_realization_z_{:0.2f}".format(z))
+        _mhalo_lookup_table(z, realization_file, n_cores)
 
     return
 
 def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
                         mean_interp:interp2d, stddev_interp:interp2d,
-                        n_mstar:int=100, n_norm:int=10)->np.ndarray:
+                        n_mstar:int=100, n_norm:int=10, max_log_mhalo:float=12.8)->np.ndarray:
     """
     Using the lookup tables generated (see function mhalo_lookup_tables), produce
     realiztions of mhalo. This takes into account both the stellar mass uncertainty
@@ -356,6 +357,8 @@ def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
         stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
         n_mstrar (int, optional): Number of m_star samples to be produced.
         n_norm (int, optional): Number of m_halo samples for each m_star sample.
+        max_log_mhalo (float, optional): Maximum allowed log halo mass. log halo masses
+            are capped artificially to this value if any exceed.
     Returns:
         mhalo_reals (np.ndarray): log_mhalo realizations.
     """
@@ -365,7 +368,7 @@ def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
 
     # Then get mean values of halo masses for each stellar mass.
     mean_mhalo_reals = mean_interp(mstar_reals, z)
-    mean_mhalo_reals[mean_mhalo_reals>12.8] = 12.8 # Set a cutoff for the mean halo mass
+    mean_mhalo_reals = np.minimum(mean_mhalo_reals, max_log_mhalo) # Set a cutoff for the mean halo mass
 
     # Then get the std. dev of the halo masses for each stellar mass.
     stddev_mhalo_reals = stddev_interp(mstar_reals, z)
@@ -425,28 +428,31 @@ def _dm_pdf(cigale_tab:Table, eazy_outdir:str,
     oo_draws = np.repeat(offsets, len(log_mhalos[0]))
     dm_values = dm_interpolator((zz_draws, oo_draws, np.concatenate(log_mhalos)))
 
-    return dm_values, z_draws.astype('float32')
+    return dm_values, z_draws.astype('float32') # Save memory by switching to a 32 bit representation.
 
-def dm_grid(frb_z:float, outdir:str=DEFAULT_DATA_FOLDER, outfile:str=None)->None:
+def dm_grid(frb_z:float, n_z:int = 100, n_o:int = 100, n_m:int =100, max_log_mhalo:float=12.8,
+            outdir:str=DEFAULT_DATA_FOLDER, outfile:str=None)->None:
     """
     Produce DM estimates for a 3D grid of
     redshift, offsets and log_halo_masses and write
     them to disk.
     Args:
         frb_z(float): frb redshift
+        n_z(int, optional): size of the redshift grid. i.e. np.linspace(0, frb_z, n_z)
+        n_o(int, optional): size of the offset grid. i.e. np.linspace(0, 600, n_o)
+        n_m(int, optional):size of the log_halo_mass grid. i.e. np.linspace(8, 16, n_m)
+        max_log_mhalo (float, optional): DM for halo masses larger than this are currently
+            set to -99.0 to prevent weirdly large DM contributions from galactic halos. 
         outdir(str, optional): data directory to store results
-        outfile(str, optional): name of results fits file (within outdir).
+        outfile(str, optional): name of results .npz file (within outdir).
     """
     # Redshift grid
-    n_z = 100
     redshifts = np.linspace(0, frb_z, n_z)
 
     # Offset grid
-    n_o = 100
     offsets = np.linspace(0, 600, n_o)
 
     # Mass grid
-    n_m = 100
     log_halo_masses = np.linspace(8, 16, n_m)
 
     ZZ, OO, MM = np.meshgrid(redshifts, offsets, log_halo_masses, indexing='ij')
@@ -455,7 +461,7 @@ def dm_grid(frb_z:float, outdir:str=DEFAULT_DATA_FOLDER, outfile:str=None)->None
     raveled_m = MM.ravel()
 
     def halo_dm(idx):
-        if raveled_m[idx] > 12.8:
+        if raveled_m[idx] > max_log_mhalo: # Not necessary but just in case.
             return -99.0
         else:
             mnfw = ModifiedNFW(raveled_m[idx], alpha = 2, y0 = 2, z = raveled_z[idx])
@@ -467,15 +473,9 @@ def dm_grid(frb_z:float, outdir:str=DEFAULT_DATA_FOLDER, outfile:str=None)->None
     # Dm grid
     dm_grid = raveled_dm.reshape((n_z, n_o, n_m))
     if not outfile:
-        outfile = DEFAULT_DATA_FOLDER+"/halo_dm_data.fits"
-    
-    prihdu = fits.PrimaryHDU()
-    z_hdu = fits.ImageHDU(data = redshifts, name = "redshift")
-    offset_hdu = fits.ImageHDU(data = offsets, name = "offsets")
-    mhalo_hdu =  fits.ImageHDU(data = log_halo_masses, name = "m_halo")
-    dm_hdu = fits.ImageHDU(data = dm_grid, name = "dm")
-    hdulist = fits.HDUList([prihdu, z_hdu, offset_hdu, mhalo_hdu, dm_hdu])
-    hdulist.writeto(outfile, overwrite=True)
+        outfile = os.path.join(outdir, "halo_dm_data.npz")
+
+    np.savez_compressed(outfile, redshifts=redshifts, offsets=offsets, m_halo=log_halo_masses, dm=dm_grid)
 
     return
 
@@ -497,19 +497,19 @@ def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str
 
     # DM for a variety of halo parameters.
     if not dmfilename:
-        dmfilename = "halo_dm_data.fits" 
-    hdulist = fits.open(os.path.join(datafolder, dmfilename))
-    redshifts = hdulist[1].data
-    offsets = hdulist[2].data
-    log_mhalos = hdulist[3].data
-    dm_grid = hdulist[4].data
+        dmfilename = "halo_dm_data.npz" 
+    dmdata = np.load(dmfilename)
+    redshifts = dmdata['redshifts']
+    offsets = dmdata['offsets']
+    log_mhalos = dmdata['m_halo']
+    dm_grid = dmdata['dm']
 
     dm_interpolator = RegularGridInterpolator((redshifts, offsets, log_mhalos), dm_grid,bounds_error=False, fill_value=0.)
 
     # Halo mass mean and variance from stellar mass
     frb = FRB.by_name(frb_name)
 
-    realization_files = glob.glob(os.path.join(datafolder, "mhalo_realization_z*.fits"))
+    realization_files = glob.glob(os.path.join(datafolder, "mhalo_realization_z*.npz"))
     realization_files.sort()
 
     # Define redshift grid
@@ -520,15 +520,15 @@ def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str
     stddev_arrays = []
     # Loop through files, compute mean & std.dev of log_mhalo for log_mstar
     for file in realization_files:
-        hdulist = fits.open(file)
-        log_mhalo = hdulist[2].data
+        loaded = np.load(file)
+        log_mhalo = loaded['MHALO']
         mean_mhalo, _, stddev_mhalo = sigma_clipped_stats(log_mhalo, sigma = 20, axis=1)
         mean_arrays.append(mean_mhalo)
         stddev_arrays.append(stddev_mhalo)
     
-    # hdulist is going to be from the last file in the loop. The first HDU contains
-    # stellar mass array.
-    log_mstar = hdulist[1].data
+    # laoded is going to be from the last file in the loop. The first entry contains
+    # a stellar mass array.
+    log_mstar = loaded['MSTAR']
     mean_interp = interp2d(log_mstar, zgrid, np.array(mean_arrays), bounds_error=False)
     stddev_interp = interp2d(log_mstar, zgrid, np.array(stddev_arrays), bounds_error=False)
 
@@ -605,11 +605,7 @@ def dm_for_all_galaxies(frb:FRB, input_catfile:str, datafolder:str,
     # Save results to file
     np.savez_compressed(os.path.join(datafolder, "DM_halos_zdraws.npz"), z_draws=z_draws)
     save_npz(os.path.join(datafolder,"DM_halos_final.npz"), dm_realizations.tocsr())
-    #prihdu = fits.PrimaryHDU()
-    #dmhdu = fits.ImageHDU(dm_realizations, name="DM_halo")
-    #gal_idhdu = fits.ImageHDU(eazy_tab['ID'].data, name="Gal_ID")
-    #hdulist = fits.HDUList([prihdu, gal_idhdu, dmhdu])
-    #hdulist.writeto(os.path.join(datafolder,"DM_halos_final.fits"), overwrite=True)
     print("Done calculating")
+
     return
 
