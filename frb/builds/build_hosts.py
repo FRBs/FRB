@@ -1424,7 +1424,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
 
 
 def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
-    """ Build the host galaxy data for FRB 191001
+    """ Build the host galaxy data for FRB 190711
 
     Heintz+2020
 
@@ -1509,7 +1509,7 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
 
     '''
     # PPXF
-    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_GMOS_ppxf.ecsv')
+    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG190711_GMOS_ppxf.ecsv')
     if run_ppxf:
         meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
         spec_fit = None
