@@ -220,7 +220,6 @@ def run(host_input:pandas.core.series.Series,
             merge_tbl = srvy_tbl
             merge_tbl['Name'] = file_root
         else:
-            embed(header='207 of new')
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
     
     # Literature time
