@@ -5,14 +5,14 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 33.88106566641443
+        "value": 33.881065666414436
     },
     "DM_err": {
         "unit": "pc / cm3",
         "value": 0.05
     },
-    "FRB": "FRB191228",
-    "cosmo": "Planck15",
+    "FRB": "FRB20191228",
+    "cosmo": "Planck18",
     "dec": -29.594083333333334,
     "eellipse": {
         "a": 0.34,

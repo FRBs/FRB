@@ -517,7 +517,7 @@ def frb_191228():
 
     Updated FRB localization + error from Day+2021
     """
-    frbname = 'FRB191228'
+    frbname = 'FRB20191228'
     FRB_191228_coord = SkyCoord('22h57m43.30s -29d35m38.7s',  frame='icrs') # Taken from Slack on 11 Oct 2020
     frb191228 = frb.FRB(frbname, FRB_191228_coord,
                         298 * units.pc / units.cm ** 3,
