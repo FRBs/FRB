@@ -221,6 +221,7 @@ def run(host_input:pandas.core.series.Series,
             merge_tbl['Name'] = file_root
         else:
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+
     
     # Literature time
     if lit_refs is None:
@@ -243,6 +244,8 @@ def run(host_input:pandas.core.series.Series,
             # Merge?
             if merge_tbl is not None:
                 for key in sub_tbl.keys():
+                    if key == 'Name':
+                        continue
                     if key in merge_tbl.keys():
                         if sub_tbl[key] == fill_value:
                             continue
@@ -251,7 +254,7 @@ def run(host_input:pandas.core.series.Series,
                     else:
                         if sub_tbl[key] != fill_value:
                             merge_tbl[key] = sub_tbl[key]
-                merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
+                #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
