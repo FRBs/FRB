@@ -505,6 +505,7 @@ class FRBGalaxy(object):
                 cigale['age_mass'] = t_mass
 
         # Fill Derived
+        embed(header='508 of frbgalaxy')
         for key, item in cigale.items():
             if (key not in self.derived.keys()) or (overwrite):
                 self.derived[key] = item

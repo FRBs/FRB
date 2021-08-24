@@ -1,0 +1,68 @@
+{
+    "FRB": "FRB20190523",
+    "cosmo": "Planck18",
+    "dec": 72.47075555555556,
+    "dec_FRB": 72.46972222222223,
+    "derived": {
+        "age_mass": 1196.238780074247
+    },
+    "morphology": {
+        "PA": 18.83,
+        "PA_err": 6.36,
+        "b/a": 0.69,
+        "b/a_err": 0.05,
+        "dec": 72.47065141347403,
+        "dec_err": 0.011200000000000002,
+        "n": 1.71,
+        "n_err": 0.42,
+        "ra": 207.06429376567363,
+        "ra_err": 0.011200000000000002,
+        "reff_ang": 0.45640000000000003,
+        "reff_ang_err": 0.0252,
+        "reff_kpc": 3.277347778499893,
+        "reff_kpc_err": 0.18095785280060755
+    },
+    "offsets": {
+        "ang_avg": 4.886758357037461,
+        "ang_avg_err": 2.9558140266234822,
+        "ang_best": 3.790450089557492,
+        "ang_best_err": 3.15257488052688,
+        "physical": 27.218718625166442,
+        "physical_err": 22.638221475130003
+    },
+    "photom": {
+        "EBV": 0.0189,
+        "Pan-STARRS_g": 22.16200065612793,
+        "Pan-STARRS_g_err": 0.1447030007839203,
+        "Pan-STARRS_g_flux": 0.004956781005355442,
+        "Pan-STARRS_g_flux_err": 0.0007066671882607452,
+        "Pan-STARRS_g_ref": "Bhandari2021",
+        "Pan-STARRS_i": 20.893699645996094,
+        "Pan-STARRS_i_err": 0.07934699952602386,
+        "Pan-STARRS_i_flux": 0.015941167896077375,
+        "Pan-STARRS_i_flux_err": 0.0012086272079211936,
+        "Pan-STARRS_i_ref": "Bhandari2021",
+        "Pan-STARRS_r": 21.94809913635254,
+        "Pan-STARRS_r_err": 0.14754100143909454,
+        "Pan-STARRS_r_flux": 0.00603615439447171,
+        "Pan-STARRS_r_flux_err": 0.0008785997028728543,
+        "Pan-STARRS_r_ref": "Bhandari2021",
+        "Pan-STARRS_y": 19.904199600219727,
+        "Pan-STARRS_y_err": 0.1120460033416748,
+        "Pan-STARRS_y_flux": 0.03965702711120637,
+        "Pan-STARRS_y_flux_err": 0.004311159626443092,
+        "Pan-STARRS_y_ref": "Bhandari2021",
+        "Pan-STARRS_z": 20.651899337768555,
+        "Pan-STARRS_z_err": 0.09241700172424316,
+        "Pan-STARRS_z_flux": 0.01991774918440096,
+        "Pan-STARRS_z_flux_err": 0.0017696293554865527,
+        "Pan-STARRS_z_ref": "Bhandari2021"
+    },
+    "ra": 207.06432916666665,
+    "ra_FRB": 207.065,
+    "redshift": {
+        "z": 0.66,
+        "z_FRB": 0.66,
+        "z_spec": 0.66
+    }
+}
