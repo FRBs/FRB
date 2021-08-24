@@ -27,6 +27,8 @@ photom['DES']['DES_ID'] = 'coadd_object_id'
 photom['DES']['ra'] = 'ra'
 photom['DES']['dec'] = 'dec'
 photom['DES']['DES_tile'] = 'tilename'
+photom['DES']['star_flag_r'] = "class_star_r"
+photom['DES']['star_flag_err'] = "spreaderr_model_r"
 
 # DES-WISE
 photom['DES-WISE'] = {}
@@ -139,6 +141,13 @@ class DES_Survey(dlsurvey.DL_Survey):
             elif qtype == 'wise':
                 for key,value in photom['DES-WISE'].items():
                     query_fields += [value]
+                database = "des_dr1.des_allwise"
+            else:
+                raise IOError("Bad qtype")
+        else:
+            if qtype == 'main':
+                database = self.database
+            elif qtype == 'wise':
                 database = "des_dr1.des_allwise"
             else:
                 raise IOError("Bad qtype")

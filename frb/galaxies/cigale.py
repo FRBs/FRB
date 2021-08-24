@@ -179,7 +179,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
 
 
 def _initialise(data_file, config_file="pcigale.ini",
-                cores=None, sed_modules=_DEFAULT_SED_MODULES,
+                cores=None, save_sed=False, variables="", sed_modules=_DEFAULT_SED_MODULES,
                 sed_modules_params=None, **kwargs):
     """
     Initialise a CIGALE configuration file and write to disk.
@@ -193,6 +193,12 @@ def _initialise(data_file, config_file="pcigale.ini",
         cores (int, optional):
             Number of CPU cores to be used. Defaults
             to all cores on the system.
+        save_sed (bool, optional):
+            Save the best fit SEDs to disk for each galaxy.
+        variables (str or list, optional):
+            A single galaxy property name to save to results
+            or a list of variable names. Names must belong
+            to the list defined in the CIGALE documentation.
         sed_modules (list or tuple, optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
@@ -225,8 +231,8 @@ def _initialise(data_file, config_file="pcigale.ini",
         cores = multiprocessing.cpu_count() #Use all cores
     cigconf.config['cores'] = cores
     cigconf.generate_conf() #Writes defaults to config_file
-    cigconf.config['analysis_params']['variables'] = ""
-    cigconf.config['analysis_params']['save_best_sed'] = True
+    cigconf.config['analysis_params']['variables'] = variables
+    cigconf.config['analysis_params']['save_best_sed'] = save_sed
     cigconf.config['analysis_params']['lim_flag'] = True
 
     # Change the default values to new defaults:
@@ -275,6 +281,12 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             This writes a Table to outdir named 'photo_observed_model.dat'
 
     kwargs:  These are passed into gen_cigale_in() and _initialise()
+        save_sed (bool, optional):
+            Save the best fit SEDs to disk for each galaxy.
+        variables (str or list, optional):
+            A single galaxy property name to save to results
+            or a list of variable names. Names must belong
+            to the list defined in the CIGALE documentation.
         sed_modules (list of 'str', optional):
             A list of SED modules to be used in the 
             PDF analysis. If this is being input, there
