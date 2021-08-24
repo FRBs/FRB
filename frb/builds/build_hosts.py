@@ -360,6 +360,9 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
     # SFR
     host180301.calc_nebular_SFR('Ha')
 
+    # Galfit
+    host180301.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
+                                        'HG180301_galfit.fits'))
 
     # Vet all
     assert host180301.vet_all()
@@ -1424,7 +1427,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
 
 
 def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
-    """ Build the host galaxy data for FRB 191001
+    """ Build the host galaxy data for FRB 190711
 
     Heintz+2020
 
@@ -1509,7 +1512,7 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
 
     '''
     # PPXF
-    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG191001_GMOS_ppxf.ecsv')
+    ppxf_results_file = os.path.join(db_path, 'CRAFT', 'Heintz2020', 'HG190711_GMOS_ppxf.ecsv')
     if run_ppxf:
         meta, spectrum = host191001.get_metaspec(instr='GMOS-S')
         spec_fit = None
@@ -1928,7 +1931,10 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     # SFR
     host191228.calc_nebular_SFR('Ha')
 
-    
+    # Galfit
+    host191228.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
+                                         'HG191228_galfit.fits'))
+
     # Vet all
     assert host191228.vet_all()
 
@@ -2221,6 +2227,10 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     # Galfit
     #host191001.parse_galfit(os.path.join(db_path, 'CRAFT', 'Heintz2020',
     #                                     'HG191001_VLT_i_galfit.fits'))
+
+    # Galfit
+    host200906.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
+                                         'HG200906_galfit.fits'))
 
     # Vet all
     assert host200906.vet_all()
