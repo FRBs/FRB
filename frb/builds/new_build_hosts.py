@@ -354,12 +354,12 @@ def run(host_input:pandas.core.series.Series,
         # Fill me in 
         for key in lit_tbl.keys():
             if 'err' in key:
-                Host.neb_lines[key] = float(lit_tbl[key].values[0])
+                Host.neb_lines[key] = float(lit_tbl[key].data[0])
                 newkey = key.replace('err', 'ref')
                 Host.neb_lines[newkey] = lit_entry.Reference
                 # Value
                 newkey = newkey.replace('_ref', '')
-                Host.neb_lines[newkey] = float(lit_tbl[newkey].values[0])
+                Host.neb_lines[newkey] = float(lit_tbl[newkey].data[0])
 
     # Remove bad lines
     if isinstance(host_input.Bad_EM_lines, str):
