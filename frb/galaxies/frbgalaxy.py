@@ -664,7 +664,7 @@ class FRBGalaxy(object):
         elif attr == 'photom':
             defs_list = defs.valid_photom+defs.valid_flux+defs.valid_ref
         elif attr == 'derived':
-            defs_list = defs.valid_derived
+            defs_list = defs.valid_derived + defs.valid_derived_ref
         elif attr == 'redshift':
             defs_list = defs.valid_z
         elif attr == 'offsets':

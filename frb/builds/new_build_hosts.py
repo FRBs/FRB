@@ -172,8 +172,11 @@ def run(host_input:pandas.core.series.Series,
 
     # File root
     file_root = Host.name if is_host else utils.name_from_coord(Host.coord)
-    project_list = host_input.Projects.split(',')
-    ref_list = host_input.References.split(',')
+    project_list = host_input.Projects.split(',') if isinstance(
+        host_input.Projects,str) else []
+    ref_list = host_input.References.split(',') if isinstance(
+        host_input.References,str) else []
+    assert len(project_list) == len(ref_list)
 
     # UPDATE RA, DEC, OFFSETS
     offsets.incorporate_hst(mannings2021_astrom, Host)
@@ -389,6 +392,25 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit file {galfit_file} not found!")
     else:
         print("Galfit analysis not enabled")
+
+    # Derived from literature
+    for kk in range(len(lit_tbls)):
+        lit_entry = lit_tbls.iloc[kk]
+        if 'derived' not in lit_entry.Table:
+            continue
+        # Load table
+        lit_tbl = read_lit_table(lit_entry, coord=Host.coord)
+        if lit_tbl is None:
+            continue
+        # Fill me in 
+        for key in lit_tbl.keys():
+            if '_err' in key:
+                Host.derived[key] = float(lit_tbl[key].data[0])
+                newkey = key.replace('err', 'ref')
+                Host.derived[newkey] = lit_entry.Reference
+                # Value
+                newkey = newkey.replace('_ref', '')
+                Host.derived[newkey] = float(lit_tbl[newkey].data[0])
 
     # Vet all
     assert Host.vet_all()

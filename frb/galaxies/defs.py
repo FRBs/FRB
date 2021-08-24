@@ -190,3 +190,4 @@ valid_derived_nebular = [
     ]
 
 valid_derived = valid_derived_photom + valid_derived_nebular
+valid_derived_ref = [entry+'_ref' for entry in valid_derived]

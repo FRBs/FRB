@@ -783,6 +783,9 @@ def main(inflg='all'):
     if flg & (2**16):
         frb_200906()
 
+    # FRB 200906      
+    if flg & (2**17):
+        frb_20200120E()
 
 
 # Command line execution
