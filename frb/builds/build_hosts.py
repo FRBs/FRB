@@ -362,7 +362,7 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # Galfit
     host180301.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
-                                        'HG180301_galfit.fits'))
+                                        'HG180301_GMOS-S_r_galfit.fits'))
 
     # Vet all
     assert host180301.vet_all()
@@ -1933,7 +1933,7 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # Galfit
     host191228.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
-                                         'HG191228_galfit.fits'))
+                                         'HG191228_VLT-FORS2_I_galfit.fits'))
 
     # Vet all
     assert host191228.vet_all()
@@ -2230,7 +2230,7 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
 
     # Galfit
     host200906.parse_galfit(os.path.join(db_path, 'Realfast', 'Bhandari2021',
-                                         'HG200906_galfit.fits'))
+                                         'HG200906_VLT-FORS2_I_galfit'))
 
     # Vet all
     assert host200906.vet_all()
