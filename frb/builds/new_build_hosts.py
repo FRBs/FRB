@@ -389,7 +389,7 @@ def run(host_input:pandas.core.series.Series,
         if found_galfit:
             Host.parse_galfit(galfit_file)
         else:
-            print(f"Galfit file {galfit_file} not found!")
+            print(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")
 
