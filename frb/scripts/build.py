@@ -14,6 +14,8 @@ def parser(options=None):
     parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
     parser.add_argument("--hosts_file", type=str, help="Alternate file for hosts than the default public_hosts.csv")
     parser.add_argument("--lit_refs", type=str, help="Alternate file for literature sources than all_refs.csv")
+    parser.add_argument("--override", default=False, action='store_true',
+                        help="Over-ride errors (as possible)? Not recommended")
 
     if options is None:
         pargs = parser.parse_args()
@@ -45,7 +47,8 @@ def main(pargs):
         frbs = [ifrb.strip() for ifrb in frbs]
         new_build_hosts.main(frbs, options=pargs.galaxy_options, 
                              hosts_file=pargs.hosts_file,
-                             lit_refs=pargs.lit_refs) 
+                             lit_refs=pargs.lit_refs,
+                             override=pargs.override) 
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':

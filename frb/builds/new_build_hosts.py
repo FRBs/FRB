@@ -9,6 +9,7 @@ import warnings
 from IPython import embed
 
 import numpy as np
+import requests
 
 import pandas
 
@@ -157,7 +158,8 @@ def read_lit_table(lit_entry, coord=None):
 def run(host_input:pandas.core.series.Series, 
         build_ppxf=False, build_photom=False, 
         lit_refs=None,
-        build_cigale=False, is_host=True):
+        build_cigale=False, is_host=True,
+        override=False):
 
     frbname = utils.parse_frb_name(host_input.FRB)
     print("--------------------------------------")
@@ -197,7 +199,14 @@ def run(host_input:pandas.core.series.Series,
     search_r = 1 * units.arcsec
 
     # Survey data
-    inside = survey_utils.in_which_survey(Frb.coord)
+    try:
+        inside = survey_utils.in_which_survey(Frb.coord)
+    except (requests.exceptions.ConnectionError) as e:  # Catches time-out from survey issues
+        if override:
+            print("Survey timed out.  You should re-run it sometime...")
+            inside = {}
+        else:
+            raise e
 
     # Loop on em
     merge_tbl = None
@@ -331,16 +340,14 @@ def run(host_input:pandas.core.series.Series,
         new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
 
         #
-        embed(header='300 of new')
         ppxf.run(new_spec, R, host_input.z, 
                  results_file=ppxf_results_file, 
                  spec_fit=spec_file,
-                 #atmos=[[7150., 7300.], [7580, 7750.]],
                  gaps=gaps, chk=True)
         found_ppxf = True
     # Load
     if found_ppxf:
-        print(f"Slupring in pPXF outputs from {ppxf_results_file}")
+        print(f"Slurping in pPXF outputs from {ppxf_results_file}")
         Host.parse_ppxf(ppxf_results_file)
     else:
         print(f"No pPXF file to read for {file_root}")
@@ -423,7 +430,9 @@ def run(host_input:pandas.core.series.Series,
         #utils.name_from_coord(Host.coord) + '_{}.json'.format(frbname)
     Host.write_to_json(path=out_path, outfile=outfile)
 
-def main(frbs, options=None, hosts_file=None, lit_refs=None):
+
+def main(frbs, options=None, hosts_file=None, lit_refs=None,
+         override=False):
     # Options
     build_photom, build_cigale, build_ppxf = False, False, False
     if options is not None:
@@ -453,7 +462,7 @@ def main(frbs, options=None, hosts_file=None, lit_refs=None):
         for ii in idx:
             run(host_tbl.iloc[ii], build_photom=build_photom, 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
-                is_host=is_host, lit_refs=lit_refs)
+                is_host=is_host, lit_refs=lit_refs, override=override)
             # Any additional ones are treated as candidates
             is_host = False
 
