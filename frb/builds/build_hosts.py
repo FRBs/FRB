@@ -72,6 +72,15 @@ mannings2021_astrom = mannings2021_astrom[
         mannings2021_astrom.Filter == 'F110W')].copy()
 
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
+    """Assign a redshift using one of the Galaxy_DB tables
+
+    Args:
+        ztbl_file (str): table file
+        host (frbgalaxy.FRBHost): host object
+
+    Raises:
+        ValueError: [description]
+    """
     # Load redshift table
     ztbl = Table.read(ztbl_file, format='ascii.fixed_width')
 
@@ -122,7 +131,8 @@ def read_lit_table(lit_entry, coord=None):
 
     Args:
         lit_entry (pandas row): Row of the overview table
-        coord (astropy.coordiantes.SkyCoord, optional): [description]. Defaults to None.
+        coord (astropy.coordiantes.SkyCoord, optional): Coordinate
+            for the galaxy of interest. Defaults to None.
 
     Raises:
         ValueError: [description]
@@ -156,10 +166,29 @@ def read_lit_table(lit_entry, coord=None):
         return lit_tbl
 
 def run(host_input:pandas.core.series.Series, 
-        build_ppxf=False, build_photom=False, 
-        lit_refs=None,
-        build_cigale=False, is_host=True,
-        override=False):
+        build_ppxf:bool=False, 
+        lit_refs:str=None,
+        build_cigale:bool=False, is_host:bool=True,
+        override:bool=False):
+    """Main method for generating a Host JSON file
+
+    Args:
+        host_input (pandas.core.series.Series): Row of the CVS file
+            providing the host inputs
+        build_ppxf (bool, optional): Run pPXF?. Defaults to False.
+        lit_refs (str, optional): File of literature references. Defaults to None.
+        build_cigale (bool, optional): Run CIGALE?. Defaults to False.
+            NOT IMPLEMENTED (yet, but maybe never)
+        is_host (bool, optional): Object is a Host, as opposed
+            to a neighboring/foreground galaxy. Defaults to True.
+        override (bool, optional): Attempt to over-ride errors. 
+            Mainly for time-outs of public data. Defaults to False.
+
+
+    Raises:
+        e: [description]
+        ValueError: [description]
+    """
 
     frbname = utils.parse_frb_name(host_input.FRB)
     print("--------------------------------------")
@@ -432,13 +461,20 @@ def run(host_input:pandas.core.series.Series,
     Host.write_to_json(path=out_path, outfile=outfile)
 
 
-def main(frbs, options=None, hosts_file=None, lit_refs=None,
-         override=False):
+def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
+         override:bool=False):
+    """ Driver of the analysis
+
+    Args:
+        frbs (list): [description]
+        options (str, optional): [description]. Defaults to None.
+        hosts_file (str, optional): [description]. Defaults to None.
+        lit_refs (str, optional): [description]. Defaults to None.
+        override (bool, optional): [description]. Defaults to False.
+    """
     # Options
-    build_photom, build_cigale, build_ppxf = False, False, False
+    build_cigale, build_ppxf = False, False
     if options is not None:
-        if 'photom' in options:
-            build_photom = True
         if 'cigale' in options:
             build_cigale = True
         if 'ppxf' in options:
@@ -461,7 +497,7 @@ def main(frbs, options=None, hosts_file=None, lit_refs=None,
         is_host = True
         # Do it!
         for ii in idx:
-            run(host_tbl.iloc[ii], build_photom=build_photom, 
+            run(host_tbl.iloc[ii], 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
                 is_host=is_host, lit_refs=lit_refs, override=override)
             # Any additional ones are treated as candidates

@@ -569,7 +569,7 @@ def frb_20200120E():
     frb20200120E.write_to_json(path=path)
 
 def frb_171020():
-    frbname = 'FRB171020'
+    frbname = 'FRB20171020'
 
     FRB_171020_coord = SkyCoord("22h15m18.55s  -19d40m11.23s", frame='icrs')    # From Shannon+18
     frb171020 = frb.FRB(frbname, FRB_171020_coord,
@@ -786,6 +786,10 @@ def main(inflg='all'):
     # FRB 200906      
     if flg & (2**17):
         frb_20200120E()
+
+    # FRB 20171020
+    if flg & (2**18):
+        frb_171020()
 
 
 # Command line execution
