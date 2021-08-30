@@ -91,6 +91,8 @@ class DL_Survey(surveycoord.SurveyCoord):
             HDU: Image header data unit
 
         """
+        if self.svc is None:
+            raise RuntimeError("svc attribute cannot be None. Have you installed pyvo?")
         ra = self.coord.ra.value
         dec = self.coord.dec.value
         fov = imsize.to(units.deg).value
