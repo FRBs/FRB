@@ -18,7 +18,7 @@ else:
     _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
-# Define the data model for DES data
+# Define the data model for WISE data
 photom = {}
 
 # DES-WISE
