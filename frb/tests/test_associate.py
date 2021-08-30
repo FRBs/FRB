@@ -16,7 +16,7 @@ remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
 @remote_data
 def test_individual():
     from frb.associate import frbs
-    config = getattr(frbs, 'FRB180924'.lower())
+    config = getattr(frbs, 'FRB20180924'.lower())
     frbA = frbassociate.run_individual(config)
     # Test
     assert isinstance(frbA.candidates, pandas.DataFrame)

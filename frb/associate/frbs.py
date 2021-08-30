@@ -27,7 +27,7 @@ base_config = dict(
 #Notes:
 #"""
 updates = dict(
-    name='FRB190608',
+    name='FRB20190608',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Unpublished', 'HG_190608_FORS2_I.fits'),
     cut_size = 34.,
     filter = 'VLT_FORS2_I',
@@ -37,7 +37,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252202*units.arcsec,
 )
-frb190608 = {**base_config, **updates}  # Use | in 3.9
+frb20190608 = {**base_config, **updates}  # Use | in 3.9
 
 
 # ##############################
@@ -45,7 +45,7 @@ frb190608 = {**base_config, **updates}  # Use | in 3.9
 """ 
 """
 updates = dict(
-    name='FRB121102',
+    name='FRB20121102',
     image_file=os.path.join(gdb_path, 'Repeater', 'Tendulkar2017', 'FRB121102_GMOS_N_i.fits'),
     cut_size = 30.,
     filter = 'GMOS_N_i',
@@ -55,14 +55,14 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1459 * units.arcsec,
 )
-frb121102 = {**base_config, **updates}  # Use | in 3.9
+frb20121102 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 180916
 """ 
 """
 updates = dict(
-    name='FRB180916',
+    name='FRB20180916',
     image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB180916_GMOS_N_r.fits'),
     cut_size = 40.,
     filter = 'GMOS_N_r',
@@ -72,13 +72,13 @@ updates = dict(
     cand_separation=20*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-frb180916 = {**base_config, **updates}  # Use | in 3.9
+frb20180916 = {**base_config, **updates}  # Use | in 3.9
 
 
 # ##############################
 # FRB 180924
 updates = dict(
-    name='FRB180924',
+    name='FRB20180924',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Bannister2019', 'FRB180924_VLT_FORS2_g.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
@@ -88,12 +88,12 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-frb180924 = {**base_config, **updates}  # Use | in 3.9
+frb20180924 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 181112
 updates = dict(
-    name='FRB181112',
+    name='FRB20181112',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Prochaska2019', 'FRB181112_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -103,12 +103,12 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-frb181112 = {**base_config, **updates}  # Use | in 3.9
+frb20181112 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190102
 updates = dict(
-    name='FRB190102',
+    name='FRB20190102',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190102_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -118,12 +118,12 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.252 * units.arcsec,
 )
-frb190102 = {**base_config, **updates}  # Use | in 3.9
+frb20190102 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190523
 updates = dict(
-    name='FRB190523',
+    name='FRB20190523',
     image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB190523_LRIS_R.fits'),
     cut_size = 30.,
     filter = 'LRIS_R',
@@ -132,12 +132,12 @@ updates = dict(
     plate_scale = 0.28 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb190523 = {**base_config, **updates}  # Use | in 3.9
+frb20190523 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190611
 updates = dict(
-    name='FRB190611',
+    name='FRB20190611',
     image_file = os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190611_GMOS_S_i.fits'),
     cut_size = 30.,
     filter='GMOS_S_i',
@@ -146,12 +146,12 @@ updates = dict(
     plate_scale = 0.160 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb190611 = {**base_config, **updates}
+frb20190611 = {**base_config, **updates}
 
 # ##############################
 # FRB 190614
 updates = dict(
-    name='FRB190614',
+    name='FRB20190614',
     image_file = os.path.join(gdb_path, 'Realfast', 'Law2020', 'FRB190614_LRIS_I.fits'),
     cut_size = 30.,
     filter='LRIS_I',
@@ -160,7 +160,7 @@ updates = dict(
     plate_scale = 0.135 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb190614 = {**base_config, **updates}
+frb20190614 = {**base_config, **updates}
 
 # ##############################
 # FRB 190711
@@ -169,7 +169,7 @@ Notes:
    Figure out if the 2nd source is a star (HST data)
 """
 updates = dict(
-    name='FRB190711',
+    name='FRB20190711',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190711_GMOS_S_i.fits'),
     cut_size = 30.,
     filter = 'GMOS_S_i',
@@ -179,7 +179,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.160*units.arcsec,
 )
-frb190711 = {**base_config, **updates}  # Use | in 3.9
+frb20190711 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190714
@@ -187,7 +187,7 @@ frb190711 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB190714',
+    name='FRB20190714',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB190714_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -197,7 +197,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb190714 = {**base_config, **updates}  # Use | in 3.9
+frb20190714 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 191001
@@ -205,7 +205,7 @@ frb190714 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB191001',
+    name='FRB20191001',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB191001_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -215,7 +215,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb191001 = {**base_config, **updates}  # Use | in 3.9
+frb20191001 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 191228
@@ -223,7 +223,7 @@ frb191001 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB191228',
+    name='FRB20191228',
     image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 
                             'FRB191228_VLT-FORS2_I.fits'),
     cut_size = 30.,
@@ -234,7 +234,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb191228 = {**base_config, **updates}  # Use | in 3.9
+frb20191228 = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 200430
@@ -242,7 +242,7 @@ frb191228 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB200430',
+    name='FRB20200430',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB200430_LRIS_I.fits'),
     cut_size = 30.,
     filter = 'LRIS_I',
@@ -252,7 +252,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.134*units.arcsec,
 )
-frb200430 = {**base_config, **updates}  # Use | in 3.9
+frb20200430 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 200906
@@ -260,7 +260,7 @@ frb200430 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB200906',
+    name='FRB20200906',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 
                             'FRB200906_VLT-FORS2_g.fits'),
@@ -272,7 +272,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb200906 = {**base_config, **updates}  # Use | in 3.9
+frb20200906 = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 180301
@@ -280,7 +280,7 @@ frb200906 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB180301',
+    name='FRB20180301',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 'FRB180301_GMOS_S_r.fits'),
     cut_size = 30.,
@@ -291,7 +291,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-frb180301 = {**base_config, **updates}  # Use | in 3.9
+frb20180301 = {**base_config, **updates}  # Use | in 3.9
 #
 #
 
@@ -301,7 +301,7 @@ frb180301 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB201124',
+    name='FRB20201124',
     image_file=os.path.join(gdb_path, 'F4', 
                             'fong2021', 'FRB201124_Pan-STARRS_r.fits'),
     cut_size = 30.,
@@ -312,6 +312,6 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.250 * units.arcsec,
 )
-frb201124 = {**base_config, **updates}  # Use | in 3.9
+frb20201124 = {**base_config, **updates}  # Use | in 3.9
 #
 #
