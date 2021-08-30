@@ -18,11 +18,11 @@ from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from frb.surveys import images
 
-# Define the data model for DES data
+# Define the data model for SDSS data
 photom = {}
 photom['SDSS'] = {}
-DES_bands = ['u', 'g', 'r', 'i', 'z']
-for band in DES_bands:
+SDSS_bands = ['u', 'g', 'r', 'i', 'z']
+for band in SDSS_bands:
     photom['SDSS']['SDSS_{:s}'.format(band)] = 'cModelMag_{:s}'.format(band.lower())
     photom['SDSS']['SDSS_{:s}_err'.format(band)] = 'cModelMagErr_{:s}'.format(band.lower())
 photom['SDSS']['SDSS_ID'] = 'objid'
@@ -74,9 +74,9 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         """
         if photoobj_fields is None:
             photoobj_fs = ['ra', 'dec', 'objid', 'run', 'rerun', 'camcol', 'field','type']
-            mags = ['cModelMag_'+band for band in DES_bands]
-            magsErr = ['cModelMagErr_'+band for band in DES_bands]
-            extinct = ["extinction_"+band for band in DES_bands]
+            mags = ['cModelMag_'+band for band in SDSS_bands]
+            magsErr = ['cModelMagErr_'+band for band in SDSS_bands]
+            extinct = ["extinction_"+band for band in SDSS_bands]
             photoobj_fields = photoobj_fs+mags+magsErr+extinct
 
         # Call
