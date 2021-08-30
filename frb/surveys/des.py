@@ -59,7 +59,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'DES'
         self.bands = ['g', 'r', 'i', 'z', 'y']
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/des_dr1")
+        self.svc = _svc
         self.qc_profile = "default"
         self.database = "des_dr1.main"
 
