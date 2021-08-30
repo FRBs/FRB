@@ -1,4 +1,4 @@
-""" Methods related to running and reading Prospector outputs """
+""" WARNING -- WIP -- Methods related to running and reading Prospector outputs """
 
 from frb.galaxies import nebular
 from frb.galaxies import utils as galaxy_utils
