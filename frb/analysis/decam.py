@@ -3,7 +3,6 @@ Module for extracting sources and performing photometry
 with DECam images
 """
 
-from astropy import units
 import numpy as np, os, glob
 
 from astropy.io import fits
@@ -151,11 +150,9 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    # Get flux as counts/s by dividing the background subtracted image by the expmap.
-    with np.errstate(divide='ignore', invalid='ignore'): # Silence annoying 1/0 or sqrt(nan) warnings temporarily
-        source_cat, segmap = _source_table(data_sub,segm,
-                                       bkg_img,1/np.sqrt(wtmap),
-                                       **sourcecat_kwargs)
+    segmap = SegmentationImage(segm)
+    source_cat = SourceCatalog(data_sub, segmap, error=np.sqrt(1/wtmap),
+                               background=bkg_img, **sourcecat_kwargs).to_table()
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
@@ -180,6 +177,7 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         exp_file (str): Path to the expsure map.
         wt_file (str): Path to the inverse variance maps
         outdir (str, optional): Path to the output directory.
+        extract_sources_kwargs (dict): Additional arguments for extract_sources.
     """
 
     # Read files
@@ -274,7 +272,7 @@ def batch_run(input_folder:str, output_folder:str=None, extract_sources_kwargs:d
     print("Completed processing all files in {}".format(input_folder))
     return
 
-def _SDSS_query(coord:SkyCoord, radius:units.Quantity,
+def _SDSS_query(coord:SkyCoord, radius:u.Quantity,
                 timeout:float=120, photo_obj_fields:list=_DEFAULT_PHOTOBJ_FIELDS)->Table:
     """
     Run a simple SDSS PhotoObj query and return a table of 
@@ -402,7 +400,7 @@ def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True)->tu
     
     return zpt, airmass_term
 
-def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity)->tuple:
+def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:u.Quantity)->tuple:
     """
     Distance function for cross matching coordinates. Returns
     a unique match per object.
@@ -422,14 +420,14 @@ def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity
     idx2 = idx[match]
     return idx1, idx2, d2d[match], d3d[match]
 
-def _get_join_funcs(colname:str, seplimit:units.Quantity)->dict:
+def _get_join_funcs(colname:str, seplimit:u.Quantity)->dict:
     """
     Useless for now but neat. Can be used in the future.
     See join_skycoord documentation. Maybe this goes into `catalog_utils`.
     """
     return {colname:join_skycoord(seplimit, _custom_match_func)}
 
-def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
+def merge_photom_tables(tab1:Table, tab2:Table, tol:u.Quantity=1*u.arcsec,
                         table_names:tuple=('1','2'))->Table:
     """
     Given two source catalogs, cross-match and merge them. This function 
