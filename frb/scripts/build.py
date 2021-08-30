@@ -31,7 +31,6 @@ def main(pargs):
     from frb.builds import build_specdb
     from frb.builds import build_frbs
     from frb.builds import build_hosts
-    from frb.builds import new_build_hosts
     from frb.builds import build_fg
 
     # Parse
