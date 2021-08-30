@@ -22,9 +22,13 @@ ppxf
 ----
 
 #. Add spectrum to the specdb [challenging]
+
    #. Add spectrum to the Galaxy_DB with name JXXXXXXX.XX+XXXXXX.XX_INSTR_A_spec.fits
+
    #. Add redshift to the z_hand.ascii table 
+   
    #. Edit + Run build_specdb.py 
+   
 #. Add "cuts" to the Google Sheet (regions of the spectrum to avoid)
 #. Add spectrum folder to Projects and References
 #. Add instrument name to the Google sheet (Spectrum column)
