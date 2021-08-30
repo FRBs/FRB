@@ -45,7 +45,7 @@ def main(pargs):
         # 
         frbs = pargs.frb.split(',')
         frbs = [ifrb.strip() for ifrb in frbs]
-        new_build_hosts.main(frbs, options=pargs.galaxy_options, 
+        build_hosts.main(frbs, options=pargs.galaxy_options, 
                              hosts_file=pargs.hosts_file,
                              lit_refs=pargs.lit_refs,
                              override=pargs.override) 
