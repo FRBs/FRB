@@ -85,8 +85,10 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
         if len(main_cat) == 0:
+            main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
             return main_cat
-        main_cat = catalog_utils.clean_cat(self.catalog, photom['WISE'], fill_mask=-999.)
+        
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
 
         # Finish
         self.catalog = main_cat
