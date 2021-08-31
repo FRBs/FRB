@@ -298,7 +298,7 @@ def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
                     # TODO: accommodate more complex fits.
                     instance.append((item, pp, lines[kk:kk + 10][pp + 1]))  # and keep the model and error
     # Use regex to identify all floats in fit_out and err_out
-    float_regex = r"\d+\.\d+" # Any string of the form <int>.<int> (which is just a float)
+    float_regex = r"[+-]?\d+\.\d+" # Any string of the form <int>.<int> (which is just a float)
 
     if not twocomponent: # Assumes a single component fit
         # only keep the latest one in case there are multiple runs

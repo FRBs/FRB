@@ -90,6 +90,12 @@ For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
 `Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
 
+The following are required for using functions in halos.photoz.py:
+
+* `threedhst <https://github.com/gbrammer/threedhst>` version >= 0.1.dev0
+* progressbar2 :: Use pip
+* pathos :: Use pip
+
 Our CIGALE wrappers use custom filter files not
 provided by their current release (e.g DES, Pan-STARRS).
 See the instructions for adding those as needed.
