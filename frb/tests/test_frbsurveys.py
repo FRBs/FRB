@@ -39,6 +39,10 @@ def test_wise():
     assert isinstance(wise_tbl, Table)
     assert len(wise_tbl) == 1
 
+    #Test get_image
+    imghdu = wise_srvy.get_cutout(imsize=search_r, filter="W1")
+    assert isinstance(imghdu,PrimaryHDU)
+    assert imghdu.data.shape == (5,5)
 
 @remote_data
 def test_psrcat():
@@ -64,6 +68,7 @@ def test_des():
     #
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 1
+
 
 
 @remote_data
