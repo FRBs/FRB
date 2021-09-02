@@ -82,6 +82,18 @@ def prepare_bkg(img:np.ndarray, sigma_clip_level:float=3.,
     
     return bkg.background, noise.background
 
+def _source_table(data, segm, bkg_img=None, error_img=None, **sourcecat_kwargs):
+    """
+    Helper function for exxtract sources
+    """
+    # Do photometry and produce a source catalog
+    segmap = SegmentationImage(segm)
+    source_cat = SourceCatalog(data, segmap, error=error_img,
+                                background=bkg_img, **sourcecat_kwargs).to_table()
+
+    return source_cat
+
+
 def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:np.ndarray,
                     threshold:float=3.,minarea:int=5,deblend_cont:float=0.001, clean_param:float=2.,
                     bkg_kwargs:dict={}, sourcecat_kwargs:dict={})->list:
@@ -127,9 +139,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    segmap = SegmentationImage(segm)
-    source_cat = SourceCatalog(data_sub, segmap, error=np.sqrt(1/wtmap),
-                               background=bkg_img, **sourcecat_kwargs).to_table()
+    source_cat = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
