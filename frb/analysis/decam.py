@@ -150,9 +150,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    segmap = SegmentationImage(segm)
-    source_cat = SourceCatalog(data_sub, segmap, error=np.sqrt(1/wtmap),
-                               background=bkg_img, **sourcecat_kwargs).to_table()
+    source_cat, segmap = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
