@@ -386,7 +386,8 @@ def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity
 def _get_join_funcs(colname:str, seplimit:units.Quantity)->dict:
     return {colname:join_skycoord(seplimit, _custom_match_func)}
 
-def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec):
+def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
+                        table_names:list=None)->Table:
     """
     Given two photometry source catalogs, cross-match and merge them
     using the custom_match_function. This ensures there is a unique
@@ -394,6 +395,9 @@ def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec):
     behavior which matches multiple objects on the right table to
     a source on the left.
     """
+    if table_names is not None:
+        assert len(table_names)==2, "Invalid number of table names for two tables."
+        assert (type(table_names[0])==str)&(type(table_names[1])==str), "Table names should be strings."
 
 
     coord1 = SkyCoord(tab1['ra'], tab1['dec'], unit="deg")
@@ -403,14 +407,24 @@ def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec):
     matched_tab2 = tab2[idx][match]
     matched_tab1 = tab1[match]
 
-    inner_join = hstack([matched_tab1, matched_tab2],)
-    inner_join.remove_columns(['ra_2', 'dec_2'])
-    inner_join.rename_columns(['ra_1', 'dec_1'], ['ra', 'dec'])
+    # tab1 INTERSECTION tab2
+    inner_join = hstack([matched_tab1, matched_tab2],
+                        table_names=table_names)
+    if table_names is None:
+        table_names = ['1', '2']
+    tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
+    tab2_coord_cols = ['ra_'+table_names[1],"dec_"+table_names[1]]
+
+
+    inner_join.remove_columns(tab2_coord_cols)
+    inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
     not_matched_tab1 = setdiff(tab1, matched_tab1, keys=['ra', 'dec'])
     not_matched_tab2 = setdiff(tab2, matched_tab2, keys=['ra', 'dec'])
 
-    outer_join = join(not_matched_tab1, not_matched_tab2, keys=['ra','dec'], join_type='outer')
+    # (tab1 UNION tab2() - (tab1 INTERSECTION tab2)
+    outer_join = join(not_matched_tab1, not_matched_tab2,
+                      keys=['ra','dec'], join_type='outer', table_names=table_names)
 
     #Bring it all together
-    return hstack([inner_join, outer_join])
+    return vstack([inner_join, outer_join])
