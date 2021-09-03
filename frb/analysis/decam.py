@@ -3,6 +3,7 @@ Module for extracting sources and performing photometry
 with DECam images
 """
 
+from astropy import units
 import numpy as np, os, glob
 
 from astropy.io import fits
