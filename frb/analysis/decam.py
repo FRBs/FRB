@@ -3,19 +3,25 @@ Module for extracting sources and performing photometry
 with DECam images
 """
 
+from astropy import units
 import numpy as np, os, glob
 
 from astropy.io import fits
 from astropy.stats import SigmaClip
-from astropy.convolution import Gaussian2DKernel
-from astropy.wcs import WCS
-from astropy.table import Table
-import matplotlib.pyplot as plt
+from astropy.wcs import WCS, utils as wcsutils
+from astropy.table import Table, join, join_skycoord, vstack, hstack, setdiff
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+
+from astroquery.sdss import SDSS
 
 import sep
 from photutils import Background2D
 from photutils.background import MADStdBackgroundRMS, SExtractorBackground
 from photutils.segmentation import SourceCatalog, SegmentationImage
+
+_DEFAULT_PHOTOBJ_FIELDS = ['ra', 'dec', 'objid','type']
+_DEFAULT_PHOTOBJ_FIELDS += ['psfMag_'+band for band in ['u', 'g', 'r', 'i', 'z']]
 
 def make_masks(dqmimg:np.ndarray, expimg:np.ndarray, combine:bool=False)->list:
     """
@@ -91,7 +97,7 @@ def _source_table(data, segm, bkg_img=None, error_img=None, **sourcecat_kwargs):
     source_cat = SourceCatalog(data, segmap, error=error_img,
                                 background=bkg_img, **sourcecat_kwargs).to_table()
 
-    return source_cat
+    return source_cat, segmap
 
 
 def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:np.ndarray,
@@ -139,7 +145,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    source_cat = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
+    source_cat, segmap = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
@@ -177,6 +183,7 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         os.mkdir(outdir)
 
     # Loop over all tiles
+    mega_source_cat = Table()
     for idx in np.arange(1,len(imghdus)):
         tilename = imghdus[idx].header['EXTNAME']
         print("Processing {}".format(tilename))
@@ -193,11 +200,20 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
 
         # Extract
         source_cat, segmap = extract_sources(img,dqmimg=dqmimg,expimg=expimg,wtmap=wtimg,**extract_sources_kwargs)
-        # Write
-        source_cat.write(os.path.join(outdir, tilename+"_source_cat.dat"), format="ascii.fixed_width", overwrite=True)
+        source_cat['ra'] = source_cat['sky_centroid'].ra.value
+        source_cat['dec'] = source_cat['sky_centroid'].dec.value
+        source_cat['tile'] = tilename
+        source_cat.remove_column('sky_centroid') #Just inconvenient to use in the long run. RA, Dec better separately.
+
+        
+        if len(mega_source_cat) == 0:
+            mega_source_cat = source_cat
+        else:
+            mega_source_cat = vstack([mega_source_cat, source_cat])
 
         np.savez_compressed(os.path.join(outdir, tilename+"_segmap.npz"), segmap=segmap)
-    
+    # Write
+    mega_source_cat.write(os.path.join(outdir, img_file.split("/")[-1].split(".")[0]+"_source_cat.fits"), overwrite=True) # Fits for better compressibility
     print("Done!")
     return
 
@@ -251,3 +267,150 @@ def batch_run(input_folder:str, output_folder:str=None, extract_sources_kwargs:d
 
     print("Completed processing all files in {}".format(input_folder))
     return
+
+def _SDSS_query(coord:SkyCoord, radius:units.Quantity,
+                timeout:float=120, photo_obj_fields:list=_DEFAULT_PHOTOBJ_FIELDS)->Table:
+    """
+    Run a simple SDSS PhotoObj query and return a table of 
+    model mags for stars.
+    """
+    sdss_cat = SDSS.query_region(coord, radius=radius,
+                                timeout=timeout, photoobj_fields=photo_obj_fields)
+    
+    sdss_cat = sdss_cat[sdss_cat['type']==3]
+    sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg")
+    return sdss_cat
+
+def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
+                  save_tab:str=None, verbose:bool=True)->float:
+    """
+    Run a crude segmentation map based photometry on
+    the brightest stars in a standard star exposure
+    and return delta = ZPT + AIRMASS_TERM*AIRMASS
+    after comparing instrument fluxes against SDSS.
+    """
+    # Read in file
+    stdhdus = fits.open(calib_file)
+    # Instantiate results table
+    super_merged = Table()
+
+    # Loop over all CCDs
+    try:
+        import progressbar
+        bar =  progressbar.ProgressBar(max_value=len(stdhdus)-2)
+        pbexists = True
+    except ImportError:
+        pbexists=False
+    print("Processing "+calib_file+"...")
+    for num,hdu in enumerate(stdhdus[1:]):
+
+        # Prepare
+        data, hdr = hdu.data, hdu.header
+        wcs = WCS(hdu.header)
+        center = wcsutils.pixel_to_skycoord(data.shape[1]/2, data.shape[0]/2, wcs)
+
+        bkg_img, noise_img = prepare_bkg(data)
+        data_sub = data - bkg_img
+
+        # Extract the brightest stars
+        _, segmap = sep.extract(data_sub, 3., minarea=5, deblend_cont=0.005,
+                clean_param=2., err=np.ascontiguousarray(noise_img),segmentation_map=True)
+        sources, _ = _source_table(data_sub, segmap, bkg_img, noise_img, wcs = wcs)
+        sources.sort("segment_flux")
+        sources = sources[-brightest:]
+
+        # Run an SDSS query in the same region
+        try:
+            sdss_cat = _SDSS_query(center, 10*u.arcmin)
+        except:
+            if pbexists&verbose:
+                bar.update(num)
+            elif verbose:
+                print("Skipped "+hdr['extname']+" because of a query failure")
+            continue
+        # Select stars only
+        sdss_cat = sdss_cat[sdss_cat['type']==3]
+        sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg")
+
+        # Cross match sources against SDSS
+        join_funcs={'sky_centroid': join_skycoord(0.1 * u.arcsec)}
+        merged = join(sources, sdss_cat, keys="sky_centroid", join_funcs=join_funcs)
+        merged.remove_columns(['sky_centroid_1', 'sky_centroid_2'])
+
+        # Combine results of cross-matching into one giant table 
+        if len(super_merged)==0:
+            super_merged = merged
+        else:
+            super_merged = vstack([super_merged, merged])
+        
+        # Need a status update?
+        if pbexists&verbose:
+            bar.update(num)
+        elif verbose:
+            print("Done processing "+hdr['extname'])
+
+    # Write table to disk?
+    if save_tab is None:
+        save_tab = calib_file.split("/")[-1].split(".")[0]+"_std_results.txt"
+        super_merged.write(save_tab, format="ascii.fixed_width", overwrite=True)
+        if verbose:
+            print("Wrote results to "+save_tab)
+    # Compute delta
+    delta = np.median(-2.5*np.log10(super_merged['segment_flux']/stdhdus[0].header['exptime'])-
+                       super_merged['psfMag_'+band.lower()])
+    return delta
+
+def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True):
+    """
+    Run `photo_zpt_run` on two standard files
+    """
+    delta_1 = photo_zpt_run(calib_file_1, band=band, verbose=verbose)
+    delta_2 = photo_zpt_run(calib_file_2, band=band, verbose=verbose)
+    
+    airmass1 = fits.getheader(calib_file_1, hdu=0)['airmass']
+    airmass2 = fits.getheader(calib_file_2, hdu=0)['airmass']
+    
+    airmass_term = (delta_1-delta_2)/(airmass1-airmass2)
+    
+    zpt = delta_1-airmass_term*airmass1
+    
+    return zpt, airmass_term
+
+def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity)->tuple:
+    idx, d2d, d3d = coord1.match_to_catalog_sky(coord2)
+    match = d2d<seplimit
+    idx1 = np.arange(len(coord1))[match]
+    idx2 = idx[match]
+    return idx1, idx2, d2d[match], d3d[match]
+
+def _get_join_funcs(colname:str, seplimit:units.Quantity)->dict:
+    return {colname:join_skycoord(seplimit, _custom_match_func)}
+
+def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec):
+    """
+    Given two photometry source catalogs, cross-match and merge them
+    using the custom_match_function. This ensures there is a unique
+    match between tables as opposed to the default join_skycoord
+    behavior which matches multiple objects on the right table to
+    a source on the left.
+    """
+
+
+    coord1 = SkyCoord(tab1['ra'], tab1['dec'], unit="deg")
+    coord2 = SkyCoord(tab2['ra'], tab2['dec'], unit="deg")
+    idx, d2d, _ = coord1.match_to_catalog_sky(coord2)
+    match = d2d<tol
+    matched_tab2 = tab2[idx][match]
+    matched_tab1 = tab1[match]
+
+    inner_join = hstack([matched_tab1, matched_tab2],)
+    inner_join.remove_columns(['ra_2', 'dec_2'])
+    inner_join.rename_columns(['ra_1', 'dec_1'], ['ra', 'dec'])
+
+    not_matched_tab1 = setdiff(tab1, matched_tab1, keys=['ra', 'dec'])
+    not_matched_tab2 = setdiff(tab2, matched_tab2, keys=['ra', 'dec'])
+
+    outer_join = join(not_matched_tab1, not_matched_tab2, keys=['ra','dec'], join_type='outer')
+
+    #Bring it all together
+    return hstack([inner_join, outer_join])
