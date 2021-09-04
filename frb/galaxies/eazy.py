@@ -111,7 +111,7 @@ def eazy_setup(input_dir, template_dir=None):
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
     return
 
-def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
+def eazy_input_files(photom, input_dir, name, out_dir, id_col=None, prior_filter=None,
                      templates='eazy_v1.3', combo="a", cosmo=None,
                      magnitudes=False, prior=_default_prior,
                      zmin=0.050, zmax=7.000, zstep=0.0010, prior_ABZP=23.9,
@@ -123,7 +123,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
       - param file
 
     Args:
-        photom (dict):
+        photom (dict or Table):
             Held by an FRBGalaxy object
         input_dir (str):
             Path to eazy inputs/ folder  (can be relative)
@@ -132,6 +132,8 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
             Name of the source being analzyed
         out_dir (str):
             Path to eazy OUTPUT folder *relative* to the input_dir
+        id_col (str):
+            Column name to be used as the ID.
         prior_filter (str, optional):
             If provided, use the flux in this filter for EAZY's prior
         templates (str, optional):
@@ -166,6 +168,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     if cosmo is None:
         cosmo = Planck15
 
+    # Convert to table if input photom is a dict.
+    if type(photom)==dict:
+        photom = Table([photom])
+
     # Output filenames
     catfile, param_file, translate_file = eazy_filenames(input_dir, name)
 
@@ -184,10 +190,20 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     # Test combo
     assert combo in _acceptable_combos, "Allowed values of 'combo' are {}".format(_acceptable_combos)
 
+    # Test id col
+    if id_col is None:
+        if 'id' in photom.colnames:
+            id_col = "id"
+        else:
+            photom['id'] = np.arange(len(photom))
+            id_col = 'id'
+    else:
+        assert id_col in photom.colnames, "Could not find {:s} in the photometry table.".format(id_col)
+
     # Generate the translate file
     filters = []
     codes = []
-    for filt in photom.keys():
+    for filt in photom.colnames:
         if 'EBV' in filt:
             continue
         if 'err' in filt:
@@ -207,29 +223,17 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
         codes.append(code)
     # Do it
     with open(translate_file, 'w') as f:
+        f.write(id_col+" id\n")
         for code, filt in zip(codes, filters):
             f.write('{} {} \n'.format(filt, code))
     print("Wrote: {}".format(translate_file))
 
     # Catalog file
-    # Generate a simple table
-    phot_tbl = Table()
-    phot_tbl[filters[0]] = [photom[filters[0]]]
-    for filt in filters[1:]:
-        phot_tbl[filt] = photom[filt]
     # Convert --
-    fluxtable = catalog_utils.convert_mags_to_flux(phot_tbl, fluxunits='uJy')
+    fluxtable = catalog_utils.convert_mags_to_flux(photom, fluxunits='uJy')
     # Write
-    newfs, newv = [], []
-    for key in fluxtable.keys():
-        newfs.append(key)
-        newv.append(str(fluxtable[key].data[0]))
-    with open(catfile, 'w') as f:
-        # Filters
-        allf = ' '.join(newfs)
-        f.write('# {} \n'.format(allf))
-        # Values
-        f.write(' '.join(newv))
+    fluxtable.write(catfile, format="ascii.commented_header", overwrite=True)
+
     print("Wrote catalog file: {}".format(catfile))
     base_cat = os.path.basename(catfile)
 
