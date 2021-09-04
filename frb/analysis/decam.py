@@ -88,9 +88,11 @@ def prepare_bkg(img:np.ndarray, sigma_clip_level:float=3.,
     
     return bkg.background, noise.background
 
-def _source_table(data, segm, bkg_img=None, error_img=None, **sourcecat_kwargs):
+def _source_table(data:np.ndarray, segm:np.ndarray,
+                  bkg_img:np.ndarray=None, error_img:np.ndarray=None,
+                  **sourcecat_kwargs)->tuple:
     """
-    Helper function for exxtract sources
+    Helper function for extract sources
     """
     # Do photometry and produce a source catalog
     segmap = SegmentationImage(segm)
@@ -102,7 +104,7 @@ def _source_table(data, segm, bkg_img=None, error_img=None, **sourcecat_kwargs):
 
 def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:np.ndarray,
                     threshold:float=3.,minarea:int=5,deblend_cont:float=0.001, clean_param:float=2.,
-                    bkg_kwargs:dict={}, sourcecat_kwargs:dict={})->list:
+                    bkg_kwargs:dict={}, sourcecat_kwargs:dict={})->tuple:
     
     """
     Use sep.extract to produce a segmentation image and subsequently produce a
@@ -360,7 +362,7 @@ def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
                        super_merged['psfMag_'+band.lower()])
     return delta
 
-def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True):
+def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True)->tuple:
     """
     Run `photo_zpt_run` on two standard files
     """
@@ -377,6 +379,19 @@ def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True):
     return zpt, airmass_term
 
 def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity)->tuple:
+    """
+    Distance function for cross matching coordinates. Returns
+    a unique match per object.
+    Args:
+        coord1, coord2 (SkyCoord or array of SkyCoord): Coord pair whose distance is to be measured.
+        seplimit (Quantity[Angle]): Maximum separation for valid match.
+    Returns:
+        idx1 (int or list of int): ID onto coord1 with match object indices.
+        idx2 (int or list of int): ID onto coord2 with match object indices.
+        d2d (Quantity[Angle] or list): Separations between matched objects
+        d3d (Quantity or list): 3D separations if radial distances are specified. If not,
+            assumes objects are on a unit sphere.
+    """
     idx, d2d, d3d = coord1.match_to_catalog_sky(coord2)
     match = d2d<seplimit
     idx1 = np.arange(len(coord1))[match]
@@ -387,13 +402,20 @@ def _get_join_funcs(colname:str, seplimit:units.Quantity)->dict:
     return {colname:join_skycoord(seplimit, _custom_match_func)}
 
 def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
-                        table_names:list=None)->Table:
+                        table_names:tuple=('1','2'))->Table:
     """
-    Given two photometry source catalogs, cross-match and merge them
-    using the custom_match_function. This ensures there is a unique
-    match between tables as opposed to the default join_skycoord
+    Given two source catalogs, cross-match and merge them. This function 
+    ensures there is a unique match between tables as opposed to the default join_skycoord
     behavior which matches multiple objects on the right table to
     a source on the left.
+    Args:
+        tab1, tab2 (Table): Photometry catalogs. Must contain columns named
+            ra and dec.
+        tol (Quantity[Angle], optional): Maximum separation for cross-matching.
+        table_names (tuple of str, optional): Names of the two tables for
+            naming unique columns in the merged table.
+    Returns:
+        merged_table (Table): Merged catalog.
     """
     if table_names is not None:
         assert len(table_names)==2, "Invalid number of table names for two tables."
@@ -410,8 +432,6 @@ def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
     # tab1 INTERSECTION tab2
     inner_join = hstack([matched_tab1, matched_tab2],
                         table_names=table_names)
-    if table_names is None:
-        table_names = ['1', '2']
     tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
     tab2_coord_cols = ['ra_'+table_names[1],"dec_"+table_names[1]]
 
