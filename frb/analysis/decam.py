@@ -399,6 +399,10 @@ def _custom_match_func(coord1:SkyCoord, coord2:SkyCoord, seplimit:units.Quantity
     return idx1, idx2, d2d[match], d3d[match]
 
 def _get_join_funcs(colname:str, seplimit:units.Quantity)->dict:
+    """
+    Useless for now but neat. Can be used in the future.
+    See join_skycoord documentation. Maybe this goes into `catalog_utils`.
+    """
     return {colname:join_skycoord(seplimit, _custom_match_func)}
 
 def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
