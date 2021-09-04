@@ -279,8 +279,8 @@ def _SDSS_query(coord:SkyCoord, radius:units.Quantity,
     sdss_cat = SDSS.query_region(coord, radius=radius,
                                 timeout=timeout, photoobj_fields=photo_obj_fields)
     
-    sdss_cat = sdss_cat[sdss_cat['type']==3]
-    sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg")
+    sdss_cat = sdss_cat[sdss_cat['type']==3] # Select stars
+    sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg") # Give it a SkyCoord field.
     return sdss_cat
 
 def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
