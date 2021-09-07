@@ -13,15 +13,19 @@ from astropy.table import Table, join, join_skycoord, vstack, hstack, setdiff
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from frb.galaxies.defs import SDSS_bands
+from frb.surveys.catalog_utils import xmatch_catalogs
+
 from astroquery.sdss import SDSS
+from astroquery.gaia import Gaia
 
 import sep
 from photutils import Background2D
 from photutils.background import MADStdBackgroundRMS, SExtractorBackground
 from photutils.segmentation import SourceCatalog, SegmentationImage
 
-_DEFAULT_PHOTOBJ_FIELDS = ['ra', 'dec', 'objid','type']
-_DEFAULT_PHOTOBJ_FIELDS += ['psfMag_'+band for band in ['u', 'g', 'r', 'i', 'z']]
+_DEFAULT_PHOTOBJ_FIELDS = ['ra', 'dec', 'G.objid']
+_DEFAULT_PHOTOBJ_FIELDS += ['psfMag_'+band for band in SDSS_bands]
 
 def make_masks(dqmimg:np.ndarray, expimg:np.ndarray, combine:bool=False)->list:
     """
@@ -46,7 +50,7 @@ def make_masks(dqmimg:np.ndarray, expimg:np.ndarray, combine:bool=False)->list:
         return dqm_mask+exp_mask
 
 def prepare_bkg(img:np.ndarray, sigma_clip_level:float=3.,
-                box_size:tuple=(32,32), filter_size:tuple=(3,3),
+                box_size:tuple=(64,64), filter_size:tuple=(3,3),
                 mask:np.ndarray=None, coverage_mask:np.ndarray=None)->list:
     """
     Create local background and noise maps using the Background2D
@@ -97,13 +101,13 @@ def _source_table(data:np.ndarray, segm:np.ndarray,
     # Do photometry and produce a source catalog
     segmap = SegmentationImage(segm)
     source_cat = SourceCatalog(data, segmap, error=error_img,
-                                background=bkg_img, **sourcecat_kwargs).to_table()
+                                background=bkg_img, **sourcecat_kwargs,).to_table()
 
     return source_cat, segmap
 
 
 def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:np.ndarray,
-                    threshold:float=3.,minarea:int=5,deblend_cont:float=0.001, clean_param:float=2.,
+                    threshold:float=3.,minarea:int=5,deblend_cont:float=0.005, clean_param:float=2.,
                     bkg_kwargs:dict={}, sourcecat_kwargs:dict={})->tuple:
     
     """
@@ -147,7 +151,11 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    source_cat, segmap = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
+    # Get flux as counts/s by dividing the background subtracted image by the expmap.
+    with np.errstate(divide='ignore', invalid='ignore'): # Silence annoying 1/0 or sqrt(nan) warnings temporarily
+        source_cat, segmap = _source_table(data_sub,segm,
+                                       bkg_img,1/np.sqrt(wtmap),
+                                       **sourcecat_kwargs)
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
@@ -161,7 +169,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
     return trimmed_cat, segmap
 
 def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
-                       outdir:str="output", extract_sources_kwargs:dict={})->None:
+                       outdir:str="output")->None:
     """
     Run the extraction steps on the image files and produce 
     an output folder with a source catalog and segmentation map.
@@ -172,7 +180,6 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         exp_file (str): Path to the expsure map.
         wt_file (str): Path to the inverse variance maps
         outdir (str, optional): Path to the output directory.
-        extract_sources_kwargs (dict): Additional arguments for extract_sources.
     """
 
     # Read files
@@ -194,11 +201,9 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         expimg = exphdus[idx].data
         wtimg = wthdus[idx].data
 
+        extract_sources_kwargs = {}
         wcs = WCS(imghdus[idx].header)
-        if 'sourcecat_kwargs' not in extract_sources_kwargs.keys():
-            extract_sources_kwargs['sourcecat_kwargs']= {"wcs":wcs}
-        elif 'wcs' not in extract_sources_kwargs['sourcecat_kwargs'].keys():
-            extract_sources_kwargs['sourcecat_kwargs']['wcs'] = wcs
+        extract_sources_kwargs['sourcecat_kwargs']= {"wcs":wcs}
 
         # Extract
         source_cat, segmap = extract_sources(img,dqmimg=dqmimg,expimg=expimg,wtmap=wtimg,**extract_sources_kwargs)
@@ -206,7 +211,6 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         source_cat['dec'] = source_cat['sky_centroid'].dec.value
         source_cat['tile'] = tilename
         source_cat.remove_column('sky_centroid') #Just inconvenient to use in the long run. RA, Dec better separately.
-
         
         if len(mega_source_cat) == 0:
             mega_source_cat = source_cat
@@ -276,14 +280,18 @@ def _SDSS_query(coord:SkyCoord, radius:units.Quantity,
     Run a simple SDSS PhotoObj query and return a table of 
     model mags for stars.
     """
-    sdss_cat = SDSS.query_region(coord, radius=radius,
-                                timeout=timeout, photoobj_fields=photo_obj_fields)
-    
-    sdss_cat = sdss_cat[sdss_cat['type']==3] # Select stars
+    #TODO: Replace this with a custom query from PhotObj. PhotObjAll
+    # has far too many false detections.
+    query = "SELECT "+", ".join(photo_obj_fields)+"\n"
+    query +="FROM STAR as G\n"
+    query +="JOIN dbo.fGetNearbyObjEq({:f},{:f}, {:f}) AS GN ON G.objID = GN.objID".format(coord.ra.value,
+                                                                                           coord.dec.value,
+                                                                                          radius.to("arcmin").value)
+    sdss_cat = SDSS.query_sql(query)# Select stars
     sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg") # Give it a SkyCoord field.
     return sdss_cat
 
-def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
+def photo_zpt_run(calib_file:str, band:str="r",
                   save_tab:str=None, verbose:bool=True)->float:
     """
     Run a crude segmentation map based photometry on
@@ -319,7 +327,6 @@ def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
                 clean_param=2., err=np.ascontiguousarray(noise_img),segmentation_map=True)
         sources, _ = _source_table(data_sub, segmap, bkg_img, noise_img, wcs = wcs)
         sources.sort("segment_flux")
-        sources = sources[-brightest:]
 
         # Run an SDSS query in the same region
         try:
@@ -330,14 +337,18 @@ def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
             elif verbose:
                 print("Skipped "+hdr['extname']+" because of a query failure")
             continue
-        # Select stars only
-        sdss_cat = sdss_cat[sdss_cat['type']==3]
         sdss_cat['sky_centroid'] = SkyCoord(sdss_cat['ra'],sdss_cat['dec'], unit="deg")
+        sources['ra'] = sources['sky_centroid'].ra.value
+        sources['dec'] = sources['sky_centroid'].dec.value
+        badcoords = np.isnan(sources['ra'])+np.isnan(sources['dec'])
+        matched_sources, matched_stars = xmatch_catalogs(sources[~badcoords], sdss_cat)
+        merged = hstack([matched_sources, matched_stars])
+        tab1_coord_cols = ['ra_1', "dec_1"]
+        tab2_coord_cols = ['ra_2', "dec_2"]
 
-        # Cross match sources against SDSS
-        join_funcs={'sky_centroid': join_skycoord(0.1 * u.arcsec)}
-        merged = join(sources, sdss_cat, keys="sky_centroid", join_funcs=join_funcs)
-        merged.remove_columns(['sky_centroid_1', 'sky_centroid_2'])
+
+        merged.remove_columns(tab2_coord_cols+['sky_centroid_1', 'sky_centroid_2'])
+        merged.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
         # Combine results of cross-matching into one giant table 
         if len(super_merged)==0:
@@ -351,15 +362,28 @@ def photo_zpt_run(calib_file:str, band:str="r", brightest:int=50,
         elif verbose:
             print("Done processing "+hdr['extname'])
 
+     # Cross match with Gaia to reduce falsed detections
+    if verbose:
+        print("Gaia cross match")
+    query = "SELECT ra, dec, phot_rp_mean_mag\n"
+    query += "FROM " + Gaia.MAIN_GAIA_TABLE +"\n"
+    query += """WHERE 1=CONTAINS(POINT('ICRS', ra, dec),
+                CIRCLE('ICRS',{ra},{dec},{radius}))""".format(**{'ra':np.median(super_merged['ra']),
+                                                                'dec':np.median(super_merged['dec']),
+                                                                'radius':2.})
+    gaia_tab = Gaia.launch_job_async(query).get_results()
+    matched_gaia, matched_des = xmatch_catalogs(gaia_tab, Table(super_merged), skydist=1.0*u.arcsec)
+    matched_des['gaia_rp'] = matched_gaia['phot_rp_mean_mag']
     # Write table to disk?
     if save_tab is None:
         save_tab = calib_file.split("/")[-1].split(".")[0]+"_std_results.txt"
-        super_merged.write(save_tab, format="ascii.fixed_width", overwrite=True)
+        matched_des.write(save_tab, format="ascii.fixed_width", overwrite=True)
         if verbose:
             print("Wrote results to "+save_tab)
+
     # Compute delta
-    delta = np.median(-2.5*np.log10(super_merged['segment_flux']/stdhdus[0].header['exptime'])-
-                       super_merged['psfMag_'+band.lower()])
+    delta = np.median(-2.5*np.log10(matched_des['segment_flux']/stdhdus[0].header['exptime'])-
+                       matched_des[band.lower()])
     return delta
 
 def get_zpt(calib_file_1:str, calib_file_2:str, band:str, verbose:bool=True)->tuple:
@@ -426,12 +450,7 @@ def merge_photom_tables(tab1:Table, tab2:Table, tol:units.Quantity=1*u.arcsec,
         assert (type(table_names[0])==str)&(type(table_names[1])==str), "Table names should be strings."
 
 
-    coord1 = SkyCoord(tab1['ra'], tab1['dec'], unit="deg")
-    coord2 = SkyCoord(tab2['ra'], tab2['dec'], unit="deg")
-    idx, d2d, _ = coord1.match_to_catalog_sky(coord2)
-    match = d2d<tol
-    matched_tab2 = tab2[idx][match]
-    matched_tab1 = tab1[match]
+    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol)
 
     # tab1 INTERSECTION tab2
     inner_join = hstack([matched_tab1, matched_tab2],
