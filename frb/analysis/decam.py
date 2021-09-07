@@ -151,7 +151,11 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
                           clean_param=clean_param, err=np.ascontiguousarray(noise_img),
                           mask=None, segmentation_map=True)
     # Do photometry and produce a source catalog
-    source_cat, segmap = _source_table(data_sub,segm,bkg_img,1/np.sqrt(wtmap),**sourcecat_kwargs)
+    # Get flux as counts/s by dividing the background subtracted image by the expmap.
+    with np.errstate(divide='ignore', invalid='ignore'): # Silence annoying 1/0 or sqrt(nan) warnings temporarily
+        source_cat, segmap = _source_table(data_sub,segm,
+                                       bkg_img,1/np.sqrt(wtmap),
+                                       **sourcecat_kwargs)
 
     # Clean source cat
     select = ~np.isnan(source_cat['xcentroid']) # No xcentroid
@@ -176,7 +180,6 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         exp_file (str): Path to the expsure map.
         wt_file (str): Path to the inverse variance maps
         outdir (str, optional): Path to the output directory.
-        extract_sources_kwargs (dict): Additional arguments for extract_sources.
     """
 
     # Read files
