@@ -13,7 +13,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr2"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the data model for DES data
@@ -48,7 +48,7 @@ class DES_Survey(dlsurvey.DL_Survey):
         self.bands = ['g', 'r', 'i', 'z', 'y']
         self.svc = _svc
         self.qc_profile = "default"
-        self.database = "des_dr1.main"
+        self.database = "des_dr2.main"
 
     def _parse_cat_band(self,band):
         """
