@@ -112,6 +112,10 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
+NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
+for band in NSC_bands:
+    valid_filters.append('NSC_{:s}'.format(band))
+
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
 valid_flux = [entry+'_flux' for entry in valid_filters]
