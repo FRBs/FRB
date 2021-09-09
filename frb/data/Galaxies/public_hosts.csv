@@ -16,3 +16,4 @@ FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,B
 20200120E,09h55m33.1730s +69d03m55.061s,0.0008,,,,,,,
 20200430,15h18m49.52s +12d22m35.8s,0.1608,"CRAFT,Realfast","Heintz2020,Bhandari2021",,DEIMOS,"4000.,5100;7590., 7610;9500., 11000.",SDSS_i,
 20200906,03h33m59.00s -14d04m59.37s,0.3688,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.; 6675.,6725.;7580, 7750.",VLT-FORS2_I,
+20201124,05h08m03.477s +26d03m37.93s,0.0979,"F4","fong2021",,,,,
