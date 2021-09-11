@@ -675,7 +675,7 @@ def frb_201124():
     FRB_201124_coord = SkyCoord("05h08m03.5077s 26d03m38.504s", frame='icrs')
     frb201124 = frb.FRB('FRB20201124', FRB_201124_coord,
                         411. * units.pc / units.cm ** 3,
-                        z_frb=0.0982, repeater=False)
+                        z_frb=0.0982, repeater=True)
 
     # Error ellipse [REQUIRED]
     frb201124.set_ee(0.004, 0.004, theta=0., cl=68.) # ATEL
