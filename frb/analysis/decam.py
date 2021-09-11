@@ -107,7 +107,7 @@ def _source_table(data:np.ndarray, segm:np.ndarray,
 
 
 def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:np.ndarray,
-                    threshold:float=3.,minarea:int=5,deblend_cont:float=0.005, clean_param:float=2.,
+                    threshold:float=2,minarea:int=5,deblend_cont:float=0.005, clean_param:float=2.,
                     bkg_kwargs:dict={}, sourcecat_kwargs:dict={})->tuple:
     
     """
@@ -153,8 +153,8 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
     # Do photometry and produce a source catalog
     # Get flux as counts/s by dividing the background subtracted image by the expmap.
     with np.errstate(divide='ignore', invalid='ignore'): # Silence annoying 1/0 or sqrt(nan) warnings temporarily
-        source_cat, segmap = _source_table(data_sub,segm,
-                                       bkg_img,1/np.sqrt(wtmap),
+        source_cat, segmap = _source_table(img/expimg,segm,
+                                       bkg_img/expimg,1/np.sqrt(wtmap)/expimg,
                                        **sourcecat_kwargs)
 
     # Clean source cat
@@ -169,7 +169,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
     return trimmed_cat, segmap
 
 def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
-                       outdir:str="output")->None:
+                       outdir:str="output", verbose:bool=True)->None:
     """
     Run the extraction steps on the image files and produce 
     an output folder with a source catalog and segmentation map.
@@ -182,11 +182,21 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         outdir (str, optional): Path to the output directory.
     """
 
+    if verbose:
+        print("Doing "+img_file+"...")
+
     # Read files
     imghdus = fits.open(img_file, memmap=True)
     dqmhdus = fits.open(dqm_file, memmap=True)
     exphdus = fits.open(exp_file, memmap=True)
     wthdus = fits.open(wt_file, memmap=True)
+
+    try:
+        import progressbar
+        bar =  progressbar.ProgressBar(max_value=len(imghdus)-1)
+        pbexists = True
+    except ImportError:
+        pbexists = False
 
     if not os.path.isdir(outdir):
         os.mkdir(outdir)
@@ -195,7 +205,6 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
     mega_source_cat = Table()
     for idx in np.arange(1,len(imghdus)):
         tilename = imghdus[idx].header['EXTNAME']
-        print("Processing {}".format(tilename))
         img = imghdus[idx].data
         dqmimg = dqmhdus[idx].data
         expimg = exphdus[idx].data
@@ -203,7 +212,7 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
 
         extract_sources_kwargs = {}
         wcs = WCS(imghdus[idx].header)
-        extract_sources_kwargs['sourcecat_kwargs']= {"wcs":wcs}
+        extract_sources_kwargs['sourcecat_kwargs']= {"wcs":wcs, 'kron_params':(2.5,3.5)}
 
         # Extract
         source_cat, segmap = extract_sources(img,dqmimg=dqmimg,expimg=expimg,wtmap=wtimg,**extract_sources_kwargs)
@@ -218,6 +227,10 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
             mega_source_cat = vstack([mega_source_cat, source_cat])
 
         np.savez_compressed(os.path.join(outdir, tilename+"_segmap.npz"), segmap=segmap)
+        if verbose&pbexists:
+            bar.update(idx)
+        elif verbose:
+            print("Finished processing {}".format(tilename))
     # Write
     mega_source_cat.write(os.path.join(outdir, img_file.split("/")[-1].split(".")[0]+"_source_cat.fits"), overwrite=True) # Fits for better compressibility
     print("Done!")
@@ -323,7 +336,7 @@ def photo_zpt_run(calib_file:str, band:str="r",
         data_sub = data - bkg_img
 
         # Extract the brightest stars
-        _, segmap = sep.extract(data_sub, 3., minarea=5, deblend_cont=0.005,
+        _, segmap = sep.extract(data_sub, 2., minarea=5, deblend_cont=0.005,
                 clean_param=2., err=np.ascontiguousarray(noise_img),segmentation_map=True)
         sources, _ = _source_table(data_sub, segmap, bkg_img, noise_img, wcs = wcs)
         sources.sort("segment_flux")
