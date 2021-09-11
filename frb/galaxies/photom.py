@@ -66,13 +66,16 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     idx, d2d, _ = match_coordinates_sky(new_coords, old_coords, nthneighbor=1)
     match = d2d < tol
 
+
     # Match?
     if np.sum(match) == len(new_coords):
         # Insist on the same RA, DEC
         new_tbl['ra'] = old_tbl['ra'][idx[0]]
         new_tbl['dec'] = old_tbl['dec'][idx[0]]
         # Join
-        merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
+        merge_tbl = hstack([old_tbl.filled(-999.), new_tbl.filled(-999.)])
+        merge_tbl.remove_columns(['ra_2', 'dec_2'])
+        merge_tbl.rename_columns(['ra_1', 'dec_1'], ['ra', 'dec'])
         #merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
     elif np.sum(match) == 0:
         merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
