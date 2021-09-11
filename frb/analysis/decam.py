@@ -153,7 +153,7 @@ def extract_sources(img:np.ndarray, dqmimg:np.ndarray, expimg:np.ndarray, wtmap:
     # Do photometry and produce a source catalog
     # Get flux as counts/s by dividing the background subtracted image by the expmap.
     with np.errstate(divide='ignore', invalid='ignore'): # Silence annoying 1/0 or sqrt(nan) warnings temporarily
-        source_cat, segmap = _source_table(img/expimg,segm,
+        source_cat, segmap = _source_table(data_sub/expimg,segm,
                                        bkg_img/expimg,1/np.sqrt(wtmap)/expimg,
                                        **sourcecat_kwargs)
 
