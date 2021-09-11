@@ -72,11 +72,14 @@ def load_specdb(specdb_file=None):
     return specDB
 
 
-def list_of_hosts():
+def list_of_hosts(skip_bad_hosts=True):
     """
     Scan through the Repo and generate a list of FRB Host galaxies
 
     Also returns a list of the FRBs
+
+    Args:
+        skip_bad_hosts (bool):
 
     Returns:
         list, list:
@@ -93,7 +96,14 @@ def list_of_hosts():
         # Parse
         name = ifile.split('.')[-2]
         ifrb = frb.FRB.by_name(name)
-        host = ifrb.grab_host()
+        try:
+            host = ifrb.grab_host()
+        except AssertionError as e:
+            if skip_bad_hosts:
+                print(f"Skipping bad host of FRB {ifrb}")
+                continue
+            else:
+                raise e
         if host is not None:
             hosts.append(host)
             frbs.append(ifrb)
@@ -153,10 +163,15 @@ def build_table_of_hosts():
         # Slurp using Nan's for missing values
         tbl_dict = {}
         for key in uni_keys:
-            tbl_dict[key] = np.array([np.nan]*nhosts)
+            #tbl_dict[key] = np.array([np.nan]*nhosts)
+            tbl_dict[key] = [np.nan]*nhosts
+
+        # Fill in
         for ss in range(nhosts): #, host in enumerate(hosts):
             for pkey in dicts[ss].keys(): #host.photom.keys():
                 tbl_dict[pkey][ss] = dicts[ss][pkey]
+
+        # Now build the table
         for key in tbl_dict.keys():
             # Error check
             if key in host_tbl.keys():
