@@ -292,6 +292,8 @@ class FRBGalaxy(object):
 
         Fills the self.photom dict
 
+        Also fills fluxes in mJy
+
         Args:
             phot_tbl (astropy.table.Table):
                 ra, dec entires are required
@@ -312,7 +314,8 @@ class FRBGalaxy(object):
             return
         # Get a flux table
         flux_tbl = convert_mags_to_flux(phot_tbl, fluxunits='mJy')
-        # Fill
+
+        # Fill fluxes (mJy)
         for filter in defs.valid_filters:
             # Value
             if filter in phot_tbl.keys():

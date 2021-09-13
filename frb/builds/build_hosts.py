@@ -309,7 +309,6 @@ def run(host_input:pandas.core.series.Series,
         Host.parse_photom(merge_tbl, EBV=EBV)
     else:
         print(f"No photometry for {file_root}")
-        
 
     # CIGALE
     found_cigale, cigale_file = search_for_file(

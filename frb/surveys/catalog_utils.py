@@ -211,6 +211,7 @@ def _detect_mag_cols(photometry_table):
     """
     Searches the column names of a 
     photometry table for columns with mags.
+
     Args:
         photometry_table: astropy Table
             A table containing photometric
@@ -265,7 +266,7 @@ def mag_from_flux(flux, flux_err=None):
         err_mag = None
     return mag_AB, err_mag
 
-def _mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err:float=None)->float:
+def _mags_to_flux(mag, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err=None):
     """
     Convert a magnitude to mJy
 
@@ -275,25 +276,24 @@ def _mags_to_flux(mag:float, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err
             Assumes AB mags by default (i.e. zpt_flux = 3630.7805 Jy). 
         mag_err (float, optional): uncertainty in magnitude
     Returns:
-        flux (float): flux in mJy
-        flux_err (float): if mag_err is given, a corresponding
+        flux (column): flux in mJy
+        flux_err (column): if mag_err is given, a corresponding
             flux_err is returned.
     """
-    # Data validation
-    #assert np.isreal(mag), "Mags must be floats."
-    #assert (np.isreal(mag_err)) + (mag_err==None), "Mag errs must be floats"
+    # Data validation -- check for Jy
     assert (type(zpt_flux) == units.Quantity)*(zpt_flux.decompose().unit == units.kg/units.s**2), "zpt_flux units should be Jy or with dimensions kg/s^2."
 
+    # Prepare output column
     flux = mag.copy()
 
-    # Conver fluxes
+    # Convert fluxes
     badmags = mag<-10
     flux[badmags] = -99.
     flux[~badmags] = zpt_flux.value*10**(-mag[~badmags]/2.5)
     
     if mag_err is not None:
         flux_err = mag_err.copy()
-        baderrs = mag_err < 0
+        baderrs = (mag_err < 0) | (mag_err == 999.)
         flux_err[baderrs] = -99.
         flux_err[~baderrs] = flux[~baderrs]*(10**(mag_err[~baderrs]/2.5)-1)
         return flux, flux_err
@@ -305,6 +305,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     Takes a table of photometric measurements
     in mags and converts it to flux units.
 
+    ..todo..   NEED TO ADD DOCS ON WISE, VISTA, ETC..
+
     Args:
         photometry_table (astropy.table.Table):
             A table containing photometric
@@ -312,12 +314,14 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxunits (str, optional):
             Flux units to convert the magnitudes
             to, as parsed by astropy.units. Default is mJy.
-        Returns:
-            fluxtable: astropy Table
+
+    Returns:
+        fluxtable: astropy Table
                 `photometry_table` but the magnitudes
                 are converted to fluxes.
     """
     fluxtable = photometry_table.copy()
+    # Find columns with magnitudes based on filter names
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
     convert = units.Jy.to(fluxunits)
     #If there's a "W" in the column name, it's from WISE
@@ -363,23 +367,19 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     other_errs = np.setdiff1d(mag_errcols, wise_errcols+vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
-        flux, flux_err = _mags_to_flux(photometry_table[mag], mag_err = photometry_table[err])
+        flux, flux_err = _mags_to_flux(photometry_table[mag], 
+                                       mag_err=photometry_table[err])
+
+        # Allow for bad flux values
         badflux = flux == -99.
         fluxtable[mag][badflux] = flux[badflux]
         fluxtable[mag][~badflux] = flux[~badflux]*convert
-        #if flux != -99.:
-        #    fluxtable[mag] = flux*convert
-        #else:
-        #    fluxtable[mag] = flux
+
+        # Allow for bad errors
         baderr = flux_err == -99.0
         fluxtable[err][baderr] = flux_err[baderr]
         fluxtable[err][~baderr] = flux_err[~baderr]*convert
 
-        # Upper limits -- Assume to have been recorded as 3 sigma
-        #   Arbitrarily set the value to 1/3 of the error (could even set to 0)
-        uplimit = photometry_table[err] == 999.
-        fluxtable[err][uplimit] = fluxtable[mag][uplimit] / 3.
-        fluxtable[mag][uplimit] = fluxtable[mag][uplimit] / 9.
     return fluxtable
     
     
