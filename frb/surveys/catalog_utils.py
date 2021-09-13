@@ -380,6 +380,12 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[err][baderr] = flux_err[baderr]
         fluxtable[err][~baderr] = flux_err[~baderr]*convert
 
+        # Upper limits -- Record as 3sigma
+        #   and set error to -99.
+        uplimit = photometry_table[err] == 999.
+        fluxtable[err][uplimit] = -99. #fluxtable[mag][uplimit] / 3.
+        fluxtable[mag][uplimit] = fluxtable[mag][uplimit] 
+
     return fluxtable
     
     
