@@ -226,7 +226,7 @@ def process_image_file(img_file:str, dqm_file:str, exp_file:str, wt_file:str,
         else:
             mega_source_cat = vstack([mega_source_cat, source_cat])
 
-        np.savez_compressed(os.path.join(outdir, tilename+"_segmap.npz"), segmap=segmap)
+        fits.HDUList([fits.PrimaryHDU(segmap, header=wcs.to_header())]).writeto(os.path.join(outdir, tilename+"_segmap.fits"),overwrite=True)
         if verbose&pbexists:
             bar.update(idx)
         elif verbose:
