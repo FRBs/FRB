@@ -113,6 +113,7 @@ for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
 
+# For upper limits, the flux is 3sigma and the error is set to -99.0
 valid_flux = [entry+'_flux' for entry in valid_filters]
 valid_ref = [entry+'_ref' for entry in valid_filters]
 
