@@ -319,6 +319,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable: astropy Table
                 `photometry_table` but the magnitudes
                 are converted to fluxes.
+                For upper limits, the flux is the 3sigma value and
+                the error is set to -99.
     """
     fluxtable = photometry_table.copy()
     # Find columns with magnitudes based on filter names
