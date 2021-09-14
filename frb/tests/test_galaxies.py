@@ -1,6 +1,3 @@
-# Module to run tests on galaxy modules
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 # TEST_UNICODE_LITERALS
 
 import pytest
@@ -13,9 +10,7 @@ from astropy.coordinates import SkyCoord
 
 from frb.galaxies import nebular
 
-remote_data = pytest.mark.remote_data
 
-@remote_data
 def test_ebv():
 
     coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
@@ -25,4 +20,4 @@ def test_ebv():
     assert isinstance(ebv, dict)
     for key in ['meanValue', 'std', 'minValue']:
         assert key in ebv.keys()
-    assert np.isclose(float(ebv['meanValue']), 0.0201)
+    assert np.isclose(float(ebv['meanValue']), 0.0172)
