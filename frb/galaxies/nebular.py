@@ -208,7 +208,8 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
 
     return SFR
 
-def get_ebv(coords,definition="SFD",region=5*units.deg,get_ext_table=False):
+def get_ebv(coords,definition="SandF",
+            region=5*units.deg,get_ext_table=False):
     """
     Get the E(B-V) value and statistic from the Milky way dust extinction
     within the query region around the input coordinate
