@@ -52,6 +52,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.bands = ['g', 'r', 'z']
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
+        self.database = "ls_dr9.tractor"
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
         """
@@ -130,8 +131,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
             snr_fields = ['snr_'+band for band in self.bands]
             query_fields = object_id_fields+mag_fields+snr_fields
         
-        database = "ls_dr7.tractor"
-        self.query = dlsurvey._default_query_str(query_fields, database, self.coord, self.radius)
+        
+        self.query = dlsurvey._default_query_str(query_fields, self.database, self.coord, self.radius)
         
     def _select_best_img(self,imgTable, verbose=True, timeout=120):
         """
