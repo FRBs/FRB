@@ -62,16 +62,16 @@
         "physical_err": 3.3141906153452187
     },
     "photom": {
-        "EBV": 0.0242,
-        "VLT_FORS2_I": 21.958492764537603,
+        "EBV": 0.0208,
+        "VLT_FORS2_I": 21.964323345947307,
         "VLT_FORS2_I_err": 0.4,
-        "VLT_FORS2_I_flux": 0.00597864667718756,
-        "VLT_FORS2_I_flux_err": 0.0026631270052573275,
+        "VLT_FORS2_I_flux": 0.005946626418392909,
+        "VLT_FORS2_I_flux_err": 0.002648863908520613,
         "VLT_FORS2_I_ref": "Bhandari2021",
-        "VLT_FORS2_g": 22.607892812634343,
+        "VLT_FORS2_g": 22.62082825421085,
         "VLT_FORS2_g_err": 0.5,
-        "VLT_FORS2_g_flux": 0.003287326715936929,
-        "VLT_FORS2_g_flux_err": 0.0019227350175470585,
+        "VLT_FORS2_g_flux": 0.003248393947356901,
+        "VLT_FORS2_g_flux_err": 0.0018999635062409365,
         "VLT_FORS2_g_ref": "Bhandari2021"
     },
     "ra": 344.4308541666666,
