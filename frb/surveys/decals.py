@@ -14,14 +14,13 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    #_DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
     _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr9"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the Photometric data model for DECaL
 photom = {}
 photom['DECaL'] = {}
-DECaL_bands = ['g', 'r', 'z']#, 'W1', 'W2', 'W3', 'W4']
+DECaL_bands = ['g', 'r', 'z']
 for band in DECaL_bands:
     if "W" not in band:
         bandstr = 'DECaL_'+band
@@ -127,8 +126,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         """
         if query_fields is None:
             object_id_fields = ['decals_id','brick_primary','brickid','ra','dec','gaia_pointsource']
-            mag_fields = ['mag_g','mag_r','mag_z','mag_w1','mag_w2','mag_w3','mag_w4']
-            snr_fields = ['snr_g','snr_r','snr_z','snr_w1','snr_w2','snr_w3','snr_w4']
+            mag_fields = ['mag_'+band for band in self.bands]
+            snr_fields = ['snr_'+band for band in self.bands]
             query_fields = object_id_fields+mag_fields+snr_fields
         
         database = "ls_dr7.tractor"
