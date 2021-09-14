@@ -305,7 +305,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     Takes a table of photometric measurements
     in mags and converts it to flux units.
 
-    ..todo..   NEED TO ADD DOCS ON WISE, VISTA, ETC..
+    ..todo..   NEED TO ADD DOCS ON VISTA, ETC..
 
     Args:
         photometry_table (astropy.table.Table):
@@ -328,24 +328,27 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     convert = units.Jy.to(fluxunits)
     #If there's a "W" in the column name, it's from WISE
     # TODO -- We need to deal with this hack
-    wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
-    wise_errcols = sorted([col for col in mag_errcols if ("W" in col and 'WFC3' not in col)])
+    #wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
+    #wise_errcols = sorted([col for col in mag_errcols if ("W" in col and 'WFC3' not in col)])
 
     #Similarly define vista cols
     vistacols = sorted([col for col in mag_cols if "VISTA" in col])
     vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
 
-    fnu0 = {'WISE_W1':309.54,
-            'WISE_W2':171.787,
-            'WISE_W3':31.674,
-            'WISE_W4':8.363,
+    fnu0 = {#'WISE_W1':309.54,   # THIS IS NOW DONE IN the WISE survey class
+            #'WISE_W2':171.787,
+            #'WISE_W3':31.674,
+            #'WISE_W4':8.363,
             'VISTA_Y':2087.32,
             'VISTA_J':1554.03,
             'VISTA_H':1030.40,
             'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
                                #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-    for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
-        flux, flux_err = _mags_to_flux(photometry_table[mag], fnu0[mag]*units.Jy, photometry_table[err])
+    #for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
+    for mag,err in zip(vistacols,vista_errcols):
+        flux, flux_err = _mags_to_flux(photometry_table[mag], 
+                                       fnu0[mag]*units.Jy, 
+                                       photometry_table[err])
         badflux = flux == -99.
         fluxtable[mag][badflux] = flux[badflux]
         fluxtable[mag][~badflux] = flux[~badflux]*convert
@@ -365,8 +368,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
             fluxtable.rename_column(err,err.replace("W","WISE"))
 
     #For all other photometry:
-    other_mags = np.setdiff1d(mag_cols, wisecols+vistacols)
-    other_errs = np.setdiff1d(mag_errcols, wise_errcols+vista_errcols)
+    other_mags = np.setdiff1d(mag_cols, vistacols)
+    other_errs = np.setdiff1d(mag_errcols, vista_errcols)
 
     for mag, err in zip(other_mags, other_errs):
         flux, flux_err = _mags_to_flux(photometry_table[mag], 

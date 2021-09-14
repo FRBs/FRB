@@ -116,14 +116,14 @@ def photom_by_name(name, filelist):
     return final_tbl.filled(fill_value)
 
 
-def extinction_correction(filter, EBV, RV=3.1, max_wave=None, required=True):
+def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     """
     calculate MW extinction correction for given filter
 
     Uses the Fitzpatrick & Massa (2007) extinction law
 
     Args:
-        filter (str):
+        filt (str):
             filter name (name of file without .dat extension)
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
@@ -141,12 +141,13 @@ def extinction_correction(filter, EBV, RV=3.1, max_wave=None, required=True):
 
     """
     # Read in filter in Table
-    path_to_filters = os.path.join(resource_filename('frb', 'data'), 'analysis', 'CIGALE')
+    path_to_filters = os.path.join(resource_filename('frb', 'data'), 
+                                   'analysis', 'CIGALE')
     # Hack for LRIS which does not differentiate between cameras
-    if 'LRIS' in filter:
-        _filter = 'LRIS_{}'.format(filter[-1])
+    if 'LRIS' in filt:
+        _filter = 'LRIS_{}'.format(filt[-1])
     else:
-        _filter = filter
+        _filter = filt
     filter_file = os.path.join(path_to_filters, _filter+'.dat')
     if not os.path.isfile(filter_file):
         msg = "Filter {} is not in the Repo.  Add it!!".format(filter_file)
@@ -217,29 +218,31 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         if key in ['Name', 'ra', 'dec', 'extinction', 'SDSS_ID',
                    'run', 'rerun'] or 'err' in key:
             continue
-        filter = key
-        if filter not in defs.valid_filters:
-            print("Assumed filter {} is not in our valid list.  Skipping extinction".format(filter))
+        filt = key
+        if filt not in defs.valid_filters:
+            print("Assumed filter {} is not in our valid list.  Skipping extinction".format(
+                filt))
             continue
         # -999? -- Not even measured
         try:
-            if cut_photom[filter] <= -999.:
+            if cut_photom[filt] <= -999.:
                 continue
         except:
-            embed(header='187')
+            embed(header='187 in photom')
         # SDSS
-        if 'SDSS' in filter:
-            if 'extinction_{}'.format(filter[-1]) in photom.keys():
+        if 'SDSS' in filt:
+            if 'extinction_{}'.format(filt[-1]) in photom.keys():
                 print("Appying SDSS-provided extinction correction")
-                cut_photom[key] -= cut_photom['extinction_{}'.format(filter[-1])]
+                cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
                 continue
         # Hack for LRIS
-        if 'LRIS' in filter:
-            _filter = 'LRIS_{}'.format(filter[-1])
+        if 'LRIS' in filt:
+            _filter = 'LRIS_{}'.format(filt[-1])
         else:
-            _filter = filter
+            _filter = filt
         # Do it
-        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, required=required)
+        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, 
+                                             required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
         cut_photom[key] += mag_dust
     # Add it back in

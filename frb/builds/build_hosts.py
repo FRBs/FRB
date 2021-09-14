@@ -244,13 +244,14 @@ def run(host_input:pandas.core.series.Series,
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
             continue
         # Skip WISE?
-        if key in ['WISE'] and inside['DES']:
-            continue
+        #if key in ['WISE'] and inside['DES']:
+        #    continue
         # Slurp
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
         srvy_tbl = survey.get_catalog(print_query=True)
+        #embed(header='254 of build')
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         elif len(srvy_tbl) > 1:
@@ -263,7 +264,6 @@ def run(host_input:pandas.core.series.Series,
         else:
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
 
-    
     # Literature time
     if lit_refs is None:
         lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
@@ -303,7 +303,7 @@ def run(host_input:pandas.core.series.Series,
     # Finish
     if merge_tbl is not None:
         # Dust correct
-        EBV = nebular.get_ebv(gal_coord)['meanValue']  # 0.061
+        EBV = nebular.get_ebv(gal_coord)['meanValue']
         frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
         # Parse
         Host.parse_photom(merge_tbl, EBV=EBV)
@@ -315,8 +315,8 @@ def run(host_input:pandas.core.series.Series,
         project_list, ref_list, '_CIGALE.fits',
         prefix=file_root,
         return_last_file=build_cigale)
-    #cigale_file = os.path.join(GDB_path, 
-    #                           file_root+'_CIGALE.fits')
+
+
     if cigale_file is not None:
         sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
 

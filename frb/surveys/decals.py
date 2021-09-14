@@ -14,14 +14,14 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr7"
+    #_DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr9"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the Photometric data model for DECaL
 photom = {}
 photom['DECaL'] = {}
-DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
+DECaL_bands = ['g', 'r', 'z']#, 'W1', 'W2', 'W3', 'W4']
 for band in DECaL_bands:
     if "W" not in band:
         bandstr = 'DECaL_'+band

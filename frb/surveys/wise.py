@@ -1,10 +1,13 @@
 """WISE Survey"""
 
+import numpy as np
 from astropy import units, io, utils
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from astropy.table import Table
+
+from IPython import embed
 
 try:
     from pyvo.dal import TAPService, sia
@@ -54,7 +57,8 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.query = None
         self.database = "allwise_p3as_psd"
 
-    def get_catalog(self, query=None, query_fields=_DEFAULT_query_fields, print_query=False):
+    def get_catalog(self, query=None, query_fields=_DEFAULT_query_fields, 
+                    print_query=False, system='AB'):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
@@ -62,10 +66,13 @@ class WISE_Survey(surveycoord.SurveyCoord):
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
+            system (str): Magnitude system ['AB', 'Vega']
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
             photometry for matched sources.
+
+            Magnitudes are in AB by default
         """
         # Main WISE query
         if query is None:
@@ -80,6 +87,18 @@ class WISE_Survey(surveycoord.SurveyCoord):
             return main_cat
         
         main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
+
+        # Convert to AB mag
+        if system == 'AB':
+            fnu0 = {'WISE_W1':309.54,
+                    'WISE_W2':171.787,
+                    'WISE_W3':31.674,
+                    'WISE_W4':8.363}
+            for item in ['1','2','3','4']:
+                filt = 'WISE_W'+item
+                main_cat[filt] -= 2.5*np.log10(fnu0[filt]/3631.)
+        elif system == 'Vega':
+            pass
 
         # Finish
         self.catalog = main_cat
