@@ -14,7 +14,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr9"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr8"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the Photometric data model for DECaL
@@ -28,7 +28,7 @@ for band in DECaL_bands:
         bandstr = 'WISE_'+band
     photom['DECaL'][bandstr] = 'mag_{:s}'.format(band.lower())
     photom['DECaL'][bandstr+"_err"] = 'snr_{:s}'.format(band.lower())
-photom['DECaL']['DECaL_ID'] = 'decals_id'
+photom['DECaL']['DECaL_ID'] = 'ls_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
 photom['DECaL']['DECaL_brick'] = 'brickid'
@@ -52,7 +52,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.bands = ['g', 'r', 'z']
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
-        self.database = "ls_dr9.tractor"
+        self.database = "ls_dr8.tractor"
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
         """
@@ -126,7 +126,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         if query_fields is None:
-            object_id_fields = ['decals_id','brick_primary','brickid','ra','dec','gaia_pointsource']
+            object_id_fields = ['ls_id','brick_primary','brickid','ra','dec','gaia_pointsource']
             mag_fields = ['mag_'+band for band in self.bands]
             snr_fields = ['snr_'+band for band in self.bands]
             query_fields = object_id_fields+mag_fields+snr_fields
