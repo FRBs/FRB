@@ -23,8 +23,8 @@ photom = {}
 photom['SDSS'] = {}
 SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
-    photom['SDSS']['SDSS_{:s}'.format(band)] = 'cModelMag_{:s}'.format(band.lower())
-    photom['SDSS']['SDSS_{:s}_err'.format(band)] = 'cModelMagErr_{:s}'.format(band.lower())
+    photom['SDSS']['SDSS_{:s}'.format(band)] = 'modelMag_{:s}'.format(band.lower())
+    photom['SDSS']['SDSS_{:s}_err'.format(band)] = 'modelMagErr_{:s}'.format(band.lower())
 photom['SDSS']['SDSS_ID'] = 'objid'
 photom['SDSS']['ra'] = 'ra'
 photom['SDSS']['dec'] = 'dec'
@@ -74,8 +74,8 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         """
         if photoobj_fields is None:
             photoobj_fs = ['ra', 'dec', 'objid', 'run', 'rerun', 'camcol', 'field','type']
-            mags = ['cModelMag_'+band for band in SDSS_bands]
-            magsErr = ['cModelMagErr_'+band for band in SDSS_bands]
+            mags = ['modelMag_'+band for band in SDSS_bands]
+            magsErr = ['modelMagErr_'+band for band in SDSS_bands]
             extinct = ["extinction_"+band for band in SDSS_bands]
             photoobj_fields = photoobj_fs+mags+magsErr+extinct
 
