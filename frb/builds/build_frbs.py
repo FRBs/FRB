@@ -54,7 +54,7 @@ def frb_180301():
     """
     frbname = 'FRB20180301'
 
-    FRB_180301_coord = SkyCoord("06h12m54.42s +04d40m15.9s", frame='icrs') # Bhadari+2021
+    FRB_180301_coord = SkyCoord("06h12m54.44s +04d40m15.8s", frame='icrs') # Bhandari+2021
     frb180301 = frb.FRB(frbname, FRB_180301_coord,
                         536 * units.pc / units.cm ** 3,
                         z_frb=0.33044, repeater=True)  # Slack posting
