@@ -10,3 +10,5 @@ mannings2021_photom.csv,csv,Mannings2021,arXiv:2012.11617
 bhardwaj2021_derived.csv,csv,Bhardwaj2021,10.3847/2041-8213/abeaa6
 bhandari2021_photom.ascii,ascii.fixed_width,Bhandari2021,arXiv:2108.01282
 fong2021_photom.ascii,ascii.fixed_width,Fong2021,arXiv:2106.11993
+fong2021_nebular.csv,csv,Fong2021,arXiv:2106.11993
+fong2021_derived.csv,csv,Fong2021,arXiv:2106.11993
