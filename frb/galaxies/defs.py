@@ -132,6 +132,8 @@ valid_neb_lines = [
     '[OII] 3729',  # [OII] flux erg/s/cm^2; pPXF
     '[OIII] 4959',  # [OII] 4959 flux erg/s/cm^2; 
     '[OIII] 5007',  # [OII] 5007 flux erg/s/cm^2; pPXF
+    '[SII] 6716',  # [SII] 6716 flux erg/s/cm^2; pPXF
+    '[SII] 6731',  # [SII] 6731 flux erg/s/cm^2; pPXF
 ]
 valid_neb_ref = [entry+'_ref' for entry in valid_neb_lines]
 
