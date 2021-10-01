@@ -179,6 +179,7 @@ valid_derived_photom = [
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
     'age_mass',        # Age weighted mass from CIGALE
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
+    'SFR_radio',       # SFR in Msun/yr from radio photometry
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE

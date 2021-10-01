@@ -1,2 +1,2 @@
-,SFR_nebular,SFR_nebular_err,SFR_3-1100micron,SFR_3-1100micron_err,SFR_radio,12+log(O/H),12+log(O/H)_err,log(LB/LSun),log(Mstar/Msun)_P,log(Mstar/Msun)_P_err,tmass_P,tmass_P_err,tmax_P,tmax_P_err,tau_P,tau_P_err,log(Zstar/ZSun)_P,log(Zstar/ZSun)_P_err,log(Zgas/ZSun)_P,log(Zgas/ZSun)_P_err,AV_old_P,AV_old_P_err,SFR_SED_P,SFR_SED_P_err,log(Mstar/Msun)_NP,log(Mstar/Msun)_NP_err,tmass_NP,tmass_NP_err,log(Zstar/ZSun)_NP,log(Zstar/ZSun)_NP_err,log(Zgas/ZSun)_NP,log(Zgas/ZSun)_NP_err,AV_young_NP,AV_young_NP_err,AV_old_NP,AV_old_NP_err,SFR_SED_NP,SFR_SED_NP_err,sSFR_100Myr_NP,sSFR_100Myr_NP_err,ra,dec
-0,2.1,0.5,4.0,0.7,2.2-5.9,9.03,0.2,10.10,10.23,0.03,4.97,0.44,11.00,1.14,5.62,0.94,-0.87,0.06,0.13,0.01,1.02,0.04,2.43,0.13,10.28,0.05,6.16,0.78,-0.58,0.22,0.17,0.24,0.91,0.42,0.81,0.18,1.50,0.44,1.38,0.62,77.0144875,26.0605361
+,SFR_nebular,SFR_nebular_err,SFR_photom,SFR_photom_err,SFR_radio,Z_spec,Z_spec_err
+0,2.1,0.5,4.0,0.7,2.2-5.9,9.03,0.2
