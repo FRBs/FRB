@@ -542,6 +542,8 @@ def frb_191228():
     frb191228.write_to_json(path=path)
 
 def frb_20200120E():
+    """M81 + globular cluster
+    """
     frbname = 'FRB20200120E'
 
     FRB_20200120E_coord = SkyCoord("09h57m54.68s  +68d49m08.0s", frame='icrs')    # From EVN localisation
@@ -554,6 +556,10 @@ def frb_20200120E():
 
     # Error in DM
     frb20200120E.DM_err = 0.007 * units.pc / units.cm ** 3
+
+    # RM
+    frb20200120E.RM = -29.8 * units.rad / units.m**2
+    frb20200120E.RM_err = 0.5 * units.rad / units.m**2
 
     # NE2001
     frb20200120E.set_DMISM()
@@ -784,7 +790,7 @@ def main(inflg='all'):
         frb_200906()
 
     # FRB 200906      
-    if flg & (2**17):
+    if flg & (2**17):  # 131072
         frb_20200120E()
 
     # FRB 20171020
@@ -805,5 +811,5 @@ if __name__ == '__main__':
     #frb_200906()
     #frb_191228()
     #frb_171020()
-    #frb_20200120E()
-    frb_201124()
+    frb_20200120E()
+    #frb_201124()

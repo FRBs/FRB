@@ -13,8 +13,8 @@ from astropy.cosmology import Planck15
 from astropy.cosmology import z_at_value
 from astropy import units
 
-from frb.halos import ModifiedNFW, M31
-from frb import halos as frb_halos
+from frb.halos.models import ModifiedNFW, M31
+from frb.halos import utils as frb_halos
 from frb.dm import igm as frb_igm
 from frb.dm import cosmic
 from frb.figures import utils as ff_utils
