@@ -12,6 +12,14 @@
         "value": 0.007
     },
     "FRB": "FRB20200120E",
+    "RM": {
+        "unit": "rad / m2",
+        "value": -29.8
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 0.5
+    },
     "cosmo": "Planck18",
     "dec": 68.81888888888888,
     "eellipse": {
