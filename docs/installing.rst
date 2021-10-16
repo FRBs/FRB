@@ -71,7 +71,7 @@ The following are required to run some of the halo codes:
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 * `Aemulator <https://github.com/AemulusProject/Aemulator>`_  pip is broken..
-* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator (requires GSL)
 
 The following are required to build host galaxy objects:
 
