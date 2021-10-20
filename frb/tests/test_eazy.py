@@ -43,7 +43,7 @@ def host_obj():
 
     #
 
-    host190613A = FRBHost(photom['ra'], photom['dec'], FRB.by_name('FRB121102'))
+    host190613A = FRBHost(photom['ra'], photom['dec'], FRB.by_name('FRB20121102'))
     host190613A.parse_photom(photom)
     host190613A.name = 'G_TEST'
 
