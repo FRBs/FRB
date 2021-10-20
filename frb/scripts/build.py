@@ -8,7 +8,7 @@ def parser(options=None):
     import argparse
     # Parse
     parser = argparse.ArgumentParser(description='Build parts of the CASBAH database; Output_dir = $CASBAH_GALAXIES [v1.1]')
-    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG']. Case insensitive")
+    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG', 'PATH']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
     parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (cigale,ppxf)")
     parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
