@@ -4,30 +4,21 @@ FRB host galaxies"""
 from pkg_resources import resource_filename
 import os
 import sys
-import warnings
 
 from IPython import embed
 
 import numpy as np
-import requests
 
 import pandas
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.table import Table
-from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB
-from frb.galaxies import frbgalaxy, defs, offsets
-from frb.galaxies import photom as frbphotom
-from frb.galaxies import nebular
-from frb.galaxies import hosts
-from frb.surveys import survey_utils
 
 from frb.associate import frbassociate
 from frb.associate import frbs
-from frb import frb
+from frb.galaxies import hosts
 
 from frb import utils
 import pandas
@@ -37,7 +28,7 @@ if db_path is None:
     raise IOError('You need to have GDB!!')
 
 def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
-        tol:float=0.5):
+        tol:float=1.0):
     """Main method for generating a Host JSON file
 
     Args:
@@ -57,7 +48,7 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
     Returns:
         pandas.DataFrame:  Table of PATH values and a bit more
     """
-    good_frb, PATH_Ox = [], []
+    good_frb, PATH_O, PATH_Ox = [], [], []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
@@ -100,17 +91,29 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
 
         # Check
         sep = frbA.candidates.coords.values[0].separation(host_coord).to('arcsec')
+        # TODO - Remove this before the PR is merged
         try:
             assert sep < tol*units.arcsec, f'sep = {sep}'
         except:
-            embed(header='106 of build')
+            if frb_name == 'frb20191001':
+                print("WE NEED TO FIX THAT IMAGE!!!")
+                pass
+            else:
+                embed(header='106 of build')
 
         # Save for table
         good_frb.append(frb_name.upper())
         PATH_Ox.append(frbA.candidates.P_Ox.values[0])
+        PATH_O.append(frbA.candidates.P_O.values[0])
 
-    embed(header='94 of build_path')
+    # Build the table
+    df = pandas.DataFrame()
+    df['FRB'] = good_frb
+    df['P(O)'] = PATH_O
+    df['P(O|x)'] = PATH_Ox
 
+    # 
+    return df
 
 def main(options:str=None, override:bool=False):
     """ Driver of the analysis
@@ -145,4 +148,8 @@ def main(options:str=None, override:bool=False):
     adopted = dict(theta=theta_e, O='inverse', U=0., name='Adopted', nhalf=nhalf)
 
 
-    run(frb_list, host_coords, adopted)
+    results = run(frb_list, host_coords, adopted)
+
+    # Write
+    outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH.csv')
+    results.to_csv(outfile)
