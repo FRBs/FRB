@@ -208,6 +208,8 @@ def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
 
 def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
     """
+    Macquart Relation
+
     Calculate the average cosmic DM 'expected' based on our empirical
     knowledge of baryon distributions and their ionization state.
 

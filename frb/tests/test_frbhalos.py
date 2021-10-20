@@ -48,7 +48,7 @@ def test_halo_incidence():
     # Cumulative now
     zeval, Ncumul = hmf.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
     assert zeval.size == 20
-    assert np.isclose(Ncumul[-1], 0.5578253455474869)
+    assert np.isclose(Ncumul[-1], 0.5578253455474869, rtol=1e-4)
 
 def test_YF17():
     yf17 = halos.YF17()

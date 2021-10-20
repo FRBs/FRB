@@ -364,7 +364,7 @@ class FRB(GenericFRB):
                 idict.pop(key)
         # Cosmology
         if slf.cosmo.name != idict['cosmo']:
-            raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
+            raise AssertionError(f"Your cosmology does not match the expected for {idict['FRB']}.  Gotta deal..")
         idict.pop('cosmo')
 
         # dicts
