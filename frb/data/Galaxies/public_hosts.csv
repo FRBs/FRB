@@ -1,19 +1,19 @@
-FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,Bad_EM_lines
-20121102,05h31m58.686s +33d08m52.433s,0.19273,"Repeater,F4","Bassa2017,mannings2020",,,,WFC3_F160W,
-20171020,22h15m24.48s -19d35m09.6s,0.00867,CRAFT,Mahony2018,,,,,
-20180301,06h12m54.4392s +04d40m13.717s,0.3305,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.;6675., 6725.;7150., 7300.;7580, 7750.",GMOS-S_r,
-20180916,01h58m00.75024s +65d43m00.3144s,0.0337,"CHIME,F4","Marcote2020,mannings2020",,SDSS,,WFC3_F160W,
-20180924,21h44m25.255s -40d54m00.1s,0.32120,"CRAFT,CRAFT,F4,F4","Bannister2019,Heintz2020,mannings2020,simha2021a",,MUSE,,WFC3_F160W,
-20181112,21h49m23.66s -52d58m15.28s,0.47550,"CRAFT,CRAFT","Prochaska2019,Heintz2020",,FORS2,,VLT_i,Halpha
-20190102,21h29m39.60s -79d28m32.4s,0.29117,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,MagE,"7550.,7750.",WFC3_F160W,
-20190523,13h48m15.439s +72d28m14.72s,0.66,"CRAFT,Realfast","Heintz2020,Bhandari2021",,,,LRIS_r,
-20190608,22h16m04.90s -07d53m56.0s,0.1177805,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,SDSS,,WFC3_F160W,
-20190611,21h22m58.277s -79d23m50.09s,0.37780,"CRAFT,Realfast","Heintz2020,Bhandari2021",,FORS2,"0.,6400.;9300.,20000",GMOS_i,
-20190711,21h57m40.60s -80d21m29.25s,0.52200,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,,,WFC3_F160W,
-20190714,12h15m55.0941s -13d01m16.004s,0.23650,"CRAFT,Realfast,F4","Heintz2020,Bhandari2021,mannings2020",,LRISr,,WFC3_F160W,
-20191001,21h33m24.44s -54d44m54.65s ,0.23400,"CRAFT,F4","Heintz2020,mannings2020",,GMOS-S,"7150., 7300.; 7580, 7750.; 6675., 6725.",VLT_i,
-20191228,22h57m43.405s -29d35m39.1344s,0.2432,Realfast,Bhandari2021,,LRISr,"3000., 5000.;6675., 6725.;7580, 7750.",VLT-FORS2_I,
-20200120E,09h55m33.1730s +69d03m55.061s,0.0008,,,,,,,
-20200430,15h18m49.52s +12d22m35.8s,0.1608,"CRAFT,Realfast","Heintz2020,Bhandari2021",,DEIMOS,"4000.,5100;7590., 7610;9500., 11000.",SDSS_i,
-20200906,03h33m59.00s -14d04m59.37s,0.3688,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.; 6675.,6725.;7580, 7750.",VLT-FORS2_I,
-20201124,05h08m03.477s +26d03m37.93s,0.0979,"F4","fong2021",,,,,
+FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,Bad_EM_lines,Reviewer,Comments
+20121102,05h31m58.686s +33d08m52.433s,0.19273,"Repeater,F4","Bassa2017,mannings2020",,,,WFC3_F160W,,SS,
+20171020,22h15m24.48s -19d35m09.6s,0.00867,CRAFT,Mahony2018,,,,,,X,
+20180301,06h12m54.4392s +04d40m13.717s,0.3305,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.;6675., 6725.;7150., 7300.;7580, 7750.",GMOS-S_r,,CRM,
+20180916,01h58m00.28s +65d42m53.0s,0.0337,"CHIME,F4","Marcote2020,mannings2020",,SDSS,,WFC3_F160W,,NT,
+20180924,21h44m25.255s -40d54m00.1s,0.32120,"CRAFT,CRAFT,F4,F4","Bannister2019,Heintz2020,mannings2020,simha2021a",,MUSE,,WFC3_F160W,,AM,"dispersion measure is different in almost every paper (by ~1 or 2), rotation measure 14 in bhandari 2020 & bannister, metallicity slightly off Bhandari20, DES photom off by tenths of mag, WISE photom off by a few magnitudes"
+20181112,21h49m23.66s -52d58m15.28s,0.47550,"CRAFT,CRAFT","Prochaska2019,Heintz2020",,FORS2,,VLT_i,Halpha,WF,
+20190102,21h29m39.60s -79d28m32.4s,0.29117,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,MagE,"7550.,7750.",WFC3_F160W,,RJ,
+20190523,13h48m15.439s +72d28m14.72s,0.66,"CRAFT,Realfast","Heintz2020,Bhandari2021",,,,LRIS_r,,CDK,
+20190608,22h16m04.90s -07d53m56.0s,0.1177805,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,SDSS,,WFC3_F160W,,TE,"""offsets"": ang_avg_err and physical_err do not match Mannings+20."
+20190611,21h22m58.277s -79d23m50.09s,0.37780,"CRAFT,Realfast","Heintz2020,Bhandari2021",,FORS2,"0.,6400.;9300.,20000",GMOS_i,,JC,
+20190711,21h57m40.60s -80d21m29.25s,0.52200,"CRAFT,F4","Heintz2020,mannings2020",,,,WFC3_F160W,,AG,
+20190714,12h15m55.0941s -13d01m16.004s,0.23650,"CRAFT,Realfast,F4","Heintz2020,Bhandari2021,mannings2020",,LRISr,,WFC3_F160W,,VD,"Offset, photom, and derived sections have slightly but noticeable differences between new and old JSON files. positions, neblines, and redshifts match with lit. M_star does not match Mannings2020 but does match Bhandari2021"
+20191001,21h33m24.44s -54d44m54.65s ,0.23400,"CRAFT,F4","Heintz2020,mannings2020",,GMOS-S,"7150., 7300.; 7580, 7750.; 6675., 6725.",VLT_i,,KEH,
+20191228,22h57m43.405s -29d35m39.1344s,0.2432,Realfast,Bhandari2021,,LRISr,"3000., 5000.;6675., 6725.;7580, 7750.",VLT-FORS2_I,,CN,
+20200120E,09h55m33.1730s +69d03m55.061s,0.0008,,,,,,,,X,
+20200430,15h18m49.52s +12d22m35.8s,0.1608,"CRAFT,Realfast","Heintz2020,Bhandari2021",,DEIMOS,"4000.,5100;7590., 7610;9500., 11000.",SDSS_i,,SS,
+20200906,03h33m59.00s -14d04m59.37s,0.3688,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.; 6675.,6725.;7580, 7750.",VLT-FORS2_I,,X,
+20201124,05h08m03.477s +26d03m37.93s,0.0979,F4,fong2021,,,,,,X,
