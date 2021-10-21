@@ -14,6 +14,8 @@ else:
     flg_specdb = True
 
 from astropy.coordinates import SkyCoord
+from astropy import units
+
 import pandas as pd
 import extinction
 from linetools.spectra import xspectrum1d
@@ -179,6 +181,28 @@ def build_table_of_hosts():
             # Set
             host_tbl[key] = tbl_dict[key]
             tbl_units[key] = 'See galaxies.defs.py'
+
+    # Add PATH values
+    path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH.csv')
+    path_tbl = pd.read_csv(path_file, index_col=False)
+    path_coords = SkyCoord(ra=path_tbl.RA, dec=path_tbl.Dec, unit='deg')
+
+    host_coords = SkyCoord(ra=host_tbl.RA_host, dec=host_tbl.DEC_host, unit='deg')
+
+    # Init
+    host_tbl['P(O|x)'] = np.nan
+    host_tbl['P(O)'] = np.nan
+
+    # Loop
+    for index, path_row in path_tbl.iterrows():
+        # Match to table RA, DEC
+        sep = host_coords.separation(path_coords[index])
+        imin = np.argmin(sep)
+        # REDUCE THIS TOL TO 1 arcsec!!
+        print(f"Min sep = {sep[imin].to('arcsec')}")
+        if sep[imin] < 1.5*units.arcsec:
+            host_tbl.loc[index,'P(O|x)'] = path_row['P(O|x)']
+            host_tbl.loc[index,'P(O)'] = path_row['P(O)']
 
     # Return
     return host_tbl, tbl_units

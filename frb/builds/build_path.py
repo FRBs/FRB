@@ -48,7 +48,7 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
     Returns:
         pandas.DataFrame:  Table of PATH values and a bit more
     """
-    good_frb, PATH_O, PATH_Ox = [], [], []
+    good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
@@ -105,10 +105,14 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
         good_frb.append(frb_name.upper())
         PATH_Ox.append(frbA.candidates.P_Ox.values[0])
         PATH_O.append(frbA.candidates.P_O.values[0])
+        RAs.append(host_coord.ra.deg)
+        Decs.append(host_coord.dec.deg)
 
     # Build the table
     df = pandas.DataFrame()
     df['FRB'] = good_frb
+    df['RA'] = RAs
+    df['Dec'] = Decs
     df['P(O)'] = PATH_O
     df['P(O|x)'] = PATH_Ox
 
