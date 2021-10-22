@@ -213,7 +213,7 @@ def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
         host_tbl ([type], optional): [description]. Defaults to None.
 
     Returns:
-        [type]: [description]
+        pandas.DataFrame: [description]
     """
     galaxy_path = os.path.join(resource_filename('frb', 'data'), 
                                'Galaxies')

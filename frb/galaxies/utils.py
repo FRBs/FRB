@@ -200,7 +200,7 @@ def build_table_of_hosts():
         imin = np.argmin(sep)
         # REDUCE THIS TOL TO 1 arcsec!!
         print(f"Min sep = {sep[imin].to('arcsec')}")
-        if sep[imin] < 1.5*units.arcsec:
+        if sep[imin] < 1.0*units.arcsec:
             host_tbl.loc[index,'P(O|x)'] = path_row['P(O|x)']
             host_tbl.loc[index,'P(O)'] = path_row['P(O)']
 

@@ -95,11 +95,7 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
         try:
             assert sep < tol*units.arcsec, f'sep = {sep}'
         except:
-            if frb_name == 'frb20191001':
-                print("WE NEED TO FIX THAT IMAGE!!!")
-                pass
-            else:
-                embed(header='106 of build')
+            embed(header='106 of build')
 
         # Save for table
         good_frb.append(frb_name.upper())

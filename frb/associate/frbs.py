@@ -206,7 +206,7 @@ Notes:
 """
 updates = dict(
     name='FRB20191001',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001_VLT-FORS2_I_BESS.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.5,
