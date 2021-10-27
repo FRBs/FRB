@@ -25,7 +25,7 @@ frb depends on the following list of Python packages.
 We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
 to install and/or update these packages.
 
-* `python <http://www.python.org/>`_ versions 3.7 or later
+* `python <http://www.python.org/>`_ versions 3.8 or later
 * `numpy <http://www.numpy.org/>`_ version 1.17 or later
 * `astropy <http://www.astropy.org/>`_ version 4.0 or later
 * `scipy <http://www.scipy.org/>`_ version 1.2 or later
@@ -47,10 +47,9 @@ out all the packages and their version numbers.
 The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.1
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.1 only (maybe)
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
-* `PIL <https://pillow.readthedocs.io/en/5.3.x/>`_  version 5.3 or later (only for SDSS cutouts)
 
 The following package(s) is/are required to access FRB galaxy spectra:
 
@@ -72,7 +71,7 @@ The following are required to run some of the halo codes:
 * george :: Use pip
 * `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
 * `Aemulator <https://github.com/AemulusProject/Aemulator>`_  pip is broken..
-* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator.
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator (requires GSL)
 
 The following are required to build host galaxy objects:
 
@@ -159,3 +158,9 @@ with::
 .. _download-public:
 
 
+pPXF
+====
+
+Our pPXF wrapper currently uses an older version of the code 
+(v 6.7.17) and a few custom files.  Contact JXP if you wish 
+to use this.

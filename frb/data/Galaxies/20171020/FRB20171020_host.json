@@ -1,0 +1,32 @@
+{
+    "FRB": "FRB20171020",
+    "cosmo": "Planck18",
+    "dec": -19.586,
+    "dec_FRB": -19.66978611111111,
+    "derived": {
+        "M_r": -17.9,
+        "M_r_err": 0.1,
+        "M_r_ref": "Mahony2018",
+        "Mstar": 900000000.0,
+        "Mstar_err": 500000000.0,
+        "Mstar_ref": "Mahony2018",
+        "SFR_nebular": 0.13,
+        "SFR_nebular_err": 0.05,
+        "SFR_nebular_ref": "Mahony2018"
+    },
+    "offsets": {
+        "ang_avg": 802.3114040934199,
+        "ang_avg_err": 417.47553833878595,
+        "ang_best": 313.04950185295974,
+        "ang_best_err": 643.1664124433216,
+        "physical": 57.68533434653865,
+        "physical_err": 118.5156638891039
+    },
+    "ra": 333.8519999999999,
+    "ra_FRB": 333.8272916666666,
+    "redshift": {
+        "z": 0.00867,
+        "z_FRB": 0.00867,
+        "z_spec": 0.00867
+    }
+}

@@ -25,6 +25,8 @@ except ImportError:
 
 from frb.surveys import surveycoord,catalog_utils,images
 
+from IPython import embed
+
 #TODO: It's potentially viable to use the same code for other
 #catalogs in the VizieR database. Maybe a generalization wouldn't
 #be too bad in the future.
@@ -33,8 +35,11 @@ from frb.surveys import surveycoord,catalog_utils,images
 photom = {}
 photom['Pan-STARRS'] = {}
 for band in PanSTARRS_bands:
-    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
-    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
+    # Pre 180301 paper
+    #photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
+    #photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
+    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}KronMag'.format(band.lower())
+    photom["Pan-STARRS"]["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}KronMagErr'.format(band.lower())
     photom["Pan-STARRS"]["Pan-STARRS_ID"] = 'objID'
 photom["Pan-STARRS"]['ra'] = 'raStack'
 photom["Pan-STARRS"]['dec'] = 'decStack'
@@ -43,10 +48,12 @@ photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 # Define the default set of query fields
 # See: https://outerspace.stsci.edu/display/PANSTARRS/PS1+StackObjectView+table+fields
 # for additional Fields
-_DEFAULT_query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag', 'rKronRad',
-                         'rPSFMag', 'rKronMag']
+_DEFAULT_query_fields = ['objID','raStack','decStack','objInfoFlag','qualityFlag', 
+                         'rKronRad']#, 'rPSFMag', 'rKronMag']
 _DEFAULT_query_fields +=['{:s}PSFmag'.format(band) for band in PanSTARRS_bands]
 _DEFAULT_query_fields +=['{:s}PSFmagErr'.format(band) for band in PanSTARRS_bands]
+_DEFAULT_query_fields +=['{:s}KronMag'.format(band) for band in PanSTARRS_bands]
+_DEFAULT_query_fields +=['{:s}KronMagErr'.format(band) for band in PanSTARRS_bands]
 
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     """
@@ -61,7 +68,9 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "Pan_STARRS"
     
-    def get_catalog(self,query_fields=None,release="dr2",table="stack",print_query=False):
+    def get_catalog(self,query_fields=None,release="dr2",
+                    table="stack",print_query=False,
+                    use_psf=False):
         """
         Query a catalog in the VizieR database for
         photometry.
@@ -78,6 +87,8 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 "mean","stack" or "detection"
                 (default: "stack"). The data table to
                 search within.
+            use_psf: bool, optional
+                If True, use PSFmag instead of KronMag
         
         Returns:
             catalog: astropy.table.Table
@@ -111,7 +122,14 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             self.validate_catalog()
             return self.catalog.copy()
         photom_catalog = Table.read(ret.text,format="ascii.csv")
-        pdict = photom['Pan-STARRS']
+        pdict = photom['Pan-STARRS'].copy()
+
+        # Allow for PSF
+        if use_psf:
+            for band in PanSTARRS_bands:
+                pdict["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
+                pdict["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
+        
         photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
 
         #Remove bad positions because Pan-STARRS apparently decided

@@ -18,6 +18,7 @@ from astropy import units as u
 from astropy.coordinates import SkyCoord
 
 from frb.halos import models as halos
+from frb.halos import hmf
 
 dummy_xyz = np.reshape(np.array([10., 10., 10.]), (3,1))
 
@@ -27,12 +28,14 @@ def test_frac_in_halos():
         assert True
         return
     # Init (this is a test, i.e. it is not used)
-    halos.init_hmf()
+    hmf.init_hmf()
     # Run an example
     zvals = np.array([0., 0.1, 0.5, 1.])
-    ratios = halos.frac_in_halos(zvals, 1e11, 1e15)
+    ratios = hmf.frac_in_halos(zvals, 1e11, 1e15)
     # Test
-    np.testing.assert_allclose(ratios, np.array([0.4625856 , 0.44314829, 0.36691686, 0.28180253]),rtol=1e-5)
+    np.testing.assert_allclose(
+        ratios, 
+        np.array([0.4626 , 0.44315, 0.3669, 0.2818]),rtol=1e-4)
 
 def test_halo_incidence():
     # Imported (unlikely)?
@@ -40,12 +43,12 @@ def test_halo_incidence():
         assert True
         return
     # Run
-    Navg = halos.halo_incidence(1e12, 1., Mhigh=3e12)
+    Navg = hmf.halo_incidence(1e12, 1., Mhigh=3e12)
     assert np.isclose(Navg, 1.1079098177338418)
     # Cumulative now
-    zeval, Ncumul = halos.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
+    zeval, Ncumul = hmf.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
     assert zeval.size == 20
-    assert np.isclose(Ncumul[-1], 0.5578253455474869)
+    assert np.isclose(Ncumul[-1], 0.5578253455474869, rtol=1e-4)
 
 def test_YF17():
     yf17 = halos.YF17()

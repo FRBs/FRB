@@ -19,7 +19,7 @@ from linetools.spectra.io import readspec
 from ppxf import ppxf
 from ppxf import ppxf_util as util
 from ppxf import miles_util as lib
-from time import clock
+import time
 
 from IPython import embed
 
@@ -75,12 +75,12 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     wave = newspec.wavelength.value
     goodpixels = np.where((wave >= wvmnx[0]) & (wave <= wvmnx[1]))[0]
 
-    mask_lam = atmos
-    mask_lam.extend(gaps)
-    goodidxs = np.array([]).astype(int)
-    for i, mrange in enumerate(mask_lam):
-        theseidxs = np.where((wave < mrange[0]) | (wave > mrange[1]))[0]
-        goodpixels = np.intersect1d(theseidxs, goodpixels)
+    if atmos is not None:
+        mask_lam = atmos
+        mask_lam.extend(gaps)
+        for i, mrange in enumerate(mask_lam):
+            theseidxs = np.where((wave < mrange[0]) | (wave > mrange[1]))[0]
+            goodpixels = np.intersect1d(theseidxs, goodpixels)
     goodpixels = np.unique(goodpixels)
     goodpixels.sort()
 
@@ -90,8 +90,9 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         plt.show()
 
     # Run it
-    ppfit, miles, star_weights = fit_spectrum(newspec, zgal, R, degree_mult=0, degree_add=3,
-                                              goodpixels=goodpixels, reddening=1., rebin=False)
+    ppfit, miles, star_weights = fit_spectrum(
+        newspec, zgal, R, degree_mult=0, degree_add=3,
+        goodpixels=goodpixels, reddening=1., rebin=False)
 
     # Age
     age, metals = miles.mean_age_metal(star_weights)
@@ -309,7 +310,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
 
     if degree_add is None:
         degree_add = -1
-    t = clock()
+    t = time.time()
     ppfit = ppxf.ppxf(templates, galaxy, noise, velscale, start,
                       plot=False, moments=moments, degree=degree_add, vsyst=dv,
                       lam=np.exp(logLam), clean=False, regul=1. / regul_err,
@@ -319,7 +320,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
 
     print('Desired Delta Chi^2: %.4g' % np.sqrt(2 * galaxy.size))
     print('Current Delta Chi^2: %.4g' % ((ppfit.chi2 - 1) * galaxy.size))
-    print('Elapsed time in PPXF: %.2f s' % (clock() - t))
+    print('Elapsed time in PPXF: %.2f s' % (time.time() - t))
 
     weights = ppfit.weights[~gas_component]  # Exclude weights of the gas templates
     weights = weights.reshape(reg_dim)  # Normalized

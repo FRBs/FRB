@@ -13,7 +13,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr2"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the data model for DES data
@@ -29,19 +29,6 @@ photom['DES']['dec'] = 'dec'
 photom['DES']['DES_tile'] = 'tilename'
 photom['DES']['star_flag_r'] = "class_star_r"
 photom['DES']['star_flag_err'] = "spreaderr_model_r"
-
-# DES-WISE
-photom['DES-WISE'] = {}
-DES_WISE_bands = ['W1', 'W2', 'W3', 'W4']
-for band in DES_WISE_bands:
-    photom['DES-WISE'][band.replace("W","WISE")] = '{:s}mpro'.format(band.lower())
-    photom['DES-WISE'][band.replace("W","WISE")+"_err"] = '{:s}sigmpro'.format(band.lower())
-photom['DES-WISE']['DES_ID'] = 'coadd_object_id'
-photom['DES-WISE']['DES_ra'] = 'des_ra'
-photom['DES-WISE']['DES_dec'] = 'des_dec'
-photom['DES-WISE']['WISE_ra'] = 'ra'
-photom['DES-WISE']['WISE_dec'] = 'dec'
-
 
 class DES_Survey(dlsurvey.DL_Survey):
     """
@@ -59,9 +46,9 @@ class DES_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'DES'
         self.bands = ['g', 'r', 'i', 'z', 'y']
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/des_dr1")
+        self.svc = _svc
         self.qc_profile = "default"
-        self.database = "des_dr1.main"
+        self.database = "des_dr2.main"
 
     def _parse_cat_band(self,band):
         """
@@ -82,7 +69,8 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
+    def get_catalog(self, query=None, query_fields=None, 
+                    print_query=False, **kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
@@ -90,6 +78,8 @@ class DES_Survey(dlsurvey.DL_Survey):
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
+            grab_wise (bool): Attempt to grab WISE data too.
+                This is not recommended.
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
@@ -101,22 +91,7 @@ class DES_Survey(dlsurvey.DL_Survey):
             main_cat = catalog_utils.clean_cat(main_cat,photom['DES'])
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'])
-
-        # WISE
-        wise_query = self._gen_cat_query(qtype='wise')
-        wise_cat = super(DES_Survey, self).get_catalog(query=wise_query, print_query=print_query,**kwargs)
-        wise_cat = catalog_utils.clean_cat(wise_cat, photom['DES-WISE'], fill_mask=-999.)
-        # Match em up
-        if len(wise_cat) > 0:
-            idx = catalog_utils.match_ids(wise_cat['DES_ID'], main_cat['DES_ID'],require_in_match=False)
-            # Fill me
-            for band in DES_WISE_bands:
-                main_cat['WISE_{:s}'.format(band)] = -999.
-                main_cat['WISE_{:s}'.format(band)][idx] = wise_cat[band.replace("W","WISE")]
-                main_cat['WISE_{:s}_err'.format(band)] = -999.
-                main_cat['WISE_{:s}_err'.format(band)][idx] = wise_cat['{:s}_err'.format(band.replace("W","WISE"))]
-
-        # Finish
+        ## Finish
         self.catalog = main_cat
         self.validate_catalog()
         return self.catalog
@@ -138,17 +113,11 @@ class DES_Survey(dlsurvey.DL_Survey):
                 for key,value in photom['DES'].items():
                     query_fields += [value]
                 database = self.database
-            elif qtype == 'wise':
-                for key,value in photom['DES-WISE'].items():
-                    query_fields += [value]
-                database = "des_dr1.des_allwise"
             else:
                 raise IOError("Bad qtype")
         else:
             if qtype == 'main':
                 database = self.database
-            elif qtype == 'wise':
-                database = "des_dr1.des_allwise"
             else:
                 raise IOError("Bad qtype")
 
@@ -170,7 +139,7 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         """
         row = imgTable[np.argmax(imgTable['exptime'].data.data.astype('float'))] # pick image with longest exposure time
-        url = row['access_url'].decode()
+        url = row['access_url']
         if verbose:
             print ('downloading deepest stacked image...')
 

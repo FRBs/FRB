@@ -1,0 +1,159 @@
+##########################################################################################
+Most updated astrometrically corrected positions of ASKAP FRBs as published in Day2021. 
+These positions and uncertainties are used for building FRBs.
+
+###########################################################################################
+
+180924 — originally published Bannister et al. 2019 but corrected in Macquart et al. 2020
+RA: 21h44m25.255s +/- 0.010 s (statistical; systematic: +/- 0.006 s; +/- 0.008) s)
+                      0.1140 arcsec (statistical; systematic: +/- 0.070^ arcsec; +/- 0.090^^ arcsec)*
+Dec: -40d54m00.10s +/- 0.11 arcsec (statistical; systematic: +/- 0.07^ arcsec; +/- 0.09^^ arcsec)
+                              ^adopted 0.070 arcsec for statistical given 70-mas RMS source position change in RA, Dec
+                              ^^adopted value of 0.090 arcsec in RA, Dec for systematic to be conservative 
+                              *These arcsec uncertainties convert to 0.006s and 0.008s, for a total of 0.01s. However,
+                               the published values in Bannister et al. (for reasons unknown) used 0.005s,0.006s.
+offsets RA, Dec: 0.0, 0.0 arcsec
+-----------------------------------------------------------------------------------------------------------
+180924 — updated using scale factor for the uncertainty (i.e., sigma_sys*1.79)
+RA: 21h44m25.255s +/- 0.015 s (statistical; systematic: +/- 0.005 s; +/- 0.014 s)
+                      0.1756 arcsec (statistical; systematic: +/- 0.070 arcsec; +/- 0.1611 arcsec)
+Dec: -40d54m00.10s +/- 0.176 arcsec (statistical; systematic: +/- 0.07 arcsec; +/- 0.1611 arcsec)
+offsets RA, Dec: 0.0, 0.0 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+181112 — published Prochaska et al. 2019
+RA: 21h49m23.63s +/- 0.24 s (statistical; systematic: +/- 0.05 s; +/- 0.24 s)
+                     2.197 arcsec (statistical; systematic: +/- 0.45 arcsec; +/- 2.15 arcsec)
+Dec: -52d58m15.4s +/- 1.4 arcsec (statistical; systematic: +/- 0.3 arcsec; +/- 1.35 arcsec)
+offsets RA, Dec: 0.0, 0.0 arcsec
+-----------------------------------------------------------------------------------------------------------
+181112 — updated using scale factor for the uncertainty (i.e., sigma_sys*1.79)
+RA: 21h49m23.63s +/- 0.43 s (statistical; systematic: +/- 0.05 s; +/- 0.43 s)
+                     3.8747 arcsec (statistical; systematic: +/- 0.45 arcsec; +/- 3.8485 arcsec)
+Dec: -52d58m15.4s +/- 2.4 arcsec (statistical; systematic: +/- 0.3 arcsec; +/- 2.4165 arcsec)
+offsets RA, Dec: 0.0, 0.0 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+190102 — published Macquart et al. 2020
+RA: 21h29m39.76s +/- 0.17 s (statistical; systematic: +/- 0.06 s;+/- 0.16 s)
+                     0.471 arcsec (statistical; systematic: +/- 0.1671 arcsec; +/- 0.440 arcsec)
+Dec: -79d28m32.5s +/- 0.5 arcsec (statistical; systematic: +/- 0.210 arcsec; +/- 0.523 arcsec)
+offsets RA, Dec: 0.0, 0.0 arcsec
+-----------------------------------------------------------------------------------------------------------
+190102 — updated using scale factor for the uncertainty (i.e., sigma_sys*1.79)
+RA: 21h29m39.76s +/- 0.30 s (statistical; systematic: +/- 0.06 s;+/- 0.29 s)
+                     0.8051 arcsec (statistical; systematic: +/- 0.1671 arcsec; +/- 0.7876 arcsec)
+Dec: -79d28m32.5s +/- 1.0 arcsec  (statistical; systematic: +/- 0.210 arcsec; +/- 0.936 arcsec)
+offsets RA, Dec: 0.0, 0.0 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+190608 — originally published Macquart et al. 2020 and updated published Day et al. 2020
+RA: 22h16m4.77s +/- 0.02 s (statistical; systematic: +/- 0.013 s; +/- 0.012 s)
+                    0.268 arcsec (statistical; systematic: +/- 0.1939 arcsec; +/- 0.185 arcsec)
+Dec: -07d53m53.7s +/- 0.3 arcsec (statistical; systematic: +/- 0.18 arcsec; +/- 0.18 arcsec)
+offsets RA, Dec: 0.406, $-$0.902 arcsec
+-----------------------------------------------------------------------------------------------------------
+190608 — updated/corrected from Clancy’s corrected script and using scale factor for unc
+RA: 22h16m04.77s +/- 0.026 (statistical; systematic: +/- 0.013; +/- 0.022)
+                     0.3802 arcsec (statistical; systematic: +/- 0.1939 arcsec; +/- 0.327 arcsec)
+Dec: -07d53m53.7s +/- 0.4 (statistical; systematic: +/- 0.18 arcsec; +/- 0.30 arcsec)
+offsets RA, Dec: 0.458, $-$0.890 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+190611 — published Macquart et al. 2020
+RA: 21h22m58.91s +/- 0.25 s (statistical; systematic: +/- 0.11 s; +/- 0.23 s)
+                     0.706 arcsec (statistical; systematic: +/- 0.3202 arcsec; +/- 0.629 arcsec)
+Dec: -79d23m51.3s +/- 0.7 arcsec  (statistical; systematic: +/- 0.340 arcsec; +/- 0.601 arcsec)
+offsets RA, Dec: 1.67, $-$0.25 arcsec
+-----------------------------------------------------------------------------------------------------------
+190611 — updated/corrected from Clancy’s corrected script and using scale factor for unc
+RA: 21h22m58.94s +/- 0.42 (statistical; systematic: +/- 0.116 s; +/- 0.405 s)
+                     1.164 arcsec (statistical; systematic: +/- 0.3202 arcsec; +/- 1.1189 arcsec)
+Dec: -79d23m51.3s +/- 1.1 (statistical; systematic: +/- 0.340 arcsec; +/- 1.07 arcsec)
+offsets RA, Dec: 1.74, 0.24
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+190711 — originally published Macquart et al. 2020 and updated published Day et al. 2020
+RA: 21h57m40.68s +/- 0.16 s (statistical; systematic: +/- 0.048 s; +/- 0.15 s)
+                     0.399 arcsec (statistical; systematic: +/- 0.1199 arcsec; +/- 0.38092 arcsec)
+Dec: -80d21m28.8s +/- 0.3 arcsec  (statistical; systematic: +/- 0.0749 arcsec; +/- 0.323 arcsec)
+offsets RA, Dec: 1.7, $-$0.4 arcsec
+-----------------------------------------------------------------------------------------------------------
+190711 — updated/corrected from Clancy’s corrected script and using scale factor for unc
+RA: 21h57m40.62s +/- 0.26  (statistical; systematic: +/- 0.048 s; +/- 0.257 s)
+                     0.657 arcsec (statistical; systematic: +/- 0.1199 arcsec; +/- 0.646 arcsec)
+Dec: -80d21m28.8s +/- 0.6 (statistical; systematic: +/- 0.075 arcsec; +/- 0.563 arcsec)
+offsets RA, Dec: 1.5, -0.4
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+190714 — published Heintz et al. 2020
+RA: 12h15m55.12s +/- 0.025 s (statistical; systematic: +/- 0.011 s; +/- 0.022 s)
+                     0.3604 arcsec (statistical; systematic: +/- 0.1657 arcsec; +/- 0.320 arcsec)
+DEC: -13d01m15.7s +/- 0.3 arcsec (statistical; systematic: +/- 0.10 arcsec; +/- 0.23 arcsec)
+offsets RA, Dec: 0.71, -1.45 arcsec
+-----------------------------------------------------------------------------------------------------------
+190714 — updated/corrected from Clancy’s corrected script and using scale factor for unc
+RA: 12h15m55.13s +/- 0.038 (statistical; systematic: +/- 0.011 s; +/- 0.036 s)
+                     0.5449 arcsec (statistical; systematic: +/- 0.1657 arcsec; +/- 0.5191 arcsec)
+Dec: -13d01m15.6s +/- 0.4 (statistical; systematic: +/- 0.102 arcsec; +/- 0.376 arcsec)
+offsets RA, Dec: 0.92, -1.35
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+191001 — published in Bhandari et al. 2020
+RA: 21h33m24.3727s +/- 0.019 s (statistical; systematic: +/- 0.015 s; +/- 0.012 s)
+                       0.1655 arcsec (statistical; systematic: +/- 0.1256 arcsec; +/- 0.1073 arcsec)
+DEC: -54d44m51.8626s +/- 0.13 (statistical; systematic: +/- 0.080 arcsec; +/- 0.099 arcsec)
+offsets RA, Dec: 0.731, -0.808 arcsec
+-----------------------------------------------------------------------------------------------------------
+191001 — updated/corrected from Clancy’s corrected script and using scale factor for unc (also update due to math correction)
+RA: 21h33m24.313s +/- 0.025 (statistical; systematic: +/- 0.015; +/- 0.020)
+                      0.2144 arcsec (statistical; systematic: +/- 0.1256 arcsec; +/- 0.1737 arcsec)
+Dec: -54d44m51.86s +/- 0.18 (statistical; systematic: +/- 0.080; +/- 0.160)
+offsets RA, Dec: 0.765, -0.811 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+191228 — published Bhandari et al. 2021/in prep after updating by using scale factor for systematic unc
+RA: 22h57m43.24s +/- 0.08 (statistical; systematic: +/- 0.026 s; +/- 0.0734 s)
+                     1.010 arcsec (statistical; systematic: +/- 0.343 arcsec; +/- 0.950 arcsec)
+Dec: -29d35m37.0s +/- 0.938 (statistical; systematic: +/- 0.340 arcsec; +/- 0.874 arcsec)
+offsets RA, Dec: 0.408, -0.868 arcsec
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+200430 — published Heintz et al. 2020
+RA: 15h18m49.54s +/- 0.021 s (statistical; systematic: +/- 0.011 s; +/- 0.017 s)
+                     0.3006 arcsec (statistical; systematic: +/- 0.167 arcsec; +/- 0.250 (pub 0.25) arcsec)
+Dec: 12d22m36.8s +/- 1.07 arcsec (statistical; systematic: +/- 0.24 arcsec; +/- 1.04 arcsec)
+offsets RA, Dec: -0.03, 4.12 arcsec
+-----------------------------------------------------------------------------------------------------------
+200430 — updated/corrected from Clancy’s corrected script and using scale factor for unc
+RA: 15h18m49.54s +/- 0.021 (statistical; systematic: +/- 0.011 s; +/- 0.017 s)
+                     0.30148 arcsec (statistical; systematic: +/- 0.167 arcsec; +/- 0.2506 arcsec)
+Dec: 12d22m36.3s +/- 1.01 (statistical; systematic: +/- 0.24 arcsec; +/- 0.98 arcsec)
+offsets RA, Dec: -0.04, 3.62
+
+-----------------------------------------------------------------------------------------------------------
+-----------------------------------------------------------------------------------------------------------
+
+200906 — published Bhandari et al. 2021/in prep
+RA: 03h33m59.080s +/- 0.02 (statistical; systematic: +/- 0.007 s; +/- 0.023 s)
+                      0.354 arcsec (statistical; systematic: +/- 0.099 arcsec; +/- 0.340)
+Dec: -14d04m59.46s +/- 0.56 arcsec (statistical; systematic: +/- 0.11 arcsec; +/- 0.55 arcsec)
+offsets RA, Dec: 2.05, 0.51 arcsec

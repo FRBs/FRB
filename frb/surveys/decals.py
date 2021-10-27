@@ -14,14 +14,13 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr1"
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr7"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr8"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the Photometric data model for DECaL
 photom = {}
 photom['DECaL'] = {}
-DECaL_bands = ['g', 'r', 'z', 'W1', 'W2', 'W3', 'W4']
+DECaL_bands = ['g', 'r', 'z']
 for band in DECaL_bands:
     if "W" not in band:
         bandstr = 'DECaL_'+band
@@ -29,7 +28,7 @@ for band in DECaL_bands:
         bandstr = 'WISE_'+band
     photom['DECaL'][bandstr] = 'mag_{:s}'.format(band.lower())
     photom['DECaL'][bandstr+"_err"] = 'snr_{:s}'.format(band.lower())
-photom['DECaL']['DECaL_ID'] = 'decals_id'
+photom['DECaL']['DECaL_ID'] = 'ls_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
 photom['DECaL']['DECaL_brick'] = 'brickid'
@@ -53,6 +52,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.bands = ['g', 'r', 'z']
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
+        self.database = "ls_dr8.tractor"
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
         """
@@ -126,13 +126,13 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         if query_fields is None:
-            object_id_fields = ['decals_id','brick_primary','brickid','ra','dec','gaia_pointsource']
-            mag_fields = ['mag_g','mag_r','mag_z','mag_w1','mag_w2','mag_w3','mag_w4']
-            snr_fields = ['snr_g','snr_r','snr_z','snr_w1','snr_w2','snr_w3','snr_w4']
+            object_id_fields = ['ls_id','brick_primary','brickid','ra','dec','gaia_pointsource']
+            mag_fields = ['mag_'+band for band in self.bands]
+            snr_fields = ['snr_'+band for band in self.bands]
             query_fields = object_id_fields+mag_fields+snr_fields
         
-        database = "ls_dr7.tractor"
-        self.query = dlsurvey._default_query_str(query_fields, database, self.coord, self.radius)
+        
+        self.query = dlsurvey._default_query_str(query_fields, self.database, self.coord, self.radius)
         
     def _select_best_img(self,imgTable, verbose=True, timeout=120):
         """

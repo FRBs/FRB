@@ -164,6 +164,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
         'WFC3_F160W': 'hst.wfc3.F160W',
+        'WFC3_F300X': 'WFC3_F300X',
         'Spitzer_3.6': 'spitzer.irac.ch1',
         'Spitzer_4.5': 'spitzer.irac.ch2',
     }
@@ -315,12 +316,12 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         
         if old_version:
             import pcigale
-            warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
+            #warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
             sed(cigconf,"mJy",True)
         else:
             # TODO: Let the user customize the plot.
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
-            sed(cigconf,"mJy",True, (False, 1e5), (False, 1e2), series, "pdf", "out")
+            sed(cigconf,"mJy",True, (False, False), (False, False), series, "pdf", "out")
         # Set back to a GUI
         import matplotlib
         matplotlib.use('TkAgg')

@@ -298,3 +298,29 @@ def Tsky(nu):
     """
     # TODO  -- Need some guidance here
     return 34*units.K * (nu/(408*units.MHz))**(-2.6)
+
+def parse_frb_name(name:str, prefix='FRB'):
+    """Parse the incoming name to generate a 'proper' FRB name
+
+    Args:
+        name (str): [description]
+        prefix (str, optional): [description]. Defaults to 'FRB'.
+
+    Raises:
+        IOError: [description]
+
+    Returns:
+        str: The proper FRB name
+    """
+    
+    if name[0:3] == 'FRB':
+        # Strip FRB
+        return parse_frb_name(name[3:], prefix=prefix)
+    elif len(name) in [6,7]: # Original YYMMDD or YYMMDDL  (with L a 'letter')
+        # Append 20
+        return parse_frb_name('20'+name, prefix=prefix)
+    elif len(name) in [8,9]: # YYYYMMDD or YYYYMMDDL
+        # All set
+        return prefix+name
+    else:
+        raise IOError("Not prepared for this type of format")

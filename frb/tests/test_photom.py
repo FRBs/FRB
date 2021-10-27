@@ -30,8 +30,6 @@ def test_flux_conversion():
     tab = Table()
     tab['DES_r'] = [20.]
     tab['DES_r_err'] = 0.5
-    tab['WISE_W1'] = 20.
-    tab['WISE_W1_err'] = 0.5
     tab['VISTA_Y'] = 20.
     tab['VISTA_Y_err'] = 0.5
 
@@ -41,19 +39,20 @@ def test_flux_conversion():
 
     # Check fluxes
     assert np.isclose(fluxtab['DES_r'], 0.036307805), "Check AB flux conversion."
-    assert np.isclose(fluxtab['WISE_W1'], 0.0030954), "Check WISE flux conversion."
+    # WISE conversion is now done at the survey level
+    #assert np.isclose(fluxtab['WISE_W1'], 0.0030954), "Check WISE flux conversion."
     assert np.isclose(fluxtab['VISTA_Y'], 0.0208732), "Check VISTA flux conversion."
 
     # Check errors
     assert np.isclose(fluxtab['DES_r_err'], 0.02123618797770558), "Check AB flux error."
-    assert np.isclose(fluxtab['WISE_W1_err'], 0.0018104783879441312), "Check WISE flux error."
+    #assert np.isclose(fluxtab['WISE_W1_err'], 0.0018104783879441312), "Check WISE flux error."
     assert np.isclose(fluxtab['VISTA_Y_err'], 0.012208592584879318), "Check VISTA flux error."
 
 
 def test_fractional_flux():
     isize = 5
     # FRB and HG
-    frbname = 'FRB180924'
+    frbname = 'FRB20180924'
     frbdat = frb.FRB.by_name(frbname)
     # frbcoord = frbdat.coord
     hg = frbdat.grab_host()
@@ -69,6 +68,6 @@ def test_fractional_flux():
     # Run
     med_ff, sig_ff, f_weight = photom.fractional_flux(cutout, frbdat, hg)    
 
-    assert np.isclose(sig_ff, 0.29401563154693383)
+    assert np.isclose(sig_ff, 0.2906803236219953)
 
 

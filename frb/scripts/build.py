@@ -8,9 +8,14 @@ def parser(options=None):
     import argparse
     # Parse
     parser = argparse.ArgumentParser(description='Build parts of the CASBAH database; Output_dir = $CASBAH_GALAXIES [v1.1]')
-    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG']. Case insensitive")
+    parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG', 'PATH']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
-    parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (photom,cigale)")
+    parser.add_argument("-g", "--galaxy_options", type=str, help="Options for fg/host building (cigale,ppxf)")
+    parser.add_argument("--frb", type=str, help="FRB name, e.g. FRB191001, FRB20191001, 20191001")
+    parser.add_argument("--hosts_file", type=str, help="Alternate file for hosts than the default public_hosts.csv")
+    parser.add_argument("--lit_refs", type=str, help="Alternate file for literature sources than all_refs.csv")
+    parser.add_argument("--override", default=False, action='store_true',
+                        help="Over-ride errors (as possible)? Not recommended")
 
     if options is None:
         pargs = parser.parse_args()
@@ -33,7 +38,16 @@ def main(pargs):
     if item == 'frbs':
         build_frbs.main(inflg=pargs.flag)
     elif item == 'hosts':
-        build_hosts.main(inflg=pargs.flag, options=pargs.galaxy_options)
+        if pargs.frb is None:
+            print("You must specify --frb")
+            return
+        # 
+        frbs = pargs.frb.split(',')
+        frbs = [ifrb.strip() for ifrb in frbs]
+        build_hosts.main(frbs, options=pargs.galaxy_options, 
+                             hosts_file=pargs.hosts_file,
+                             lit_refs=pargs.lit_refs,
+                             override=pargs.override) 
     elif item == 'specdb':
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':

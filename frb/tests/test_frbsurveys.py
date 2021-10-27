@@ -39,6 +39,10 @@ def test_wise():
     assert isinstance(wise_tbl, Table)
     assert len(wise_tbl) == 1
 
+    #Test get_image
+    imghdu = wise_srvy.get_cutout(imsize=search_r, filter="W1")
+    assert isinstance(imghdu,PrimaryHDU)
+    assert imghdu.data.shape == (5,5)
 
 @remote_data
 def test_psrcat():
@@ -63,7 +67,8 @@ def test_des():
     des_tbl = des_srvy.get_catalog(print_query=True)
     #
     assert isinstance(des_tbl, Table)
-    assert len(des_tbl) == 1
+    assert len(des_tbl) == 2
+
 
 
 @remote_data
@@ -75,7 +80,7 @@ def test_decals():
     decal_tbl = decal_srvy.get_catalog(print_query=True)
     #
     assert isinstance(decal_tbl, Table)
-    assert len(decal_tbl) == 2
+    assert len(decal_tbl) == 3
 
 
 

@@ -85,6 +85,8 @@ def incorporate_hst(hst_astrom:pandas.DataFrame, host):
     """Updates coordinates and offsets for galaxies
     observed with HST
 
+    Offsets ang_avg, ang_best are updated in place
+
     Currently for Mannings+2021 only
 
     Args:
@@ -95,6 +97,11 @@ def incorporate_hst(hst_astrom:pandas.DataFrame, host):
     frb_index = host.frb.frb_name[3:]
     hst_idx = np.where(hst_astrom.FRB.values.astype('str') == frb_index)[0]  # get from excel csv
 
+    # No match?
+    if len(hst_idx) == 0:
+        return
+
+    print('Updating galaxy coordinates and FRB offset with HST data')
     hst_row = hst_astrom.iloc[hst_idx[0]]
 
     # Set coordinate

@@ -12,9 +12,9 @@ from pkg_resources import resource_filename
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck15
 from astropy.table import Table
 
+from frb import defs as frb_defs
 from frb.galaxies import defs
 from frb.galaxies import nebular
 from frb.galaxies import utils as gutils
@@ -126,7 +126,7 @@ class FRBGalaxy(object):
 
         # Cosmology
         if cosmo is None:
-            self.cosmo = Planck15
+            self.cosmo = frb_defs.frb_cosmo
         else:
             self.cosmo = cosmo
 
@@ -285,14 +285,18 @@ class FRBGalaxy(object):
         return uncerta, uncertb
 
 
-    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, overwrite=True, EBV=None):
+    def parse_photom(self, phot_tbl, max_off=1*units.arcsec, 
+                     overwrite=True, EBV=None):
         """
         Parse photometry from an input table
 
         Fills the self.photom dict
 
+        Also fills fluxes in mJy
+
         Args:
             phot_tbl (astropy.table.Table):
+                ra, dec entires are required
             max_off (Angle, optional):
             overwrite (bool, optional):
             EBV (float, optional):  Galactic reddening.  If included, the photometry
@@ -310,7 +314,8 @@ class FRBGalaxy(object):
             return
         # Get a flux table
         flux_tbl = convert_mags_to_flux(phot_tbl, fluxunits='mJy')
-        # Fill
+
+        # Fill fluxes (mJy)
         for filter in defs.valid_filters:
             # Value
             if filter in phot_tbl.keys():
@@ -327,6 +332,9 @@ class FRBGalaxy(object):
                         if filter+'_err' in phot_tbl.keys():
                             self.photom[filter+'_err'] = phot_tbl[filter+'_err'][row]
                             self.photom[filter+'_flux_err'] = flux_tbl[filter+'_err'][row]
+                        # Try reference
+                        if filter+'_ref' in phot_tbl.keys():
+                            self.photom[filter+'_ref'] = phot_tbl[filter+'_ref'][row]
 
 
                         # Add entries for corresponding flux values.
@@ -653,13 +661,13 @@ class FRBGalaxy(object):
         assert attr in self.main_attr
         # Setup
         if attr == 'neb_lines':
-            defs_list = defs.valid_neb_lines
+            defs_list = defs.valid_neb_lines + defs.valid_neb_ref
         elif attr == 'morphology':
             defs_list = defs.valid_morphology
         elif attr == 'photom':
-            defs_list = defs.valid_photom+defs.valid_flux
+            defs_list = defs.valid_photom+defs.valid_flux+defs.valid_ref
         elif attr == 'derived':
-            defs_list = defs.valid_derived
+            defs_list = defs.valid_derived + defs.valid_derived_ref
         elif attr == 'redshift':
             defs_list = defs.valid_z
         elif attr == 'offsets':
@@ -769,8 +777,6 @@ class FRBHost(FRBGalaxy):
         ra (float): RA in deg
         dec (float): DEC in deg
         FRB (frb.FRB):
-        z_frb (float, optional):
-            Redshift of the host, expected to be provided
 
     """
     @classmethod
@@ -778,7 +784,7 @@ class FRBHost(FRBGalaxy):
         """
         
         Args:
-            frb (FRB):  FRB object
+            frb (frb.FRB):  FRB object
             **kwargs: 
 
         Returns:
@@ -801,11 +807,8 @@ class FRBHost(FRBGalaxy):
         super(FRBHost, self).__init__(ra, dec, frb, **kwargs)
 
         # Name
-        if frb.frb_name[0:3] == 'FRB':
-            name = frb.frb_name[3:]
-        else:
-            name = frb.frb_name
-        self.name = 'HG{}'.format(name)
+        idname = utils.parse_frb_name(frb.frb_name, prefix='')
+        self.name = 'HG{}'.format(idname)
 
         # Optional
         if z_frb is not None:
