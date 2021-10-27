@@ -78,7 +78,6 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     if atmos is not None:
         mask_lam = atmos
         mask_lam.extend(gaps)
-        goodidxs = np.array([]).astype(int)
         for i, mrange in enumerate(mask_lam):
             theseidxs = np.where((wave < mrange[0]) | (wave > mrange[1]))[0]
             goodpixels = np.intersect1d(theseidxs, goodpixels)

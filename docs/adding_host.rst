@@ -24,6 +24,13 @@ Basics
 Literature
 ----------
 
+You may add photometry, nebular measurements, or derived quantities
+by adding tables to the frb/data/Galaxies/Literature folder.  See that
+folder for examples.  
+
+You must then add each table you generate as a row in 
+the *all_refs.csv* file (in that same folder).
+
 ppxf
 ----
 
