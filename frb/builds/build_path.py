@@ -151,5 +151,8 @@ def main(options:str=None, override:bool=False):
     results = run(frb_list, host_coords, adopted)
 
     # Write
-    outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH.csv')
+    outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 
+                           'PATH', 'tmp.csv')
     results.to_csv(outfile)
+    print(f"PATH analysis written to {outfile}")
+    print("Rename it, push to Repo, and edit the PATH/README file accordingly")
