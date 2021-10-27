@@ -109,8 +109,8 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
     df['FRB'] = good_frb
     df['RA'] = RAs
     df['Dec'] = Decs
-    df['P(O)'] = PATH_O
-    df['P(O|x)'] = PATH_Ox
+    df['P_O'] = PATH_O
+    df['P_Ox)'] = PATH_Ox
 
     # 
     return df
