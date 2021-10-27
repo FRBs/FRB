@@ -190,8 +190,8 @@ def build_table_of_hosts():
     host_coords = SkyCoord(ra=host_tbl.RA_host, dec=host_tbl.DEC_host, unit='deg')
 
     # Init
-    host_tbl['P(O|x)'] = np.nan
-    host_tbl['P(O)'] = np.nan
+    host_tbl['P_Ox)'] = np.nan
+    host_tbl['P_O'] = np.nan
 
     # Loop
     for index, path_row in path_tbl.iterrows():
@@ -201,8 +201,8 @@ def build_table_of_hosts():
         # REDUCE THIS TOL TO 1 arcsec!!
         print(f"Min sep = {sep[imin].to('arcsec')}")
         if sep[imin] < 1.0*units.arcsec:
-            host_tbl.loc[index,'P(O|x)'] = path_row['P(O|x)']
-            host_tbl.loc[index,'P(O)'] = path_row['P(O)']
+            host_tbl.loc[index,'P_Ox'] = path_row['P_Ox']
+            host_tbl.loc[index,'P_O'] = path_row['P_O']
 
     # Return
     return host_tbl, tbl_units

@@ -226,7 +226,5 @@ def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
     sfrbs = [str(ifrb) for ifrb in host_tbl.FRB.values]
     host_tbl['FRB'] = sfrbs
 
-    # Add PATH
-
     # Return
     return host_tbl
