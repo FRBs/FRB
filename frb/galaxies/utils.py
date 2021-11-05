@@ -204,8 +204,8 @@ def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
         # REDUCE THIS TOL TO 1 arcsec!!
         print(f"Min sep = {sep[imin].to('arcsec')}")
         if sep[imin] < 1.0*units.arcsec:
-            host_tbl.loc[index,'P_Ox'] = path_row['P_Ox']
-            host_tbl.loc[index,'P_O'] = path_row['P_O']
+            host_tbl.loc[imin,'P_Ox'] = path_row['P_Ox']
+            host_tbl.loc[imin,'P_O'] = path_row['P_O']
 
     # Return
     return host_tbl, tbl_units

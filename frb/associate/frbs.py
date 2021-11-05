@@ -297,9 +297,6 @@ frb20180301 = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 201124
-"""
-Notes:
-"""
 updates = dict(
     name='FRB20201124',
     image_file=os.path.join(gdb_path, 'F4', 
