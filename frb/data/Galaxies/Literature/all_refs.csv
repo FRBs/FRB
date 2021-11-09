@@ -7,6 +7,7 @@ heintz2020_nebular.csv,csv,Heintz2020,10.3847/1538-4357/abb6fb
 tendulkar2017_nebular.csv,csv,Tendulkar2017,10.3847/2041-8213/834/2/L7
 marcote2020_nebular.csv,csv,Marcote2020,10.1038/s41586-019-1866-z
 mannings2021_photom.csv,csv,Mannings2021,arXiv:2012.11617
+mannings2021_derived.csv,csv,Mannings2021,arXiv:2012.11617
 bhardwaj2021_derived.csv,csv,Bhardwaj2021,10.3847/2041-8213/abeaa6
 bhandari2021_photom.ascii,ascii.fixed_width,Bhandari2021,arXiv:2108.01282
 fong2021_photom.ascii,ascii.fixed_width,Fong2021,arXiv:2106.11993
