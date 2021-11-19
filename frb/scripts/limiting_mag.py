@@ -13,7 +13,7 @@ def parser(options=None):
     parser.add_argument("mag_limit", type=float, help="Magnitude limit in filter *without* extinction correction")
     parser.add_argument("--filter", type=str, default='DECaL_r', help="Filter -- only used for extinction correction.  Must be a Repo approved choice")
     parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from MW and Host")
-    parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Overwhelm the screen?")
+    #parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Overwhelm the screen?")
 
     if options is None:
         pargs = parser.parse_args()
@@ -109,6 +109,8 @@ def main(pargs):
     print("-----------------------------------------------------")
     print(f"For z_{limits[0]}={z_min:.2f}, the limiting magnitude corresponds to L={frac_Lstar_min:.5f}L*")
     print(f"For z_{limits[1]}={z_max:.2f}, the limiting magnitude corresponds to L={frac_Lstar_max:.5f}L*")
+
+    return frac_Lstar_min, frac_Lstar_max
 
 # frb_mag_limit J151849.52+122235.8 200. 23.        
     
