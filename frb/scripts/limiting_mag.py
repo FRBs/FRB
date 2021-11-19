@@ -61,7 +61,8 @@ def main(pargs):
         print("Generating a new PDM_z grid")
         print("Please be patient (will take a few minutes)....")
         #
-        z, DM, P_DM_z = prob_dmz.grid_P_DMcosmic_z()
+        zvals = np.linspace(0., 4., 200)
+        z, DM, P_DM_z = prob_dmz.grid_P_DMcosmic_z(zvals=zvals)
         # Write
         np.savez(PDM_z_grid_file,
                  z=z, DM=DM, PDM_z=P_DM_z)
@@ -82,8 +83,8 @@ def main(pargs):
     cum_sum = np.cumsum(PzDM)
     limits = [10, 90]
 
-    z_min = z[np.argmin(np.abs(cum_sum-limits[0]/10.))]
-    z_max = z[np.argmin(np.abs(cum_sum-limits[1]/10.))]
+    z_min = z[np.argmin(np.abs(cum_sum-limits[0]/100.))]
+    z_max = z[np.argmin(np.abs(cum_sum-limits[1]/100.))]
 
     # Setup Luminosity
 
