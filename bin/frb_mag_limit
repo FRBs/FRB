@@ -6,11 +6,11 @@
 
 
 """
-This script shows an FRB related spectrum
+This script performs calculations related to the limiting mag
 """
 
-import frb.scripts.galaxies as galaxies
+from frb.scripts import limiting_mag
 
 if __name__ == '__main__':
-    args = galaxies.parser()
-    galaxies.main(args)
+    args = limiting_mag.parser()
+    limiting_mag.main(args)
