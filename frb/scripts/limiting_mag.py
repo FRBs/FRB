@@ -35,6 +35,7 @@ def main(pargs):
 
     from frb.galaxies import nebular
     from frb.galaxies import photom
+    from frb.galaxies import utils as frb_gal_u
     from frb import mw
     from frb.dm import prob_dmz
 
@@ -79,17 +80,34 @@ def main(pargs):
     PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
 
     cum_sum = np.cumsum(PzDM)
-    limits = [0.1, 0.9]
+    limits = [10, 90]
 
-    z_min = z[np.argmin(np.abs(cum_sum-limits[0]))]
-    z_max = z[np.argmin(np.abs(cum_sum-limits[1]))]
+    z_min = z[np.argmin(np.abs(cum_sum-limits[0]/10.))]
+    z_max = z[np.argmin(np.abs(cum_sum-limits[1]/10.))]
 
     # Setup Luminosity
 
     # Extinction correct
-    lin_A = photom.extinction_correction(pargs.filter, EBV)
+    dust_correct = photom.extinction_correction(pargs.filter, EBV)
+    mag_dust = 2.5 * np.log10(1. / dust_correct)
+    mag_corr = pargs.mag_limit + mag_dust
 
-    embed(header='92 of limiting')
+    # ##########################3
+    # Convert to L
+
+    # Load f_mL
+    f_mL = frb_gal_u.load_f_mL()
+    # m_r(L*)
+    m_r_Lstar_min = float(f_mL(z_min))
+    m_r_Lstar_max = float(f_mL(z_max))
+
+    frac_Lstar_min = 10**(-0.4*(mag_corr-m_r_Lstar_min))
+    frac_Lstar_max = 10**(-0.4*(mag_corr-m_r_Lstar_max))
+
+    # Finish
+    print("-----------------------------------------------------")
+    print(f"For z_{limits[0]}={z_min:.2f}, the limiting magnitude corresponds to L={frac_Lstar_min:.5f}L*")
+    print(f"For z_{limits[1]}={z_max:.2f}, the limiting magnitude corresponds to L={frac_Lstar_max:.5f}L*")
 
 # frb_mag_limit J151849.52+122235.8 200. 23.        
     

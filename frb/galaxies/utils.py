@@ -5,6 +5,9 @@ import glob
 from IPython import embed
 from pkg_resources import resource_filename
 import numpy as np
+from scipy.interpolate import interp1d
+
+import pandas
 
 try:
     from specdb.specdb import SpecDB
@@ -183,4 +186,24 @@ def build_table_of_hosts():
     # Return
     return host_tbl, tbl_units
 
+def load_f_mL():
+    """ Generate an interpolater from mag to Luminosity as 
+    a function of redshift (up to z=4)
+
+    Warning:  this is rather approximate
+
+    Returns:
+        scipy.interpolate.interp1d:
+
+    """
+    # Grab m(L) table
+    data_file = os.path.join(resource_filename('frb', 'data'),
+                             'Galaxies', 'galLF_vs_z.txt')
+    df = pandas.read_table(data_file, index_col=False)
+
+    # Interpolate
+    f_mL = interp1d(df.z, df['m_r(L*)'])
+
+    # Return
+    return f_mL
 
