@@ -15,6 +15,7 @@ class P_DM_z(object):
 def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
                       ISMfrac=0.10, DM_MWhalo=50.):
     """
+    Generate P(DM_cosmic) for an input FRP
     
     Args:
         frb (:class:`frb.frb.FRB`):
