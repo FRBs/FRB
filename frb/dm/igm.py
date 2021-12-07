@@ -280,7 +280,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, lo
 
     # Fraction of total mass in halos
     zvals = np.linspace(0, z, 20)
-    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
+    fhalos = frb_hmf.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
     fhalos_interp = IUS(zvals, fhalos)(zeval)
 
     # Electron number density in halos only
