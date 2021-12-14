@@ -120,7 +120,13 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
     # Return
     return zvals, DM_cosmics, PDF_grid
 
-def build_for_repo(outfile:str):
+def build_grid_for_repo(outfile:str):
+    """
+    Build a P(DM,z) grid for the Repository
+
+    Args:
+        outfile (str): Path+filename for output file
+    """
 
     print("Generating a new PDM_z grid for the Repo")
     print("Please be patient (will take a few minutes)....")
@@ -148,7 +154,7 @@ def grab_repo_grid():
 
     # Build?
     if not os.path.isfile(PDM_z_grid_file):
-        build_for_repo()
+        build_grid_for_repo()
             
     # Load
     print(f"Loading P(DM,z) grid from {PDM_z_grid_file}")
