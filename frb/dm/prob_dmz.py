@@ -1,6 +1,7 @@
 """ Code for calculations of P(DM|z) and P(z|DM)"""
 import numpy as np
 import os
+from pkg_resources import resource_filename
 
 from scipy.stats import norm, lognorm
 
@@ -119,3 +120,39 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
     # Return
     return zvals, DM_cosmics, PDF_grid
 
+def build_for_repo(outfile:str):
+
+    print("Generating a new PDM_z grid for the Repo")
+    print("Please be patient (will take a few minutes)....")
+    #
+    zvals = np.linspace(0., 4., 200)
+    z, DM, P_DM_z = grid_P_DMcosmic_z(zvals=zvals)
+    # Write
+    np.savez(outfile, z=z, DM=DM, PDM_z=P_DM_z)
+    print(f"File written: {outfile}")
+    print("This will be used going forth")
+
+def grab_repo_grid():
+    """
+    Grab the grid from the Repository
+    This may require the code to build it first!
+
+    Returns:
+        dict: Numpy dict from the npz save file
+    """
+
+    # File
+    PDM_z_grid_file = os.path.join(
+        resource_filename('frb', 'data'), 'DM',
+        'PDM_z.npz')
+
+    # Build?
+    if not os.path.isfile(PDM_z_grid_file):
+        build_for_repo()
+            
+    # Load
+    print(f"Loading P(DM,z) grid from {PDM_z_grid_file}")
+    sdict = np.load(PDM_z_grid_file)
+
+    # Return
+    return sdict
