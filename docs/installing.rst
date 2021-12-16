@@ -57,7 +57,7 @@ The following package(s) is/are required to access FRB galaxy spectra:
 
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
-* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 1.2.0 or later
 
 The following are required to use our KCWI datacube handling tools:
 

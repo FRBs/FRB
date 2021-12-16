@@ -125,125 +125,6 @@ class FRBAssociate(path.PATH):
         self.candidates['P_c'] = self.Pchance
         self.candidates['Sigma_m'] = self.Sigma_m
 
-    '''
-    def calc_priors(self, prior_U, method='inverse'):
-        """
-        Calulate the priors based on Pchance
-        and the input method
-
-        prior_Mi and prior_S are set in place
-        The candidates table is updated with P_O
-
-        Note that there is no correction for Galactic extinction here.
-        Do that yourself as desired
-
-        Args:
-            prior_S (float):
-                If the input value is <0, use the P_c product else use the input value
-            method (str, optional):
-                'inverse':  P(O) = 1 / Sigma(m)
-        """
-        if self.Pchance is None:
-            raise IOError("Set Pchance before calling this method")
-
-        # TODO -- Move this into Bayesian
-        if prior_U < 0.:
-            self.prior_U = np.product(self.candidates['P_c'])
-        else:
-            self.prior_U = prior_U
-
-        # Raw priors
-        self.raw_prior_Oi = bayesian.raw_prior_Oi(method, 
-                                                  self.candidates[self.filter].values,
-                                                  Pchance=self.Pchance,
-                                                  ang_size=self.candidates.ang_size.values)
-
-        # Normalize
-        self.prior_Oi = bayesian.renorm_priors(self.raw_prior_Oi, self.prior_U)
-
-        # Add to table
-        self.candidates['P_O'] = self.prior_Oi
-
-    def calc_POx(self, **kwargs):
-        """
-        Calculate p(O|x) by running through
-        the series of:
-            self.calc_pxO()
-            self.calc_pxS()
-            self.calc_px()
-
-        Values are stored in self.P_Oix
-        and the candidates table as P_Ox
-
-        Args:
-            kwargs (optional):  passed to self.calc_pxO
-
-        """
-
-        # Intermediate steps
-        self.calc_pxO(**kwargs)
-        self.calc_pxU()
-        self.calc_px()
-
-        # Finish
-        self.P_Oix = self.prior_Oi * self.p_xOi / self.p_x
-        self.candidates['P_Ox'] = self.P_Oix
-
-        # P(S|x)
-        self.P_Ux = self.prior_U * self.p_xU / self.p_x
-
-    def calc_pxO(self, min_rellipse=0.3, **kwargs):
-        """
-        Calculate p(x|O) and assign to p_xOi
-
-        self.p_xOi is set in place
-
-        Args:
-            min_rellipse (float, optional): Minimum value considered
-                for either axis of the error ellipse
-            kwargs (optional):  passed to frb.associate.bayesian.px_Oi
-        """
-
-        # This hack sets the minimum localization to 0.3''
-        #  This is to avoid round-off issues for very small localizations
-        #  It will be superseded by Healpix approaches (soon)
-        # TODO -- Replace with Healpix
-        eellipse = self.frb.eellipse.copy()
-        if (self.frb.sig_a < min_rellipse) or (
-                self.frb.sig_b < min_rellipse):
-            warnings.warn("Enforcing a minimum semi-axis of {} for the localization".format(min_rellipse))
-        eellipse['a'] = max(self.frb.sig_a, min_rellipse)
-        eellipse['b'] = max(self.frb.sig_b, min_rellipse)
-
-        # Localization
-        localiz = dict(type='eellipse', 
-                       center_coord=self.frb.coord, 
-                       eellipse=eellipse)
-        assert localization.vet_localization(localiz)
-
-        # Do it
-        self.p_xOi = bayesian.px_Oi_fixedgrid(
-            self.max_radius, localiz, 
-            self.candidates['coords'].values,
-            self.theta_prior, **kwargs)
-        self.candidates['p_xO'] = self.p_xOi
-
-    def calc_pxU(self):
-        """
-        Calculate p(x|U) and assign to p_xU
-        """
-        self.p_xU = bayesian.px_U(self.max_radius)
-
-    def calc_px(self):
-        """
-        Calculate p(x)
-
-        Returns:
-            np.ndarray:
-
-        """
-        self.p_x = self.prior_U * self.p_xU + np.sum(self.prior_Oi * self.p_xOi)
-    '''
 
     def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
         """
@@ -260,7 +141,7 @@ class FRBAssociate(path.PATH):
 
         """
 
-        # Zero point
+        # Plate scale
         if isinstance(plate_scale, str):
             plate_scale = self.header[plate_scale]
 
@@ -330,18 +211,17 @@ class FRBAssociate(path.PATH):
         if isinstance(ZP, str):
             ZP = self.header[ZP]
 
-        self.cat = photutils.source_properties(self.hdu.data - self.bkg.background,
-                                               self.segm,
-                                               kron_params=('mask', 2.5, 1.0, 'exact', 5),
-                                               background=self.bkg.background,
-                                               filter_kernel=self.kernel)
+        self.cat = photutils.segmentation.SourceCatalog(
+            self.hdu.data - self.bkg.background,
+            self.segm,
+            background=self.bkg.background)
 
         # Apertures
         apertures = []
         for obj in self.cat:
-            position = np.transpose((obj.xcentroid.value, obj.ycentroid.value))
-            a = obj.semimajor_axis_sigma.value * radius
-            b = obj.semiminor_axis_sigma.value * radius
+            position = np.transpose((obj.xcentroid, obj.ycentroid))
+            a = obj.semimajor_sigma.value * radius
+            b = obj.semiminor_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
             apertures.append(photutils.EllipticalAperture(position, a, b, theta=theta))
         self.apertures = apertures
@@ -349,11 +229,11 @@ class FRBAssociate(path.PATH):
         # Magnitudes
         self.filter = ifilter
         self.photom = self.cat.to_table().to_pandas()
-        self.photom[ifilter] = -2.5 * np.log10(self.photom['source_sum']) + ZP
+        self.photom[ifilter] = -2.5 * np.log10(self.photom['segment_flux']) + ZP
 
-        # Kron
+        # Add in ones lost in the pandas conversion Kron
         for key in ['kron_radius']:
-            self.photom[key] = getattr(self.cat, key)
+            self.photom[key] = getattr(self.cat, key).value # pixel
 
         # Plot?
         if show or outfile is not None:
@@ -373,38 +253,6 @@ class FRBAssociate(path.PATH):
             if show:
                 plt.show()
 
-    '''
-    def run_bayes(self, prior, fill_half_light=True, verbose=True):
-        """
-        Run the main steps of the Bayesian analysis
-
-        self.POx is filled in place
-        and added to self.candidates
-
-        Args:
-            prior (dict):
-            fill_half_light (bool, optional):
-                Add half_light radii to the prior dict
-            verbose (bool, optional):
-
-        Returns:
-
-        """
-        # Checks
-        if self.Pchance is None:
-            raise IOError("Set Pchance before calling this method")
-        # Priors
-        self.calc_priors(prior['S'], method=prior['M'])
-        # Fill?
-        if fill_half_light:
-            prior['theta']['r_half'] = self.candidates['half_light'].values
-        self.set_theta_prior(prior['theta'])
-        # P(O|x)
-        self.calc_POx()
-        #
-        if verbose:
-            print("All done with Bayes")
-    '''
 
     def segment(self, nsig=3., xy_kernel=(3,3), npixels=3, show=False, outfile=None,
                 deblend=False):
@@ -437,14 +285,15 @@ class FRBAssociate(path.PATH):
         self.kernel.normalize()
 
         # Segment
-        self.segm = photutils.detect_sources(self.hdu.data, self.thresh_img,
-                                             npixels=npixels, filter_kernel=self.kernel)
+        self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
+                                             npixels=npixels, 
+                                             kernel=self.kernel)
 
         # Debelnd?
         if deblend:
-            segm_deblend = photutils.deblend_sources(self.hdu.data, self.segm,
+            segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
                                                      npixels=npixels,
-                                                     filter_kernel=self.kernel,
+                                                     kernel=self.kernel,
                                                      nlevels=32,
                                                      contrast=0.001)
             self.orig_segm = self.segm.copy()
@@ -464,18 +313,6 @@ class FRBAssociate(path.PATH):
                 plt.savefig(outfile, dpi=300)
             if show:
                 plt.show()
-
-    '''
-    def set_theta_prior(self, theta_dict):
-        """
-
-        Args:
-            theta_dict (dict):
-
-        """
-        self.theta_max = theta_dict['max']
-        self.theta_prior = theta_dict
-    '''
 
     def threshold(self, nsig=1.5, box_size=(50,50), filter_size=(3,3)):
         """
@@ -523,7 +360,9 @@ class FRBAssociate(path.PATH):
         return (txt)
 
 
-def run_individual(config, show=False, skip_bayesian=False, verbose=False,
+def run_individual(config, prior:dict=None, show=False, 
+                   skip_bayesian=False, 
+                   verbose=False,
                    extinction_correct=False):
     """
     Run through the steps leading up to Bayes
@@ -531,7 +370,7 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False,
     Args:
         config (dict):  Runs the PATH analysis
             keys:
-                name (str): Name of the FRB, e.g. FRB121102
+                name (str): Name of the FRB, e.g. FRB20121102
                 max_radius (float): Maximum radius in arcsec for the analysis
                 cut_size (float): Size to trim the image down to
                 deblend (bool): If True, apply the deblending algorithm
@@ -589,11 +428,30 @@ def run_individual(config, show=False, skip_bayesian=False, verbose=False,
     if verbose:
         print(frbA.candidates[['id', config['filter'], 'ang_size', 'separation', 'P_c']])
 
-    # Return here?
+    # BAYESIAN 
     if skip_bayesian:
         return frbA
 
-    # BAYESIAN GOES HERE....
+    frbA.candidates['mag'] = frbA.candidates[frbA.filter]
+    frbA.init_cand_coords()
+    # Set priors
+    frbA.init_cand_prior('inverse', P_U=prior['U'])
+    frbA.init_theta_prior(prior['theta']['method'], 
+                            prior['theta']['max'])
+
+    # Localization
+    frbA.init_localization('eellipse', 
+                            center_coord=frbA.frb.coord,
+                            eellipse=frbA.frb_eellipse)
+    
+    # Calculate priors
+    frbA.calc_priors()                            
+
+    # Calculate p(O_i|x)
+    frbA.calc_posteriors('fixed', box_hwidth=frbA.max_radius)
+
+    # Reverse Sort
+    frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
 
     # Finish
     return frbA
