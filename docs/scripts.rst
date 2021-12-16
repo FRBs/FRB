@@ -116,14 +116,16 @@ Here is the usage::
     Script to print a summary of an FRB to the screen [v1.0]
 
     positional arguments:
-    coord                 Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322
-                            or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)
-    DM_FRB                FRB DM
+    coord                 Coordinates, e.g. J081240.7+320809 or
+                            122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB
+                            name (FRB180924)
+    DM_FRB                FRB DM (pc/cm^3)
 
     optional arguments:
     -h, --help            show this help message and exit
     --dm_hostmw DM_HOSTMW
-                            Assumed DM contribution from MW and Host
+                            Assumed DM contribution from the Milky Way Halo (ISM
+                            is calcualted from NE2001) and Host
     --cl CL               Confidence limits for the z estimate [default is a 95
                             percent c.l., (2.5,97.5)]
 
