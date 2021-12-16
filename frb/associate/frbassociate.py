@@ -11,6 +11,7 @@ from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
+from astropy.table import Table 
 
 from frb import frb
 from astropath import bayesian
@@ -166,13 +167,13 @@ class FRBAssociate(path.PATH):
         # Insist on ICRS
         coords = coords.transform_to('icrs')
 
-        self.candidates['ra'] = coords.ra
-        self.candidates['dec'] = coords.dec
+        self.candidates['ra'] = coords.ra.value
+        self.candidates['dec'] = coords.dec.value
         self.candidates['coords'] = coords
 
         # Separation
         seps = self.frb.coord.separation(coords)
-        self.candidates['separation'] = seps.to('arcsec')
+        self.candidates['separation'] = seps.to('arcsec').value
 
         # Cut on separation?
         if separation is not None:
@@ -180,7 +181,7 @@ class FRBAssociate(path.PATH):
             self.candidates = self.candidates[cut_seps]
 
         # Half light
-        self.candidates['ang_size'] = self.candidates['semimajor_axis_sigma'] * plate_scale
+        self.candidates['ang_size'] = self.candidates['semimajor_sigma'] * plate_scale
 
     def photometry(self, ZP, ifilter, radius=3., show=False, outfile=None):
         """
@@ -228,7 +229,7 @@ class FRBAssociate(path.PATH):
 
         # Magnitudes
         self.filter = ifilter
-        self.photom = self.cat.to_table().to_pandas()
+        self.photom = Table(self.cat.to_table()).to_pandas()
         self.photom[ifilter] = -2.5 * np.log10(self.photom['segment_flux']) + ZP
 
         # Add in ones lost in the pandas conversion Kron
