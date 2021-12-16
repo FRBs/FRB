@@ -10,7 +10,7 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("coord", type=str, help="Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)")
     parser.add_argument("DM_FRB", type=float, help="FRB DM (pc/cm^3)")
-    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from MW and Host")
+    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calcualted from NE2001) and Host")
     parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
 
@@ -24,17 +24,11 @@ def parser(options=None):
 def main(pargs):
     """ Run
     """
-    import json
-    import os
     import numpy as np
-    from pkg_resources import resource_filename
 
     from linetools import utils as ltu
     from linetools.scripts.utils import coord_arg_to_coord
 
-    from frb.galaxies import nebular
-    from frb.galaxies import photom
-    from frb.galaxies import utils as frb_gal_u
     from frb import mw
     from frb.dm import prob_dmz
 
