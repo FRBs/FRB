@@ -79,7 +79,7 @@ frb20180916 = {**base_config, **updates}  # Use | in 3.9
 # FRB 180924
 updates = dict(
     name='FRB20180924',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Bannister2019', 'FRB180924_VLT_FORS2_g.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Bannister2019', 'FRB20180924_VLT_FORS2_g.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
     ZP = 34.5,

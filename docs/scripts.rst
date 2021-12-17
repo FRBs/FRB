@@ -100,6 +100,36 @@ And an example::
 The first time you run this script, it will generate a npz file and place
 it in the repo for future use.  That takes a few minutes.
 
+frb_pz_dm
+=========
+
+This script takes as input the FRB DM and its coordinates (approximate
+are fine) and then estimates the redshift range assuming 
+the Macquart relation (and simple host + MW contributions, optionally 
+input).  For an (optionally input; tuple) confidence interval, 
+it reports back the putative redshift range for the FRB.
+
+Here is the usage::
+
+    usage: frb_pz_dm [-h] [--dm_hostmw DM_HOSTMW] [--cl CL] coord DM_FRB
+
+    Script to print a summary of an FRB to the screen [v1.0]
+
+    positional arguments:
+    coord                 Coordinates, e.g. J081240.7+320809 or
+                            122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB
+                            name (FRB180924)
+    DM_FRB                FRB DM (pc/cm^3)
+
+    optional arguments:
+    -h, --help            show this help message and exit
+    --dm_hostmw DM_HOSTMW
+                            Assumed DM contribution from the Milky Way Halo (ISM
+                            is calcualted from NE2001) and Host
+    --cl CL               Confidence limits for the z estimate [default is a 95
+                            percent c.l., (2.5,97.5)]
+
+
 frb_sightline
 =============
 

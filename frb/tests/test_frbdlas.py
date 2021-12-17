@@ -40,6 +40,6 @@ def test_monte_DM():
 def test_monte_tau():
     """ Monte-carlo of temporal broadening
     """
-    zeval = np.array([0.,1.,2.])
+    zeval = np.array([0.5,1.,2.])
     taus = monte_tau(np.array(zeval))
     assert taus.shape[1] == len(zeval)
