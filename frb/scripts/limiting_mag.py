@@ -54,24 +54,9 @@ def main(pargs):
     DM_cosmic = pargs.DM_FRB - DM_ISM.value - pargs.dm_hostmw
 
     # Redshift estimates
-    PDM_z_grid_file = os.path.join(
-        resource_filename('frb', 'data'), 'DM',
-        'PDM_z.npz')
-    if not os.path.isfile(PDM_z_grid_file):
-        print("Generating a new PDM_z grid")
-        print("Please be patient (will take a few minutes)....")
-        #
-        zvals = np.linspace(0., 4., 200)
-        z, DM, P_DM_z = prob_dmz.grid_P_DMcosmic_z(zvals=zvals)
-        # Write
-        np.savez(PDM_z_grid_file,
-                 z=z, DM=DM, PDM_z=P_DM_z)
-        print(f"File written: {PDM_z_grid_file}")
-        print("This will be used going forth")
 
     # Load
-    print(f"Loading P(DM,z) from {PDM_z_grid_file}")
-    sdict = np.load(PDM_z_grid_file)
+    sdict = prob_dmz.grab_repo_grid()
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
