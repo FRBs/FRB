@@ -16,7 +16,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'des_dr2')
 
 # Define the data model for DES data
 photom = {}

@@ -1,2 +1,2 @@
 # NOIR Lab definitions
-NOIR_DEF_ACCESS_URL = "https://datalab.noirlab.edu/sia/ls_dr8"
+NOIR_DEF_ACCESS_URL = "https://datalab.noirlab.edu/sia/"
