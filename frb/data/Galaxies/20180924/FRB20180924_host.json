@@ -107,7 +107,7 @@
         "WFC3_F160W_flux_err": 0.00012288738443745042,
         "WFC3_F160W_ref": "Mannings2021",
         "WFC3_F300X": 23.372686479056508,
-        "WFC3_F300X_err": 0.057999999999999996,
+        "WFC3_F300X_err": 0.058,
         "WFC3_F300X_flux": 0.0016252695645897245,
         "WFC3_F300X_flux_err": 8.918272010276147e-05,
         "WFC3_F300X_ref": "Mannings2021",
@@ -130,9 +130,9 @@
     },
     "positional_error": {
         "dec_astrometric": 0.0228,
-        "dec_source": 0.00026000000000000003,
+        "dec_source": 0.00026,
         "ra_astrometric": 0.0243,
-        "ra_source": 0.00032900000000000003
+        "ra_source": 0.000329
     },
     "ra": 326.1052333333333,
     "ra_FRB": 326.1052291666667,
