@@ -6,6 +6,7 @@ from astropy.table import Table
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
+from frb.surveys import defs
 
 # Dependencies
 try:
@@ -14,8 +15,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr8"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL)
 
 # Define the Photometric data model for DECaL
 photom = {}

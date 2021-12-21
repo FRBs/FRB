@@ -1,11 +1,14 @@
 """WISE Survey"""
 
 import numpy as np
+
 from astropy import units, io, utils
+from astropy.table import Table
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
-from astropy.table import Table
+from frb.surveys import defs
+
 
 from IPython import embed
 
@@ -15,8 +18,7 @@ except ImportError:
     print("Warning: You need to install pyvo to use the survey tools...")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://irsa.ipac.caltech.edu/ibe/data/wise/allwise/p3am_cdd"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL)
 
 # Define the data model for WISE data
 photom = {}
