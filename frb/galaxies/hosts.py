@@ -204,12 +204,23 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
     else:
         return 1 - np.exp(-1 * num_gals)
 
-def load_host_tbl(hosts_file=None):
+def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
+    """ Generate a simple host table from a CSV, usually
+    the public file
+
+    Args:
+        hosts_file (str, optional): [description]. Defaults to None.
+        host_tbl ([type], optional): [description]. Defaults to None.
+
+    Returns:
+        pandas.DataFrame: [description]
+    """
     galaxy_path = os.path.join(resource_filename('frb', 'data'), 
                                'Galaxies')
-    if hosts_file is None:
-        hosts_file = os.path.join(galaxy_path, 'public_hosts.csv')
-    host_tbl = pandas.read_csv(hosts_file)
+    if host_tbl is None:
+        if hosts_file is None:
+            hosts_file = os.path.join(galaxy_path, 'public_hosts.csv')
+        host_tbl = pandas.read_csv(hosts_file)
 
     # Reformat a few columns
     sfrbs = [str(ifrb) for ifrb in host_tbl.FRB.values]

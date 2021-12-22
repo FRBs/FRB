@@ -692,6 +692,10 @@ def frb_201124():
     # NE2001
     frb201124.set_DMISM()
 
+    # RM (Kumar+21)
+    frb201124.RM = -613 * units.rad / units.m**2
+    frb201124.RM_err = 2 * units.rad / units.m**2
+
     # RM and fluence (Bhandari+20b)
     #frb201124.RM = 55.5 * units.rad / units.m**2
     #frb201124.RM_err = 0.9 * units.rad / units.m**2
