@@ -36,16 +36,17 @@ def main(pargs):
 
     # Parse
     item = pargs.item.lower()
-    if item == 'frbs':
-        build_frbs.main(inflg=pargs.flag)
-    elif item == 'hosts':
+    if item in ['frbs', 'hosts']:
         if pargs.frb is None:
             print("You must specify --frb")
             return
         # 
         frbs = pargs.frb.split(',')
         frbs = [ifrb.strip() for ifrb in frbs]
-        build_hosts.main(frbs, options=pargs.galaxy_options, 
+        if item == 'frbs':
+            build_frbs.main(frbs)
+        else:
+            build_hosts.main(frbs, options=pargs.galaxy_options, 
                              hosts_file=pargs.hosts_file,
                              lit_refs=pargs.lit_refs,
                              override=pargs.override) 
