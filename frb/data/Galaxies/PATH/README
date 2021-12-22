@@ -1,0 +1,6 @@
+adopted.csv  -- Generated on 2021-10-27 by JXP
+
+  Standard priors  
+    nhalf = 10.
+    theta_max = 6.
+    adopted = dict(theta=theta_e, O='inverse', U=0., name='Adopted', nhalf=nhalf)

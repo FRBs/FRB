@@ -46,7 +46,7 @@ frb20190608 = {**base_config, **updates}  # Use | in 3.9
 """
 updates = dict(
     name='FRB20121102',
-    image_file=os.path.join(gdb_path, 'Repeater', 'Tendulkar2017', 'FRB121102_GMOS_N_i.fits'),
+    image_file=os.path.join(gdb_path, 'Repeater', 'Tendulkar2017', 'FRB20121102_GMOS_N_i.fits'),
     cut_size = 30.,
     filter = 'GMOS_N_i',
     ZP = 32.2,
@@ -63,7 +63,7 @@ frb20121102 = {**base_config, **updates}  # Use | in 3.9
 """
 updates = dict(
     name='FRB20180916',
-    image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB180916_GMOS_N_r.fits'),
+    image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB20180916_GMOS_N_r.fits'),
     cut_size = 40.,
     filter = 'GMOS_N_r',
     ZP = 31.2,
@@ -94,7 +94,7 @@ frb20180924 = {**base_config, **updates}  # Use | in 3.9
 # FRB 181112
 updates = dict(
     name='FRB20181112',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Prochaska2019', 'FRB181112_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Prochaska2019', 'FRB20181112_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 32.3,
@@ -109,7 +109,7 @@ frb20181112 = {**base_config, **updates}  # Use | in 3.9
 # FRB 190102
 updates = dict(
     name='FRB20190102',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190102_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190102_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 26.9,
@@ -124,7 +124,7 @@ frb20190102 = {**base_config, **updates}  # Use | in 3.9
 # FRB 190523
 updates = dict(
     name='FRB20190523',
-    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB190523_LRIS_R.fits'),
+    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
     cut_size = 30.,
     filter = 'LRIS_R',
     ZP = 33.,
@@ -138,7 +138,7 @@ frb20190523 = {**base_config, **updates}  # Use | in 3.9
 # FRB 190611
 updates = dict(
     name='FRB20190611',
-    image_file = os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190611_GMOS_S_i.fits'),
+    image_file = os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190611_GMOS_S_i.fits'),
     cut_size = 30.,
     filter='GMOS_S_i',
     ZP=32.8,
@@ -152,7 +152,7 @@ frb20190611 = {**base_config, **updates}
 # FRB 190614
 updates = dict(
     name='FRB20190614',
-    image_file = os.path.join(gdb_path, 'Realfast', 'Law2020', 'FRB190614_LRIS_I.fits'),
+    image_file = os.path.join(gdb_path, 'Realfast', 'Law2020', 'FRB20190614_LRIS_I.fits'),
     cut_size = 30.,
     filter='LRIS_I',
     ZP=34.,
@@ -170,7 +170,7 @@ Notes:
 """
 updates = dict(
     name='FRB20190711',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB190711_GMOS_S_i.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190711_GMOS_S_i.fits'),
     cut_size = 30.,
     filter = 'GMOS_S_i',
     ZP = 32.7,
@@ -188,7 +188,7 @@ Notes:
 """
 updates = dict(
     name='FRB20190714',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB190714_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20190714_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.39,
@@ -206,7 +206,7 @@ Notes:
 """
 updates = dict(
     name='FRB20191001',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB191001_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001_VLT-FORS2_I_BESS.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.5,
@@ -225,7 +225,7 @@ Notes:
 updates = dict(
     name='FRB20191228',
     image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 
-                            'FRB191228_VLT-FORS2_I.fits'),
+                            'FRB20191228_VLT-FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.453 - 0.039, # Reported by FORS2 QC1 Archive + IRSA Dust Tool
@@ -243,7 +243,7 @@ Notes:
 """
 updates = dict(
     name='FRB20200430',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB200430_LRIS_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20200430_LRIS_I.fits'),
     cut_size = 30.,
     filter = 'LRIS_I',
     ZP = 34.2,  # Tied to Pan-Starrs i-band
@@ -263,7 +263,7 @@ updates = dict(
     name='FRB20200906',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 
-                            'FRB200906_VLT-FORS2_g.fits'),
+                            'FRB20200906_VLT-FORS2_g.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
     ZP = 27.42 - 0.016, # Tied to DES g-band
@@ -282,7 +282,7 @@ Notes:
 updates = dict(
     name='FRB20180301',
     image_file=os.path.join(gdb_path, 'Realfast', 
-                            'Bhandari2021', 'FRB180301_GMOS_S_r.fits'),
+                            'Bhandari2021', 'FRB20180301_GMOS_S_r.fits'),
     cut_size = 30.,
     filter = 'GMOS_S_r',
     ZP = 32.94,  # Kasper
@@ -297,13 +297,10 @@ frb20180301 = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 201124
-"""
-Notes:
-"""
 updates = dict(
     name='FRB20201124',
     image_file=os.path.join(gdb_path, 'F4', 
-                            'fong2021', 'FRB201124_Pan-STARRS_r.fits'),
+                            'fong2021', 'FRB20201124_Pan-STARRS_r.fits'),
     cut_size = 30.,
     filter = 'Pan-STARRS_r',
     ZP = 32.29,  # Refined using catalog
