@@ -553,3 +553,13 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     # Return
     return frb_tbl, tbl_units
+
+def load_base_tbl():
+    path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+    tbl_file = os.path.join(path, 'FRBs_base.csv')
+
+    # Load
+    frb_tbl = pd.read_csv(tbl_file)
+
+    # Return
+    return frb_tbl
