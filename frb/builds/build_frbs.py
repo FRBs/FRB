@@ -72,7 +72,6 @@ def frb_180301():
     frb180301.set_DMISM()
     # RM
     # frb190102.RM = 10 * units.rad / units.m**2
-    # frb190102.RM_err = 1 * units.rad / units.m**2
 
     # References
     frb180301.refs = ['Bhandari2021']
