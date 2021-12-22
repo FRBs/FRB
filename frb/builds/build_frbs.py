@@ -160,14 +160,14 @@ def run(frb_input:pandas.core.series.Series,
     ifrb.write_to_json(path=out_path) #'/home/xavier/Projects/FRB_Software/FRB/frb/tests/files')
 
 
-def main(frbs:list, options:str=None, tbl_file:str=None, lit_refs:str=None,
+def main(frbs:list, options:str=None, data_file:str=None, lit_refs:str=None,
          override:bool=False, outfile:str=None, out_path:str=None):
     """ Driver of the analysis
 
     Args:
         frbs (list): [description]
         options (str, optional): [description]. Defaults to None.
-        tbl_file (str, optional): Alternate table than default
+        data_file (str, optional): Alternate table than default
             for building FRBs. Defaults to None.
         lit_refs (str, optional): [description]. Defaults to None.
         override (bool, optional): [description]. Defaults to False.
@@ -187,7 +187,7 @@ def main(frbs:list, options:str=None, tbl_file:str=None, lit_refs:str=None,
     '''
 
     # Read public FRB table
-    frb_tbl = load_frb_data(tbl_file=tbl_file)
+    frb_tbl = load_frb_data(tbl_file=data_file)
 
     # Loop me
     if frbs[0] == 'all':
