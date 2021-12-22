@@ -517,6 +517,15 @@ def build_table_of_frbs(frbs=None, fattrs=None):
         frb_tbl['ee_'+ee_attr] = alist
         tbl_units['ee_'+ee_attr] = ee_units[ss]
 
+    # A few others
+    for other in ['repeater']:
+        alist = [getattr(ifrb, other) if hasattr(ifrb, other) else np.nan for ifrb in frbs]
+        frb_tbl[other] = alist
+
+    # Refs
+    alist = [','.join(ifrb.refs) for ifrb in frbs]
+    frb_tbl['refs'] = alist
+
     # Float Attributes on an Object
     for fattr in fattrs:
         values = []
@@ -540,6 +549,7 @@ def build_table_of_frbs(frbs=None, fattrs=None):
         frb_tbl[fattr] = values
         if has_error:
             frb_tbl[eattr] = errors
+
 
     # Return
     return frb_tbl, tbl_units
