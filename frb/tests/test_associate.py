@@ -17,6 +17,7 @@ remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
 
 @remote_data
 def test_individual():
+    # This needs to be hidden
     orig_priors = priors.load_std_priors()
     config = getattr(frbs, 'FRB20180924'.lower())
     frbA = frbassociate.run_individual(config, orig_priors['adopted'])

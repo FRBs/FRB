@@ -5,10 +5,15 @@ At the moment the Zero Points used include Galactic Extinction!
 """
 import os
 from astropy import units
+import warnings
 
 from IPython import embed
 
-gdb_path = os.getenv('FRB_GDB')
+if os.getenv('FRB_GDB') is None:
+    warnings.warn("FRB_GDB variable is not set.  Odds are you are doing something wrong..")
+    gdb_path = ''
+else:
+    gdb_path = os.getenv('FRB_GDB')
 
 base_config = dict(
     max_radius=10.,
