@@ -1,4 +1,4 @@
-FRB,RA,DEC,ee_a,ee_b,ee_a_sys,ee_b_sys,ee_theta,DM,DM_err,fluence,fluence_err,RM,RM_err,z,repeater,refs
+Name,ra,dec,ee_a,ee_b,ee_a_sys,ee_b_sys,ee_theta,DM,DM_err,fluence,fluence_err,RM,RM_err,z,repeater,refs
 FRB20121102,82.99458875,33.14793156,0.004,0.002,0.0015,0.0015,90,558.1,,,,100000,,0.19273,TRUE,"Tendulkar2017,Marcote2017"
 FRB20171020,333.8272917,-19.66978611,600,600,0,0,0,114.1,0.2,,,,,0.00867,FALSE,"Shannon2018,Mahony2018"
 FRB20180301,93.22683333,4.671055556,0.01142,0.00825,0.619,0.603,0,536,13,4.9,0.5,,,0.33044,TRUE,Bhandari2021

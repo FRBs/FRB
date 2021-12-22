@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 158.23787095971826
+        "value": 158.23787096104465
     },
     "FRB": "FRB20121102",
     "RM": {
@@ -13,7 +13,7 @@
         "value": 100000.0
     },
     "cosmo": "Planck18",
-    "dec": 33.14793155555555,
+    "dec": 33.14793156,
     "eellipse": {
         "a": 0.004,
         "a_sys": 0.0015,
@@ -22,7 +22,7 @@
         "cl": 68.0,
         "cl_sys": 68.0,
         "theta": 90.0,
-        "theta_sys": 0.0
+        "theta_sys": 90.0
     },
     "pulse": {
         "DM_smear": null,
@@ -48,7 +48,7 @@
         },
         "tscatt_err": null
     },
-    "ra": 82.99458874999999,
+    "ra": 82.99458875,
     "refs": [
         "Tendulkar2017",
         "Marcote2017"
