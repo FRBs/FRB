@@ -13,7 +13,7 @@ from frb.associate import frbs
 import pytest
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
-                                 reason='test requires dev suite')
+                                 reason='test requires FRB data')
 
 @remote_data
 def test_individual():
