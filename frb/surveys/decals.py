@@ -105,11 +105,11 @@ class DECaL_Survey(dlsurvey.DL_Survey):
             list, list, str:  Table columns, Column values, band string for cutout
 
         """
-        if band is 'g':
+        if band == 'g':
             bandstr = "g DECam SDSS c0001 4720.0 1520.0"
-        elif band is 'r':
+        elif band == 'r':
             bandstr = "r DECam SDSS c0002 6415.0 1480.0"
-        elif band is 'z':
+        elif band == 'z':
             bandstr = "z DECam SDSS c0004 9260.0 1520.0"
         table_cols = ['prodtype']
         col_vals = ['image']
