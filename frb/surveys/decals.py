@@ -6,6 +6,7 @@ from astropy.table import Table
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
+from frb.surveys import defs
 
 # Dependencies
 try:
@@ -14,8 +15,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DECaL images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/ls_dr8"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'ls_dr8')
 
 # Define the Photometric data model for DECaL
 photom = {}
@@ -105,11 +105,11 @@ class DECaL_Survey(dlsurvey.DL_Survey):
             list, list, str:  Table columns, Column values, band string for cutout
 
         """
-        if band is 'g':
+        if band == 'g':
             bandstr = "g DECam SDSS c0001 4720.0 1520.0"
-        elif band is 'r':
+        elif band == 'r':
             bandstr = "r DECam SDSS c0002 6415.0 1480.0"
-        elif band is 'z':
+        elif band == 'z':
             bandstr = "z DECam SDSS c0004 9260.0 1520.0"
         table_cols = ['prodtype']
         col_vals = ['image']

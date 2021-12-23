@@ -2,15 +2,11 @@
 DataLab survey class. Gets data from any survey
 available through the NOAO datalab-client.
 """
-import pdb
-
 import numpy as np
 import warnings
-from astropy.table import Table
 from astropy import units
 import warnings
 
-import sys, os
 try:
     from dl import queryClient as qc, authClient as ac
     from dl.helpers.utils import convert
@@ -22,7 +18,7 @@ from frb.surveys import surveycoord
 class DL_Survey(surveycoord.SurveyCoord):
     """
     A survey class for all databases hosted
-    by NOAO's DataLab. Inherits from SurveyCoord
+    by NOIR's DataLab. Inherits from SurveyCoord
     """
     def __init__(self, coord, radius, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)

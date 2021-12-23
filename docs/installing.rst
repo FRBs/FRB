@@ -26,14 +26,14 @@ We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
 to install and/or update these packages.
 
 * `python <http://www.python.org/>`_ versions 3.8 or later
-* `numpy <http://www.numpy.org/>`_ version 1.17 or later
-* `astropy <http://www.astropy.org/>`_ version 4.0 or later
-* `scipy <http://www.scipy.org/>`_ version 1.2 or later
+* `numpy <http://www.numpy.org/>`_ version 1.18 or later
+* `astropy <http://www.astropy.org/>`_ version 4.5 or later
+* `scipy <http://www.scipy.org/>`_ version 1.7 or later
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.12 or later
-* `pandas <https://pandas.pydata.org/>`_ version 0.25 or later
+* `pandas <https://pandas.pydata.org/>`_ version 1.3 or later
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
 * `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
-* `matplotlib <https://matplotlib.org/>`_ version 3.2 or greater
+* `matplotlib <https://matplotlib.org/>`_ version 3.3 or greater
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 * `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
 
@@ -47,8 +47,8 @@ out all the packages and their version numbers.
 The following packages are required to access surveys (e.g. SDSS, DES)
 for data that may be associated to an FRB:
 
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.1 only (maybe)
-* `datalab-client <https://github.com/noaodatalab/datalab/>`_ v1.1 or later
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.4 only (maybe)
+* `datalab-client <https://github.com/noaodatalab/datalab/>`_ v2.20 or later
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
 
 The following package(s) is/are required to access FRB galaxy spectra:
@@ -57,7 +57,7 @@ The following package(s) is/are required to access FRB galaxy spectra:
 
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
-* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 0.7.1 or later
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 1.2.0 or later
 
 The following are required to use our KCWI datacube handling tools:
 
