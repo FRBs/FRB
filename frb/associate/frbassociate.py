@@ -443,7 +443,8 @@ def run_individual(config, prior:dict=None, show=False,
     # Set priors
     frbA.init_cand_prior('inverse', P_U=prior['U'])
     frbA.init_theta_prior(prior['theta']['method'], 
-                            prior['theta']['max'])
+                            prior['theta']['max'],
+                            prior['theta']['scale'])
 
     # Localization
     frbA.init_localization('eellipse', 
