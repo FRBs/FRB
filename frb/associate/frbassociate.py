@@ -380,6 +380,8 @@ def run_individual(config, prior:dict=None, show=False,
                 ZP (float): Zero point value (magnitudes)
                 plate_scale (float): Plate scale in arcsec
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
+        prior(dict, optional):
+            Contains information on the priors
         show (bool, optional):
             Show a few things on the screen
         skip_bayesian (bool, optional):
@@ -388,6 +390,8 @@ def run_individual(config, prior:dict=None, show=False,
             If True, correct for Galactic extinction
         verbose (bool, optional):
     """
+    if not skip_bayesian and prior == None:
+        raise IOError("Must specify the priors if you are running the Bayesian analysis")
     # FRB
     FRB = frb.FRB.by_name(config['name'])
 
@@ -435,6 +439,7 @@ def run_individual(config, prior:dict=None, show=False,
 
     frbA.candidates['mag'] = frbA.candidates[frbA.filter]
     frbA.init_cand_coords()
+
     # Set priors
     frbA.init_cand_prior('inverse', P_U=prior['U'])
     frbA.init_theta_prior(prior['theta']['method'], 
