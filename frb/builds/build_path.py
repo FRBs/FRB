@@ -52,17 +52,18 @@ def run(frb_list:list, host_coords:list, prior:dict,
         pandas.DataFrame:  Table of PATH values and a bit more
     """
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
+    ang_sizes = []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
         if not hasattr(frbs, frb_name.lower()):
             print(f"PATH analysis not possible for {frb_name}")
-            return frb_name, None
+            continue
         print(f"Performing PATH on {frb_name}")
         config = getattr(frbs, frb_name.lower())
 
         # Run me
-        frbA = frbassociate.run_individual(config)
+        frbA = frbassociate.run_individual(config, prior=prior)
 
         if frbA is None:
             print(f"PATH analysis not possible for {frb_name}")
@@ -74,14 +75,16 @@ def run(frb_list:list, host_coords:list, prior:dict,
         PATH_O.append(frbA.candidates.P_O.values[0])
         RAs.append(host_coord.ra.deg)
         Decs.append(host_coord.dec.deg)
+        ang_sizes.append(frbA.candidates.ang_size.values[0])
 
     # Build the table
     df = pandas.DataFrame()
     df['FRB'] = good_frb
     df['RA'] = RAs
     df['Dec'] = Decs
+    df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
-    df['P_Ox)'] = PATH_Ox
+    df['P_Ox'] = PATH_Ox
 
     # 
     return df
