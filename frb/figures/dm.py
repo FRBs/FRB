@@ -278,7 +278,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
         gold_frbs = cosmic.gold_frbs
 
     # Plotting
-    ff_utils.set_mplrc()
+    #ff_utils.set_mplrc()
 
     bias_clr = 'darkgray'
 
