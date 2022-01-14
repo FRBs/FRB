@@ -89,12 +89,11 @@ def run(frb_list:list, host_coords:list, prior:dict,
     # 
     return df
 
-def main(options:str=None, override:bool=False):
+def main(options:str=None):
     """ Driver of the analysis
 
     Args:
         options (str, optional): [description]. Defaults to None.
-        override (bool, optional): [description]. Defaults to False.
     """
     host_tbl = hosts.load_host_tbl()#hosts_file=hosts_file)
 
@@ -123,3 +122,5 @@ def main(options:str=None, override:bool=False):
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")
+
+    return results
