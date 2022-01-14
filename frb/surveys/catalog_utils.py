@@ -390,7 +390,7 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
 
     return fluxtable
     
-def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:u.Quantity=1*u.arcsec,
+def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arcsec,
                         table_names:tuple=('1','2'))->Table:
     """
     Given two source catalogs, cross-match and merge them. This function 
