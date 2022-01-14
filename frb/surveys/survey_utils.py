@@ -14,7 +14,7 @@ from astropy import units as u
 import numpy as np
 import warnings
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS', 'VISTA']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
