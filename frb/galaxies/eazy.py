@@ -184,7 +184,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     # Prior
     if prior_filter is not None:
         assert prior in _acceptable_priors, "Allowed priors are {}".format(_acceptable_priors)
-        if prior_filter[-1] not in ['r', 'R', 'k', 'K']:
+        if prior_filter.split('_')[-1] not in ['r', 'R', 'k', 'K', 'Ks']:
             raise IOError("Not prepared for this type of prior filter")
     
     # Test combo
