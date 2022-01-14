@@ -8,6 +8,7 @@ from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
 from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
+from frb.surveys.vista import VISTA_Survey
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -15,7 +16,7 @@ from astropy import units as u
 import numpy as np
 import warnings
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS', 'NSC']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS', 'NSC', 'VISTA']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -58,6 +59,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = Pan_STARRS_Survey(coord, radius,**kwargs)
     elif name == 'NSC':
         survey = NSC_Survey(coord, radius, **kwargs)
+    elif name == 'VISTA':
+        survey = VISTA_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
