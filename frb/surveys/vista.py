@@ -68,31 +68,6 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
-        """
-        Grab a catalog of sources around the input coordinate to the search radius
-
-        Args:
-            query: Not used
-            query_fields (list, optional): Over-ride list of items to query
-            print_query (bool): Print the SQL query generated
-
-        Returns:
-            astropy.table.Table:  Catalog of sources returned.  Includes WISE
-            photometry for matched sources.
-        """
-        # Main DES query
-        main_cat = super(VISTA_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
-        if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat,photom['VISTA'])
-            return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'])
-
-        # Finish
-        self.catalog = main_cat
-        self.validate_catalog()
-        return self.catalog
-
     def _gen_cat_query(self,query_fields=None, qtype='main'):
         """
         Generate SQL Query for catalog search
@@ -114,8 +89,42 @@ class VISTA_Survey(dlsurvey.DL_Survey):
                 raise IOError("Bad qtype")
 
         self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
+
+        # Because they HAD to include the epoch in the colname.
+        self.query = self.query.replace('ra,dec,','ra2000,dec2000,')
         # Return
         return self.query
+
+    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
+        """
+        Grab a catalog of sources around the input coordinate to the search radius
+
+        Args:
+            query: Not used
+            query_fields (list, optional): Over-ride list of items to query
+            print_query (bool): Print the SQL query generated
+
+        Returns:
+            astropy.table.Table:  Catalog of sources returned.  Includes WISE
+            photometry for matched sources.
+        """
+        # Main DES query
+        if query==None:
+            self.query = self._gen_cat_query(query_fields=query_fields)
+        else:
+            self.query = query
+        main_cat = super(VISTA_Survey, self).get_catalog(query=self.query, print_query=print_query,
+                                                         photomdict=photom['VISTA'],**kwargs)
+        if len(main_cat) == 0:
+            main_cat = catalog_utils.clean_cat(main_cat,photom['VISTA'])
+            return main_cat
+        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'])
+
+        # Finish
+        self.catalog = main_cat
+        self.validate_catalog()
+        return self.catalog
+
 
     def _select_best_img(self,imgTable,verbose,timeout=120):
         """
