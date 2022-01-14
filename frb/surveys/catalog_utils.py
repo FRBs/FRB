@@ -3,7 +3,8 @@ from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.table import Table
+from astropy.cosmology import Planck18 as cosmo
+from astropy.table import Table, hstack, vstack, setdiff, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
 import warnings
@@ -389,6 +390,48 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
 
     return fluxtable
     
+def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:u.Quantity=1*u.arcsec,
+                        table_names:tuple=('1','2'))->Table:
+    """
+    Given two source catalogs, cross-match and merge them. This function 
+    ensures there is a unique match between tables as opposed to the default join_skycoord
+    behavior which matches multiple objects on the right table to
+    a source on the left.
+    Args:
+        tab1, tab2 (Table): Photometry catalogs. Must contain columns named
+            ra and dec.
+        tol (Quantity[Angle], optional): Maximum separation for cross-matching.
+        table_names (tuple of str, optional): Names of the two tables for
+            naming unique columns in the merged table.
+    Returns:
+        merged_table (Table): Merged catalog.
+    """
+    if table_names is not None:
+        assert len(table_names)==2, "Invalid number of table names for two tables."
+        assert (type(table_names[0])==str)&(type(table_names[1])==str), "Table names should be strings."
+
+
+    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol)
+
+    # tab1 INTERSECTION tab2
+    inner_join = hstack([matched_tab1, matched_tab2],
+                        table_names=table_names)
+    tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
+    tab2_coord_cols = ['ra_'+table_names[1],"dec_"+table_names[1]]
+
+
+    inner_join.remove_columns(tab2_coord_cols)
+    inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
+
+    not_matched_tab1 = setdiff(tab1, matched_tab1, keys=['ra', 'dec'])
+    not_matched_tab2 = setdiff(tab2, matched_tab2, keys=['ra', 'dec'])
+
+    # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
+    outer_join = join(not_matched_tab1, not_matched_tab2,
+                      keys=['ra','dec'], join_type='outer', table_names=table_names)
+
+    #Bring it all together
+    return vstack([inner_join, outer_join]).filled(-999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
