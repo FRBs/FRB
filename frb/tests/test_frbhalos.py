@@ -59,7 +59,7 @@ def test_MB04():
     mb04 = halos.MB04()
     ne = mb04.ne((0.,0.,20.))
     # Test
-    assert np.isclose(ne, 0.0003934132009332686)
+    assert np.isclose(ne, 0.0003937, rtol=1e-3)
 
 def test_MB15():
     mb15 = halos.MB15()
@@ -98,7 +98,7 @@ def test_m31():
     coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
     DM = M31.DM_from_Galactic(coord)
     assert DM.unit == u.pc/u.cm**3
-    assert np.isclose(DM.value, 80.53133498)
+    assert np.isclose(DM.value, 80.606, rtol=1e-3)
 
 def test_satellites():
     smc = halos.SMC()
@@ -109,4 +109,4 @@ def test_ICM():
     icm = halos.ICM(log_Mhalo=14.5)
     ne = icm.ne(dummy_xyz)
     #
-    assert np.isclose(ne, 0.01296222)
+    assert np.isclose(ne, 0.012977, rtol=1e-3)

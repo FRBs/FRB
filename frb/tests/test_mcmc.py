@@ -56,13 +56,13 @@ def test_pdf():
 def test_allprob():
     F=0.32
     # All
-    like = mcmc.all_prob(mcmc.Planck15_Obh70, F, None,
+    like = mcmc.all_prob(mcmc.cosmo_Obh70, F, None,
                             mcmc.frb_zs)
     # One by one
     ln_like = 0.
     probs = []
     for frb in mcmc.frbs:
-        prob = mcmc.one_prob(mcmc.Planck15_Obh70, F, 
+        prob = mcmc.one_prob(mcmc.cosmo_Obh70, F, 
                             frb.DM.value - frb.DMISM.value, frb.z,
                 mu=150., lognorm_s=1., lognorm_floor=0.,
                 beta=3., orig=False)

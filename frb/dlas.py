@@ -13,6 +13,7 @@ from astropy import units as u
 
 from frb.io import load_dla_fits
 from frb.turb_scattering import Turbulence
+from frb import defs
 
 
 def approx_avgDM(zeval, dla_model='atan', verbose=False):
@@ -183,7 +184,7 @@ def monte_tau(zeval, nrand=100, nHI=0.1, avg_ne=-2.6,
     turb : Turbulence object, optional
       Usually defined internally and that is the highly recommended approach
     cosmo : astropy.cosmology, optional
-      Defaults to Planck15
+      Defaults to defs.frb_cosmo
 
     Returns
     -------
@@ -194,7 +195,7 @@ def monte_tau(zeval, nrand=100, nHI=0.1, avg_ne=-2.6,
     ne_param = dict(value=avg_ne, sigma=sigma_ne)  # Neeleman+15
     dla_fits = load_dla_fits()
     if cosmo is None:
-        from astropy.cosmology import Planck15 as cosmo
+        cosmo = defs.frb_cosmo
     # Setup NHI
     lgNmax = np.linspace(20.3, 22., 10000)
     intfN = _int_dbl_pow(dla_fits['fN']['dpow'], lgNmax=lgNmax)
