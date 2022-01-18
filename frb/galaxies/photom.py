@@ -13,7 +13,6 @@ from astropy.table import Table, hstack, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
-from astropy.cosmology import Planck15 as cosmo
 from astropy.wcs import utils as wcs_utils
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
@@ -305,7 +304,7 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
 
     # convert fwhm from pixels to arcsec or kpc to arcsec
     if physical:
-        fwhm_as = fwhm * units.kpc * cosmo.arcsec_per_kpc_proper(host.z)
+        fwhm_as = fwhm * units.kpc * defs.frb_cosmo.arcsec_per_kpc_proper(host.z)
     else:
         fwhm_as = fwhm * plate_scale * units.arcsec
 

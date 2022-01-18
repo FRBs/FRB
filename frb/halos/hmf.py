@@ -4,12 +4,12 @@ import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from astropy import units
-from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy.cosmology import z_at_value
 from astropy.table import Table
 
 from frb.halos.models import ModifiedNFW, ICM
+from frb.defs import frb_cosmo as cosmo
 
 from IPython import embed
 

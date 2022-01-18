@@ -10,7 +10,8 @@ from scipy.special import gamma
 
 from astropy import constants
 from astropy import units
-from astropy.cosmology import Planck15
+
+from frb import defs
 
 from IPython import embed
 
@@ -53,7 +54,8 @@ def theta_mist(n_e, nu_obs, L=50*units.kpc, R=1*units.pc, fV=1.):
     return theta
 
 
-def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1., cosmo=None):
+def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1., 
+             cosmo=defs.frb_cosmo):
     """
     Temporal broadening for a mist of spherical clouds following the
     calculations by M. McQuinn presented in Prochaska+2019
@@ -79,9 +81,6 @@ def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1., cosmo=
         Quantity: temporal broadening in seconds
 
     """
-
-    if cosmo is None:
-        cosmo = Planck15
     D_S = cosmo.angular_diameter_distance(z_FRB)
     D_L = cosmo.angular_diameter_distance(zL)
     D_LS = cosmo.angular_diameter_distance_z1z2(zL, z_FRB)
@@ -92,7 +91,7 @@ def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1., cosmo=
 
 
 def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
-                     fV=1., cosmo=None, verbose=False):
+                     fV=1., cosmo=defs.frb_cosmo, verbose=False):
     """
     n_e from temporal broadening for a mist of spherical clouds following the
     calculations by M. McQuinn presented in Prochaska+2019
@@ -120,8 +119,6 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
 
     """
 
-    if cosmo is None:
-        cosmo = Planck15
     D_S = cosmo.angular_diameter_distance(z_FRB)
     D_L = cosmo.angular_diameter_distance(zL)
     D_LS = cosmo.angular_diameter_distance_z1z2(zL, z_FRB)
@@ -158,7 +155,7 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
 
 
 def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*units.kpc, alpha=1.,
-                        cosmo=None, debug=False):
+                        cosmo=defs.frb_cosmo, debug=False):
     """
     Estimate n_e based on observed temporal broadening
 
@@ -185,8 +182,6 @@ def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*un
         Quantity: <n_e>
 
     """
-    if cosmo is None:
-        cosmo = Planck15
     n_e_unscaled = 2e-3 * alpha**(-1) * (L/(50*units.kpc))**(-1/2) * (L0/(1*units.kpc))**(1/3) * (
         tau_scatt/(40*1e-6*units.s))**(5/12)
     # FRB 181112
@@ -371,7 +366,7 @@ class Turbulence(object):
             self.rdiff = r2.to('m')
             self.regime = 2  # rdiff >> l0
 
-    def angular_broadening(self, lobs, zsource, cosmo=None):
+    def angular_broadening(self, lobs, zsource, cosmo=defs.frb_cosmo):
         """ Broadening of a point source due to turbulent scattering
 
         Parameters
@@ -388,8 +383,6 @@ class Turbulence(object):
         """
         if self.regime == 0:
             raise ValueError("Need to set rdiff and the regime first!")
-        if cosmo is None:
-            from astropy.cosmology import Planck15 as cosmo
         # f
         if (self.regime == 1) or np.isclose(self.beta,4.):
             f = 1.18
@@ -408,7 +401,7 @@ class Turbulence(object):
 
         return self.theta.to('arcsec')
 
-    def temporal_smearing(self, lobs, zsource, cosmo=None):
+    def temporal_smearing(self, lobs, zsource, cosmo=defs.frb_cosmo):
         """ Temporal smearing due to turbulent scattering
 
         Parameters
@@ -423,9 +416,6 @@ class Turbulence(object):
         tau : Quantity
           temporal broadening
         """
-        # Cosmology
-        if cosmo is None:
-            cosmo = Planck15
         D_S = cosmo.angular_diameter_distance(zsource)
         D_L = cosmo.angular_diameter_distance(self.zL)
         D_LS = cosmo.angular_diameter_distance_z1z2(self.zL, zsource)
