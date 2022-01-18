@@ -427,11 +427,33 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     not_matched_tab2 = setdiff(tab2, matched_tab2, keys=['ra', 'dec'])
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
-    outer_join = join(not_matched_tab1, not_matched_tab2,
-                      keys=['ra','dec'], join_type='outer', table_names=table_names)
-
-    #Bring it all together
-    return vstack([inner_join, outer_join]).filled(-999.)
+    if len(not_matched_tab1)==0:
+        extra_cols = np.setdiff1d(not_matched_tab1.colnames, ['ra','dec'])
+        not_matched_tab1 = Table()
+        for col in extra_cols:
+            not_matched_tab1[col] = -999.
+        fudge = True
+    elif len(not_matched_tab2)==0:
+        extra_cols = np.setdiff1d(not_matched_tab2.colnames, ['ra','dec'])
+        not_matched_tab2 = Table()
+        not_matched_tab2['ra'] = not_matched_tab1['ra']
+        not_matched_tab2['dec'] = not_matched_tab1['dec']
+        for col in extra_cols:
+            not_matched_tab2[col] = -999.
+        fudge = True
+    else:
+        fudge = False
+ 
+    if fudge:
+        outer_join = hstack([not_matched_tab1, not_matched_tab2],join_type='exact')
+    else:
+        outer_join = join(not_matched_tab1, not_matched_tab2,
+                    keys=['ra','dec'], join_type='outer', table_names=table_names)
+    merged = vstack([inner_join, outer_join]).filled(-999.)
+    weird_cols = np.isin(['ra_1','dec_1','ra_2','dec_2'],merged.colnames)
+    if np.any(weird_cols):
+        merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
+    return merged
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
