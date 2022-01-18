@@ -43,7 +43,7 @@ def test_temp_smearing():
     tau = turb.temporal_smearing(lobs, zsource)
     # Test
     assert tau.unit == u.ms
-    assert np.isclose(tau.to('ms').value, 0.4891759052455614)
+    assert np.isclose(tau.to('ms').value, 0.48865, rtol=1e-3)
 
 
 def test_ang_broadening():

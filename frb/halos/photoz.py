@@ -3,7 +3,6 @@ import numpy as np, os, glob
 from astropy.table import Table, vstack, join
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astropy.cosmology import Planck15 as p15
 from astropy.stats import sigma_clipped_stats
 
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
@@ -14,6 +13,7 @@ from frb.frb import FRB
 from frb.galaxies import cigale as frbcig
 from frb.galaxies import eazy as frb_ez
 from frb.surveys import des
+from frb import defs
 
 try:
     from pathos.multiprocessing import ProcessingPool as Pool
@@ -393,7 +393,7 @@ def _dm_pdf(cigale_tab:Table, eazy_outdir:str,
         eazy_outdir (str): Path to the directory with EAZY output
         mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
         stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
-        ang_dia_interp (interp1d): angular_diameter_distance(z) (Planck15)
+        ang_dia_interp (interp1d): angular_diameter_distance(z) (default Repo cosmology)
         dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
         n_cores (int, optional): Number of CPU threads to use.
     Returns:
@@ -490,7 +490,7 @@ def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str
         dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
         mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
         stddev_interp (interp2d): std.dev. log_mhalo(log_mstar, z) (based on SHMR)
-        ang_dia_interp (interp1d): angular_diameter_distance(z) (Planck15)
+        ang_dia_interp (interp1d): angular_diameter_distance(z) (default Repo cosmology)
     """
 
     # DM for a variety of halo parameters.
@@ -532,7 +532,7 @@ def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str
 
     # Angular diameter distance
     z = np.linspace(0,7, 10000)
-    ang_dia_dist = p15.angular_diameter_distance(z).to('kpc').value
+    ang_dia_dist = defs.frb_cosmo.angular_diameter_distance(z).to('kpc').value
     ang_dia_interp = interp1d(z, ang_dia_dist, bounds_error=False, fill_value='extrapolate')
 
     # Return interpolators

@@ -8,7 +8,6 @@ from pkg_resources import resource_filename
 from matplotlib import pyplot as plt
 
 from astropy.cosmology import FlatLambdaCDM
-from astropy.cosmology import Planck15
 from astropy.cosmology import z_at_value
 from astropy import units
 
@@ -17,13 +16,14 @@ from frb.halos import utils as frb_halos
 from frb.dm import igm as frb_igm
 from frb.dm import cosmic
 from frb.figures import utils as ff_utils
+from frb import defs
 
 from ne2001 import density
 
 from IPython import embed
 
 def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
-                IGM_only=True, smin=0.1, cosmo=None,
+                IGM_only=True, smin=0.1, cosmo=defs.frb_cosmo,
                 show_M31=None, fg_halos=None, dsmx=0.05, FRB_DM=None, yscl = 0.97):
     """
     Cartoon of DM cumulative
@@ -61,12 +61,9 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
         yscl (float, optional):
             Controls placement of labels
         cosmo (astropy.cosmology, optional):
-            Defaults to Planck15
+            Defaults to Repo Cosmology
 
     """
-    if cosmo is None:
-        cosmo = Planck15
-
     if halos:
         # NOT READY FOR THIS
         embed()
@@ -234,7 +231,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
 
 def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False, 
-               F = 0.2, 
+               F = 0.2,  cosmo=defs.frb_cosmo,
                widen=False, show_nuisance=False, ax=None, zmax=0.75,
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
@@ -267,6 +264,8 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             Use this axis instead of creating one
         zmax (float, optional):
             Max redshift for the MR line
+        cosmo (astropy.cosmology, optional):
+            Defaults to Repo Cosmology
 
     Returns:
         dict:
@@ -299,16 +298,15 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
     return_stuff['DM_cosmic'] = DM_cosmic
     DMc_spl = IUS(zeval, DM_cosmic)
     if not no_curves:
-        #ax.plot(zeval, DM_cosmic, 'k-', label=r'DM$_{\rm cosmic} (z) \;\; [\rm Planck15]$')
-        ax.plot(zeval, DM_cosmic, 'k--', label='Planck15', lw=2)
+        ax.plot(zeval, DM_cosmic, 'k--', label=cosmo.name, lw=2)
 
     if multi_model:
         # Change Omega_b
-        cosmo_highOb = FlatLambdaCDM(Ob0=Planck15.Ob0*1.2, Om0=Planck15.Om0, H0=Planck15.H0)
+        cosmo_highOb = FlatLambdaCDM(Ob0=cosmo.Ob0*1.2, Om0=cosmo.Om0, H0=cosmo.H0)
         DM_cosmic_high, zeval_high = frb_igm.average_DM(zmax, cumul=True, cosmo=cosmo_highOb)
         ax.plot(zeval_high, DM_cosmic_high, '--', color='gray', label=r'DM$_{\rm cosmic} (z) \;\; [1.2 \times \Omega_b]$')
         # Change H0
-        cosmo_lowH0 = FlatLambdaCDM(Ob0=Planck15.Ob0, Om0=Planck15.Om0, H0=Planck15.H0/1.2)
+        cosmo_lowH0 = FlatLambdaCDM(Ob0=cosmo.Ob0, Om0=cosmo.Om0, H0=cosmo.H0/1.2)
         DM_cosmic_lowH0, zeval_lowH0 = frb_igm.average_DM(zmax, cumul=True, cosmo=cosmo_lowH0)
         ax.plot(zeval_lowH0, DM_cosmic_lowH0, ':', color='gray', label=r'DM$_{\rm cosmic} (z) \;\; [H_0/1.2]$')
 

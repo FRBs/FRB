@@ -2,7 +2,6 @@
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
 from frb.galaxies.defs import valid_filters
