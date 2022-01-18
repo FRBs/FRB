@@ -1,19 +1,9 @@
-import os, sys
 from pkg_resources import resource_filename
-import pandas
 
 import numpy as np
 
-from astropy import units
-from astropy.table import Table
-from astropy.io import fits
-from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck15 as cosmo
 
 from frb.frb import FRB, build_table_of_frbs
-from frb.dm import igm
-from frb import utils as frb_utils
-from frb.galaxies import utils as frbgalaxy_utils
 from frb.galaxies import offsets as frb_offsets
 
 
