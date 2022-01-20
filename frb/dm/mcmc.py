@@ -5,6 +5,8 @@ from numba import njit
 from scipy.stats import lognorm
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
+from frb import defs
+
 import warnings
 
 try:
@@ -14,8 +16,6 @@ except ImportError:
 else:
     import theano.tensor as tt
     from theano.compile.ops import as_op
-
-from astropy.cosmology import Planck15
 
 from frb.dm import cosmic, igm
 
@@ -37,10 +37,10 @@ Deltavalues_grid = None  #np.outer(Delta_values, np.ones_like(C0)),
 #
 
 # DM Cosmic
-DM_cosmic, zeval = igm.average_DM(1., cosmo=Planck15, cumul=True)
+DM_cosmic, zeval = igm.average_DM(1., cosmo=defs.frb_cosmo, cumul=True)
 spl_DMc = IUS(zeval, DM_cosmic.value)
-Planck15_ObH0 = Planck15.Ob0 * Planck15.H0.value
-Planck15_Obh70 = Planck15.Ob0 * (Planck15.H0.value/70.)
+cosmo_ObH0 = defs.frb_cosmo.Ob0 * defs.frb_cosmo.H0.value
+cosmo_Obh70 = defs.frb_cosmo.Ob0 * (defs.frb_cosmo.H0.value/70.)
 
 # Load splines
 spl_sigma = cosmic.grab_sigma_spline()
@@ -67,8 +67,8 @@ def grab_parmdict(tight_ObH=False):
     if tight_ObH:
         # NEED TO FIX THIS for h70!
         raise IOError
-        parm_dict['ObH0'] = dict(dist='Normal', mu=Planck15_ObH0,
-                                 sigma=Planck15_ObH0*0.03)
+        parm_dict['ObH0'] = dict(dist='Normal', mu=cosmo_ObH0,
+                                 sigma=cosmo_ObH0*0.03)
     else:
         parm_dict['Obh70'] = dict(dist='Uniform', lower=0.015, upper=0.095)
     parm_dict['Obh70']['latex'] = '\\Omega_b h_{70}'
@@ -131,8 +131,8 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
         raise IOError
 
     # Delta
-    #avgDM = spl_DMc(z_FRB) * (ObH0 / Planck15_ObH0)
-    avgDM = spl_DMc(z_FRB) * (Obh70 / Planck15_Obh70)
+    #avgDM = spl_DMc(z_FRB) * (ObH0 / cosmo_ObH0)
+    avgDM = spl_DMc(z_FRB) * (Obh70 / cosmo_Obh70)
     sub_DMcosmic = DM_FRBp - sub_DMvalues
     Delta = sub_DMcosmic / avgDM
 
@@ -229,7 +229,7 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
         raise IOError
 
     # Delta
-    avgDM = spl_DMc(z_FRB) * (Obh70 / Planck15_Obh70)
+    avgDM = spl_DMc(z_FRB) * (Obh70 / cosmo_Obh70)
     DMcosmic = DM_FRBp_grid - DMvalues_grid #np.outer(DM_values, np.ones(DM_FRBp.size))
     Delta = DMcosmic / avgDM
     goodD = Delta > 0.
@@ -309,7 +309,7 @@ def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
         # Variables
         if tight_ObH:
             assert parm_dict['Obh70']['dist'] == 'Normal'
-            Obh70 = pm.Normal('Obh70', mu=Planck15_Obh70, sigma=Planck15_Obh70*0.03)
+            Obh70 = pm.Normal('Obh70', mu=cosmo_Obh70, sigma=cosmo_Obh70*0.03)
         else:
             assert parm_dict['Obh70']['dist'] == 'Uniform'
             Obh70 = pm.Uniform('Obh70', lower=parm_dict['Obh70']['lower'],

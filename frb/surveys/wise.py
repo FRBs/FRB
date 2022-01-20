@@ -1,11 +1,14 @@
 """WISE Survey"""
 
 import numpy as np
+
 from astropy import units, io, utils
+from astropy.table import Table
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
-from astropy.table import Table
+from frb.surveys import defs
+
 
 from IPython import embed
 

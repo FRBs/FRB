@@ -5,6 +5,9 @@ from astropy import units, io, utils
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
+from frb.surveys import defs
+
+from IPython import embed
 
 # Dependencies
 try:
@@ -13,8 +16,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/des_dr2"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'des_dr2')
 
 # Define the data model for DES data
 photom = {}

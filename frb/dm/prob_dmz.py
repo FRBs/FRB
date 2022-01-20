@@ -1,11 +1,13 @@
 """ Code for calculations of P(DM|z) and P(z|DM)"""
 import numpy as np
 import os
+from pkg_resources import resource_filename
 
 from scipy.stats import norm, lognorm
 
 from frb.dm import igm
 from frb.dm import cosmic
+from frb import defs
 
 from IPython import embed
 
@@ -15,6 +17,7 @@ class P_DM_z(object):
 def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
                       ISMfrac=0.10, DM_MWhalo=50.):
     """
+    Generate P(DM_cosmic) for an input FRP
     
     Args:
         frb (:class:`frb.frb.FRB`):
@@ -69,7 +72,9 @@ def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
     return DMcosmics, P_DM_cosmic
 
 
-def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
+def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None, 
+                      DM_cosmics=None,
+                      cosmo=defs.frb_cosmo):
     """
     Generate a grid of P(DM_cosmic|z)
 
@@ -80,6 +85,10 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
             Feedback parameter (higher F means weaker feedback)
         zvals (np.ndarray, optional):
             Redshifts for the grid
+        DMcosmic (np.ndarray, optional):
+            DMs for the grid
+        cosmo (optional):
+            Cosmology
 
     Returns:
         tuple: z, DM_cosmic, P(DM_cosmic|z)
@@ -94,7 +103,8 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
     # Grid
     if zvals is None:
         zvals = np.linspace(0., 2., 200)
-    DM_cosmics = np.linspace(1., 5000., 1000)
+    if DM_cosmics is None:
+        DM_cosmics = np.linspace(1., 5000., 1000)
 
     PDF_grid = np.zeros((DM_cosmics.size, zvals.size))
 
@@ -104,7 +114,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
         if zval == 0:
             PDF_grid[0,0] = 1.
             continue
-        avgDM = igm.average_DM(zval).value
+        avgDM = igm.average_DM(zval, cosmo=cosmo).value
         # Params
         sigma = F / np.sqrt(zval)
         C0 = f_C0_3(sigma)
@@ -118,3 +128,45 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None):
     # Return
     return zvals, DM_cosmics, PDF_grid
 
+def build_grid_for_repo(outfile:str):
+    """
+    Build a P(DM,z) grid for the Repository
+
+    Args:
+        outfile (str): Path+filename for output file
+    """
+
+    print("Generating a new PDM_z grid for the Repo")
+    print("Please be patient (will take a few minutes)....")
+    #
+    zvals = np.linspace(0., 4., 200)
+    z, DM, P_DM_z = grid_P_DMcosmic_z(zvals=zvals)
+    # Write
+    np.savez(outfile, z=z, DM=DM, PDM_z=P_DM_z)
+    print(f"File written: {outfile}")
+    print("This will be used going forth")
+
+def grab_repo_grid():
+    """
+    Grab the grid from the Repository
+    This may require the code to build it first!
+
+    Returns:
+        dict: Numpy dict from the npz save file
+    """
+
+    # File
+    PDM_z_grid_file = os.path.join(
+        resource_filename('frb', 'data'), 'DM',
+        'PDM_z.npz')
+
+    # Build?
+    if not os.path.isfile(PDM_z_grid_file):
+        build_grid_for_repo()
+            
+    # Load
+    print(f"Loading P(DM,z) grid from {PDM_z_grid_file}")
+    sdict = np.load(PDM_z_grid_file)
+
+    # Return
+    return sdict

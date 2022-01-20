@@ -13,9 +13,10 @@ from scipy.interpolate import interp1d
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy.table import Table
+
+from frb.defs import frb_cosmo as cosmo
 
 from IPython import embed
 
@@ -515,7 +516,7 @@ class ModifiedNFW(object):
         z: float, optional
           Redshift of the halo
         cosmo: astropy cosmology, optional
-          Cosmology of the universe. Planck15 by default.
+          Cosmology of the universe. 
 
     Attributes:
         H0: Quantity;  Hubble constant
