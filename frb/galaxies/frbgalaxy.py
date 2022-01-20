@@ -39,7 +39,7 @@ class FRBGalaxy(object):
         ra (float): RA in deg
         dec (float): DEC in deg
         frb (frb.FRB): FRB object
-        cosmo (astropy.cosmology): Cosmology, e.g. Planck15
+        cosmo (astropy.cosmology): Cosmology, e.g. Planck18
 
     Attributes:
         redshift (dict):

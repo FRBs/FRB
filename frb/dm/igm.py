@@ -14,11 +14,11 @@ from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from astropy import units
 from astropy.table import Table
 from astropy.utils import isiterable
-from astropy.cosmology import Planck15
 from astropy import constants
 
 from frb.halos import hmf as frb_hmf
 from frb import mw
+from frb import defs
 
 def fukugita04_dict():
     """
@@ -111,7 +111,7 @@ def average_He_nume(z, z_HIreion=7.):
         return neHe[0]
 
 
-def z_from_DM(DM, cosmo=Planck15, coord=None, corr_nuisance=True):
+def z_from_DM(DM, cosmo=defs.frb_cosmo, coord=None, corr_nuisance=True):
     """
     Report back an estimated redshift from an input IGM DM
     Any contributions from the Galaxy and/or host need to have been 'removed'
@@ -119,7 +119,7 @@ def z_from_DM(DM, cosmo=Planck15, coord=None, corr_nuisance=True):
     Args:
       DM (Quantity): Dispersion measure.
       cosmo (Cosmology, optional): Cosmology
-        of the universe. LambdaCDM with Planck15 parameters
+        of the universe. LambdaCDM with the Repo cosmology 
         used by default.
       coord (SkyCoord, optional): If provided, use it to remove the ISM
       corr_nuisance (bool, optional): If True, correct for the MW Halo
@@ -147,7 +147,7 @@ def z_from_DM(DM, cosmo=Planck15, coord=None, corr_nuisance=True):
     # Return
     return z
 
-def f_diffuse(z, cosmo=Planck15, return_rho = False):
+def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False):
   """
   Calculate the cosmic fraction of baryons
   in diffuse gas phase based on our empirical
@@ -182,7 +182,7 @@ def f_diffuse(z, cosmo=Planck15, return_rho = False):
     return f_diffuse, rho_b*f_diffuse*(1+z)**3
 
 
-def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
+def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
   """
   Calculate the average cosmic electron
   number density as a function of redshift.
@@ -206,7 +206,7 @@ def ne_cosmic(z, cosmo = Planck15, mu = 4./3):
   ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
   return ne_cosmic
 
-def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
+def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
     """
     Macquart Relation
 
@@ -246,7 +246,7 @@ def average_DM(z, cosmo = Planck15, cumul=False, neval=10000, mu=4/3):
         return DM_cum[-1]
 
 
-def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
+def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
@@ -280,7 +280,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, lo
 
     # Fraction of total mass in halos
     zvals = np.linspace(0, z, 20)
-    fhalos = halos.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
+    fhalos = frb_hmf.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
     fhalos_interp = IUS(zvals, fhalos)(zeval)
 
     # Electron number density in halos only
@@ -298,7 +298,7 @@ def average_DMhalos(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, lo
     else:
         return DM_halos[-1]
     
-def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neval = 10000, cumul=False):
+def average_DMIGM(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., logMmin=10.3, neval = 10000, cumul=False):
     """
     Estimate DM_IGM in a cumulative fashion
 
@@ -306,7 +306,7 @@ def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neva
         z (float): Redshift of the FRB
         cosmo (Cosmology, optional): Cosmology in which 
           the calculations are to be performed. LambdaCDM
-          with Planck15 parameters assumed by default.
+          with the Repo cosmology assumed by default.
         f_hot (float, optional): Fraction of the halo
           baryons in diffuse phase.
         rmax (float, optional):
@@ -340,7 +340,7 @@ def average_DMIGM(z, cosmo = Planck15, f_hot = 0.75, rmax=1., logMmin=10.3, neva
     else:
         return DM_IGM[-1]
 
-def avg_rhoISM(z, cosmo=Planck15):
+def avg_rhoISM(z, cosmo=defs.frb_cosmo):
     """
     Co-moving Mass density of the ISM
 
@@ -351,7 +351,7 @@ def avg_rhoISM(z, cosmo=Planck15):
         z (float or ndarray): Redshift
         cosmo (Cosmology, optional): Cosmology in which
           the calculations are to be performed. LambdaCDM
-          with Planck15 parameters assumed by default.
+          with defs.frb_cosmo parameters assumed by default.
 
     Returns:
       rhoISM (Quantity): Units of Msun/Mpc^3
