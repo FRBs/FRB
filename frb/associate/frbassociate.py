@@ -364,6 +364,8 @@ class FRBAssociate(path.PATH):
 def run_individual(config, prior:dict=None, show=False, 
                    skip_bayesian=False, 
                    verbose=False,
+                   loc:dict=None,
+                   posterior_method:str='fixed',
                    extinction_correct=False):
     """
     Run through the steps leading up to Bayes
@@ -382,6 +384,10 @@ def run_individual(config, prior:dict=None, show=False,
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
         prior(dict, optional):
             Contains information on the priors
+        posterior_method(str, optional):
+            Method of calculation
+        loc (dict, optional):
+            Contains the localization
         show (bool, optional):
             Show a few things on the screen
         skip_bayesian (bool, optional):
@@ -443,18 +449,22 @@ def run_individual(config, prior:dict=None, show=False,
     # Set priors
     frbA.init_cand_prior('inverse', P_U=prior['U'])
     frbA.init_theta_prior(prior['theta']['method'], 
-                            prior['theta']['max'])
+                            prior['theta']['max'],
+                            prior['theta']['scale'])
 
     # Localization
-    frbA.init_localization('eellipse', 
+    if localization is None:
+        frbA.init_localization('eellipse', 
                             center_coord=frbA.frb.coord,
                             eellipse=frbA.frb_eellipse)
+    else:                    
+        frbA.init_localization(loc['type'], **loc)
     
     # Calculate priors
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
-    frbA.calc_posteriors('fixed', box_hwidth=frbA.max_radius)
+    frbA.calc_posteriors(posterior_method, box_hwidth=frbA.max_radius)
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
