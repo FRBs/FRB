@@ -366,7 +366,8 @@ def run_individual(config, prior:dict=None, show=False,
                    verbose=False,
                    loc:dict=None,
                    posterior_method:str='fixed',
-                   extinction_correct=False):
+                   extinction_correct=False,
+                   debug:bool=False):
     """
     Run through the steps leading up to Bayes
 
@@ -466,7 +467,7 @@ def run_individual(config, prior:dict=None, show=False,
     # Calculate p(O_i|x)
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
-                         debug=True)
+                         debug=debug)
 
 
     # Reverse Sort
