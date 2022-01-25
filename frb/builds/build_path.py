@@ -96,10 +96,6 @@ def main(options:str=None, override:bool=False):
         options (str, optional): [description]. Defaults to None.
         override (bool, optional): [description]. Defaults to False.
     """
-    # Parse optionsd
-    #if options is not None:
-    #    if 'cigale' in options:
-    #        build_cigale = True
     # Read public host table
     host_tbl = hosts.load_host_tbl()#hosts_file=hosts_file)
 

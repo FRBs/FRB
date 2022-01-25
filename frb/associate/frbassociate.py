@@ -127,18 +127,22 @@ class FRBAssociate(path.PATH):
         self.candidates['Sigma_m'] = self.Sigma_m
 
 
-    def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
+    def cut_candidates(self, plate_scale, 
+                       bright_cut:float=None, 
+                       separation:float=None):
         """
         Cut down to candidates
 
         self.candidates is made in place
 
         Args:
-            plate_scale:
-            bright_cut:
-            separation:
-
-        Returns:
+            plate_scale (float or str):
+                If str -- grab the value from the Header with this key
+                If float -- use this value (arcsec)
+            bright_cut (float, optional):
+                Cut objects on this magnitude
+            separation (float, optional):
+                Cut objects on this angular separation (arcsec)
 
         """
 
