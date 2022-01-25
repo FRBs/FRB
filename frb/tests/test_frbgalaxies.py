@@ -134,3 +134,7 @@ def test_table():
     frbs, hosts = utils.list_of_hosts()
 
     host_tbl, host_units = utils.build_table_of_hosts()
+
+    # Tests
+    assert len(host_tbl) > 15
+    assert np.isclose(np.max(host_tbl.P_Ox), 1.)

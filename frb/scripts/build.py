@@ -32,6 +32,7 @@ def main(pargs):
     from frb.builds import build_frbs
     from frb.builds import build_hosts
     from frb.builds import build_fg
+    from frb.builds import build_path
 
     # Parse
     item = pargs.item.lower()
@@ -52,6 +53,8 @@ def main(pargs):
         build_specdb.main(inflg=pargs.flag)
     elif item == 'fg':
         build_fg.main(inflg=pargs.flag, options=pargs.galaxy_options)
+    elif item == 'path':
+        build_path.main()
     else:
         raise IOError("Bad build item {:s}".format(item))
 

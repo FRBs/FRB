@@ -124,3 +124,23 @@ you Instantiate the class by the FRB name::
 
 Of course, a previously generated JSON file must already
 have been archived.
+
+PATH
+----
+
+A subset of the FRB Host galaxies have been analyzed using the
+Probabilistic Assignment of Transients to their Hosts (PATH) framework
+as described in `Aggarawal et al. 2021 <https://ui.adsabs.harvard.edu/abs/2021ApJ...911...95A/abstract>`_.
+This relies on the `astropath <>`_ code base.
+
+You can load up the PATH results using::
+
+    from frb.galaxies import utils
+    path_table = utils.load_PATH()
+
+The standard file uses the adopted priors with results
+as given in the `adopted.csv` file
+under frb/data/Galaxies/PATH.  See the README there
+for further details.
+
+Developers can use *frb_build* to generate new PATH csv files.

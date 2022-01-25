@@ -125,7 +125,7 @@ Here is the usage::
     -h, --help            show this help message and exit
     --dm_hostmw DM_HOSTMW
                             Assumed DM contribution from the Milky Way Halo (ISM
-                            is calcualted from NE2001) and Host
+                            is calculated from NE2001) and Host. Default = 100
     --cl CL               Confidence limits for the z estimate [default is a 95
                             percent c.l., (2.5,97.5)]
 
