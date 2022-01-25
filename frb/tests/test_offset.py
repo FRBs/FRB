@@ -23,4 +23,4 @@ def test_offset():
     ang_avg, avg_err, ang_best, best_err = frb_offsets.angular_offset(
         ifrb, host, gal_sig=(host_ra_sig, host_dec_sig))
 
-    assert np.isclose(ang_best, 0.22686248057893754)
+    assert np.isclose(ang_best, 0.22687, rtol=1e-5)
