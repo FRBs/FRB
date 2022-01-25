@@ -41,7 +41,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
             Prior for PATH
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
-        tol (float, optional):  Tolearance for a match to the expected host
+        tol (float, optional):  Tolerance for a match to the expected host
             in arcsec.
 
     Raises:
