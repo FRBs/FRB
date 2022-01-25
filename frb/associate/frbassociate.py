@@ -458,7 +458,7 @@ def run_individual(config, prior:dict=None, show=False,
                             prior['theta']['scale'])
 
     # Localization
-    if localization is None:
+    if loc is None:
         frbA.init_localization('eellipse', 
                             center_coord=frbA.frb.coord,
                             eellipse=frbA.frb_eellipse)
