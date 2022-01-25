@@ -7,6 +7,7 @@
 
 """
 This script does a TNS search around an input coord
+  Created by Yuxin Dong 
 """
 
 from frb.scripts import tns
