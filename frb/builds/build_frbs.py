@@ -106,54 +106,6 @@ def run(frb_input:pandas.core.series.Series,
             if pref not in ifrb.refs:
                 ifrb.refs.append(pref)
 
-    '''
-    # SAVING FOR LATER
-    lit_tbls = pandas.read_csv(lit_refs)
-
-    for kk in range(len(lit_tbls)):
-        lit_entry = lit_tbls.iloc[kk]
-        if 'photom' not in lit_entry.Table:
-            continue
-        # Load table
-        sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
-        if sub_tbl is not None:
-            # Add Ref
-            for key in sub_tbl.keys():
-                if 'err' in key:
-                    newkey = key.replace('err', 'ref')
-                    sub_tbl[newkey] = lit_entry.Reference
-            # Merge?
-            if merge_tbl is not None:
-                for key in sub_tbl.keys():
-                    if key == 'Name':
-                        continue
-                    if key in merge_tbl.keys():
-                        if sub_tbl[key] == fill_value:
-                            continue
-                        else:
-                            merge_tbl[key] = sub_tbl[key]
-                    else:
-                        if sub_tbl[key] != fill_value:
-                            merge_tbl[key] = sub_tbl[key]
-                #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
-            else:
-                merge_tbl = sub_tbl
-                merge_tbl['Name'] = file_root
-
-    # Finish
-    if merge_tbl is not None:
-        # Dust correct
-        EBV = nebular.get_ebv(gal_coord)['meanValue']
-        frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
-        # Parse
-        Host.parse_photom(merge_tbl, EBV=EBV)
-    else:
-        print(f"No photometry for {file_root}")
-    '''
-
-    # Vet all
-    #assert ifrb.vet_all()
-
     # Write
     if out_path is None:
         out_path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
