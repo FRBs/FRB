@@ -67,7 +67,7 @@ def test_des():
     des_tbl = des_srvy.get_catalog(print_query=True)
     #
     assert isinstance(des_tbl, Table)
-    assert len(des_tbl) == 1
+    assert len(des_tbl) == 2
 
 @remote_data
 def test_nsc():
@@ -146,7 +146,8 @@ def test_in_which_survey():
                      'WENSS': False,
                      'DECaL': True,
                      'WISE': True,
-                     'Pan-STARRS': True}
+                     'Pan-STARRS': True,
+                     'NSC': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
