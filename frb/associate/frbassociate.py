@@ -464,7 +464,10 @@ def run_individual(config, prior:dict=None, show=False,
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
-    frbA.calc_posteriors(posterior_method, box_hwidth=frbA.max_radius)
+    frbA.calc_posteriors(posterior_method, 
+                         box_hwidth=frbA.max_radius,
+                         debug=True)
+
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
