@@ -132,8 +132,9 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col=None, prior_filter
             Name of the source being analzyed
         out_dir (str):
             Path to eazy OUTPUT folder *relative* to the input_dir
-        id_col (str):
-            Column name to be used as the ID.
+        id_col (str, optional):
+            Column name to be used as the ID. Looks for a
+            column with "id" in its name by default.
         prior_filter (str, optional):
             If provided, use the flux in this filter for EAZY's prior
         templates (str, optional):
@@ -169,7 +170,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col=None, prior_filter
         cosmo = Planck15
 
     # Convert to table if input photom is a dict.
-    if type(photom)==dict:
+    if isinstance(photom, dict):
         photom = Table([photom])
 
     # Output filenames

@@ -69,6 +69,18 @@ def test_des():
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 1
 
+@remote_data
+def test_nsc():
+    # Catalog
+    coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    nsc_srvy = survey_utils.load_survey_by_name('NSC', coord, search_r)
+    nsc_tbl = nsc_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(nsc_tbl, Table)
+    assert len(nsc_tbl) == 1
+
 
 
 @remote_data

@@ -7,6 +7,7 @@ from frb.surveys.decals import DECaL_Survey
 from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
 from frb.surveys.panstarrs import Pan_STARRS_Survey
+from frb.surveys.nsc import NSC_Survey
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -14,7 +15,7 @@ from astropy import units as u
 import numpy as np
 import warnings
 
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
+allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS', 'NSC']
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -54,7 +55,9 @@ def load_survey_by_name(name, coord, radius, **kwargs):
     elif name == 'PSRCAT':
         survey = PSRCAT_Survey(coord, radius, **kwargs)
     elif name == 'Pan-STARRS':
-        survey = Pan_STARRS_Survey(coord,radius,**kwargs)
+        survey = Pan_STARRS_Survey(coord, radius,**kwargs)
+    elif name == 'NSC':
+        survey = NSC_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
