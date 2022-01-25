@@ -243,7 +243,7 @@ def load_PATH(PATH_root_file:str='adopted.csv'):
         PATH_root_file (str, optional): [description]. Defaults to 'adopted.csv'.
 
     Returns:
-        pandas.DataFrame: Table of galaxy coordiantes and PATH results
+        pandas.DataFrame: Table of galaxy coordinates and PATH results
     """
     path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH',
                              PATH_root_file)

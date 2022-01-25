@@ -41,7 +41,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
             Prior for PATH
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
-        tol (float, optional):  Tolearance for a match to the expected host
+        tol (float, optional):  Tolerance for a match to the expected host
             in arcsec.
 
     Raises:
@@ -95,7 +95,8 @@ def main(options:str=None):
     Args:
         options (str, optional): [description]. Defaults to None.
     """
-    host_tbl = hosts.load_host_tbl()#hosts_file=hosts_file)
+    # Read public host table
+    host_tbl = hosts.load_host_tbl()
 
     host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 

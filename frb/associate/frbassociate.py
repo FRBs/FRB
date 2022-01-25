@@ -127,18 +127,22 @@ class FRBAssociate(path.PATH):
         self.candidates['Sigma_m'] = self.Sigma_m
 
 
-    def cut_candidates(self, plate_scale, bright_cut=None, separation=None):
+    def cut_candidates(self, plate_scale, 
+                       bright_cut:float=None, 
+                       separation:float=None):
         """
         Cut down to candidates
 
         self.candidates is made in place
 
         Args:
-            plate_scale:
-            bright_cut:
-            separation:
-
-        Returns:
+            plate_scale (float or str):
+                If str -- grab the value from the Header with this key
+                If float -- use this value (arcsec)
+            bright_cut (float, optional):
+                Cut objects on this magnitude
+            separation (float, optional):
+                Cut objects on this angular separation (arcsec)
 
         """
 
@@ -364,7 +368,10 @@ class FRBAssociate(path.PATH):
 def run_individual(config, prior:dict=None, show=False, 
                    skip_bayesian=False, 
                    verbose=False,
-                   extinction_correct=False):
+                   loc:dict=None,
+                   posterior_method:str='fixed',
+                   extinction_correct=False,
+                   debug:bool=False):
     """
     Run through the steps leading up to Bayes
 
@@ -382,6 +389,10 @@ def run_individual(config, prior:dict=None, show=False,
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
         prior(dict, optional):
             Contains information on the priors
+        posterior_method(str, optional):
+            Method of calculation
+        loc (dict, optional):
+            Contains the localization
         show (bool, optional):
             Show a few things on the screen
         skip_bayesian (bool, optional):
@@ -447,15 +458,21 @@ def run_individual(config, prior:dict=None, show=False,
                             prior['theta']['scale'])
 
     # Localization
-    frbA.init_localization('eellipse', 
+    if loc is None:
+        frbA.init_localization('eellipse', 
                             center_coord=frbA.frb.coord,
                             eellipse=frbA.frb_eellipse)
+    else:                    
+        frbA.init_localization(loc['type'], **loc)
     
     # Calculate priors
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
-    frbA.calc_posteriors('fixed', box_hwidth=frbA.max_radius)
+    frbA.calc_posteriors(posterior_method, 
+                         box_hwidth=frbA.max_radius,
+                         debug=debug)
+
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
