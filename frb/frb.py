@@ -13,12 +13,12 @@ import pandas as pd
 
 from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.cosmology import Planck18
 
 from linetools import utils as ltu
 
 from frb import utils
 from frb import mw
+from frb import defs
 from frb.galaxies import frbgalaxy
 
 from IPython import embed
@@ -137,7 +137,7 @@ class GenericFRB(object):
             self.coord = None
         # Cosmology
         if cosmo is None:
-            self.cosmo = Planck18
+            self.cosmo = defs.frb_cosmo
         else:
             self.cosmo = cosmo
 
@@ -364,7 +364,7 @@ class FRB(GenericFRB):
                 idict.pop(key)
         # Cosmology
         if slf.cosmo.name != idict['cosmo']:
-            raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
+            raise AssertionError(f"Your cosmology does not match the expected for {idict['FRB']}.  Gotta deal..")
         idict.pop('cosmo')
 
         # dicts

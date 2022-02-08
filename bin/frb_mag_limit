@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script performs calculations related to the limiting mag
+"""
+
+from frb.scripts import limiting_mag
+
+if __name__ == '__main__':
+    args = limiting_mag.parser()
+    limiting_mag.main(args)

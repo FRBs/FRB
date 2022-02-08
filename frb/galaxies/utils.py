@@ -5,6 +5,9 @@ import glob
 from IPython import embed
 from pkg_resources import resource_filename
 import numpy as np
+from scipy.interpolate import interp1d
+
+import pandas
 
 try:
     from specdb.specdb import SpecDB
@@ -14,6 +17,8 @@ else:
     flg_specdb = True
 
 from astropy.coordinates import SkyCoord
+from astropy import units
+
 import pandas as pd
 import extinction
 from linetools.spectra import xspectrum1d
@@ -111,7 +116,7 @@ def list_of_hosts(skip_bad_hosts=True):
     return frbs, hosts
 
 
-def build_table_of_hosts():
+def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object
@@ -121,6 +126,10 @@ def build_table_of_hosts():
 
     Note:
         RA, DEC are given as RA_host, DEC_host to avoid conflict with the FRB table
+
+    Args:
+        PATH_file (str):  Name of the file to use for PATH analysis
+            Defaults to the adopted set of Priors
 
     Returns:
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
@@ -180,7 +189,63 @@ def build_table_of_hosts():
             host_tbl[key] = tbl_dict[key]
             tbl_units[key] = 'See galaxies.defs.py'
 
+    # Add PATH values
+    path_tbl = load_PATH(PATH_root_file=PATH_root_file)
+    path_coords = SkyCoord(ra=path_tbl.RA, dec=path_tbl.Dec, unit='deg')
+
+    host_coords = SkyCoord(ra=host_tbl.RA_host, dec=host_tbl.DEC_host, unit='deg')
+
+    # Init
+    host_tbl['P_Ox'] = np.nan
+    host_tbl['P_O'] = np.nan
+
+    # Loop
+    for index, path_row in path_tbl.iterrows():
+        # Match to table RA, DEC
+        sep = host_coords.separation(path_coords[index])
+        imin = np.argmin(sep)
+        # REDUCE THIS TOL TO 1 arcsec!!
+        print(f"Min sep = {sep[imin].to('arcsec')}")
+        if sep[imin] < 1.0*units.arcsec:
+            host_tbl.loc[imin,'P_Ox'] = path_row['P_Ox']
+            host_tbl.loc[imin,'P_O'] = path_row['P_O']
+
     # Return
     return host_tbl, tbl_units
 
+def load_f_mL():
+    """ Generate an interpolater from mag to Luminosity as 
+    a function of redshift (up to z=4)
 
+    Warning:  this is rather approximate
+
+    Returns:
+        scipy.interpolate.interp1d:
+
+    """
+    # Grab m(L) table
+    data_file = os.path.join(resource_filename('frb', 'data'),
+                             'Galaxies', 'galLF_vs_z.txt')
+    df = pandas.read_table(data_file, index_col=False)
+
+    # Interpolate
+    f_mL = interp1d(df.z, df['m_r(L*)'])
+
+    # Return
+    return f_mL
+
+
+def load_PATH(PATH_root_file:str='adopted.csv'):
+    """Load up the PATH table
+
+    Args:
+        PATH_root_file (str, optional): [description]. Defaults to 'adopted.csv'.
+
+    Returns:
+        pandas.DataFrame: Table of galaxy coordinates and PATH results
+    """
+    path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH',
+                             PATH_root_file)
+    path_tbl = pd.read_csv(path_file, index_col=False)
+
+    return path_tbl

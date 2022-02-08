@@ -136,6 +136,8 @@ valid_neb_lines = [
     '[OII] 3729',  # [OII] flux erg/s/cm^2; pPXF
     '[OIII] 4959',  # [OII] 4959 flux erg/s/cm^2; 
     '[OIII] 5007',  # [OII] 5007 flux erg/s/cm^2; pPXF
+    '[SII] 6716',  # [SII] 6716 flux erg/s/cm^2; pPXF
+    '[SII] 6731',  # [SII] 6731 flux erg/s/cm^2; pPXF
 ]
 valid_neb_ref = [entry+'_ref' for entry in valid_neb_lines]
 
@@ -183,6 +185,7 @@ valid_derived_photom = [
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
     'age_mass',        # Age weighted mass from CIGALE
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
+    'SFR_radio',       # SFR in Msun/yr from radio photometry
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE

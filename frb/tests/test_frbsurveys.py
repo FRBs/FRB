@@ -68,7 +68,6 @@ def test_des():
     #
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 2
-
 @remote_data
 def test_nsc():
     # Catalog
@@ -92,7 +91,7 @@ def test_decals():
     decal_tbl = decal_srvy.get_catalog(print_query=True)
     #
     assert isinstance(decal_tbl, Table)
-    assert len(decal_tbl) == 2
+    assert len(decal_tbl) == 3
 
 
 

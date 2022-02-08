@@ -6,7 +6,6 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 #from goodies import closest
-from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy import units
 from astropy.table import Table
@@ -20,6 +19,8 @@ from ppxf import ppxf
 from ppxf import ppxf_util as util
 from ppxf import miles_util as lib
 import time
+
+from frb.defs import frb_cosmo as cosmo 
 
 from IPython import embed
 
@@ -78,7 +79,6 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     if atmos is not None:
         mask_lam = atmos
         mask_lam.extend(gaps)
-        goodidxs = np.array([]).astype(int)
         for i, mrange in enumerate(mask_lam):
             theseidxs = np.where((wave < mrange[0]) | (wave > mrange[1]))[0]
             goodpixels = np.intersect1d(theseidxs, goodpixels)

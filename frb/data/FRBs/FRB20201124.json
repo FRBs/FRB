@@ -5,9 +5,17 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 123.16007814743989
+        "value": 123.16007814743988
     },
     "FRB": "FRB20201124",
+    "RM": {
+        "unit": "rad / m2",
+        "value": -613.0
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 2.0
+    },
     "cosmo": "Planck18",
     "dec": 26.060695555555558,
     "eellipse": {
@@ -18,6 +26,6 @@
     },
     "ra": 77.01461541666666,
     "refs": [],
-    "repeater": false,
+    "repeater": true,
     "z": 0.0982
 }

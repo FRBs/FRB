@@ -10,9 +10,9 @@ import numpy as np
 import pandas
 
 from astropy.table import Table
-from astropy.cosmology import Planck15
 
 from frb.surveys import catalog_utils
+from frb import defs
 
 from IPython import embed
 
@@ -111,8 +111,8 @@ def eazy_setup(input_dir, template_dir=None):
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
     return
 
-def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter=None,
-                     templates='eazy_v1.3', combo="a", cosmo=None,
+def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
+                     templates='eazy_v1.3', combo="a", cosmo=defs.frb_cosmo,
                      magnitudes=False, prior=_default_prior,
                      zmin=0.050, zmax=7.000, zstep=0.0010, prior_ABZP=23.9,
                      n_min_col=5):
@@ -147,7 +147,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
             one of 1,2,99,-1 and 'a'. Read EAZY's zphot.param.default
             file for details
         cosmo (astropy.cosmology, optional):
-            Defaults to Planck15
+            Defaults to Repo cosmology
         prior (str, optional):
             Name of the prior file found in the EAZY templates folder.
             Default value is 'prior_R_zmax7'.
@@ -165,14 +165,6 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
             Zero point redshift for the band on which prior will be applied.
             Default value is for DECam r (https://cdcvs.fnal.gov/redmine/projects/des-sci-verification/wiki/Photometry)
     """
-    #
-    if cosmo is None:
-        cosmo = Planck15
-
-    # Convert to table if input photom is a dict.
-    if isinstance(photom, dict):
-        photom = Table([photom])
-
     # Output filenames
     catfile, param_file, translate_file = eazy_filenames(input_dir, name)
 

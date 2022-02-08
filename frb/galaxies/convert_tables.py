@@ -4,9 +4,8 @@ from pkg_resources import resource_filename
 
 import pandas
 
-from astropy.cosmology import Planck15
-
 from frb import frb
+from frb import defs
 from frb.galaxies import frbgalaxy
 
 from IPython import embed
@@ -19,7 +18,7 @@ def tendulkar_nebular():
         'Galaxies', '121102',
         'FRB121102_host.json')
     host = frbgalaxy.FRBHost.from_json(
-        frb121102, json_file, cosmo=Planck15)
+        frb121102, json_file, cosmo=defs.frb_cosmo) 
     # Build  Table
     df = pandas.DataFrame()
     for key in host.neb_lines.keys():

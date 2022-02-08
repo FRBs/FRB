@@ -4,12 +4,12 @@ import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from astropy import units
-from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy.cosmology import z_at_value
 from astropy.table import Table
 
 from frb.halos.models import ModifiedNFW, ICM
+from frb.defs import frb_cosmo as cosmo
 
 from IPython import embed
 
@@ -107,10 +107,11 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
     return np.array(ratios)
 
 
-def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
-                   cumul=False):
+def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, 
+                   Mhigh=1e16, nsample=20, cumul=False):
     """
-    Calculate the (approximate) average number of intersections to halos of a
+    Calculate the (approximate) average number of 
+    intersections to halos of a
     given minimum mass to a given zFRB.
 
     Requires Aemulus HMF to be installed
@@ -123,6 +124,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
         zFRB: float
           Redshift of the FRB
         radius: Quantity, optional
+          Physical separation from the sightline for the calculation.
           The calculation will specify this radius as rvir derived from
            Mlow unless this is specified. And this rvir *will* vary with redshift
         hmfe (hmf.hmf_emulator, optional): Halo mass function emulator from Aeumulus
@@ -153,7 +155,8 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
     # Mean density
     ns = []
     for iz in zs:
-        ns.append(hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) * cosmo.h**3)  # * units.Mpc**-3
+        ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) 
+        ns.append(ins[0]*cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii
