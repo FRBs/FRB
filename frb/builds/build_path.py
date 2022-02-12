@@ -89,15 +89,14 @@ def run(frb_list:list, host_coords:list, prior:dict,
     # 
     return df
 
-def main(options:str=None, override:bool=False):
+def main(options:str=None):
     """ Driver of the analysis
 
     Args:
         options (str, optional): [description]. Defaults to None.
-        override (bool, optional): [description]. Defaults to False.
     """
     # Read public host table
-    host_tbl = hosts.load_host_tbl()#hosts_file=hosts_file)
+    host_tbl = hosts.load_host_tbl()
 
     host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
@@ -106,9 +105,17 @@ def main(options:str=None, override:bool=False):
 
     # Load prior
     priors = load_std_priors()
-    adopted = priors['adopted']
+    prior = priors['adopted'] # Default
 
-    results = run(frb_list, host_coords, adopted)
+    # Parse optionsd
+    if options is not None:
+        if 'new_prior' in options:
+            theta_new = dict(method='exp', 
+                             max=priors['adopted']['theta']['max'], 
+                             scale=0.5)
+            prior['theta'] = theta_new
+
+    results = run(frb_list, host_coords, prior)
 
     # Write
     outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 
@@ -116,3 +123,5 @@ def main(options:str=None, override:bool=False):
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")
+
+    return results

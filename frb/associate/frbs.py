@@ -303,7 +303,7 @@ frb20180301 = {**base_config, **updates}  # Use | in 3.9
 ##############################
 # FRB 201124
 updates = dict(
-    name='FRB20201124',
+    name='FRB20201124A',
     image_file=os.path.join(gdb_path, 'F4', 
                             'fong2021', 'FRB20201124_Pan-STARRS_r.fits'),
     cut_size = 30.,

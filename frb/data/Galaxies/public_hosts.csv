@@ -6,6 +6,7 @@ FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,B
 20180924,21h44m25.255s -40d54m00.1s,0.32120,"CRAFT,CRAFT,F4,F4","Bannister2019,Heintz2020,mannings2020,simha2021a",,MUSE,,WFC3_F160W,,AM,"dispersion measure is different in almost every paper (by ~1 or 2), rotation measure 14 in bhandari 2020 & bannister, metallicity slightly off Bhandari20, DES photom off by tenths of mag, WISE photom off by a few magnitudes"
 20181112,21h49m23.66s -52d58m15.28s,0.47550,"CRAFT,CRAFT","Prochaska2019,Heintz2020",,FORS2,,VLT_i,Halpha,WF,
 20190102,21h29m39.60s -79d28m32.4s,0.29117,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,MagE,"7550.,7750.",WFC3_F160W,,RJ,
+20190520B,16h02m04.31s -11d17m18.5s,0.241,FAST,Niu2021,,,,,,X,
 20190523,13h48m15.439s +72d28m14.72s,0.66,"CRAFT,Realfast","Heintz2020,Bhandari2021",,,,LRIS_r,,CDK,
 20190608,22h16m04.90s -07d53m56.0s,0.1177805,"CRAFT,CRAFT,F4","Bhandari2019,Heintz2020,mannings2020",,SDSS,,WFC3_F160W,,TE,"""offsets"": ang_avg_err and physical_err do not match Mannings+20."
 20190611,21h22m58.277s -79d23m50.09s,0.37780,"CRAFT,Realfast","Heintz2020,Bhandari2021",,FORS2,"0.,6400.;9300.,20000",GMOS_i,,JC,
