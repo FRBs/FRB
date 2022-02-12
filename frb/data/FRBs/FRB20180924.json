@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 41.894192133517635
+        "value": 41.89419211467203
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -21,7 +21,7 @@
         "value": 2.0
     },
     "cosmo": "Planck18",
-    "dec": -40.90002777777778,
+    "dec": -40.90002778,
     "eellipse": {
         "a": 0.07,
         "a_sys": 0.1611,
@@ -40,8 +40,6 @@
         "unit": "Jy ms",
         "value": 1.0
     },
-    "lpol": 80.0,
-    "lpol_err": 10.0,
     "pulse": {
         "DM_smear": null,
         "Wi": {
@@ -69,9 +67,10 @@
             "value": 0.03
         }
     },
-    "ra": 326.1052291666667,
+    "ra": 326.1052292,
     "refs": [
         "Bannister2019",
+        "Bhandari2020",
         "Day2020",
         "Day2021"
     ],

@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script performs estimates P(z|DM)
+"""
+
+from frb.scripts import pz_dm
+
+if __name__ == '__main__':
+    args = pz_dm.parser()
+    pz_dm.main(args)

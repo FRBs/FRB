@@ -1,8 +1,8 @@
 """ Methods related to fussing with a catalog"""
+from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck15 as cosmo
 from astropy.table import Table
 from astropy import units
 from frb.galaxies.defs import valid_filters
@@ -163,9 +163,9 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     return summary_list
 
 
-def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
-                     RACol1 = "ra", DecCol1 = "dec",
-                     RACol2 = "ra", DecCol2 = "dec"):
+def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arcsec,
+                     RACol1:str = "ra", DecCol1:str = "dec",
+                     RACol2:str = "ra", DecCol2:str = "dec")->tuple:
     """
     Cross matches two astronomical catalogs and returns
     the matched tables.
@@ -182,17 +182,13 @@ def xmatch_catalogs(cat1, cat2, skydist = 5*units.arcsec,
         DecCol1, DecCol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain Dec in degrees.
-        zCol1, zCol2: str, optional
-            Names of columns in cat1 and cat2
-            respectively that contain redshift in degrees.
-            Matches in 3D if supplied. Both should be given.
     returns:
         match1, match2: astropy Table
             Tables of matched rows from cat1 and cat2.
     """
-
-    # TODO add assertion statements to test input validity.
-     
+    assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
+    assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
+    assert (RACol2 in cat2.colnames)&(DecCol2 in cat2.colnames), " Could not find either {:s} or {:s} in cat2".format(RACol2, DecCol2)
     # Get corodinates
     cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit = "deg")
     cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit = "deg")

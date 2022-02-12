@@ -5,10 +5,15 @@ At the moment the Zero Points used include Galactic Extinction!
 """
 import os
 from astropy import units
+import warnings
 
 from IPython import embed
 
-gdb_path = os.getenv('FRB_GDB')
+if os.getenv('FRB_GDB') is None:
+    warnings.warn("FRB_GDB variable is not set.  Odds are you are doing something wrong..")
+    gdb_path = ''
+else:
+    gdb_path = os.getenv('FRB_GDB')
 
 base_config = dict(
     max_radius=10.,
@@ -298,7 +303,7 @@ frb20180301 = {**base_config, **updates}  # Use | in 3.9
 ##############################
 # FRB 201124
 updates = dict(
-    name='FRB20201124',
+    name='FRB20201124A',
     image_file=os.path.join(gdb_path, 'F4', 
                             'fong2021', 'FRB20201124_Pan-STARRS_r.fits'),
     cut_size = 30.,

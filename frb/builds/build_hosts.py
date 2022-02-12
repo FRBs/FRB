@@ -169,7 +169,8 @@ def run(host_input:pandas.core.series.Series,
         build_ppxf:bool=False, 
         lit_refs:str=None,
         build_cigale:bool=False, is_host:bool=True,
-        override:bool=False):
+        override:bool=False, out_path:str=None,
+        outfile:str=None):
     """Main method for generating a Host JSON file
 
     Args:
@@ -183,6 +184,8 @@ def run(host_input:pandas.core.series.Series,
             to a neighboring/foreground galaxy. Defaults to True.
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
+        outfile (str, optional): Over-ride default outfile [not recommended; mainly for testing]
+        out_path (str, optional): Over-ride default outfile [not recommended; mainly for testing]
 
 
     Raises:
@@ -243,15 +246,13 @@ def run(host_input:pandas.core.series.Series,
         # Skip? 
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
             continue
-        # Skip WISE?
-        #if key in ['WISE'] and inside['DES']:
-        #    continue
+
         # Slurp
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
         srvy_tbl = survey.get_catalog(print_query=True)
-        #embed(header='254 of build')
+
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         elif len(srvy_tbl) > 1:
@@ -452,16 +453,18 @@ def run(host_input:pandas.core.series.Series,
     assert Host.vet_all()
 
     # Write
-    out_path = os.path.join(resource_filename('frb', 'data'),
-        'Galaxies', f'{frbname[3:]}')
-    outfile = None if is_host else \
-        utils.name_from_coord(Host.coord) + '.json'
+    if out_path is None:
+        out_path = os.path.join(resource_filename('frb', 'data'),
+            'Galaxies', f'{frbname[3:]}')
+    if outfile is None:
+        outfile = None if is_host else \
+            utils.name_from_coord(Host.coord) + '.json'
         #utils.name_from_coord(Host.coord) + '_{}.json'.format(frbname)
     Host.write_to_json(path=out_path, outfile=outfile)
 
 
 def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
-         override:bool=False):
+         override:bool=False, outfile:str=None, out_path:str=None):
     """ Driver of the analysis
 
     Args:
@@ -470,6 +473,10 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         hosts_file (str, optional): [description]. Defaults to None.
         lit_refs (str, optional): [description]. Defaults to None.
         override (bool, optional): [description]. Defaults to False.
+        outfile (str, optional): [description]. Defaults to None.
+            Here for testing
+        out_path (str, optional): [description]. Defaults to None.
+            Here for testing
     """
     # Options
     build_cigale, build_ppxf = False, False
@@ -498,7 +505,8 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         for ii in idx:
             run(host_tbl.iloc[ii], 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
-                is_host=is_host, lit_refs=lit_refs, override=override)
+                is_host=is_host, lit_refs=lit_refs, override=override,
+                outfile=outfile, out_path=out_path)
             # Any additional ones are treated as candidates
             is_host = False
 

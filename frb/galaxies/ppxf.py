@@ -6,7 +6,6 @@ import numpy as np
 
 from matplotlib import pyplot as plt
 #from goodies import closest
-from astropy.cosmology import Planck15 as cosmo
 from astropy import constants
 from astropy import units
 from astropy.table import Table
@@ -20,6 +19,8 @@ from ppxf import ppxf
 from ppxf import ppxf_util as util
 from ppxf import miles_util as lib
 import time
+
+from frb.defs import frb_cosmo as cosmo 
 
 from IPython import embed
 

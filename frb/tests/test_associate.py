@@ -6,38 +6,23 @@ import pandas
 
 from astropy import units
 
+from astropath import priors
 from frb.associate import frbassociate
+from frb.associate import frbs
 
 import pytest
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
-                                 reason='test requires dev suite')
+                                 reason='test requires FRB data')
 
 @remote_data
 def test_individual():
-    from frb.associate import frbs
+    # This needs to be hidden
+    orig_priors = priors.load_std_priors()
     config = getattr(frbs, 'FRB20180924'.lower())
-    frbA = frbassociate.run_individual(config)
+    frbA = frbassociate.run_individual(config, orig_priors['adopted'])
+
     # Test
     assert isinstance(frbA.candidates, pandas.DataFrame)
+    assert frbA.candidates.iloc[0].P_Ox > 0.98
 
-
-    '''  This works on the 180301 branch
-    # We skirt the usual candidate init
-    frbA.candidates['mag'] = frbA.candidates[frbA.filter]
-    frbA.init_cand_coords()
-    # Set priors
-    frbA.init_cand_prior('inverse', P_U=0.)
-    frbA.init_theta_prior('inverse', 6.)
-
-    # Localization
-    frbA.init_localization('eellipse', 
-                            center_coord=frbA.frb.coord,
-                            eellipse=frbA.frb_eellipse)
-    
-    # Calculate priors
-    frbA.calc_priors()                            
-
-    # Calculate p(O_i|x)
-    frbA.calc_posteriors('fixed', box_hwidth=frbA.max_radius)
-    '''
