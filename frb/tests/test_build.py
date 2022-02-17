@@ -30,8 +30,8 @@ def test_host_build():
     frbs = [ifrb.strip() for ifrb in frbs]
 
     out_path = data_path('')
-    build_hosts.main(frbs, options=pargs.galaxy_options, 
-                             hosts_file=pargs.hosts_file,
+    build_hosts.main(frbs, options=pargs.options, 
+                             hosts_file=pargs.data_file,
                              lit_refs=pargs.lit_refs,
                              override=pargs.override,
                              out_path=out_path) 

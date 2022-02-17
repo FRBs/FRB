@@ -66,5 +66,5 @@ def set_mplrc():
     mpl.rcParams['mathtext.default'] = 'it'
     mpl.rcParams['font.size'] = 12
     mpl.rc('font',family='Times New Roman')
-    mpl.rcParams['text.latex.preamble'] = [r'\boldmath']
+    #mpl.rcParams['text.latex.preamble'] = [r'\boldmath']
     mpl.rc('text', usetex=True)

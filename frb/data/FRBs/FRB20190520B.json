@@ -1,0 +1,29 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 1210.3
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 58.2332573305939
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.8
+    },
+    "FRB": "FRB20190520B",
+    "cosmo": "Planck18",
+    "dec": -11.288147,
+    "eellipse": {
+        "a": 0.1,
+        "b": 0.09,
+        "cl": 68.0,
+        "theta": 90.0
+    },
+    "ra": 240.517775,
+    "refs": [
+        "Niu2021"
+    ],
+    "repeater": true,
+    "z": 0.241
+}
