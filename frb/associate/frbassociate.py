@@ -371,6 +371,7 @@ def run_individual(config, prior:dict=None, show=False,
                    loc:dict=None,
                    posterior_method:str='fixed',
                    extinction_correct=False,
+                   FRB:frb.FRB=None,
                    debug:bool=False):
     """
     Run through the steps leading up to Bayes
@@ -399,12 +400,15 @@ def run_individual(config, prior:dict=None, show=False,
             Skip the Bayesian part, i.e. only do the setup
         extinction_correct (bool, optional):
             If True, correct for Galactic extinction
+        FRB (frb.FRB, optional):
+            FRB object
         verbose (bool, optional):
     """
     if not skip_bayesian and prior == None:
         raise IOError("Must specify the priors if you are running the Bayesian analysis")
     # FRB
-    FRB = frb.FRB.by_name(config['name'])
+    if FRB is None:
+        FRB = frb.FRB.by_name(config['name'])
 
     # FRB Associate
     frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
