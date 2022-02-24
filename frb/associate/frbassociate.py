@@ -71,6 +71,9 @@ class FRBAssociate(path.PATH):
         self.photom = None
         self.candidates = None
 
+        # Internals
+        self.exc_per = 10.  # exclude_percentile for 2D Background
+
     @property
     def sigR(self):
         return np.sqrt(self.frb.sig_a * self.frb.sig_b) * units.arcsec
@@ -343,7 +346,8 @@ class FRBAssociate(path.PATH):
         bkg_estimator = photutils.MedianBackground()
         self.bkg = photutils.Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
-                                          bkg_estimator=bkg_estimator)
+                                          bkg_estimator=bkg_estimator,
+                                          exclude_percentile=self.exc_per)
 
         # Threshold
         self.thresh_img = self.bkg.background + (nsig * self.bkg.background_rms)
@@ -372,6 +376,7 @@ def run_individual(config, prior:dict=None, show=False,
                    posterior_method:str='fixed',
                    extinction_correct=False,
                    FRB:frb.FRB=None,
+                   internals:dict=None,
                    debug:bool=False):
     """
     Run through the steps leading up to Bayes
@@ -402,6 +407,8 @@ def run_individual(config, prior:dict=None, show=False,
             If True, correct for Galactic extinction
         FRB (frb.FRB, optional):
             FRB object
+        internals(dict, optional):
+            Attributes to set in the FRBA object
         verbose (bool, optional):
     """
     if not skip_bayesian and prior == None:
@@ -413,6 +420,11 @@ def run_individual(config, prior:dict=None, show=False,
     # FRB Associate
     frbA= FRBAssociate(FRB, max_radius=config['max_radius'])
 
+    # Internals
+    if internals is not None:
+        for key in internals.keys():
+            setattr(frbA, key, internals[key])
+    
     # Image
     print("Using image {}".format(config['image_file']))
     hdul = fits.open(config['image_file'])
