@@ -32,7 +32,7 @@ base_config = dict(
 #Notes:
 #"""
 updates = dict(
-    name='FRB20190608',
+    name='FRB20190608B',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Unpublished', 'HG_190608_FORS2_I.fits'),
     cut_size = 34.,
     filter = 'VLT_FORS2_I',
@@ -83,7 +83,7 @@ frb20180916 = {**base_config, **updates}  # Use | in 3.9
 # ##############################
 # FRB 180924
 updates = dict(
-    name='FRB20180924',
+    name='FRB20180924A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Bannister2019', 'FRB20180924_VLT_FORS2_g.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_g',
@@ -98,7 +98,7 @@ frb20180924 = {**base_config, **updates}  # Use | in 3.9
 # ##############################
 # FRB 181112
 updates = dict(
-    name='FRB20181112',
+    name='FRB20181112A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Prochaska2019', 'FRB20181112_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -113,7 +113,7 @@ frb20181112 = {**base_config, **updates}  # Use | in 3.9
 # ##############################
 # FRB 190102
 updates = dict(
-    name='FRB20190102',
+    name='FRB20190102C',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190102_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -142,7 +142,7 @@ frb20190523 = {**base_config, **updates}  # Use | in 3.9
 # ##############################
 # FRB 190611
 updates = dict(
-    name='FRB20190611',
+    name='FRB20190611B',
     image_file = os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190611_GMOS_S_i.fits'),
     cut_size = 30.,
     filter='GMOS_S_i',
@@ -174,7 +174,7 @@ Notes:
    Figure out if the 2nd source is a star (HST data)
 """
 updates = dict(
-    name='FRB20190711',
+    name='FRB20190711A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Macquart2020', 'FRB20190711_GMOS_S_i.fits'),
     cut_size = 30.,
     filter = 'GMOS_S_i',
@@ -192,7 +192,7 @@ frb20190711 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20190714',
+    name='FRB20190714A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20190714_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -210,7 +210,7 @@ frb20190714 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20191001',
+    name='FRB20191001A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001_VLT-FORS2_I_BESS.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
@@ -228,7 +228,7 @@ frb20191001 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20191228',
+    name='FRB20191228A',
     image_file=os.path.join(gdb_path, 'Realfast', 'Bhandari2021', 
                             'FRB20191228_VLT-FORS2_I.fits'),
     cut_size = 30.,
@@ -247,7 +247,7 @@ frb20191228 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20200430',
+    name='FRB20200430A',
     image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20200430_LRIS_I.fits'),
     cut_size = 30.,
     filter = 'LRIS_I',
@@ -265,7 +265,7 @@ frb20200430 = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20200906',
+    name='FRB20200906A',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 
                             'FRB20200906_VLT-FORS2_g.fits'),

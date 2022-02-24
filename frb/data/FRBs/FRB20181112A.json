@@ -1,54 +1,54 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 364.545
+        "value": 589.27
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 56.815577390267244
+        "value": 42.39581689047655
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.004
+        "value": 0.03
     },
-    "FRB": "FRB20190102",
+    "FRB": "FRB20181112A",
     "RM": {
         "unit": "rad / m2",
-        "value": -105.0
+        "value": 10.5
     },
     "RM_err": {
         "unit": "rad / m2",
-        "value": 1.0
+        "value": 0.4
     },
     "cosmo": "Planck18",
-    "dec": -79.47569444,
+    "dec": -52.97094444,
     "eellipse": {
-        "a": 0.21,
-        "a_sys": 0.936,
-        "b": 0.17,
-        "b_sys": 0.7876,
+        "a": 0.5553,
+        "a_sys": 5.728,
+        "b": 0.15293,
+        "b_sys": 1.432,
         "cl": 68.0,
         "cl_sys": 68.0,
-        "theta": 0.0,
-        "theta_sys": 0.0
+        "theta": 120.15,
+        "theta_sys": 120.15
     },
     "fluence": {
         "unit": "Jy ms",
-        "value": 14.0
+        "value": 20.2
     },
     "fluence_err": {
         "unit": "Jy ms",
-        "value": 1.0
+        "value": 0.1
     },
     "pulse": {
         "DM_smear": null,
         "Wi": {
             "unit": "ms",
-            "value": 0.053
+            "value": 0.016
         },
         "Wi_err": {
             "unit": "ms",
-            "value": 0.002
+            "value": 0.001
         },
         "freq": {
             "unit": "GHz",
@@ -60,19 +60,19 @@
         "time_res": null,
         "tscatt": {
             "unit": "ms",
-            "value": 0.041
+            "value": 0.021
         },
         "tscatt_err": {
             "unit": "ms",
-            "value": 0.003
+            "value": 0.001
         }
     },
-    "ra": 322.4156667,
+    "ra": 327.3484583,
     "refs": [
-        "Bhandari2020",
-        "Day2020",
-        "Day2021"
+        "Prochaska2019",
+        "Day2021",
+        "Day2020"
     ],
     "repeater": false,
-    "z": 0.2912
+    "z": 0.4755
 }
