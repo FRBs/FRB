@@ -42,7 +42,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252202*units.arcsec,
 )
-frb20190608 = {**base_config, **updates}  # Use | in 3.9
+FRB20190608B = {**base_config, **updates}  # Use | in 3.9
 
 
 # ##############################
@@ -60,7 +60,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1459 * units.arcsec,
 )
-frb20121102 = {**base_config, **updates}  # Use | in 3.9
+FRB20121102 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 180916
@@ -77,7 +77,7 @@ updates = dict(
     cand_separation=20*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-frb20180916 = {**base_config, **updates}  # Use | in 3.9
+FRB20180916 = {**base_config, **updates}  # Use | in 3.9
 
 
 # ##############################
@@ -93,7 +93,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-frb20180924 = {**base_config, **updates}  # Use | in 3.9
+FRB20180924A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 181112
@@ -108,7 +108,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-frb20181112 = {**base_config, **updates}  # Use | in 3.9
+FRB20181112A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190102
@@ -123,7 +123,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.252 * units.arcsec,
 )
-frb20190102 = {**base_config, **updates}  # Use | in 3.9
+FRB20190102C = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190523
@@ -137,7 +137,7 @@ updates = dict(
     plate_scale = 0.28 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb20190523 = {**base_config, **updates}  # Use | in 3.9
+FRB20190523 = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190611
@@ -151,7 +151,7 @@ updates = dict(
     plate_scale = 0.160 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb20190611 = {**base_config, **updates}
+FRB20190611B = {**base_config, **updates}
 
 # ##############################
 # FRB 190614
@@ -165,7 +165,7 @@ updates = dict(
     plate_scale = 0.135 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-frb20190614 = {**base_config, **updates}
+FRB20190614 = {**base_config, **updates}
 
 # ##############################
 # FRB 190711
@@ -184,7 +184,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.160*units.arcsec,
 )
-frb20190711 = {**base_config, **updates}  # Use | in 3.9
+FRB20190711A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190714
@@ -202,7 +202,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb20190714 = {**base_config, **updates}  # Use | in 3.9
+FRB20190714A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 191001
@@ -220,7 +220,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb20191001 = {**base_config, **updates}  # Use | in 3.9
+FRB20191001A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 191228
@@ -239,7 +239,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb20191228 = {**base_config, **updates}  # Use | in 3.9
+FRB20191228A = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 200430
@@ -257,7 +257,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.134*units.arcsec,
 )
-frb20200430 = {**base_config, **updates}  # Use | in 3.9
+FRB20200430A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 200906
@@ -277,7 +277,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-frb20200906 = {**base_config, **updates}  # Use | in 3.9
+FRB20200906A = {**base_config, **updates}  # Use | in 3.9
 
 ##############################
 # FRB 180301
@@ -296,7 +296,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-frb20180301 = {**base_config, **updates}  # Use | in 3.9
+FRB20180301 = {**base_config, **updates}  # Use | in 3.9
 #
 #
 
@@ -314,6 +314,6 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.250 * units.arcsec,
 )
-frb20201124 = {**base_config, **updates}  # Use | in 3.9
+FRB20201124A = {**base_config, **updates}  # Use | in 3.9
 #
 #

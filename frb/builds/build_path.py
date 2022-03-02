@@ -56,11 +56,11 @@ def run(frb_list:list, host_coords:list, prior:dict,
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
-        if not hasattr(frbs, frb_name.lower()):
+        if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
             continue
         print(f"Performing PATH on {frb_name}")
-        config = getattr(frbs, frb_name.lower())
+        config = getattr(frbs, frb_name.upper())
 
         # Run me
         frbA = frbassociate.run_individual(config, prior=prior)
@@ -114,6 +114,7 @@ def main(options:str=None):
                              max=priors['adopted']['theta']['max'], 
                              scale=0.5)
             prior['theta'] = theta_new
+            print("Using new prior with scale=0.5")
 
     results = run(frb_list, host_coords, prior)
 
