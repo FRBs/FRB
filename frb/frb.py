@@ -517,6 +517,26 @@ def build_table_of_frbs(frbs=None, fattrs=None):
         frb_tbl['ee_'+ee_attr] = alist
         tbl_units['ee_'+ee_attr] = ee_units[ss]
 
+    # Pulse
+    pulse_attrs = ['Wi', 'tscatt']
+    pulse_errors = [ipulse+'_err' for ipulse in pulse_attrs]
+    pulse_error_units = ['ms']*len(pulse_errors)
+    pulse_attrs += pulse_errors
+    pulse_units = ['ms', 'ms'] + pulse_error_units
+    for ss, pulse_attr in enumerate(pulse_attrs):
+        alist = [ifrb.pulse[pulse_attr] if pulse_attr in ifrb.pulse.keys() else np.nan for ifrb in frbs]
+        frb_tbl['pulse_'+pulse_attr] = alist
+        tbl_units['pulse_'+pulse_attr] = pulse_units[ss]
+
+    # A few others
+    for other in ['repeater']:
+        alist = [getattr(ifrb, other) if hasattr(ifrb, other) else np.nan for ifrb in frbs]
+        frb_tbl[other] = alist
+
+    # Refs
+    alist = [','.join(ifrb.refs) for ifrb in frbs]
+    frb_tbl['refs'] = alist
+
     # Float Attributes on an Object
     for fattr in fattrs:
         values = []
@@ -541,5 +561,17 @@ def build_table_of_frbs(frbs=None, fattrs=None):
         if has_error:
             frb_tbl[eattr] = errors
 
+
     # Return
     return frb_tbl, tbl_units
+
+def load_frb_data(tbl_file:str=None):
+    if tbl_file is None:
+        path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+        tbl_file = os.path.join(path, 'FRBs_base.csv')
+
+    # Load
+    frb_tbl = pd.read_csv(tbl_file)
+
+    # Return
+    return frb_tbl

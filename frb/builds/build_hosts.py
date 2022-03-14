@@ -246,15 +246,13 @@ def run(host_input:pandas.core.series.Series,
         # Skip? 
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
             continue
-        # Skip WISE?
-        #if key in ['WISE'] and inside['DES']:
-        #    continue
+
         # Slurp
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
         srvy_tbl = survey.get_catalog(print_query=True)
-        #embed(header='254 of build')
+
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         elif len(srvy_tbl) > 1:

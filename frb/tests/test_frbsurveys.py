@@ -68,6 +68,17 @@ def test_des():
     #
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 2
+@remote_data
+def test_nsc():
+    # Catalog
+    coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    nsc_srvy = survey_utils.load_survey_by_name('NSC', coord, search_r)
+    nsc_tbl = nsc_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(nsc_tbl, Table)
+    assert len(nsc_tbl) == 1
 
 
 
@@ -134,7 +145,8 @@ def test_in_which_survey():
                      'WENSS': False,
                      'DECaL': True,
                      'WISE': True,
-                     'Pan-STARRS': True}
+                     'Pan-STARRS': True,
+                     'NSC': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)

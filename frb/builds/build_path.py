@@ -14,6 +14,8 @@ import pandas
 from astropy.coordinates import SkyCoord
 from astropy import units
 
+from astropath.priors import load_std_priors
+
 from frb.frb import FRB
 
 from frb.associate import frbassociate
@@ -21,14 +23,15 @@ from frb.associate import frbs
 from frb.galaxies import hosts
 
 from frb import utils
-import pandas
+
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
     raise IOError('You need to have GDB!!')
 
-def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
-        tol:float=1.0):
+
+def run(frb_list:list, host_coords:list, prior:dict, 
+        override:bool=False):
     """Main method for generating a Host JSON file
 
     Args:
@@ -38,7 +41,7 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
             Prior for PATH
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
-        tol (float, optional):  Tolearance for a match to the expected host
+        tol (float, optional):  Tolerance for a match to the expected host
             in arcsec.
 
     Raises:
@@ -49,53 +52,22 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
         pandas.DataFrame:  Table of PATH values and a bit more
     """
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
+    ang_sizes, separations, sep_err = [], [], []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
-        if not hasattr(frbs, frb_name.lower()):
+        if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
             continue
         print(f"Performing PATH on {frb_name}")
-        #
-        config = getattr(frbs, frb_name.lower())
-        config['skip_bayesian'] = True
-        # Could do this outside the prior loop
-        frbA = frbassociate.run_individual(config)
+        config = getattr(frbs, frb_name.upper())
 
-        # Setup for PATH
+        # Run me
+        frbA = frbassociate.run_individual(config, prior=prior)
 
-        # We skirt the usual candidate init
-        frbA.candidates['mag'] = frbA.candidates[frbA.filter]
-        frbA.init_cand_coords()
-        # Set priors
-        frbA.init_cand_prior('inverse', P_U=prior['U'])
-        frbA.init_theta_prior(prior['theta']['method'], 
-                                prior['theta']['max'])
-        #frbA.calc_priors(prior['U'], method=prior['O'])
-        #prior['theta']['ang_size'] = frbA.candidates.half_light.values
-        #frbA.set_theta_prior(prior['theta'])
-
-        # Localization
-        frbA.init_localization('eellipse', 
-                                center_coord=frbA.frb.coord,
-                                eellipse=frbA.frb_eellipse)
-        
-        # Calculate priors
-        frbA.calc_priors()                            
-
-        # Calculate p(O_i|x)
-        frbA.calc_posteriors('fixed', box_hwidth=frbA.max_radius)
-
-        # Reverse Sort
-        frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
-
-        # Check
-        sep = frbA.candidates.coords.values[0].separation(host_coord).to('arcsec')
-        # TODO - Remove this before the PR is merged
-        try:
-            assert sep < tol*units.arcsec, f'sep = {sep}'
-        except:
-            embed(header='106 of build')
+        if frbA is None:
+            print(f"PATH analysis not possible for {frb_name}")
+            continue
 
         # Save for table
         good_frb.append(frb_name.upper())
@@ -103,52 +75,51 @@ def run(frb_list:list, host_coords:list, prior:dict, override:bool=False,
         PATH_O.append(frbA.candidates.P_O.values[0])
         RAs.append(host_coord.ra.deg)
         Decs.append(host_coord.dec.deg)
+        ang_sizes.append(frbA.candidates.ang_size.values[0])
+        separations.append(frbA.candidates.separation.values[0])
+        embed(header='80 of build path')
 
     # Build the table
     df = pandas.DataFrame()
     df['FRB'] = good_frb
     df['RA'] = RAs
     df['Dec'] = Decs
+    df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
-    df['P_Ox)'] = PATH_Ox
+    df['P_Ox'] = PATH_Ox
+    df['separation'] = separations
 
     # 
     return df
 
-def main(options:str=None, override:bool=False):
+def main(options:str=None):
     """ Driver of the analysis
 
     Args:
         options (str, optional): [description]. Defaults to None.
-        override (bool, optional): [description]. Defaults to False.
     """
-    # Parse optionsd
-    #if options is not None:
-    #    if 'cigale' in options:
-    #        build_cigale = True
     # Read public host table
-    host_tbl = hosts.load_host_tbl()#hosts_file=hosts_file)
+    host_tbl = hosts.load_host_tbl()
 
     host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
     # Generate FRBs for PATH analysis
     frb_list = host_tbl.FRB.values.tolist()
 
-    # Priors
-    nhalf = 10.
+    # Load prior
+    priors = load_std_priors()
+    prior = priors['adopted'] # Default
 
-    # Theta priors
-    theta_max = 6.
-    theta_u = dict(method='uniform', max=theta_max)
-    theta_c = dict(method='core', max=theta_max)
-    theta_e = dict(method='exp', max=theta_max)
+    # Parse optionsd
+    if options is not None:
+        if 'new_prior' in options:
+            theta_new = dict(method='exp', 
+                             max=priors['adopted']['theta']['max'], 
+                             scale=0.5)
+            prior['theta'] = theta_new
+            print("Using new prior with scale=0.5")
 
-    # Combined priors
-    conservative = dict(theta=theta_u, O='identical', U=0, name='Conservative', nhalf=nhalf)
-    adopted = dict(theta=theta_e, O='inverse', U=0., name='Adopted', nhalf=nhalf)
-
-
-    results = run(frb_list, host_coords, adopted)
+    results = run(frb_list, host_coords, prior)
 
     # Write
     outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 
@@ -156,3 +127,5 @@ def main(options:str=None, override:bool=False):
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")
+
+    return results

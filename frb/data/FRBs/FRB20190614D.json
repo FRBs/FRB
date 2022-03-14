@@ -1,0 +1,36 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 959.0
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 83.53333303530485
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 1.0
+    },
+    "FRB": "FRB20190614D",
+    "cosmo": "Planck18",
+    "dec": 73.70674,
+    "eellipse": {
+        "a": 0.8,
+        "b": 0.4,
+        "cl": 68.0,
+        "theta": 67.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 0.62
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 0.07
+    },
+    "ra": 65.07552,
+    "refs": [
+        "Law2020"
+    ],
+    "repeater": false
+}

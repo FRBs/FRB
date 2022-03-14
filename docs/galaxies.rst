@@ -128,7 +128,7 @@ have been archived.
 PATH
 ----
 
-A subset of the FRB Host galaxies have been analyzed using
+A subset of the FRB Host galaxies have been analyzed using the
 Probabilistic Assignment of Transients to their Hosts (PATH) framework
 as described in `Aggarawal et al. 2021 <https://ui.adsabs.harvard.edu/abs/2021ApJ...911...95A/abstract>`_.
 This relies on the `astropath <>`_ code base.

@@ -116,7 +116,7 @@ def list_of_hosts(skip_bad_hosts=True):
     return frbs, hosts
 
 
-def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
+def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object
@@ -198,6 +198,7 @@ def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
     # Init
     host_tbl['P_Ox'] = np.nan
     host_tbl['P_O'] = np.nan
+    host_tbl['ang_size'] = np.nan
 
     # Loop
     for index, path_row in path_tbl.iterrows():
@@ -207,8 +208,8 @@ def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
         # REDUCE THIS TOL TO 1 arcsec!!
         print(f"Min sep = {sep[imin].to('arcsec')}")
         if sep[imin] < 1.0*units.arcsec:
-            host_tbl.loc[imin,'P_Ox'] = path_row['P_Ox']
-            host_tbl.loc[imin,'P_O'] = path_row['P_O']
+            for key in ['P_Ox', 'P_O', 'ang_size']:
+                host_tbl.loc[imin,key] = path_row[key]
 
     # Return
     return host_tbl, tbl_units
@@ -242,7 +243,7 @@ def load_PATH(PATH_root_file:str='adopted.csv'):
         PATH_root_file (str, optional): [description]. Defaults to 'adopted.csv'.
 
     Returns:
-        pandas.DataFrame: Table of galaxy coordiantes and PATH results
+        pandas.DataFrame: Table of galaxy coordinates and PATH results
     """
     path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH',
                              PATH_root_file)
