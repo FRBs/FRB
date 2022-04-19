@@ -124,9 +124,10 @@ valid_ref = [entry+'_ref' for entry in valid_filters]
 valid_photom = valid_filters + ['EBV']  # Galactic
 
 ##############################################################
-# Line measurements -- Use linetools naming only!!!
+# Line measurements -- Use ppxf naming only!
+#   Not corrected for internal dust extinction
 
-valid_neb_lines = [
+valid_neb_lines = [  
     'Halpha',  # Halpha flux erg/s/cm^2; pPXF
     'Hbeta',  # Hbeta flux erg/s/cm^2; pPXF
     'Hgamma',  # Hgamma flux erg/s/cm^2; pPXF
@@ -205,7 +206,7 @@ valid_derived_local = [
     'IR_SB', # comment='IR SB in IR_filter at FRB position')
     'UV_global', # comment=UV photometry of entire galaxy
     'IR_global', # comment=IR photometry of entire galaxy
-    'SSFR', # comment='Surface density of Star formation at FRB position')
+    'SSFR', # comment='Surface density of Star formation at FRB position (Msun / yr / kpc^2)')
     'SMStar', # comment='Surface density of Stars at FRB position')
     'reff_iso', # comment='Effective Isophotal radius (angular)')
     'UVff', # comment='Fractional flux at FRB location in UV_filter')
