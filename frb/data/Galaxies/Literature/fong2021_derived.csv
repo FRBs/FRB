@@ -1,2 +1,2 @@
-,SFR_nebular,SFR_nebular_err,SFR_photom,SFR_photom_err,SFR_radio,Z_spec,Z_spec_err,ra,dec,Name
-0,2.1,0.5,4.0,0.7,2.2-5.9,9.03,0.2,77.0144875,26.0605361,HG20201124A
+,Unnamed: 0,SFR_nebular,SFR_nebular_err,SFR_photom,SFR_photom_err,SFR_radio,Z_spec,Z_spec_err,ra,dec,Name,Mstar,Mstar_err
+0,0,2.1,0.5,4.0,0.7,2.2-5.9,9.03,0.2,77.0144875,26.0605361,HG20201124A,2800000000.0,500000000.0
