@@ -256,7 +256,12 @@ def run(host_input:pandas.core.series.Series,
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         elif len(srvy_tbl) > 1:
-            raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+            if override:
+                warnings.warn(f"There was more than 1 galaxy for this FRB for survey: {key}")
+                print("Proceeding without using this survey")
+                continue
+            else:
+                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
