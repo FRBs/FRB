@@ -348,7 +348,6 @@ def run(host_input:pandas.core.series.Series,
         Host.parse_cigale(cigale_file, sfh_file=sfh_file)
     else:
         print(f"No CIGALE file to read for {file_root}")
-    
 
     # PPXF
     found_ppxf, ppxf_results_file = search_for_file(
