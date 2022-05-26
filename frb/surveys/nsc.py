@@ -22,6 +22,7 @@ photom['NSC'] = {}
 photom['NSC']['NSC_ID'] = 'id'
 photom['NSC']['ra'] = 'ra'
 photom['NSC']['dec'] = 'dec'
+photom['NSC']['class_star'] = 'class_star'
 NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
 for band in NSC_bands:
     photom['NSC']['NSC_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
