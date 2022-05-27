@@ -389,9 +389,31 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[mag][uplimit] = fluxtable[mag][uplimit] 
 
     return fluxtable
+
+def remove_duplicates(tab:Table, idcol:str)->Table:
+    """
+    In an astropy table if there are duplicate
+    entries, remove the duplicates.
+
+    Args:
+        tab (Table): A table of entries.
+        idcol (str): A column name that has unique ids
+            for each table entry.
+    Returns:
+        unique_tab (Table): A table with only the unique ids.
+    """
+    assert isinstance(tab, Table), "Please provide an astropy table."
+    assert isinstance(idcol, str), "Please provide a valid column name."
+    assert idcol in tab.colnames, "{} not a column in the given table".format(idcol)
+    # Sort entries first.
+    tab.sort(idcol)
+    # Get the duplicates.
+    duplicate_ids = np.where(tab[1:][idcol]==tab[:-1][idcol])[0]+1
+    tab.remove_rows(duplicate_ids)
+    return tab
     
 def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arcsec,
-                        table_names:tuple=('1','2'))->Table:
+                        table_names:tuple=('1','2'), **kwargs)->Table:
     """
     Given two source catalogs, cross-match and merge them. This function 
     ensures there is a unique match between tables as opposed to the default join_skycoord
@@ -403,15 +425,19 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
         tol (Quantity[Angle], optional): Maximum separation for cross-matching.
         table_names (tuple of str, optional): Names of the two tables for
             naming unique columns in the merged table.
+        kwargs: Additional keyword arguments to be passed onto xmatch_catalogs
     Returns:
         merged_table (Table): Merged catalog.
     """
     if table_names is not None:
         assert len(table_names)==2, "Invalid number of table names for two tables."
         assert (type(table_names[0])==str)&(type(table_names[1])==str), "Table names should be strings."
+    
+    assert np.all(np.isin(['ra','dec'],tab1.colnames)), "Table 1 doesn't have column 'ra' and/or 'dec'."
+    assert np.all(np.isin(['ra','dec'],tab2.colnames)), "Table 2 doesn't have column 'ra' and/or 'dec'."
 
 
-    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol)
+    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol, **kwargs)
 
     # tab1 INTERSECTION tab2
     inner_join = hstack([matched_tab1, matched_tab2],
@@ -423,37 +449,25 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     inner_join.remove_columns(tab2_coord_cols)
     inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
-    not_matched_tab1 = setdiff(tab1, matched_tab1, keys=['ra', 'dec'])
-    not_matched_tab2 = setdiff(tab2, matched_tab2, keys=['ra', 'dec'])
+
+    not_matched_tab1 = setdiff(tab1, matched_tab1)
+    not_matched_tab2 = setdiff(tab2, matched_tab2)
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
-    if len(not_matched_tab1)==0:
-        extra_cols = np.setdiff1d(not_matched_tab1.colnames, ['ra','dec'])
-        not_matched_tab1 = Table()
-        for col in extra_cols:
-            not_matched_tab1[col] = -999.
-        fudge = True
-    elif len(not_matched_tab2)==0:
-        extra_cols = np.setdiff1d(not_matched_tab2.colnames, ['ra','dec'])
-        not_matched_tab2 = Table()
-        not_matched_tab2['ra'] = not_matched_tab1['ra']
-        not_matched_tab2['dec'] = not_matched_tab1['dec']
-        for col in extra_cols:
-            not_matched_tab2[col] = -999.
-        fudge = True
-    else:
-        fudge = False
- 
-    if fudge:
-        outer_join = hstack([not_matched_tab1, not_matched_tab2],join_type='exact')
-    else:
+    if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
                     keys=['ra','dec'], join_type='outer', table_names=table_names)
-    merged = vstack([inner_join, outer_join]).filled(-999.)
+        merged = vstack([inner_join, outer_join]).filled(-999.)
+    elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
+        merged = vstack([inner_join, not_matched_tab1])
+    elif (len(not_matched_tab1)==0)&(len(not_matched_tab2)!=0):
+        merged = vstack([inner_join, not_matched_tab2])
+    else:
+        merged = inner_join
     weird_cols = np.isin(['ra_1','dec_1','ra_2','dec_2'],merged.colnames)
     if np.any(weird_cols):
         merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
-    return merged
+    return merged.filled(-999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
