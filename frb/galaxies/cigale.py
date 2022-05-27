@@ -167,6 +167,13 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'WFC3_F300X': 'WFC3_F300X',
         'Spitzer_3.6': 'spitzer.irac.ch1',
         'Spitzer_4.5': 'spitzer.irac.ch2',
+        'NSC_g': 'DES_g',
+        'NSC_r': 'DES_r',
+        'NSC_i': 'DES_i',
+        'NSC_z': 'DES_z',
+        'NSC_Y': 'DES_Y',
+        'DECam_r': 'DES_r'
+
     }
     for key in new_names:
         if key in photom_cols:
