@@ -92,6 +92,18 @@ def test_vista():
     assert isinstance(vista_tbl, Table)
     assert len(vista_tbl) == 1
 
+@remote_data
+def test_vista():
+    # Catalog
+    coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    vista_srvy = survey_utils.load_survey_by_name('DES', coord, search_r)
+    vista_tbl = vista_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(vista_tbl, Table)
+    assert len(vista_tbl) == 1
+
 
 
 @remote_data
