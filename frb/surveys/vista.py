@@ -119,6 +119,10 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             main_cat = catalog_utils.clean_cat(main_cat,photom['VISTA'])
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'])
+        for col in main_cat.colnames:
+            if main_cat[col].dtype==float:
+                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
+                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
 
         # Finish
         self.catalog = main_cat
