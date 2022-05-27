@@ -1,5 +1,6 @@
 """ utils related to SurveyCoord objects"""
 
+from urllib.error import HTTPError
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
 from frb.surveys.wise import WISE_Survey
@@ -108,7 +109,7 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         else:
             return True
 
-def in_which_survey(coord:SkyCoord)->dict:
+def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
     """
     Check if a particular coord is inside any
     survey that can be currently queried from
@@ -121,7 +122,11 @@ def in_which_survey(coord:SkyCoord)->dict:
     """
     # Loop through known surveys and check them one by one.
     inside = {}
-    for surveyname in allowed_surveys:
+    if optical_only:
+        all_surveys = optical_surveys
+    else:
+        all_surveys = allowed_surveys
+    for surveyname in all_surveys:
         # Skip PSRCAT
         if surveyname == "PSRCAT":
             continue
@@ -130,7 +135,8 @@ def in_which_survey(coord:SkyCoord)->dict:
     return inside
 
 
-def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=False):
+def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=False,
+                       seed_cat:Table=None):
     """
     A method to query all allowed surveys and combine
     the results into one table.
@@ -139,13 +145,21 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         radius (Quantity): Search radius in angular units.
         include_radio (bool, optional): Want to include results from the HEASARC surveys?
             Include at your own risk. Untested. Might break in unexpected ways.
+        seed_cat (Table, optional): If you'd like to merge the survey results
+            with another photometry table that you already have.
 
     Returns:
         combined_cat (Table): Table of merged query results.
     """
 
-    # Start with an empty table
-    combined_cat = Table()
+    # Start with the seed table
+    if seed_cat is not None:
+        assert isinstance(seed_cat, Table), "The seed_cat must be an astropy table"
+        assert np.all(np.isin(['ra','dec'],seed_cat.colnames)), "The seed catalog doesn't have 'ra' and/or 'dec' columns." 
+        combined_cat = seed_cat
+    else:
+        # Start with an empty table
+        combined_cat = Table()
     # Select surveys
     if include_radio: # Careful! NOT TESTED!
         surveys = allowed_surveys 
@@ -153,10 +167,16 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         surveys = optical_surveys
     # Loop over them
     for surveyname in surveys:
+        if surveyname=='Pan-STARRS':
+            if radius>0.5*u.deg:
+                warnings.warn("Pan=STARRS doesn't allow cone searches wider than 0.5 deg. Skipping.", RuntimeWarning)
+                continue
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
         except ConnectionError:
+            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+        except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
         if (survey.catalog is not None) & (len(survey.catalog)>0):
@@ -167,19 +187,19 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             else:
                 # Combine otherwise
                 # TODO: Need to deal with duplicate column names more elegantly.
-                combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog)
+                combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
         # No objects found?
         elif len(survey.catalog)==0:
             print("Empty table in "+surveyname)
             # Proper empty table
-            if len(survey.catalog.colnames)>0:
-                for colname in survey.catalog.colnames:
-                    if colname in ['ra', 'dec']: # skip em'
-                        continue
-                    else: # pad
-                        combined_cat[colname] = np.repeat(-999., len(combined_cat))
-            else: # Broken stuff. Need to fix the survey
-                continue
+            #if len(survey.catalog.colnames)>0:
+            #    for colname in survey.catalog.colnames:
+            #        if colname in ['ra', 'dec']: # skip em'
+            #            continue
+            #        else: # pad
+            #            combined_cat[colname] = np.repeat(-999., len(combined_cat))
+            #else: # Broken stuff. Need to fix the survey
+            #    continue
     
     return combined_cat
 
