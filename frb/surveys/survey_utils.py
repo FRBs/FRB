@@ -19,13 +19,9 @@ from astropy.table import Table
 import numpy as np
 import warnings
 
-<<<<<<< HEAD
 optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES',  'DECaL', 'VISTA', 'NSC']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
-=======
-allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS', 'VISTA']
->>>>>>> 7a6101246e7e73c7741338c78167a68368ee599f
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
