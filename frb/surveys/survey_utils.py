@@ -191,15 +191,6 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         # No objects found?
         elif len(survey.catalog)==0:
             print("Empty table in "+surveyname)
-            # Proper empty table
-            #if len(survey.catalog.colnames)>0:
-            #    for colname in survey.catalog.colnames:
-            #        if colname in ['ra', 'dec']: # skip em'
-            #            continue
-            #        else: # pad
-            #            combined_cat[colname] = np.repeat(-999., len(combined_cat))
-            #else: # Broken stuff. Need to fix the survey
-            #    continue
     
     return combined_cat
 
