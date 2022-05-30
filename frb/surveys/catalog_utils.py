@@ -166,7 +166,8 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
 
 def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arcsec,
                      RACol1:str = "ra", DecCol1:str = "dec",
-                     RACol2:str = "ra", DecCol2:str = "dec")->tuple:
+                     RACol2:str = "ra", DecCol2:str = "dec",
+                     return_match_idx:bool=False)->tuple:
     """
     Cross matches two astronomical catalogs and returns
     the matched tables.
@@ -183,9 +184,15 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
         DecCol1, DecCol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain Dec in degrees.
+        return_match_idx: bool, optional
+            Return the indices of the matched entries with
+            with the distance instead?
     returns:
         match1, match2: astropy Table
             Tables of matched rows from cat1 and cat2.
+        idx, d2d (if return_match_idx): ndarrays
+            Indices of matched entries from table 2
+            and an array of separations to go with.
     """
     assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
     assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
@@ -201,7 +208,10 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
     match1 = cat1[d2d < skydist]
     match2 = cat2[idx[d2d < skydist]]
 
-    return match1, match2
+    if return_match_idx:
+        return idx, d2d
+    else:
+        return match1, match2
 
 
 def _detect_mag_cols(photometry_table):
