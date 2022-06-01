@@ -1,9 +1,12 @@
+import os
 import numpy as np
 from frb.galaxies import prospector
 
 from IPython import embed
 
-datafile = 'files/FRB20180924_NP_VISTA_mask_mcmc.h5'
+datafile = os.path.join(
+    os.getenv('FRB_GDB'), 'F4', 'gordon2022',
+    'FRB20180924_NP_VISTA_mask_mcmc.h5')
 
 # read in h5 file
 results, obs_dict, model = prospector.results_from(datafile,
