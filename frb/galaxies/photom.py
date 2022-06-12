@@ -1,5 +1,6 @@
 """ Methods related to galaxy photometry """
 
+from email import header
 import os
 import warnings
 import numpy as np
