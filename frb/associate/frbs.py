@@ -4,8 +4,11 @@ At the moment the Zero Points used include Galactic Extinction!
 
 """
 import os
+from pkg_resources import resource_filename
+
 from astropy import units
 import warnings
+
 
 from IPython import embed
 
@@ -22,6 +25,7 @@ base_config = dict(
     cand_bright=None,
     cand_separation=None,
     skip_bayesian=False,
+    posterior_method='fixed',
     npixels=9,
 )
 
@@ -187,13 +191,13 @@ updates = dict(
 FRB20190711A = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
-# FRB 190714
+# FRB 190714A
 """
 Notes:
 """
 updates = dict(
     name='FRB20190714A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20190714_VLT_FORS2_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20190714A_VLT_FORS2_I.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.39,
@@ -211,7 +215,7 @@ Notes:
 """
 updates = dict(
     name='FRB20191001A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001_VLT-FORS2_I_BESS.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20191001A_VLT-FORS2_I_BESS.fits'),
     cut_size = 30.,
     filter = 'VLT_FORS2_I',
     ZP = 27.5,
@@ -248,7 +252,7 @@ Notes:
 """
 updates = dict(
     name='FRB20200430A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20200430_LRIS_I.fits'),
+    image_file=os.path.join(gdb_path, 'CRAFT', 'Heintz2020', 'FRB20200430A_LRIS_I.fits'),
     cut_size = 30.,
     filter = 'LRIS_I',
     ZP = 34.2,  # Tied to Pan-Starrs i-band
@@ -315,5 +319,24 @@ updates = dict(
     plate_scale = 0.250 * units.arcsec,
 )
 FRB20201124A = {**base_config, **updates}  # Use | in 3.9
+#
+#
+##############################
+# FRB 20201123A (MeerTRAP;  Rajwade+2022)
+updates = dict(
+    name='FRB20201123A',
+    hpix_file = os.path.join(resource_filename('frb', 'data'), 
+                             'FRBs', 'healpix',
+                             'FRB20201123A_hpix_uniform.fits.gz'),
+    cand_file=os.path.join(resource_filename('frb', 'data'),
+                           'Galaxies', '20201123A',
+                            'FRB20201123A_path_candidates.csv'),
+    PU = 0.1, # Prior
+    posterior_method='local',
+    cut_size = 30.,
+    filter = 'GMOS-r',
+)
+
+FRB20201123A = {**base_config, **updates}  # Use | in 3.9
 #
 #
