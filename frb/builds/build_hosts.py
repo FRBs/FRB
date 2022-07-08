@@ -26,13 +26,7 @@ try:
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
-from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
-from frb.surveys import des
-from frb.surveys import sdss
-from frb.surveys import wise
-from frb.surveys import panstarrs
-from frb.surveys import catalog_utils
 from frb.surveys import survey_utils
 from frb import utils
 import pandas

@@ -313,8 +313,9 @@ def main(inflg='all'):
     # Public
     if flg & (2**0):
         generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019',
-                          'Heintz2020', 'Simha2020', 'Tendulkar2017'],
-                         'FRB_specDB_Public.hdf5', 'v0.4')
+                          'Heintz2020', 'Simha2020', 'Tendulkar2017',
+                          'rajwade2022'],
+                         'FRB_specDB_Public.hdf5', 'v0.5')
 
 
 # Command line execution
