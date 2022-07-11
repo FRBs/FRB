@@ -315,7 +315,7 @@ def main(inflg='all'):
 
     # Public
     if flg & (2**0):
-        generate_by_refs(
+        generate_by_refs(public_refs,
                          'FRB_specDB_Public.hdf5', 'v0.5')
 
 
