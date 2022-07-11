@@ -331,7 +331,8 @@ updates = dict(
     cand_file=os.path.join(resource_filename('frb', 'data'),
                            'Galaxies', '20201123A',
                             'FRB20201123A_path_candidates.csv'),
-    PU = 0.1, # Prior
+    PU = 0.1, # Unseen prior
+    max_radius=23.12431, # arcsec
     posterior_method='local',
     cut_size = 30.,
     filter = 'GMOS-r',

@@ -17,6 +17,7 @@ from astropy.coordinates import SkyCoord
 import pandas 
 
 from frb import frb
+import astropy_healpix
 from astropath import chance
 from astropath import path
 from frb.galaxies import photom
@@ -497,6 +498,13 @@ def run_individual(config, prior:dict=None, show=False,
             header = fits.open(config['hpix_file'])[1].header
 
             nside = 2**header['MOCORDER']
+
+            # Normalize
+            healpix = astropy_healpix.HEALPix(nside=nside)
+            norm =  np.sum(hpix['PROBDENSITY']) *  healpix.pixel_area.to('arcsec**2').value
+            hpix['PROBDENSITY'] /= norm
+
+            # Set
             localiz = dict(type='healpix',
                         healpix_data=hpix, 
                         healpix_nside=nside,
@@ -516,7 +524,7 @@ def run_individual(config, prior:dict=None, show=False,
     # Calculate p(O_i|x)
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
-                         max_radius=frbA.max_radius,
+                         max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
 
 
