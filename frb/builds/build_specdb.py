@@ -27,6 +27,9 @@ all_instruments = ['SDSS', 'FORS2', 'MUSE', 'KCWI', 'MagE', 'GMOS-S',
                    'LRISb', 'LRISr', 'DEIMOS', 'XSHOOTER', 'Goodman',
                    'GMOS-N']
 db_path = os.getenv('FRB_GDB')
+public_refs =  ['Prochaska2019', 'Bannister2019', 'Bhandari2019',
+                'Heintz2020', 'Simha2020', 'Tendulkar2017',
+                'rajwade2022']
 
 
 def grab_files(all_files, refs_list, instrument):
@@ -312,9 +315,7 @@ def main(inflg='all'):
 
     # Public
     if flg & (2**0):
-        generate_by_refs(['Prochaska2019', 'Bannister2019', 'Bhandari2019',
-                          'Heintz2020', 'Simha2020', 'Tendulkar2017',
-                          'rajwade2022'],
+        generate_by_refs(
                          'FRB_specDB_Public.hdf5', 'v0.5')
 
 
