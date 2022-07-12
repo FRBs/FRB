@@ -179,8 +179,6 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     delta = np.trapz(throughput * source_flux * 
                      10 ** (-0.4 * Alambda), wave) / np.trapz(
                          throughput * source_flux, wave)
-        embed(header='180 of photom')
-
 
     correction = 1./delta
 
