@@ -285,7 +285,7 @@ FRB20200906A = {**base_config, **updates}  # Use | in 3.9
 Notes:
 """
 updates = dict(
-    name='FRB20180301',
+    name='FRB20180301A',
     image_file=os.path.join(gdb_path, 'Realfast', 
                             'Bhandari2021', 'FRB20180301_GMOS_S_r.fits'),
     cut_size = 30.,
