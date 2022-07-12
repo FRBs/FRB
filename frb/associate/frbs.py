@@ -67,7 +67,7 @@ FRB20121102 = {**base_config, **updates}  # Use | in 3.9
 """ 
 """
 updates = dict(
-    name='FRB20180916',
+    name='FRB20180916B',
     image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB20180916_GMOS_N_r.fits'),
     cut_size = 40.,
     filter = 'GMOS_N_r',
@@ -128,7 +128,7 @@ FRB20190102C = {**base_config, **updates}  # Use | in 3.9
 # ##############################
 # FRB 190523
 updates = dict(
-    name='FRB20190523',
+    name='FRB20190523A',
     image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
     cut_size = 30.,
     filter = 'LRIS_R',
@@ -156,7 +156,7 @@ FRB20190611B = {**base_config, **updates}
 # ##############################
 # FRB 190614
 updates = dict(
-    name='FRB20190614',
+    name='FRB20190614D',
     image_file = os.path.join(gdb_path, 'Realfast', 'Law2020', 'FRB20190614_LRIS_I.fits'),
     cut_size = 30.,
     filter='LRIS_I',
