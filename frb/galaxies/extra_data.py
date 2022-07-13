@@ -15,11 +15,11 @@ def load_mannings2021():
         tuple: measurements (pandas.DataFrame), units and description (dict)
     """
     mannings2021_file = os.path.join(resource_filename('frb','data'),
-                                          'Galaxies','Additional','Mannings2021', 
-                                          'galaxy_measurements.csv')
+                                          'Galaxies','Literature',
+                                          'mannings2021_derived.csv')
     mannings2021 = pandas.read_csv(mannings2021_file)                                        
 
-    # Units and comments
+    # Units and comments -- these are not all of them!
     tbl_units = {}
     tbl_units['UV_SB'] = dict(unit=units.Unit('mJy/arcsec**2'),
                               comment='UV SB in UV_filter at FRB position')

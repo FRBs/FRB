@@ -116,7 +116,7 @@ def list_of_hosts(skip_bad_hosts=True):
     return frbs, hosts
 
 
-def build_table_of_hosts(PATH_root_file:str='adopted.csv'):
+def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object

@@ -517,6 +517,17 @@ def build_table_of_frbs(frbs=None, fattrs=None):
         frb_tbl['ee_'+ee_attr] = alist
         tbl_units['ee_'+ee_attr] = ee_units[ss]
 
+    # Pulse
+    pulse_attrs = ['Wi', 'tscatt']
+    pulse_errors = [ipulse+'_err' for ipulse in pulse_attrs]
+    pulse_error_units = ['ms']*len(pulse_errors)
+    pulse_attrs += pulse_errors
+    pulse_units = ['ms', 'ms'] + pulse_error_units
+    for ss, pulse_attr in enumerate(pulse_attrs):
+        alist = [ifrb.pulse[pulse_attr] if pulse_attr in ifrb.pulse.keys() else np.nan for ifrb in frbs]
+        frb_tbl['pulse_'+pulse_attr] = alist
+        tbl_units['pulse_'+pulse_attr] = pulse_units[ss]
+
     # A few others
     for other in ['repeater']:
         alist = [getattr(ifrb, other) if hasattr(ifrb, other) else np.nan for ifrb in frbs]

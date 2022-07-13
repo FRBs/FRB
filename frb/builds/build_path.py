@@ -23,7 +23,7 @@ from frb.associate import frbs
 from frb.galaxies import hosts
 
 from frb import utils
-import pandas
+
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
@@ -52,21 +52,23 @@ def run(frb_list:list, host_coords:list, prior:dict,
         pandas.DataFrame:  Table of PATH values and a bit more
     """
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
-    ang_sizes = []
+    ang_sizes, separations, sep_err = [], [], []
+    skipped = []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
-        if not hasattr(frbs, frb_name.lower()):
+        if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
             continue
         print(f"Performing PATH on {frb_name}")
-        config = getattr(frbs, frb_name.lower())
+        config = getattr(frbs, frb_name.upper())
 
         # Run me
         frbA = frbassociate.run_individual(config, prior=prior)
 
         if frbA is None:
             print(f"PATH analysis not possible for {frb_name}")
+            skipped.append(frb_name)
             continue
 
         # Save for table
@@ -76,6 +78,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
         RAs.append(host_coord.ra.deg)
         Decs.append(host_coord.dec.deg)
         ang_sizes.append(frbA.candidates.ang_size.values[0])
+        separations.append(frbA.candidates.separation.values[0])
 
     # Build the table
     df = pandas.DataFrame()
@@ -85,6 +88,10 @@ def run(frb_list:list, host_coords:list, prior:dict,
     df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
     df['P_Ox'] = PATH_Ox
+    df['separation'] = separations
+
+    for frb_name in skipped:
+        print(f"PATH analysis not possible for {frb_name}")
 
     # 
     return df
@@ -114,6 +121,7 @@ def main(options:str=None):
                              max=priors['adopted']['theta']['max'], 
                              scale=0.5)
             prior['theta'] = theta_new
+            print("Using new prior with scale=0.5")
 
     results = run(frb_list, host_coords, prior)
 

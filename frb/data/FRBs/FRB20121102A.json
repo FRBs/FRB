@@ -1,0 +1,62 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 558.1
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 158.23787096104465
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 1.0
+    },
+    "FRB": "FRB20121102A",
+    "RM": {
+        "unit": "rad / m2",
+        "value": 100000.0
+    },
+    "cosmo": "Planck18",
+    "dec": 33.14793156,
+    "eellipse": {
+        "a": 0.004,
+        "a_sys": 0.0015,
+        "b": 0.002,
+        "b_sys": 0.0015,
+        "cl": 68.0,
+        "cl_sys": 68.0,
+        "theta": 90.0,
+        "theta_sys": 90.0
+    },
+    "pulse": {
+        "DM_smear": null,
+        "Wi": {
+            "unit": "ms",
+            "value": 3.0
+        },
+        "Wi_err": {
+            "unit": "ms",
+            "value": 0.5
+        },
+        "freq": {
+            "unit": "GHz",
+            "value": 1.0
+        },
+        "scatt_index": null,
+        "scatt_index_err": null,
+        "t0": null,
+        "time_res": null,
+        "tscatt": {
+            "unit": "ms",
+            "value": 0.024
+        },
+        "tscatt_err": null
+    },
+    "ra": 82.99458875,
+    "refs": [
+        "Tendulkar2017",
+        "Marcote2017"
+    ],
+    "repeater": true,
+    "z": 0.19273
+}
