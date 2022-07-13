@@ -59,6 +59,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
         # Config
         if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
+            skipped.append(frb_name)
             continue
         print(f"Performing PATH on {frb_name}")
         config = getattr(frbs, frb_name.upper())
@@ -99,7 +100,6 @@ def run(frb_list:list, host_coords:list, prior:dict,
 
     for frb_name in skipped:
         print(f"PATH analysis not possible for {frb_name}")
-
     # 
     return df
 
