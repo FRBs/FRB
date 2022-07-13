@@ -1,7 +1,7 @@
 {
     "FRB": "FRB20190711A",
     "cosmo": "Planck18",
-    "dec": -80.358125,
+    "dec": -80.35806944444444,
     "dec_FRB": -80.358,
     "derived": {
         "EBV_photom": 0.18690004225363024,
@@ -75,12 +75,12 @@
         "Hbeta_ref": "Heintz2020"
     },
     "offsets": {
-        "ang_avg": 0.8734840081437285,
-        "ang_avg_err": 0.44311328146141477,
-        "ang_best": 0.45279661333105886,
-        "ang_best_err": 0.6110051262974588,
-        "physical": 2.9132740406982114,
-        "physical_err": 3.931180845371003
+        "ang_avg": 0.8026173343109165,
+        "ang_avg_err": 0.4182461520826874,
+        "ang_best": 0.25061780950203405,
+        "ang_best_err": 0.6925556433393684,
+        "physical": 1.6124642655511752,
+        "physical_err": 4.455873383497404
     },
     "photom": {
         "EBV": 0.1209,
@@ -110,7 +110,13 @@
         "WFC3_F300X_flux_err": 8.567954101329264e-05,
         "WFC3_F300X_ref": "Mannings2021"
     },
-    "ra": 329.4191666666666,
+    "positional_error": {
+        "dec_astrometric": 0.0355,
+        "dec_source": 0.00299,
+        "ra_astrometric": 0.027,
+        "ra_source": 0.00425
+    },
+    "ra": 329.41922083333327,
     "ra_FRB": 329.41925,
     "redshift": {
         "z": 0.522,
