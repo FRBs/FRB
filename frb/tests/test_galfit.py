@@ -47,7 +47,7 @@ def test_run():
     shutil.rmtree(outdir)
 
 def test_parse_galfit():
-    frb = FRB.by_name("FRB20121102")
+    frb = FRB.by_name("FRB20121102A")
     host = frb.grab_host()
     galfit_outfile = resource_filename('frb','tests/files/HG121102_galfit.fits')
     # Test two components
