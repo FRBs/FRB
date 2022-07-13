@@ -53,6 +53,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
     """
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
     ang_sizes, separations, sep_err = [], [], []
+    skipped = []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
@@ -67,6 +68,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
 
         if frbA is None:
             print(f"PATH analysis not possible for {frb_name}")
+            skipped.append(frb_name)
             continue
 
         # Save for table
@@ -77,7 +79,6 @@ def run(frb_list:list, host_coords:list, prior:dict,
         Decs.append(host_coord.dec.deg)
         ang_sizes.append(frbA.candidates.ang_size.values[0])
         separations.append(frbA.candidates.separation.values[0])
-        embed(header='80 of build path')
 
     # Build the table
     df = pandas.DataFrame()
@@ -88,6 +89,9 @@ def run(frb_list:list, host_coords:list, prior:dict,
     df['P_O'] = PATH_O
     df['P_Ox'] = PATH_Ox
     df['separation'] = separations
+
+    for frb_name in skipped:
+        print(f"PATH analysis not possible for {frb_name}")
 
     # 
     return df
