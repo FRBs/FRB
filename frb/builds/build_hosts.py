@@ -315,7 +315,9 @@ def run(host_input:pandas.core.series.Series,
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
-        frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+        code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+        if code == -1:
+            raise ValueError("Bad extinction correction!")
         # Parse
         Host.parse_photom(merge_tbl, EBV=EBV)
     else:
@@ -435,7 +437,7 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit analysis slurped in via: {galfit_file}")
             Host.parse_galfit(galfit_file)
         else:
-            print(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")
 
