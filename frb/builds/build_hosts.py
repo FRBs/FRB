@@ -227,7 +227,7 @@ def run(host_input:pandas.core.series.Series,
     # Survey data
     try:
         inside = survey_utils.in_which_survey(Frb.coord)
-    except (requests.exceptions.ConnectionError) as e:  # Catches time-out from survey issues
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
         if override:
             print("Survey timed out.  You should re-run it sometime...")
             inside = {}
