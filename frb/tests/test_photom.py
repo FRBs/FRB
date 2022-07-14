@@ -52,7 +52,7 @@ def test_flux_conversion():
 def test_fractional_flux():
     isize = 5
     # FRB and HG
-    frbname = 'FRB20180924'
+    frbname = 'FRB20180924B'
     frbdat = frb.FRB.by_name(frbname)
     # frbcoord = frbdat.coord
     hg = frbdat.grab_host()

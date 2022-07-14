@@ -203,12 +203,17 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         required (bool, optional):
             Crash out if the transmission curve is not present
 
+    Returns:
+        int: Return code
+            -1: No matches to the input name
+            0: One match
+
     """
     # Cut the table
     mt_name = photom['Name'] == name
     if not np.any(mt_name):
         print("No matches to input name={}.  Returning".format(name))
-        return
+        return -1
     elif np.sum(mt_name) > 1:
         raise ValueError("More than 1 match to input name={}.  Bad idea!!".format(name))
     idx = np.where(mt_name)[0][0]
@@ -248,6 +253,8 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         cut_photom[key] += mag_dust
     # Add it back in
     photom[idx] = cut_photom
+
+    return 0
 
 def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS, 
           fwhm=3., physical=False, min_uncert=2):

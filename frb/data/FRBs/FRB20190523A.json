@@ -1,46 +1,34 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 348.76
+        "value": 760.8
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 171.6763680995275
+        "value": 36.79825599482419
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.1
-    },
-    "FRB": "FRB20180916A",
-    "RM": {
-        "unit": "rad / m2",
-        "value": -114.6
-    },
-    "RM_err": {
-        "unit": "rad / m2",
         "value": 0.6
     },
+    "FRB": "FRB20190523A",
     "cosmo": "Planck18",
-    "dec": 65.71675422,
+    "dec": 72.46972222,
     "eellipse": {
-        "a": 0.0011,
-        "a_sys": 0.002,
-        "b": 0.0011,
-        "b_sys": 0.002,
+        "a": 4.0,
+        "b": 1.5,
         "cl": 68.0,
-        "cl_sys": 68.0,
-        "theta": 0.0,
-        "theta_sys": 0.0
+        "theta": 340.0
     },
     "fluence": {
         "unit": "Jy ms",
-        "value": 2.53
+        "value": 280.0
     },
     "pulse": {
         "DM_smear": null,
         "Wi": {
             "unit": "ms",
-            "value": 1.66
+            "value": 0.42
         },
         "Wi_err": {
             "unit": "ms",
@@ -56,14 +44,17 @@
         "time_res": null,
         "tscatt": {
             "unit": "ms",
-            "value": 0.0027
+            "value": 1.4
         },
-        "tscatt_err": null
+        "tscatt_err": {
+            "unit": "ms",
+            "value": 0.2
+        }
     },
-    "ra": 29.50312571,
+    "ra": 207.065,
     "refs": [
-        "Marcote2020"
+        "Ravi2019"
     ],
-    "repeater": true,
-    "z": 0.0337
+    "repeater": false,
+    "z": 0.66
 }

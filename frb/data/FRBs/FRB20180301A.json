@@ -11,7 +11,7 @@
         "unit": "pc / cm3",
         "value": 13.0
     },
-    "FRB": "FRB20180301",
+    "FRB": "FRB20180301A",
     "cosmo": "Planck18",
     "dec": 4.671055556,
     "eellipse": {
