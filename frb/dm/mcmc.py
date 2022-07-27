@@ -1,13 +1,14 @@
 """ Methods for MCMC analysis of the Macquart relation """
 import numpy as np
-from numba import njit
+import warnings
 
+from numba import njit
 from scipy.stats import lognorm
+from scipy.special import hyp1f1, gamma
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from frb import defs
-
-import warnings
+from frb.dm import cosmic, igm
 
 try:
     import pymc3 as pm
@@ -17,11 +18,7 @@ else:
     import theano.tensor as tt
     from theano.compile.ops import as_op
 
-from frb.dm import cosmic, igm
-
-from IPython import embed
-
-DM_values = np.linspace(1., 7000., 7000)
+DM_values = np.linspace(1., 7000., 7000)  # Only used in one_prob
 Delta_values = np.linspace(1./400., 20., 20000)# / 400.  # Fiducial
 DM_MWhalo = 50.  # Fixed value for Macquart+20
 
@@ -29,6 +26,8 @@ DM_MWhalo = 50.  # Fixed value for Macquart+20
 frbs = []
 frb_DMs = None #np.array([frb.DM.value-frb.DMISM.value for frb in frbs])
 frb_zs = None #np.array([frb.z for frb in frbs])
+
+# The following are nomore used in the new likelihood function.
 DM_FRBp_grid = None
 DMhost_grid = None #np.outer(DM_values, (1+z_FRB))  # Host rest-frame DMs
 DMvalues_grid = None # np.outer(DM_values, np.ones(DM_FRBp.size))
@@ -76,6 +75,7 @@ def grab_parmdict(tight_ObH=False):
     # Return
     return parm_dict
 
+
 def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
              lognorm_floor=0., orig=False, beta=4.):
     """
@@ -122,7 +122,7 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     # C0
     if beta == 4.:
         raise ValueError("Bad beta value")
-        C0 = tt_spl_C0(sigma)
+        #C0 = tt_spl_C0(sigma)
     elif beta == 3.:
         C0 = tt_spl_C0_3(sigma)
     else:
@@ -145,115 +145,151 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     return Prob#, sigma, C0
 
 
-# C code or jit
-@njit(parallel=False)
-def mcquinn_DM_PDF_grid(Delta_values, C0, sigma, alpha=3., beta=3.):
-    """
-    PDF(Delta) for the McQuinn formalism describing the DM_cosmic PDF
+def log_likelihood(Obh70, F, in_DM_FRBp, z_FRB, mu=100., lognorm_s=1.,
+                   lognorm_floor=0., beta=3., step=1.):
+    """Calculate the probability for a set of FRBs
+
+    Compared to the previously used "all_prob", this function includes a
+    factor of <DM_cosmic> that comes from changeing the integration to Delta,
+    i.e. from dDM = dDelta * <DM_cosmic>. On top, this function has a
+    significant speed up due to looping instead of leaving parts of an
+    array empty.
 
     Args:
-        Delta (2D ndarray):
-            DM / averageDM values
-        C0 (np.ndarray):
-            C0 values
-        sigma (np.ndarray):
-            sigma values
-        alpha (float, optional):
-        beta (float, optional):
-
-    Returns:
-
-    """
-    #
-    Dalpha_grid = Delta_values**(-1*alpha)
-    Dbeta_grid = Delta_values**(-1*beta)
-    C0_grid = np.outer(np.ones(Delta_values.shape[0]), C0)
-    sigma_grid = np.outer(np.ones(Delta_values.shape[0]), sigma)
-    # Evaluate
-    PDF_grid = np.exp(-(Dalpha_grid-C0_grid)**2 / (
-            2*alpha**2 * sigma_grid**2))*Dbeta_grid
-    # Return
-    return PDF_grid
-
-
-def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
-             lognorm_floor=0., beta=3.):
-    """
-    Calculate the probability for a set of FRBs
-
-    Args:
-        Obh70 (float): Value of Omega_b * H_0
+        Obh70 (float): Value of Omega_b * h_70
         F (float): Feedback parameter
-        in_DM_FRBp (np.ndarray): Values of DM_FRBp for analysis
-            Not used?!
-        z_FRB (np.ndarray): z values for evaluation
+        in_DM_FRBp (np.ndarray): Measured DMs with DM_MW already subtracted.
+        z_FRB (np.ndarray): FRB redshifts.
         mu (float, optional):
-            Mean of log-normal PDF
+            Mean of log-normal PDF of DM_host (in DM units).
         lognorm_s (float, optional):
-            Sigma of log-normal PDF
-        lognorm_floor (float, optional):
-            Floor to the log-normal PDF
+            Sigma of log-normal PDF of DM_host (in log space).
         beta (float, optional):
-            Parameter for DM PDF
+            Parameter for DM PDF.
+        step (float, optional):
+            Step size in DM units for the integral over the DM.
 
     Returns:
-        float:  Log like-lihood
-
+        float:  Log likelihood
     """
-    '''
-    # Update DM_FRBp with MW halo (global)
-    DM_FRBp = in_DM_FRBp - DM_MWhalo
-
-    # DM values that matter
-    DM_FRBp_grid = np.outer(np.ones(DM_values.size), DM_FRBp)
-    DMhost_grid = np.outer(DM_values, (1+z_FRB))  # Host rest-frame DMs
-    '''
-
-    # PDF Nuisance
-    # Scale by redshift of the FRB
-    PDF_Nuisance_grid = lognorm.pdf(DMhost_grid, lognorm_s,
-                                    lognorm_floor, mu)
-
     # Sigma
     sigma = F / np.sqrt(z_FRB)
     # C0
     if beta == 4.:
         raise ValueError("Bad beta value in all_prob")
-        C0 = tt_spl_C0(sigma)
+        #C0 = tt_spl_C0(sigma)
     elif beta == 3.:
         #C0 = tt_spl_C0_3(sigma)
         C0 = f_C0_3(sigma)
     else:
         raise IOError
 
-    # Delta
+    likelihoods = np.zeros(z_FRB.shape)
+
     avgDM = spl_DMc(z_FRB) * (Obh70 / cosmo_Obh70)
-    DMcosmic = DM_FRBp_grid - DMvalues_grid #np.outer(DM_values, np.ones(DM_FRBp.size))
-    Delta = DMcosmic / avgDM
-    goodD = Delta > 0.
 
-    # PDF DM_cosmic
-    Delta[~goodD] = 1.  # To avoid bad things
-    PDF_Cosmic = mcquinn_DM_PDF_grid(Delta, C0, sigma, beta=beta)
-    PDF_Cosmic[~goodD] = 0.
+    for i, in_DM in enumerate(in_DM_FRBp):
+        DM_values = np.arange(step/2, in_DM, step)
+        DMcosmic = in_DM - DM_values
+        Delta = DMcosmic / avgDM[i]
+        PDF_Cosmic = cosmic.DMcosmic_PDF(Delta, C0[i], sigma[i], beta=beta)
+        PDF_host = lognorm.pdf(DM_values*(1+z_FRB[i]), lognorm_s, lognorm_floor, mu)
+        likelihoods[i] = step*np.sum(PDF_Cosmic * PDF_host)
 
-    all_PDF_Cosmic = mcquinn_DM_PDF_grid(Deltavalues_grid, C0, sigma, beta=beta)
+    if beta == 3.:
+        # Calculate the normalization "analytically" to be fast.
+        hyp_x = -C0**2/18/sigma**2
+        normalizations = 3*(12*sigma)**(1/3)/(gamma(1/3)*3*sigma*hyp1f1(1/6, 1/2, hyp_x)
+                                             + 2**(1/2)*C0*gamma(5/6)*hyp1f1(2/3, 3/2, hyp_x))
+    else:
+        # Integrate numerically. This is slower by a factor 146 (with 20000 samples).
+        step = 20/20000
+        Delta = np.linspace(step, 20.-step, 20000)
+        normalizations = cosmic.DMcosmic_PDF(Delta, C0[:, np.newaxis], sigma[:, np.newaxis], beta=beta)
+        normalizations = 1 / (step * normalizations.sum(axis=-1))
 
-    # Integrate
-    Prob = np.sum(PDF_Nuisance_grid * PDF_Cosmic, axis=0) / np.sum(
-        all_PDF_Cosmic, axis=0)
-    log_like = np.sum(np.log(Prob))
-
-    # Return
+    log_like = np.sum(np.log(likelihoods*normalizations/avgDM))
     return log_like
 
+
+def log_likelihood_variable_step(Obh70, F, in_DM_FRBp, z_FRB, mu=100.,
+                                 lognorm_floor=0, lognorm_s=1., beta=3.,
+                                 res=500):
+    """Calculate the log likelihood for a set of FRBs.
+
+    Compared to the previously used "all_prob", this function includes a
+    factor of <DM_cosmic> that comes from changeing the integration to Delta,
+    i.e. from dDM = dDelta * <DM_cosmic>. On top, this function has a
+    significant speed up due to a variable stepsize and the use of
+    broadcasting. If an FRBs DM is too high you should increase the
+    resolution.
+
+    Args:
+        Obh70 (float): Value of Omega_b * h_70
+        F (float): Feedback parameter
+        in_DM_FRBp (np.ndarray): Measured DMs with DM_MW already subtracted.
+        z_FRB (np.ndarray): FRB redshifts.
+        mu (float, optional):
+            Mean of log-normal PDF of DM_host (in DM units).
+        lognorm_s (float, optional):
+            Sigma of log-normal PDF of DM_host (in log space).
+        beta (float, optional):
+            Parameter for DM PDF.
+        res (int, optional):
+            Number of steps to use for the integral over the DM.
+            In a test with 200 FRBs the difference between res=100 and
+            res=10000 was only 0.3%.
+
+    Returns:
+        float:  Log likelihood
+    """
+    # Sigma for each FRB.
+    sigma = F / np.sqrt(z_FRB)
+    # C0 for each FRB.
+    if beta == 4.:
+        raise ValueError("Bad beta value in all_prob")
+        #C0 = tt_spl_C0(sigma)
+    elif beta == 3.:
+        #C0 = tt_spl_C0_3(sigma)
+        C0 = f_C0_3(sigma)
+    else:
+        raise IOError
+
+    # Get the average DM for each z from the globally created spline.
+    avgDM = spl_DMc(z_FRB) * (Obh70 / cosmo_Obh70)
+
+    # Integrate over P_host and P_cosmic in eq. 7 of Macquart et al. 2020 using the rectangle rule.
+    steps = in_DM_FRBp/(res+1)  # Integration steps
+    DM_values = np.linspace(steps/2, in_DM_FRBp-steps/2, res, axis=-1)  # 0th axis are the FRBs.
+
+    Delta = (in_DM_FRBp[:, np.newaxis] - DM_values) / avgDM[:, np.newaxis]
+    PDF_Cosmic = cosmic.DMcosmic_PDF(Delta, C0[:, np.newaxis], sigma[:, np.newaxis], beta=beta)
+    PDF_host = lognorm.pdf(DM_values*(1+z_FRB[:, np.newaxis]), s=lognorm_s, scale=mu)
+    likelihoods = steps*np.sum(PDF_Cosmic * PDF_host, axis=-1)
+
+    if beta == 3.:
+        # Calculate the normalization "analytically" to be fast.
+        hyp_x = -C0**2/18/sigma**2
+        normalizations = 3*(12*sigma)**(1/3)/(gamma(1/3)*3*sigma*hyp1f1(1/6, 1/2, hyp_x)
+                                             + 2**(1/2)*C0*gamma(5/6)*hyp1f1(2/3, 3/2, hyp_x))
+    else:
+        # Integrate numerically. This is slower by a factor 146 (with 20000 samples).
+        step = 20/20000
+        Delta = np.linspace(step, 20.-step, 20000)
+        normalizations = cosmic.DMcosmic_PDF(Delta, C0[:, np.newaxis], sigma[:, np.newaxis], beta=beta)
+        normalizations = 1 / (step * normalizations.sum(axis=-1))
+
+    # Normalization matters because it is different for each FRB. The factor avgDM comes because
+    # normalizations is the integral over Delta instead of DM. avgDM was missing in previous
+    # versions.
+    log_like = np.sum(np.log(likelihoods*normalizations/avgDM))
+    return log_like
 
 
 try:
     @as_op(itypes=[tt.dscalar, tt.dscalar, tt.dscalar, tt.dscalar], otypes=[tt.dvector])
     def calc_likelihood_four_beta3(Obh70, F, mu, lognorm_s):
-        """
-        Calculate likelihood for the real data
+        """Calculate likelihood for the real data
 
         Args:
             Obh70 (float): Value of Omega_b * H_0
@@ -266,7 +302,6 @@ try:
                 in the global variable frbs
 
         """
-
         lognorm_floor=0.
         # Loop on the FRBs
         ln_like = 0.
@@ -279,7 +314,7 @@ try:
                 ln_like += np.log(prob)
         else:
             # The loop above is much faster for only ~10 events
-            ln_like = all_prob(Obh70, F, frb_DMs, frb_zs, #frb.DM.value - frb.DMISM.value, frb.z,
+            ln_like = log_likelihood_variable_step(Obh70, F, frb_DMs, frb_zs, #frb.DM.value - frb.DMISM.value, frb.z,
                         mu=mu, lognorm_s=lognorm_s, lognorm_floor=lognorm_floor, beta=3.)
 
         # Return
@@ -302,6 +337,11 @@ def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
     Returns:
         pm.Model: pymc3 model
     """
+    if (DM_FRBp_grid is not None
+        or DMhost_grid is not None
+        or DMvalues_grid is not None
+        or Deltavalues_grid is not None):
+        warnings.warn("You set one of the grid variables. That has no effect anymore.")
     # Load the model
     with pm.Model() as model:
         # Variables
