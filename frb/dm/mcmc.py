@@ -1,6 +1,6 @@
 """ Methods for MCMC analysis of the Macquart relation """
 import numpy as np
-from numba import njit 
+from numba import njit
 
 from scipy.stats import lognorm
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -32,9 +32,7 @@ frb_zs = None #np.array([frb.z for frb in frbs])
 DM_FRBp_grid = None
 DMhost_grid = None #np.outer(DM_values, (1+z_FRB))  # Host rest-frame DMs
 DMvalues_grid = None # np.outer(DM_values, np.ones(DM_FRBp.size))
-Deltavalues_grid = None  #np.outer(Delta_values, np.ones_like(C0)), 
-
-#
+Deltavalues_grid = None  #np.outer(Delta_values, np.ones_like(C0)),
 
 # DM Cosmic
 DM_cosmic, zeval = igm.average_DM(1., cosmo=defs.frb_cosmo, cumul=True)
@@ -75,7 +73,7 @@ def grab_parmdict(tight_ObH=False):
     parm_dict['Obh70']['unit'] = 'None' #$\\rm km \, s^{-1} Mpc^{-1}$'
     # Other info
     parm_dict['Other'] = dict(DM_MWhalo=50., zscale_host=True, floor=0.)
-    # Return    
+    # Return
     return parm_dict
 
 def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
@@ -84,7 +82,7 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     Calculate the probability for a single FRB
 
     Args:
-        Obh70 (float): Value of Omega_b * H_0 
+        Obh70 (float): Value of Omega_b * H_0
         F (float): Feedback parameter
         DM_FRBp (np.ndarray): Values of DM_FRBp for analysis
         z_FRB (np.ndarray): z values for evaluation
@@ -95,7 +93,7 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
         lognorm_floor (float, optional):
             Floor to the log-normal PDF
         orig (bool, optional):
-            if True (not recommended!), use the original approach to 
+            if True (not recommended!), use the original approach to
             calculating sigma
         beta (float, optional):
             Parameter for DM PDF
@@ -184,7 +182,7 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     Calculate the probability for a set of FRBs
 
     Args:
-        Obh70 (float): Value of Omega_b * H_0 
+        Obh70 (float): Value of Omega_b * H_0
         F (float): Feedback parameter
         in_DM_FRBp (np.ndarray): Values of DM_FRBp for analysis
             Not used?!
@@ -213,7 +211,7 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
 
     # PDF Nuisance
     # Scale by redshift of the FRB
-    PDF_Nuisance_grid = lognorm.pdf(DMhost_grid, lognorm_s, 
+    PDF_Nuisance_grid = lognorm.pdf(DMhost_grid, lognorm_s,
                                     lognorm_floor, mu)
 
     # Sigma
@@ -258,7 +256,7 @@ try:
         Calculate likelihood for the real data
 
         Args:
-            Obh70 (float): Value of Omega_b * H_0 
+            Obh70 (float): Value of Omega_b * H_0
             F (float): Feedback parameter
             mu (float): Mean of log-normal PDF
             lognorm_s (float): Sigma of log-normal PDF
