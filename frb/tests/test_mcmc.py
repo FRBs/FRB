@@ -1,10 +1,9 @@
 """Test MCMC code"""
 import os
 import numpy as np
-from pkg_resources import resource_filename
-
 
 from matplotlib import pyplot as plt
+from pkg_resources import resource_filename
 
 from frb.dm import mcmc
 from frb.dm import cosmic
@@ -26,10 +25,7 @@ mcmc.frbs = [frb180924, frb181112, frb190102, frb190608, frb190711]
 mcmc.frb_DMs = np.array([frb.DM.value-frb.DMISM.value for frb in mcmc.frbs])
 mcmc.frb_zs = np.array([frb.z for frb in mcmc.frbs])
 DM_FRBp = mcmc.frb_DMs - mcmc.DM_MWhalo
-mcmc.DM_FRBp_grid = np.outer(np.ones(mcmc.DM_values.size), DM_FRBp)
-mcmc.DMhost_grid = np.outer(mcmc.DM_values, (1+mcmc.frb_zs))  # Host rest-frame DMs
-mcmc.DMvalues_grid =  np.outer(mcmc.DM_values, np.ones(DM_FRBp.size))
-mcmc.Deltavalues_grid = np.outer(mcmc.Delta_values, np.ones(DM_FRBp.size))
+
 
 def test_pdf():
     # Mainly testing the jit aspect
@@ -44,31 +40,32 @@ def test_pdf():
     C0 = f_C0_3(sigma)
 
     # Run it
-    PDF_Cosmic = mcmc.mcquinn_DM_PDF_grid(Delta, C0, sigma)
+    PDF_Cosmic = cosmic.DMcosmic_PDF(Delta, C0, sigma)
 
     # Once more
     nFRB = 1000
     z_FRB = np.random.uniform(low=0.1, high=0.7, size=nFRB)
     sigma = F / np.sqrt(z_FRB)
     Delta = np.random.uniform(low=0.7, high=1.5, size=nFRB)
-    PDF_Cosmic = mcmc.mcquinn_DM_PDF_grid(Delta, C0, sigma)
+    PDF_Cosmic = cosmic.DMcosmic_PDF(Delta, C0, sigma)
+
 
 def test_allprob():
     F=0.32
     # All
-    like = mcmc.all_prob(mcmc.cosmo_Obh70, F, None,
-                            mcmc.frb_zs)
+    like = mcmc.log_likelihood(mcmc.cosmo_Obh70, F, DM_FRBp, mcmc.frb_zs)
     # One by one
     ln_like = 0.
     probs = []
     for frb in mcmc.frbs:
-        prob = mcmc.one_prob(mcmc.cosmo_Obh70, F, 
+        prob = mcmc.one_prob(mcmc.cosmo_Obh70, F,
                             frb.DM.value - frb.DMISM.value, frb.z,
                 mu=150., lognorm_s=1., lognorm_floor=0.,
                 beta=3., orig=False)
         ln_like += np.log(prob)
         probs.append(prob)
 
+    print(like,ln_like)
     assert np.isclose(like, ln_like)
 
 
@@ -79,7 +76,7 @@ def test_pm():
     import pymc3 as pm
 
     parm_dict = mcmc.grab_parmdict()
-    outroot = os.path.join(resource_filename('frb', 'tests'), 
+    outroot = os.path.join(resource_filename('frb', 'tests'),
                            'files', 'mcmc')
 
     with mcmc.pm_four_parameter_model(parm_dict, beta=3.):
