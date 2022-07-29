@@ -26,13 +26,7 @@ try:
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
-from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
-from frb.surveys import des
-from frb.surveys import sdss
-from frb.surveys import wise
-from frb.surveys import panstarrs
-from frb.surveys import catalog_utils
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
@@ -307,10 +301,11 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl['Name'] = file_root
 
     # Remove NSC for now
-    for key in merge_tbl.keys():
-        if 'NSC' in key:
-            merge_tbl.remove_column(key)
-            print(f"Removing NSC column: {key}")
+    if merge_tbl is not None:
+        for key in merge_tbl.keys():
+            if 'NSC' in key:
+                merge_tbl.remove_column(key)
+                print(f"Removing NSC column: {key}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
