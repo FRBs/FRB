@@ -382,7 +382,13 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False,multicomponent:bool=False
     sky_dict['b/a'] = pix_dict['b/a']
     sky_dict['b/a_err'] = pix_dict['b/a_err']
     # Sky position angle
-    sky_dict['PA'] = pix_dict['PA']
+    pix_matrix = wcs.pixel_scale_matrix
+    cdelt1 = np.sqrt(np.sum(pix_matrix[:,0]**2))
+    sin_theta = pix_matrix[1,0]/cdelt1
+    cos_theta = pix_matrix[0,0]/cdelt1
+    north_angle = 180+np.arctan2(sin_theta,cos_theta)*180/np.pi
+
+    sky_dict['PA'] = (pix_dict['PA']-north_angle)%360
     sky_dict['PA_err'] = pix_dict['PA_err']
 
     if table:
