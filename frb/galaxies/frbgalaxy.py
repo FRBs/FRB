@@ -261,7 +261,7 @@ class FRBGalaxy(object):
             tuple: uncerta, uncertb [arcsec]
         """
             # set to zero, but change if we have astrometric and source errors
-        if hasattr(self, 'positional_error'):
+        if hasattr(self, 'positional_error') and len(self.positional_error) > 0:
             host_ra_sig = np.sqrt(self.positional_error['ra_astrometric']**2 +  
                 self.positional_error['ra_source']**2)
             host_dec_sig = np.sqrt(self.positional_error['dec_astrometric']**2 + 
@@ -423,6 +423,7 @@ class FRBGalaxy(object):
 
         specDB = gutils.load_specdb(specdb_file=specdb_file)
         if specDB is None:
+            print(f"{specdb_file} yielded nothing. Returning None")
             return
 
         # Grab the spectra

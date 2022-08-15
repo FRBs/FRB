@@ -9,7 +9,7 @@ from frb.galaxies import offsets as frb_offsets
 
 
 def test_offset():
-    ifrb = FRB.by_name('FRB20121102')
+    ifrb = FRB.by_name('FRB20121102A')
     host = ifrb.grab_host()
 
     ra_sig_source = host.positional_error['ra_source']

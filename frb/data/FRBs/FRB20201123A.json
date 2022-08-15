@@ -1,0 +1,29 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 433.55
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 229.4484747802035
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.4
+    },
+    "FRB": "FRB20201123A",
+    "cosmo": "Planck18",
+    "dec": -50.76,
+    "eellipse": {
+        "a": 30.0,
+        "b": 30.0,
+        "cl": 68.0,
+        "theta": 0.0
+    },
+    "ra": 263.67,
+    "refs": [
+        "Rajwade2022"
+    ],
+    "repeater": false,
+    "z": 0.0507
+}

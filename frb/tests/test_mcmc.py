@@ -17,11 +17,11 @@ pm_required = pytest.mark.skipif(not hasattr(mcmc, 'pm'),
                                  reason='test requires pymc3')
 
 # FRBs -- Init for the golden 5
-frb180924 = frb.FRB.by_name('FRB20180924')
-frb181112 = frb.FRB.by_name('FRB20181112')
-frb190102 = frb.FRB.by_name('FRB20190102')
-frb190608 = frb.FRB.by_name('FRB20190608')
-frb190711 = frb.FRB.by_name('FRB20190711')
+frb180924 = frb.FRB.by_name('FRB20180924B')
+frb181112 = frb.FRB.by_name('FRB20181112A')
+frb190102 = frb.FRB.by_name('FRB20190102C')
+frb190608 = frb.FRB.by_name('FRB20190608B')
+frb190711 = frb.FRB.by_name('FRB20190711A')
 mcmc.frbs = [frb180924, frb181112, frb190102, frb190608, frb190711]
 mcmc.frb_DMs = np.array([frb.DM.value-frb.DMISM.value for frb in mcmc.frbs])
 mcmc.frb_zs = np.array([frb.z for frb in mcmc.frbs])

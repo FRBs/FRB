@@ -55,7 +55,7 @@ def main(pargs):
     elif item == 'fg':
         build_fg.main(inflg=pargs.flag, options=pargs.options)
     elif item == 'path':
-        build_path.main(options=pargs.options)
+        build_path.main(options=pargs.options, frb=pargs.frb)
     else:
         raise IOError("Bad build item {:s}".format(item))
 

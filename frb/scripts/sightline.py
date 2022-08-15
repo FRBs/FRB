@@ -29,9 +29,14 @@ def main(pargs):
     from frb.galaxies import nebular
     from frb import mw
     from frb.surveys import survey_utils
+    from frb import frb
 
     # Deal with coord
-    icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
+    if 'FRB' in pargs.coord:
+        FRB = frb.FRB.by_name(pargs.coord)
+        icoord = FRB.coord
+    else:
+        icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
 
     # EBV
     EBV = nebular.get_ebv(icoord)['meanValue']  #
