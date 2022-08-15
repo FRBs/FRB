@@ -207,9 +207,10 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
             pa = -1*pa
         
         pa_deg = pa.to('deg').value
+        handedness = np.sign(-np.linalg.det(wcs.pixel_scale_matrix)) # +1 if right handed.
         # according to SkyRectangularAperture the theta is for the "width", thus we should conform that geometry here.
-        # for PA = 0 we want the slit to be oriented North-South, thus we need to rotate by +90 degrees and apply - sign 
-        aper = SkyRectangularAperture(positions=slit_coords, w=width, h=length, theta=-1*(pa+90*units.deg))  # PA should increase from North to East 
+        # for PA = 0 we want the slit to be oriented North-South, thus we need to rotate by +90 degrees
+        aper = SkyRectangularAperture(positions=slit_coords, w=width, h=length, theta=handedness*(pa+90*units.deg))  # PA should increase from North to East 
         
         apermap = aper.to_pixel(wcs)
         

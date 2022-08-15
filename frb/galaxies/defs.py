@@ -116,9 +116,13 @@ NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
 for band in NSC_bands:
     valid_filters.append('NSC_{:s}'.format(band))
 
-DECam_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
+DECam_bands = ['u','g', 'r', 'i', 'z']
 for band in DECam_bands:
     valid_filters.append("DECam_{:s}".format(band))
+
+SOAR_bands = ['U','B','V','R','Rc','v','b','y']
+for band in SOAR_bands:
+    valid_filters.append("SOAR_{:s}".format(band))
 
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
