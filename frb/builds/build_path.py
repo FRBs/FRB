@@ -23,7 +23,7 @@ from frb.associate import frbs
 from frb.galaxies import hosts
 
 from frb import utils
-import pandas
+
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
@@ -32,7 +32,7 @@ if db_path is None:
 
 def run(frb_list:list, host_coords:list, prior:dict, 
         override:bool=False):
-    """Main method for generating a Host JSON file
+    """Main method for running PATH analysis for a list of FRBs
 
     Args:
         frb_list (list): List of FRB names from the database
@@ -52,21 +52,31 @@ def run(frb_list:list, host_coords:list, prior:dict,
         pandas.DataFrame:  Table of PATH values and a bit more
     """
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
-    ang_sizes = []
+    ang_sizes, separations, sep_err = [], [], []
+    skipped = []
     for frb, host_coord in zip(frb_list, host_coords):
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
-        if not hasattr(frbs, frb_name.lower()):
+        if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
+            skipped.append(frb_name)
             continue
         print(f"Performing PATH on {frb_name}")
-        config = getattr(frbs, frb_name.lower())
+        config = getattr(frbs, frb_name.upper())
+
+        # Adjust prior, as needed
+        iprior = prior.copy()
+        if 'PU' in config.keys():
+            iprior['U'] = config['PU']
 
         # Run me
-        frbA = frbassociate.run_individual(config, prior=prior)
+        frbA = frbassociate.run_individual(
+            config, prior=iprior, 
+            posterior_method=config['posterior_method'])
 
         if frbA is None:
             print(f"PATH analysis not possible for {frb_name}")
+            skipped.append(frb_name)
             continue
 
         # Save for table
@@ -76,6 +86,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
         RAs.append(host_coord.ra.deg)
         Decs.append(host_coord.dec.deg)
         ang_sizes.append(frbA.candidates.ang_size.values[0])
+        separations.append(frbA.candidates.separation.values[0])
 
     # Build the table
     df = pandas.DataFrame()
@@ -85,23 +96,33 @@ def run(frb_list:list, host_coords:list, prior:dict,
     df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
     df['P_Ox'] = PATH_Ox
+    df['separation'] = separations
 
+    for frb_name in skipped:
+        print(f"PATH analysis not possible for {frb_name}")
     # 
     return df
 
-def main(options:str=None):
+def main(options:str=None, frb:str=None):
     """ Driver of the analysis
 
     Args:
         options (str, optional): [description]. Defaults to None.
+        frb (str, optional): FRB name
     """
     # Read public host table
-    host_tbl = hosts.load_host_tbl()
+    if frb is None:
+        host_tbl = hosts.load_host_tbl()
 
-    host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
+        host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
-    # Generate FRBs for PATH analysis
-    frb_list = host_tbl.FRB.values.tolist()
+        # Generate FRBs for PATH analysis
+        frb_list = host_tbl.FRB.values.tolist()
+    else:
+        ifrb = FRB.by_name(frb)
+        host = ifrb.grab_host()
+        frb_list = [ifrb.frb_name]
+        host_coords = [host.coord]
 
     # Load prior
     priors = load_std_priors()
@@ -114,9 +135,9 @@ def main(options:str=None):
                              max=priors['adopted']['theta']['max'], 
                              scale=0.5)
             prior['theta'] = theta_new
+            print("Using new prior with scale=0.5")
 
     results = run(frb_list, host_coords, prior)
-
     # Write
     outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 
                            'PATH', 'tmp.csv')

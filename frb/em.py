@@ -56,7 +56,11 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
         ff (float, optional):
           Filling factor
         eps (float, optional):
+             fractional variation inside discrete clouds 
+             due to turbulent-like density variations
         cloudcloud (float, optional):
+            cloud-to-cloud density variations in the ionized region of depth 
+            L in kpc.
 
     Returns:
         Quantity: DM at the source;  correct for (1+z)^-1 at your liking
