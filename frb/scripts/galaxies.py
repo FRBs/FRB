@@ -100,10 +100,11 @@ def main(pargs):
         return
 
     if pargs.coord[0:3].upper() == 'FRB':
-        frb = frb.FRB.by_name(pargs.coord.upper())
-        icoord = frb.coord.ra.value, frb.coord.dec.value
+        ifrb = frb.FRB.by_name(pargs.coord.upper())
+        icoord = ifrb.coord.ra.value, ifrb.coord.dec.value
     else:
         icoord = coord_arg_to_coord(pargs.coord)
+        ifrb = None
 
     # Meta?
     if pargs.cat:
@@ -135,6 +136,6 @@ def main(pargs):
         if pargs.cat:
             print("Cannot mix --plot with --cat.  Try again!")
             return
-        plot_spec(specDB, meta, frb, dust_correct=pargs.dust)
+        plot_spec(specDB, meta, ifrb, dust_correct=pargs.dust)
 
 
