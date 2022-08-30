@@ -75,7 +75,7 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
     hdulist.writeto(filename, overwrite=overwrite)
     return
 
-def _genconf(imgfile:str, psffile:str,
+def _genconf(imgfile:str, psffile:str=None,
             configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
@@ -89,7 +89,9 @@ def _genconf(imgfile:str, psffile:str,
     GALFIT is run using the command: `galfit <config-file>`.
     Args:
         imgfile (str): path to the image fits file.
-        psffile (str): path to the PSF model fits file.
+        psffile (str, optional): path to the PSF model fits file.
+            If nothing is given, the fit is performed without
+            a PSF model.
         outdir (str): Name of output directory. Default
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
@@ -131,7 +133,7 @@ def _genconf(imgfile:str, psffile:str,
             index.
         axis_ratio (float, optional): Initial guess for
             the ratio of minor to major axis of the fit model.
-        PA (float, optional): Initial guess for the 
+        pa (float, optional): Initial guess for the 
             angle of the major axis counter clockwise 
             relative to the vertical.
         skip_sky (bool, optional): Do you also want
@@ -153,8 +155,9 @@ def _genconf(imgfile:str, psffile:str,
         configfile = "galfit.feedme"
     
     # Copy PSF file to outdir
-    os.system("cp {:s} {:s}".format(psffile, os.path.join(outdir,"psffile.fits")))
-    psffile = "psffile.fits"
+    if isinstance(psffile, str):
+        os.system("cp {:s} {:s}".format(psffile, os.path.join(outdir,"psffile.fits")))
+        psffile = "psffile.fits"
     # If CDK file exists, do the same
     if cdkfile is not None:
         os.system("cp {:s} {:s}".format(cdkfile, os.path.join(outdir,"cdkfile.txt")))
@@ -179,9 +182,9 @@ def _genconf(imgfile:str, psffile:str,
         fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
         # PSF file
         if cdkfile is None:
-            fstream.write("D) {:s}  # Input PSF file\n".format(psffile))
+            fstream.write("D) {:s}  # Input PSF file\n".format(str(psffile)))
         else:
-            fstream.write("D) {:s}  # Input PSF file\n".format(psffile+" "+cdkfile))
+            fstream.write("D) {:s}  # Input PSF file\n".format(str(psffile)+" "+cdkfile))
         # PSF fine-sampling
         fstream.write("E) {:d}  # PSF fine sampling factor\n".format(finesample))
         # Bad pixel map
@@ -402,7 +405,7 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False,multicomponent:bool=False
                             'n','n_err','b/a','b/a_err','PA','PA_err']
     return sky_dict
 
-def run(imgfile:str, psffile:str, **kwargs)->int:
+def run(imgfile:str, psffile:str=None, **kwargs)->int:
     """
     Run galfit. 
     
@@ -451,7 +454,7 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
             index.
         axis_ratio (float, optional): Initial guess for
             the ratio of minor to major axis of the fit model.
-        PA (float, optional): Initial guess for the 
+        pa (float, optional): Initial guess for the 
             angle of the major axis counter clockwise 
             relative to the vertical.
         skip_sky (bool, optional): Do you also want
@@ -467,8 +470,9 @@ def run(imgfile:str, psffile:str, **kwargs)->int:
     # Check input paths first
     assert os.path.isfile(imgfile), "Invalid image file path {:s}".format(imgfile)
 
-    assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
-    psffile = os.path.abspath(psffile)
+    if isinstance(psffile, str):
+        assert os.path.isfile(psffile), "Invalid psf file path {:s}".format(psffile)
+        psffile = os.path.abspath(psffile)
 
     # Is a CDK file given?
     if 'cdkfile' in kwargs.keys():
