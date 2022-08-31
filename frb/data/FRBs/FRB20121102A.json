@@ -14,7 +14,7 @@
     "FRB": "FRB20121102A",
     "RM": {
         "unit": "rad / m2",
-        "value": 100000.0
+        "value": 102700.0
     },
     "cosmo": "Planck18",
     "dec": 33.14793156,
@@ -27,30 +27,6 @@
         "cl_sys": 68.0,
         "theta": 90.0,
         "theta_sys": 90.0
-    },
-    "pulse": {
-        "DM_smear": null,
-        "Wi": {
-            "unit": "ms",
-            "value": 3.0
-        },
-        "Wi_err": {
-            "unit": "ms",
-            "value": 0.5
-        },
-        "freq": {
-            "unit": "GHz",
-            "value": 1.0
-        },
-        "scatt_index": null,
-        "scatt_index_err": null,
-        "t0": null,
-        "time_res": null,
-        "tscatt": {
-            "unit": "ms",
-            "value": 0.024
-        },
-        "tscatt_err": null
     },
     "ra": 82.99458875,
     "refs": [
