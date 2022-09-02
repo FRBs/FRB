@@ -182,12 +182,12 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'DECam_i': 'DECam_i',
         'DECam_z': 'DECam_z',
         'DECam_Y': 'DECam_Y',
-        'SOAR_Rc':'SOAR_Rc',
-        'SOAR_B':'SOAR_B',
-        'SOAR_V':'SOAR_V',
-        'SOAR_b':'SOAR_b',
-        'SOAR_v':'SOAR_v',
-        'SOAR_y':'SOAR_y'
+        'SOAR_cousins_R':'SOAR_cousins_R',
+        'SOAR_bessell_B':'SOAR_bessell_B',
+        'SOAR_bessell_V':'SOAR_bessell_V',
+        'SOAR_stromgren_b':'SOAR_stromgren_b',
+        'SOAR_stromgren_v':'SOAR_stromgren_v',
+        'SOAR_stromgren_y':'SOAR_stromgren_y'
     }
     for key in new_names:
         if key in photom_cols:
