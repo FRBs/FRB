@@ -120,7 +120,7 @@ DECam_bands = ['u','g', 'r', 'i', 'z']
 for band in DECam_bands:
     valid_filters.append("DECam_{:s}".format(band))
 
-SOAR_bands = ['U','B','V','R','Rc','v','b','y']
+SOAR_bands = ['U','bessell_B','bessell_V','bessell_R','cousins_R','stromgren_v','stromgren_b','stromgren_y']
 for band in SOAR_bands:
     valid_filters.append("SOAR_{:s}".format(band))
 
