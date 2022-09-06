@@ -75,8 +75,9 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
     hdulist.writeto(filename, overwrite=overwrite)
     return
 
-def _genconf(imgfile:str, psffile:str=None,
+def _genconf(imgfile:str, psffile:str=None, mode=0,
             configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
+            noisefile:str=None,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
             region:tuple = None, convobox:tuple = (100,100),
@@ -92,6 +93,8 @@ def _genconf(imgfile:str, psffile:str=None,
         psffile (str, optional): path to the PSF model fits file.
             If nothing is given, the fit is performed without
             a PSF model.
+        mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
+            Which mode would you like galfit to run in?
         outdir (str): Name of output directory. Default
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
@@ -102,6 +105,9 @@ def _genconf(imgfile:str, psffile:str=None,
             Tiny Tim.
         outfile (str, optional): name of GALFIT's output fits file.
             Defaults to `out.fits` in <outdir>.
+        noisefile (str, optional): If you'd like to use an
+            image noise estimate of your own instead of what Galfit
+            generates. 
         finesample (int, optional): The PSF fine-sampling factor.
             Assumes no fine-sampling (i.e. a factor of 1) by default.
         badpix (str, optional): File containing a list of bad pixels.
@@ -161,7 +167,11 @@ def _genconf(imgfile:str, psffile:str=None,
     # If CDK file exists, do the same
     if cdkfile is not None:
         os.system("cp {:s} {:s}".format(cdkfile, os.path.join(outdir,"cdkfile.txt")))
-        cdkfile = "cdkfile.txt" 
+        cdkfile = "cdkfile.txt"
+    #Also for noise file
+    if noisefile is not None:
+        os.system("cp {:s} {:s}".format(noisefile, os.path.join(outdir,"noisefile.fits")))
+        noisefile = "noisefile.fits"
     
     
     # Begin writing config file
@@ -178,8 +188,8 @@ def _genconf(imgfile:str, psffile:str=None,
             outfile = "out.fits"
         # Output file
         fstream.write("B) {:s}  # Output data image block\n".format(outfile))
-        # Ignore any sigma image for now.
-        fstream.write("C) none  # Sigma image name (made from data if blank or 'none')\n")
+        # Include sigma image if provided
+        fstream.write(f"C) {noisefile}  # Sigma image name (made from data if blank or 'none')\n")
         # PSF file
         if cdkfile is None:
             fstream.write("D) {:s}  # Input PSF file\n".format(str(psffile)))
@@ -211,7 +221,7 @@ def _genconf(imgfile:str, psffile:str=None,
         # Display type? Not sure what this is.
         fstream.write("O) regular   # Display type (regular, curses, both)\n")
         # Only fit for now.
-        fstream.write("P) 0 # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps\n")
+        fstream.write(f"P) {mode} # Choose: 0=optimize, 1=model, 2=imgblock, 3=subcomps\n")
         ################################################################################3
         # Fit parameters
         fstream.write("\n# INITIAL FITTING PARAMETERS\n")
@@ -414,6 +424,8 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
         psffile (str): path to the PSF model fits file.
 
     Valid kwargs:
+        mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
+            Which mode would you like galfit to run in?
         outdir (str): Name of output directory. Default
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to
@@ -423,6 +435,9 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
             Tiny Tim.
         outfile (str, optional): path to GALFIT's output fits file.
             Defaults to `<outdir>/out.fits`
+        noisefile (str, optional): If you'd like to use an
+            image noise estimate of your own instead of what Galfit
+            generates. 
         finesample (int, optional): The PSF fine-sampling factor.
             Assumes no fine-sampling (i.e. a factor of 1) by default.
         badpix (str, optional): File containing a list of bad pixels.
@@ -517,41 +532,43 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
         return fit_outcome
     # Read fit.log and get the fit results
     # Temporary fix for the crash:
-    try:
-        pix_dict = read_fitlog("fit.log", configfile)
-    except FileNotFoundError:
-        print("""
-            Doh!  GALFIT crashed because at least one of the model parameters 
-            is bad.  The most common causes are: effective radius too small/big,
-            component is too far outside of fitting region (also check fitting
-            region), model mag too faint, axis ratio too small, Sersic index
-            too small/big, Nuker powerlaw too small/big.  If frustrated or 
-            problem should persist, email for help or report problem to: 
-                                Chien.Y.Peng@gmail.com 
+    if kwargs['mode']==0:
+        try:
+            pix_dict = read_fitlog("fit.log", configfile)
+        except FileNotFoundError:
+            print("""
+                Doh!  GALFIT crashed because at least one of the model parameters 
+                is bad.  The most common causes are: effective radius too small/big,
+                component is too far outside of fitting region (also check fitting
+                region), model mag too faint, axis ratio too small, Sersic index
+                too small/big, Nuker powerlaw too small/big.  If frustrated or 
+                problem should persist, email for help or report problem to: 
+                                    Chien.Y.Peng@gmail.com 
 
 
-            GALFIT Version 3.0.5 -- Apr. 23, 2013
-            """)
+                GALFIT Version 3.0.5 -- Apr. 23, 2013
+                """)
+            os.chdir(curdir)
+            return 1
+        # Convert to sky angular units and stuff it into the output
+        # fits file
+        hdr = fits.getheader(imgfile)
+        wcs = WCS(hdr)
+        sky_tab = pix2coord(pix_dict, wcs, table=True)
+        if 'outfile' not in kwargs:
+            kwargs['outfile'] = 'out.fits'
+        fitloghdu = fits.BinTableHDU(sky_tab,name="FITPARAMS")
+        hdulist = fits.open(kwargs['outfile'])
+        # This needs to be done for some blackbox
+        # in astropy to not barf.
+        for idx in [2,3]:
+            hdulist[idx].header.insert('OBJECT',('PCOUNT',0))
+            hdulist[idx].header.insert('OBJECT',('GCOUNT',1))
+
+        # Dump the table in the fits file
+        hdulist.append(fitloghdu)
+        # Overwrite
+        hdulist.writeto(kwargs['outfile'], overwrite=True)
+    else:
         os.chdir(curdir)
-        return 1
-    # Convert to sky angular units and stuff it into the output
-    # fits file
-    hdr = fits.getheader(imgfile)
-    wcs = WCS(hdr)
-    sky_tab = pix2coord(pix_dict, wcs, table=True)
-    if 'outfile' not in kwargs:
-        kwargs['outfile'] = 'out.fits'
-    fitloghdu = fits.BinTableHDU(sky_tab,name="FITPARAMS")
-    hdulist = fits.open(kwargs['outfile'])
-    # This needs to be done for some blackbox
-    # in astropy to not barf.
-    for idx in [2,3]:
-        hdulist[idx].header.insert('OBJECT',('PCOUNT',0))
-        hdulist[idx].header.insert('OBJECT',('GCOUNT',1))
-
-    # Dump the table in the fits file
-    hdulist.append(fitloghdu)
-    # Overwrite
-    hdulist.writeto(kwargs['outfile'], overwrite=True)
-    os.chdir(curdir)
     return fit_outcome
