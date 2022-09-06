@@ -14,8 +14,8 @@ FRB,Coord,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,B
 20190714A,12h15m55.0941s -13d01m16.004s,0.23650,"CRAFT,Realfast,F4","Heintz2020,Bhandari2021,mannings2021",,LRISr,,WFC3_F160W,,VD,"Offset, photom, and derived sections have slightly but noticeable differences between new and old JSON files. positions, neblines, and redshifts match with lit. M_star does not match Mannings2021 but does match Bhandari2021"
 20191001A,21h33m24.44s -54d44m54.65s ,0.23400,"CRAFT,F4","Heintz2020,mannings2021",,GMOS-S,"7150., 7300.; 7580, 7750.; 6675., 6725.",VLT_i,,KEH,
 20191228A,22h57m43.405s -29d35m39.1344s,0.2432,Realfast,Bhandari2021,,LRISr,"3000., 5000.;6675., 6725.;7580, 7750.",VLT-FORS2_I,,CN,
-20200120E,09h55m33.1730s +69d03m55.061s,0.0008,,,,,,,,X,
+20200120E,09h55m33.1730s +69d03m55.061s,0.0008,,,,,,SDSS_g,,X,
 20200430A,15h18m49.52s +12d22m35.8s,0.1608,"CRAFT,Realfast","Heintz2020,Bhandari2021",,DEIMOS,"4000.,5100;7590., 7610;9500., 11000.",SDSS_i,,SS,
 20200906A,03h33m59.00s -14d04m59.37s,0.3688,Realfast,Bhandari2021,,DEIMOS,"3000., 5000.; 6675.,6725.;7580, 7750.",VLT-FORS2_I,,X,
 20201123A,17h34m38.3526s -50d45m50.389s,0.0507,MeerTRAP,rajwade2022,,Goodman,"0.,3700.;6650.,8000.",,,,
-20201124A,05h08m03.477s +26d03m37.93s,0.0979,F4,fong2021,,,,,,X,
+20201124A,05h08m03.477s +26d03m37.93s,0.0979,"F4,F4","fong2021,mannings2022",,,,Pan-STARRS_r,,X,
