@@ -76,7 +76,7 @@ The following are required to run some of the halo codes:
 The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
-* `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 or greater
+* `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 to 2020.0 (cannot yet accommodate 2022.0 or greater)
 
 The following is required to run the code in dm_kde:
 
