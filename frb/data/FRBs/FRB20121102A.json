@@ -16,6 +16,10 @@
         "unit": "rad / m2",
         "value": 102700.0
     },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 100.0
+    },
     "cosmo": "Planck18",
     "dec": 33.14793156,
     "eellipse": {
