@@ -176,15 +176,16 @@ def grab_repo_grid():
     return sdict
 
 
-def get_DMcosmic_from_z(zarray, perc=0.5, DMevals=np.linspace(1.,5000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):
+def get_DMcosmic_from_z(zarray, perc=0.5, DMevals=np.linspace(1.,2000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):
     """
     Gives DMcosmic values of zarray, considering the percentile.
     Default is median (i.e. percentile=0.5)
 
     Parameters
     ----------
-    zarray : np.array
-        Redshift values
+    zarray : float or np.array
+        Redshift value or values
+        If np.array, then it must start from 0
     perc : float
         Percentile of the PDF(DM_cosmic) for each z, from 0 to zmax. 
         Default = 0.5
@@ -210,17 +211,16 @@ def get_DMcosmic_from_z(zarray, perc=0.5, DMevals=np.linspace(1.,5000.,1000), be
     
     """
     
-    # Get the mean 
-    zmax = np.max(zarray)
-    neval = len(zarray)
-    mean_macquart, zeval = igm.average_DM(zmax, cumul=True, neval=neval)
-    
+    #check z input
+    if isinstance(zarray, float):
+        z_new = np.array([0,zarray])
+    else:
+        z_new = np.array(zarray)
+   
     # Get the DMcosmic-z grid
     # This is time consuming, could be done more efficiently
     print("Calculating the DMcosmic-z grid, this may take a while...")
-    # zeval =None
-    # DMevals = None
-    _ , DM_cosmics, PDF_grid = grid_P_DMcosmic_z(zvals=zeval, beta=beta, F=F, cosmo=cosmo, DM_cosmics=DMevals)
+    zeval , DM_cosmics, PDF_grid = grid_P_DMcosmic_z(zvals=z_new, beta=beta, F=F, cosmo=cosmo, DM_cosmics=DMevals)
 
     # Get the relation at a given percentile
     perc_macquart = []
@@ -229,7 +229,11 @@ def get_DMcosmic_from_z(zarray, perc=0.5, DMevals=np.linspace(1.,5000.,1000), be
             perc_macquart.append(0)
         else:
             dm_pdf_interp = interp1d(np.cumsum(column.flatten()), DM_cosmics)
-            # import pdb; pdb.set_trace()
             perc_macquart.append(dm_pdf_interp(perc))
     perc_macquart = np.array(perc_macquart).flatten()
+    
+    # reformat output
+    if isinstance(zarray, float):
+        return zeval[-1], perc_macquart[-1]
+    # output for z_array as actual array
     return zeval, perc_macquart
