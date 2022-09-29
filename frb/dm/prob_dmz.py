@@ -4,6 +4,7 @@ import os
 from pkg_resources import resource_filename
 
 from scipy.stats import norm, lognorm
+from scipy.interpolate import interp1d
 
 from frb.dm import igm
 from frb.dm import cosmic
@@ -13,6 +14,7 @@ from IPython import embed
 
 class P_DM_z(object):
     pass
+
 
 def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
                       ISMfrac=0.10, DM_MWhalo=50.):
@@ -128,6 +130,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None,
     # Return
     return zvals, DM_cosmics, PDF_grid
 
+
 def build_grid_for_repo(outfile:str):
     """
     Build a P(DM,z) grid for the Repository
@@ -145,6 +148,7 @@ def build_grid_for_repo(outfile:str):
     np.savez(outfile, z=z, DM=DM, PDM_z=P_DM_z)
     print(f"File written: {outfile}")
     print("This will be used going forth")
+
 
 def grab_repo_grid():
     """
@@ -170,3 +174,62 @@ def grab_repo_grid():
 
     # Return
     return sdict
+
+
+def get_DMcosmic_from_z(zarray, perc=0.5, DMevals=np.linspace(1.,5000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):
+    """
+    Gives DMcosmic values of zarray, considering the percentile.
+    Default is median (i.e. percentile=0.5)
+
+    Parameters
+    ----------
+    zarray : np.array
+        Redshift values
+    perc : float
+        Percentile of the PDF(DM_cosmic) for each z, from 0 to zmax. 
+        Default = 0.5
+    DMevals : np.array
+        Array representing the DMcosmic evaluations of the PDF. Should start with 1.
+        Default = np.linspace(1.,5000.,1000)
+    beta : float
+        Slope of a galactic halo parameter (See Macquart+2020)
+        Default = 3.0
+    F : float
+        Parameter that depends on galaxy feedback (See Macquart+2020)
+        Default = 0.31
+    cosmo : astropy.cosmology object
+        Cosmology
+
+
+    Returns
+    -------
+    zarray : np.array
+        z values where the DMcosmic was computed
+    DMcosmic_array : np.array
+        DMcosmic values corresponding to the z_array (in a given percentile)
+    
+    """
+    
+    # Get the mean 
+    zmax = np.max(zarray)
+    neval = len(zarray)
+    mean_macquart, zeval = igm.average_DM(zmax, cumul=True, neval=neval)
+    
+    # Get the DMcosmic-z grid
+    # This is time consuming, could be done more efficiently
+    print("Calculating the DMcosmic-z grid, this may take a while...")
+    # zeval =None
+    # DMevals = None
+    _ , DM_cosmics, PDF_grid = grid_P_DMcosmic_z(zvals=zeval, beta=beta, F=F, cosmo=cosmo, DM_cosmics=DMevals)
+
+    # Get the relation at a given percentile
+    perc_macquart = []
+    for ii, column in enumerate(PDF_grid.T):
+        if ii == 0:
+            perc_macquart.append(0)
+        else:
+            dm_pdf_interp = interp1d(np.cumsum(column.flatten()), DM_cosmics)
+            # import pdb; pdb.set_trace()
+            perc_macquart.append(dm_pdf_interp(perc))
+    perc_macquart = np.array(perc_macquart).flatten()
+    return zeval, perc_macquart
