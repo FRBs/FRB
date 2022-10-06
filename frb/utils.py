@@ -1,7 +1,5 @@
 """ Module for calculations related to FRB experiments
 """
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 import os
 import numpy as np
 
@@ -10,6 +8,7 @@ import warnings
 
 import json, gzip
 
+from IPython import embed
 
 # Simple method to help with value/units in
 def assign_value(tfrb, key, ilist, tbl_units):
@@ -323,4 +322,4 @@ def parse_frb_name(name:str, prefix='FRB'):
         # All set
         return prefix+name
     else:
-        raise IOError("Not prepared for this type of format")
+        raise IOError(f"Not prepared for this type of format: {name}")
