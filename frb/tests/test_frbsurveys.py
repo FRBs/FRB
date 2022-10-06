@@ -80,6 +80,30 @@ def test_nsc():
     assert isinstance(nsc_tbl, Table)
     assert len(nsc_tbl) == 1
 
+@remote_data
+def test_vista():
+    # Catalog
+    coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    vista_srvy = survey_utils.load_survey_by_name('VISTA', coord, search_r)
+    vista_tbl = vista_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(vista_tbl, Table)
+    assert len(vista_tbl) == 1
+
+@remote_data
+def test_vista():
+    # Catalog
+    coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    vista_srvy = survey_utils.load_survey_by_name('DES', coord, search_r)
+    vista_tbl = vista_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(vista_tbl, Table)
+    assert len(vista_tbl) == 1
+
 
 
 @remote_data
@@ -116,7 +140,7 @@ def test_panstarrs():
     ps_table = ps_survey.get_catalog()
 
     assert isinstance(ps_table, Table)
-    assert len(ps_table) == 25
+    assert len(ps_table) == 7
 
     #Test get_cutout
     cutout, = ps_survey.get_cutout()
@@ -136,17 +160,18 @@ def test_in_which_survey():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     
     with warnings.catch_warnings(record=True) as allwarns:
-        inside = survey_utils.in_which_survey(coord)
+        inside = survey_utils.in_which_survey(coord, optical_only=False)
 
-    expected_dict = {'SDSS': True,
-                     'DES': False,
-                     'NVSS': False,
-                     'FIRST': False,
-                     'WENSS': False,
-                     'DECaL': True,
-                     'WISE': True,
-                     'Pan-STARRS': True,
-                     'NSC': True}
+    expected_dict = {'Pan-STARRS': True,
+                    'WISE': True,
+                    'SDSS': True,
+                    'DES': False,
+                    'DECaL': True,
+                    'VISTA': False,
+                    'NSC': True,
+                    'NVSS': False,
+                    'FIRST': False,
+                    'WENSS': False}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -161,3 +186,32 @@ def test_in_which_survey():
             if "Check location manually" in w.message.args[0]:
                 warncount += 1
         assert warncount == 2
+
+@remote_data
+def test_search_all():
+    """
+    Test if survey_utils.search_all_surveys() works
+    """
+    # Small radius as it might fail when
+    # merging 0 length catalogs
+    radius = 5*units.arcsec
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
+    assert len(combined_cat)==2
+    colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag', 'rKronRad',
+                'gPSFmag','rPSFmag','iPSFmag','zPSFmag','yPSFmag','gPSFmagErr','rPSFmagErr',
+                'iPSFmagErr','zPSFmagErr','yPSFmagErr','Pan-STARRS_g','Pan-STARRS_r',
+                'Pan-STARRS_i','Pan-STARRS_z','Pan-STARRS_y','Pan-STARRS_g_err','Pan-STARRS_r_err',
+                'Pan-STARRS_i_err','Pan-STARRS_z_err','Pan-STARRS_y_err','separation_1',
+                'source_id','tmass_key','WISE_W1','WISE_W1_err','WISE_W2','WISE_W2_err',
+                'WISE_W3','WISE_W3_err','WISE_W4','WISE_W4_err','SDSS_ID','run',
+                'rerun','camcol','SDSS_field','type','SDSS_u','SDSS_g','SDSS_r','SDSS_i',
+                'SDSS_z','SDSS_u_err','SDSS_g_err','SDSS_r_err','SDSS_i_err','SDSS_z_err',
+                'extinction_u','extinction_g','extinction_r','extinction_i','extinction_z',
+                'photo_z','photo_zerr','z_spec','separation_2','DECaL_ID','brick_primary',
+                'DECaL_brick','gaia_pointsource','DECaL_g','DECaL_r','DECaL_z','DECaL_g_err',
+                'DECaL_r_err','DECaL_z_err','NSC_ID','class_star','NSC_u','NSC_u_err',
+                'NSC_g','NSC_g_err','NSC_r','NSC_r_err','NSC_i','NSC_i_err','NSC_z',
+                'NSC_z_err','NSC_Y','NSC_Y_err','NSC_VR','NSC_VR_err']
+    assert combined_cat.colnames==colnames
+    assert combined_cat['Pan-STARRS_ID'][1] == -999.

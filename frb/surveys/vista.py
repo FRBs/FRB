@@ -1,36 +1,35 @@
-"""NOIRLab source catalog"""
+"""VISTA catalog"""
 
 import numpy as np
 from astropy import units, io, utils
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
+from frb.galaxies.defs import VISTA_bands
 
 # Dependencies
 try:
     from pyvo.dal import sia
 except ImportError:
-    print("Warning:  You need to install pyvo to retrieve DES images")
+    print("Warning:  You need to install pyvo to retrieve VISTA images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/nsc_dr2"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/vhs_dr5"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
 # Define the data model for DES data
 photom = {}
-photom['NSC'] = {}
-photom['NSC']['NSC_ID'] = 'id'
-photom['NSC']['ra'] = 'ra'
-photom['NSC']['dec'] = 'dec'
-photom['NSC']['class_star'] = 'class_star'
-NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
-for band in NSC_bands:
-    photom['NSC']['NSC_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
-    photom['NSC']['NSC_{:s}_err'.format(band)] = '{:s}rms'.format(band.lower())
+photom['VISTA'] = {}
+photom['VISTA']['VISTA_ID'] = 'sourceid'
+photom['VISTA']['ra'] = 'ra2000'
+photom['VISTA']['dec'] = 'dec2000'
+for band in VISTA_bands:
+    photom['VISTA']['VISTA_{:s}'.format(band)] = '{:s}petromag'.format(band.lower())
+    photom['VISTA']['VISTA_{:s}_err'.format(band)] = '{:s}petromagerr'.format(band.lower())
 
 
 
-class NSC_Survey(dlsurvey.DL_Survey):
+class VISTA_Survey(dlsurvey.DL_Survey):
     """
     Class to handle queries on the DECaL survey
 
@@ -44,11 +43,11 @@ class NSC_Survey(dlsurvey.DL_Survey):
 
     def __init__(self, coord, radius, **kwargs):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
-        self.survey = 'NSC'
-        self.bands = NSC_bands
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/nsc_dr2")
+        self.survey = 'VISTA'
+        self.bands = VISTA_bands
+        self.svc = _svc
         self.qc_profile = "default"
-        self.database = "nsc_dr2.object"
+        self.database = "vhs_dr5.vhs_cat_v3"
 
     def _parse_cat_band(self,band):
         """
@@ -69,36 +68,6 @@ class NSC_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
-        """
-        Grab a catalog of sources around the input coordinate to the search radius
-
-        Args:
-            query: Not used
-            query_fields (list, optional): Over-ride list of items to query
-            print_query (bool): Print the SQL query generated
-
-        Returns:
-            astropy.table.Table:  Catalog of sources returned.  Includes WISE
-            photometry for matched sources.
-        """
-        # Main DES query
-        main_cat = super(NSC_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
-        if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat,photom['NSC'])
-            return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'])
-        #import pdb; pdb.set_trace()
-        for col in main_cat.colnames:
-            if main_cat[col].dtype==float:
-                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
-                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
-        
-        # Finish
-        self.catalog = main_cat
-        self.validate_catalog()
-        return self.catalog
-
     def _gen_cat_query(self,query_fields=None, qtype='main'):
         """
         Generate SQL Query for catalog search
@@ -113,15 +82,53 @@ class NSC_Survey(dlsurvey.DL_Survey):
             query_fields = []
             # Main query
             if qtype == 'main':
-                for key,value in photom['NSC'].items():
+                for key,value in photom['VISTA'].items():
                     query_fields += [value]
                 database = self.database
             else:
                 raise IOError("Bad qtype")
 
         self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
+
+        # Because they HAD to include the epoch in the colname.
+        self.query = self.query.replace('ra,dec,','ra2000,dec2000,')
         # Return
         return self.query
+
+    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
+        """
+        Grab a catalog of sources around the input coordinate to the search radius
+
+        Args:
+            query: Not used
+            query_fields (list, optional): Over-ride list of items to query
+            print_query (bool): Print the SQL query generated
+
+        Returns:
+            astropy.table.Table:  Catalog of sources returned.  Includes WISE
+            photometry for matched sources.
+        """
+        # Main DES query
+        if query==None:
+            self.query = self._gen_cat_query(query_fields=query_fields)
+        else:
+            self.query = query
+        main_cat = super(VISTA_Survey, self).get_catalog(query=self.query, print_query=print_query,
+                                                         photomdict=photom['VISTA'],**kwargs)
+        if len(main_cat) == 0:
+            main_cat = catalog_utils.clean_cat(main_cat,photom['VISTA'])
+            return main_cat
+        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'])
+        for col in main_cat.colnames:
+            if main_cat[col].dtype==float:
+                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
+                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
+
+        # Finish
+        self.catalog = main_cat
+        self.validate_catalog()
+        return self.catalog
+
 
     def _select_best_img(self,imgTable,verbose,timeout=120):
         """

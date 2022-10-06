@@ -31,7 +31,7 @@ _DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "da
 #Or create a translation file like eazy's.
 #def check_filters(data_file):
 
-def _sed_default_params(module):
+def _sed_default_params(module, photo_z=False):
     """
     Set the default parameters for CIGALE
 
@@ -84,7 +84,10 @@ def _sed_default_params(module):
         params['luminosity_filters'] = 'u_prime & r_prime'
         params['colours_filters'] = 'u_prime-r_prime'
     elif module == 'redshifting':
-        params['redshift'] = '' #Use input redshifts
+        if photo_z:
+            params['redshift'] = np.linspace(0.1,2,20).tolist()
+        else:
+            params['redshift'] = '' #Use input redshifts
     return params
 
 
@@ -167,6 +170,24 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'WFC3_F300X': 'WFC3_F300X',
         'Spitzer_3.6': 'spitzer.irac.ch1',
         'Spitzer_4.5': 'spitzer.irac.ch2',
+        'NSC_u': 'DECam_u',
+        'NSC_g': 'DES_g',
+        'NSC_r': 'DES_r',
+        'NSC_i': 'DES_i',
+        'NSC_z': 'DES_z',
+        'NSC_Y': 'DES_Y',
+        'DECam_u': 'DECam_u',
+        'DECam_g': 'DECam_g',
+        'DECam_r': 'DECam_r',
+        'DECam_i': 'DECam_i',
+        'DECam_z': 'DECam_z',
+        'DECam_Y': 'DECam_Y',
+        'SOAR_cousins_R':'SOAR_cousins_R',
+        'SOAR_bessell_B':'SOAR_bessell_B',
+        'SOAR_bessell_V':'SOAR_bessell_V',
+        'SOAR_stromgren_b':'SOAR_stromgren_b',
+        'SOAR_stromgren_v':'SOAR_stromgren_v',
+        'SOAR_stromgren_y':'SOAR_stromgren_y'
     }
     for key in new_names:
         if key in photom_cols:
@@ -181,7 +202,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
 
 def _initialise(data_file, config_file="pcigale.ini",
                 cores=None, save_sed=False, variables="", sed_modules=_DEFAULT_SED_MODULES,
-                sed_modules_params=None, **kwargs):
+                sed_modules_params=None, photo_z=False, **kwargs):
     """
     Initialise a CIGALE configuration file and write to disk.
     
@@ -209,6 +230,8 @@ def _initialise(data_file, config_file="pcigale.ini",
             A dict containing parameter values for
             the input SED modules. Better not use this
             unless you know exactly what you're doing.
+        photo_z (bool, optional): If true,
+            CIGALE will try to estimate the redshift from SED fitting.
         kwargs: only here to catch extras
     Returns:
         cigconf (pcigale.session.configuration.Configuration):
@@ -240,7 +263,7 @@ def _initialise(data_file, config_file="pcigale.ini",
     if sed_modules_params is None:
         sed_modules_params = {}
         for module in sed_modules:
-            sed_modules_params[module] = _sed_default_params(module)
+            sed_modules_params[module] = _sed_default_params(module, photo_z=photo_z)
     cigconf.config['sed_modules_params'] = sed_modules_params
 
     # Overwrites the config file
@@ -300,7 +323,13 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
 
     """
     gen_cigale_in(photometry_table,zcol,infile=data_file,overwrite=True, **kwargs)
-    _initialise(data_file, config_file=config_file,**kwargs)
+    # Should a photo-z analysis be performed?
+    if np.all(photometry_table[zcol]<0):
+        print("Looks like there are no redshifts supplied. Will estimate photo-zs.")
+        photo_z = True
+    else:
+        photo_z = False
+    _initialise(data_file, config_file=config_file, photo_z=photo_z,**kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
     cigconf = Configuration(config_file)
@@ -336,6 +365,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
 
     # Move input files into outdir too
     os.system("mv {:s} {:s}".format(data_file, outdir))
+    data_file = os.path.join(outdir, data_file.split("/")[-1])
     os.system("mv {:s} {:s}".format(config_file, outdir))
     os.system("mv {:s}.spec {:s}".format(config_file, outdir))
 
@@ -351,7 +381,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             mods = Table.read(outdir+'/results.fits')
 
             try:
-                obs = Table.read(os.path.join(outdir, cigconf.configuration['data_file']))
+                obs = Table.read(data_file)
             except:
                 print("Something went wrong here. Astropy was unable to read the observations table. Please ensure it is in the fits format.")
                 return
@@ -361,7 +391,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
                 photo_obs_model['model_flux'] = np.array([model["best."+filt] for filt in filters.keys()])
                 photo_obs_model['observed_flux'] = np.array([obj[filt] for filt in filters.keys()])
                 photo_obs_model['observed_flux_err'] = np.array([obj[filt+'_err'] for filt in filters.keys()])
-                photo_obs_model.write(outdir+"/photo_observed_model_"+str(model['id'])+".dat",format="ascii",overwrite=True)
+                photo_obs_model.write(os.path.join(outdir,"photo_observed_model_"+str(model['id'])+".dat"),format="ascii",overwrite=True)
             #import pdb; pdb.set_trace()
             
     return
