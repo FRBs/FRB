@@ -4,6 +4,7 @@ import os
 from pkg_resources import resource_filename
 
 from scipy.stats import norm, lognorm
+from scipy.interpolate import interp1d, interp2d
 
 from frb.dm import igm
 from frb.dm import cosmic
@@ -13,6 +14,7 @@ from IPython import embed
 
 class P_DM_z(object):
     pass
+
 
 def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
                       ISMfrac=0.10, DM_MWhalo=50.):
@@ -128,6 +130,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None,
     # Return
     return zvals, DM_cosmics, PDF_grid
 
+
 def build_grid_for_repo(outfile:str):
     """
     Build a P(DM,z) grid for the Repository
@@ -145,6 +148,7 @@ def build_grid_for_repo(outfile:str):
     np.savez(outfile, z=z, DM=DM, PDM_z=P_DM_z)
     print(f"File written: {outfile}")
     print("This will be used going forth")
+
 
 def grab_repo_grid():
     """
@@ -170,3 +174,91 @@ def grab_repo_grid():
 
     # Return
     return sdict
+
+
+def get_DMcosmic_from_z(zarray, perc=0.5, redo_pdmz_grid=False, DMevals=np.linspace(1.,2000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):
+    """
+    Gives DMcosmic values of zarray, considering the percentile.
+    Default is median (i.e. percentile=0.5)
+
+    Parameters
+    ----------
+    zarray : float or np.array
+        Redshift value or values
+        If np.array, then it must start from 0
+    perc : float
+        Percentile of the PDF(DM_cosmic) for each z, from 0 to zmax. 
+        Default = 0.5
+    redo_pdmz_grid : bool
+        Whether to recompute the DMcosmic-z grid
+        Default is False
+        If True, it will be computational expensive
+    DMevals : np.array
+        Array representing the DMcosmic evaluations of the PDF. Should start with 1.
+        Default = np.linspace(1.,5000.,1000)
+        Changing this only works when redo_pdmz_grid=True
+    beta : float
+        Slope of a galactic halo parameter (See Macquart+2020)
+        Default = 3.0 
+        Changing this only works when redo_pdmz_grid=True
+    F : float
+        Parameter that depends on galaxy feedback (See Macquart+2020)
+        Default = 0.31
+        Changing this only works when redo_pdmz_grid=True
+    cosmo : astropy.cosmology object
+        Cosmology
+
+
+    Returns
+    -------
+    zarray : np.array
+        z values where the DMcosmic was computed
+    DMcosmic_array : np.array
+        DMcosmic values corresponding to the z_array (in a given percentile)
+    
+    """
+    
+    #check z input
+    if np.isscalar(zarray):
+        z_new = np.array([zarray])
+    else:
+        z_new = np.array(zarray)
+   
+    # Get the DMcosmic-z grid (will read a default one if redo=False)
+    filename = resource_filename('frb', os.path.join('data','DM', 'pdmz_default_grid.npz'))  
+    if redo_pdmz_grid:
+        # This is time consuming, could be done more efficiently
+        print("Calculating the DMcosmic-z grid, this may take a while... [you can turn off this by setting `redo_pdmz_grid=False`]")
+        zeval , DM_cosmics, PDF_grid = grid_P_DMcosmic_z(zvals=z_new, beta=beta, F=F, cosmo=cosmo, DM_cosmics=DMevals)
+        grid = PDF_grid
+    else:
+        if not os.path.isfile(filename):
+            # here we hardcode the default values for the grid to be those of grid_P_DMcosmic_z() defaults
+            print("No {} found in the repo. Calculating it. This may take a while, but should only happen 1 time.")
+            zeval , DM_cosmics, PDF_grid = grid_P_DMcosmic_z()
+            np.savez_compressed(filename, zeval=zeval, DM_cosmics=DM_cosmics, PDF_grid=PDF_grid)
+        else:
+            data = np.load(filename)
+            zeval = data['zeval']
+            DM_cosmics = data['DM_cosmics']
+            PDF_grid = data['PDF_grid']
+
+        # make a interpolated version of the user's grid
+        f = interp2d(zeval, DM_cosmics, PDF_grid, kind='cubic')
+        grid = f(zarray, DM_cosmics)
+
+   
+    # Get the relation at a given percentile
+    perc_macquart = []  
+    for ii, column in enumerate(grid.T):
+        # import pdb; pdb.set_trace()
+        # this could be speed up using a finer sampling for the interpolated grid
+        if redo_pdmz_grid is not True and np.min(zarray)<0.02:
+            # TODO: solve a bug when values are too low for redshift... seems a problems with the 1d interpolation.
+            raise NotImplementedError('Not yet fully implemented for this low-z regime given the coarse grid. Please use zmin>0.02')
+        dm_pdf_interp = interp1d(np.cumsum(column.flatten()), DM_cosmics, fill_value=0., bounds_error=False)
+        perc_macquart.append(dm_pdf_interp(perc))
+    perc_macquart = np.array(perc_macquart).flatten()
+    
+    # reformat output
+    return z_new, perc_macquart
