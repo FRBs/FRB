@@ -354,3 +354,13 @@
 354 391 DECam/DECam_i.txt lambda_c=7.821e+03 AB-Vega=0.419
 355 381 DECam/DECam_z.txt lambda_c=9.229e+03 AB-Vega=0.521
 356 281 DECam/DECam_Y.txt lambda_c=9.839e+03 AB-Vega=0.570
+357 198 CTIO_SAMI.cousins_R.txt lambda_c=6.541e+03 AB-Vega=0.482
+358 524 CTIO_SOI.bessel_B.txt lambda_c=4.317e+03 AB-Vega=-0.089
+359 552 CTIO_SOI.bessel_V.txt lambda_c=5.339e+03 AB-Vega=-0.018
+360 487 CTIO_SOI.strom_b.txt lambda_c=4.692e+03 AB-Vega=-0.160
+361 102 CTIO_SOI.strom_v.txt lambda_c=4.085e+03 AB-Vega=-0.171
+362 133 CTIO_SOI.strom_y.txt lambda_c=5.453e+03 AB-Vega=-0.000
+363 SOAR/SOAR_g.txt lambda_c=4.706e+03 AB-Vega=-0.000
+364 SOAR/SOAR_r.txt lambda_c=6.257e+03 AB-Vega=0.00
+365 SOAR/SOAR_i.txt lambda_c=7.705e+03 AB-Vega=-0.000
+366 SOAR/SOAR_z.txt lambda_c=9.871e+03 AB-Vega=-0.000
