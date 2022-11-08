@@ -333,52 +333,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
     # Find columns with magnitudes based on filter names
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
     convert = units.Jy.to(fluxunits)
-    #If there's a "W" in the column name, it's from WISE
-    # TODO -- We need to deal with this hack
-    #wisecols = sorted([col for col in mag_cols if ("W" in col and 'WFC3' not in col)])
-    #wise_errcols = sorted([col for col in mag_errcols if ("W" in col and 'WFC3' not in col)])
 
-    #Similarly define vista cols
-    vistacols = sorted([col for col in mag_cols if "VISTA" in col])
-    vista_errcols = sorted([col for col in mag_errcols if "VISTA" in col])
-
-    fnu0 = {#'WISE_W1':309.54,   # THIS IS NOW DONE IN the WISE survey class
-            #'WISE_W2':171.787,
-            #'WISE_W3':31.674,
-            #'WISE_W4':8.363,
-            'VISTA_Y':2087.32,
-            'VISTA_J':1554.03,
-            'VISTA_H':1030.40,
-            'VISTA_Ks':674.83} #http://wise2.ipac.caltech.edu/docs/release/allsky/expsup/sec4_4h.html#conv2flux
-                               #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
-    #for mag,err in zip(wisecols+vistacols,wise_errcols+vista_errcols):
-    for mag,err in zip(vistacols,vista_errcols):
-        flux, flux_err = _mags_to_flux(photometry_table[mag], 
-                                       fnu0[mag]*units.Jy, 
-                                       photometry_table[err])
-        badflux = flux == -99.
-        fluxtable[mag][badflux] = flux[badflux]
-        fluxtable[mag][~badflux] = flux[~badflux]*convert
-        #if flux != -99.:
-        #    fluxtable[mag] = flux*convert
-        #else:
-        #    fluxtable[mag] = flux
-        baderr = flux_err == -99.0
-        fluxtable[err][baderr] = flux_err[baderr]
-        fluxtable[err][~baderr] = flux_err[~baderr]*convert
-        #if flux_err != -99.:
-        #    fluxtable[err] = flux_err*convert
-        #else:
-        #    fluxtable[err] = flux_err
-        if "W" in mag and "WISE" not in mag and 'WFC3' not in mag:
-            fluxtable.rename_column(mag,mag.replace("W","WISE"))
-            fluxtable.rename_column(err,err.replace("W","WISE"))
-
-    #For all other photometry:
-    other_mags = np.setdiff1d(mag_cols, vistacols)
-    other_errs = np.setdiff1d(mag_errcols, vista_errcols)
-
-    for mag, err in zip(other_mags, other_errs):
+    for mag, err in zip(mag_cols, mag_errcols):
         flux, flux_err = _mags_to_flux(photometry_table[mag], 
                                        mag_err=photometry_table[err])
 
