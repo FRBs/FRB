@@ -188,18 +188,19 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
-        if (survey.catalog is not None) & (len(survey.catalog)>0):
-            print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
-            if len(combined_cat)==0:
-                # First time
-                combined_cat = survey.catalog
-            else:
-                # Combine otherwise
-                # TODO: Need to deal with duplicate column names more elegantly.
-                combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
-        # No objects found?
-        elif len(survey.catalog)==0:
-            print("Empty table in "+surveyname)
+        if (survey.catalog is not None):
+            if len(survey.catalog)>0:
+                print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
+                if len(combined_cat)==0:
+                    # First time
+                    combined_cat = survey.catalog
+                else:
+                    # Combine otherwise
+                    # TODO: Need to deal with duplicate column names more elegantly.
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
+            # No objects found?
+            elif len(survey.catalog)==0:
+                print("Empty table in "+surveyname)
     
     return combined_cat
 
