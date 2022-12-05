@@ -18,11 +18,6 @@ from .images import grab_from_url
 import warnings
 import requests
 
-try:
-    from astroquery.vizier import Vizier
-except ImportError:
-    warnings.warn("Warning: You need to install astroquery to use the survey tools...")
-
 from frb.surveys import surveycoord,catalog_utils,images
 
 from IPython import embed
@@ -58,7 +53,7 @@ _DEFAULT_query_fields +=['{:s}KronMagErr'.format(band) for band in PanSTARRS_ban
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     """
     A class to access all the catalogs hosted on the
-    Vizier database. Inherits from SurveyCoord. This
+    MAST database. Inherits from SurveyCoord. This
     is a super class not meant for use by itself and
     instead meant to instantiate specific children
     classes like PAN-STARRS_Survey
@@ -72,7 +67,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                     table="stack",print_query=False,
                     use_psf=False):
         """
-        Query a catalog in the VizieR database for
+        Query a catalog in the MAST Pan-STARRS database for
         photometry.
 
         Args:
@@ -94,7 +89,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             catalog: astropy.table.Table
                 Contains all query results
         """
-        assert self.radius <= 0.5*u.deg, "Cone serches have a maximum radius"
+        #assert self.radius <= 0.5*u.deg, "Cone serches have a maximum radius"
         #Validate table and release input
         _check_legal(table,release)
         url = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/{:s}/{:s}.csv".format(release,table)
@@ -135,12 +130,14 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         #Remove bad positions because Pan-STARRS apparently decided
         #to flag some positions with large negative numbers. Why even keep
         #them?
-        #import pdb; pdb.set_trace()
         bad_ra = (photom_catalog['ra']<0)+(photom_catalog['ra']>360)
         bad_dec = (photom_catalog['dec']<-90)+(photom_catalog['dec']>90)
         bad_pos = bad_ra+bad_dec # bad_ra OR bad_dec
         photom_catalog = photom_catalog[~bad_pos]
-        #
+        
+        # Remove duplicate entries.
+        photom_catalog = catalog_utils.remove_duplicates(photom_catalog, "Pan-STARRS_ID")
+
         
         self.catalog = catalog_utils.sort_by_separation(photom_catalog, self.coord,
                                                         radec=('ra','dec'), add_sep=True)

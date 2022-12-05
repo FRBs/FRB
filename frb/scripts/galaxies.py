@@ -101,7 +101,7 @@ def main(pargs):
 
     if pargs.coord[0:3].upper() == 'FRB':
         ifrb = frb.FRB.by_name(pargs.coord.upper())
-        icoord = frb.coord.ra.value, frb.coord.dec.value
+        icoord = ifrb.coord.ra.value, ifrb.coord.dec.value
     else:
         icoord = coord_arg_to_coord(pargs.coord)
         ifrb = None

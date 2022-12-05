@@ -19,7 +19,7 @@ from astropy.table import Table
 from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB
-from frb.galaxies import frbgalaxy, defs, offsets
+from frb.galaxies import frbgalaxy, offsets
 from frb.galaxies import photom as frbphotom
 try:
     from frb.galaxies import ppxf
@@ -432,6 +432,7 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit analysis slurped in via: {galfit_file}")
             Host.parse_galfit(galfit_file)
         else:
+            embed(header='435 of build')
             raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")

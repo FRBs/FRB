@@ -3,7 +3,8 @@ from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.table import Table
+from astropy.cosmology import Planck18 as cosmo
+from astropy.table import Table, hstack, vstack, setdiff, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
 import warnings
@@ -165,7 +166,8 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
 
 def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arcsec,
                      RACol1:str = "ra", DecCol1:str = "dec",
-                     RACol2:str = "ra", DecCol2:str = "dec")->tuple:
+                     RACol2:str = "ra", DecCol2:str = "dec",
+                     return_match_idx:bool=False)->tuple:
     """
     Cross matches two astronomical catalogs and returns
     the matched tables.
@@ -182,9 +184,15 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
         DecCol1, DecCol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain Dec in degrees.
+        return_match_idx: bool, optional
+            Return the indices of the matched entries with
+            with the distance instead?
     returns:
         match1, match2: astropy Table
             Tables of matched rows from cat1 and cat2.
+        idx, d2d (if return_match_idx): ndarrays
+            Indices of matched entries from table 2
+            and an array of separations to go with.
     """
     assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
     assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
@@ -200,7 +208,10 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
     match1 = cat1[d2d < skydist]
     match2 = cat2[idx[d2d < skydist]]
 
-    return match1, match2
+    if return_match_idx:
+        return idx, d2d
+    else:
+        return match1, match2
 
 
 def _detect_mag_cols(photometry_table):
@@ -388,7 +399,98 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxtable[mag][uplimit] = fluxtable[mag][uplimit] 
 
     return fluxtable
+
+def remove_duplicates(tab:Table, idcol:str)->Table:
+    """
+    In an astropy table if there are duplicate
+    entries, remove the duplicates. Generally,
+    these will be duplicate objects (i.e. multiple
+    observations of same object ID or the same
+    entry repeated multiple times from cross-matching.)
+
+    Args:
+        tab (Table): A table of entries.
+        idcol (str): A column name that has unique ids
+            for each table entry.
+    Returns:
+        unique_tab (Table): A table with only the unique ids.
+    """
+    unique_tab = tab.copy()
+    assert isinstance(unique_tab, Table), "Please provide an astropy table."
+    assert isinstance(idcol, str), "Please provide a valid column name."
+    assert idcol in tab.colnames, "{} not a column in the given table".format(idcol)
+    # Sort entries first.
+    unique_tab.sort(idcol)
+    # Get the duplicates.
+    duplicate_ids = np.where(unique_tab[1:][idcol]==unique_tab[:-1][idcol])[0]+1
+    unique_tab.remove_rows(duplicate_ids)
+    return unique_tab
     
+def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arcsec,
+                        table_names:tuple=('1','2'), **kwargs)->Table:
+    """
+    Given two source catalogs, cross-match and merge them. This function 
+    ensures there is a unique match between tables as opposed to the default join_skycoord
+    behavior which matches multiple objects on the right table to
+    a source on the left. The two tables must contain the columns 'ra' and 'dec' (case-sensitive).
+    Args:
+        tab1, tab2 (Table): Photometry catalogs. Must contain columns named
+            ra and dec.
+        tol (Quantity[Angle], optional): Maximum separation for cross-matching.
+        table_names (tuple of str, optional): Names of the two tables for
+            naming unique columns in the merged table.
+        kwargs: Additional keyword arguments to be passed onto xmatch_catalogs
+    Returns:
+        merged_table (Table): Merged catalog.
+    """
+    if table_names is not None:
+        assert len(table_names)==2, "Invalid number of table names for two tables."
+        assert (type(table_names[0])==str)&(type(table_names[1])==str), "Table names should be strings."
+    
+    assert np.all(np.isin(['ra','dec'],tab1.colnames)), "Table 1 doesn't have column 'ra' and/or 'dec'."
+    assert np.all(np.isin(['ra','dec'],tab2.colnames)), "Table 2 doesn't have column 'ra' and/or 'dec'."
+
+    # Cross-match tables for tab1 INTERSECTION tab2.
+    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol, **kwargs)
+
+    # tab1 INTERSECTION tab2
+    inner_join = hstack([matched_tab1, matched_tab2],
+                        table_names=table_names)
+    # Remove unnecessary ra/dec columns and rename remaining coordinate
+    # columns corectly. 
+    tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
+    tab2_coord_cols = ['ra_'+table_names[1],"dec_"+table_names[1]]
+
+
+    inner_join.remove_columns(tab2_coord_cols)
+    inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
+
+    # Now get all objects that weren't matched.
+    not_matched_tab1 = setdiff(tab1, matched_tab1)
+    not_matched_tab2 = setdiff(tab2, matched_tab2)
+
+    # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
+
+    # Are there unmatched entries in both tables?
+    if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
+        outer_join = join(not_matched_tab1, not_matched_tab2,
+                    keys=['ra','dec'], join_type='outer', table_names=table_names)
+        merged = vstack([inner_join, outer_join]).filled(-999.)
+    # Only table 1 has unmatched entries?
+    elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
+        merged = vstack([inner_join, not_matched_tab1])
+    # Only table 2?
+    elif (len(not_matched_tab1)==0)&(len(not_matched_tab2)!=0):
+        merged = vstack([inner_join, not_matched_tab2])
+    # Neither?
+    else:
+        merged = inner_join
+    # Final cleanup. Just in case.
+    weird_cols = np.isin(['ra_1','dec_1','ra_2','dec_2'],merged.colnames)
+    if np.any(weird_cols):
+        merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
+    # Fill and return.
+    return merged.filled(-999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 

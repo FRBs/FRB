@@ -22,6 +22,7 @@ photom['NSC'] = {}
 photom['NSC']['NSC_ID'] = 'id'
 photom['NSC']['ra'] = 'ra'
 photom['NSC']['dec'] = 'dec'
+photom['NSC']['class_star'] = 'class_star'
 NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
 for band in NSC_bands:
     photom['NSC']['NSC_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
@@ -87,7 +88,12 @@ class NSC_Survey(dlsurvey.DL_Survey):
             main_cat = catalog_utils.clean_cat(main_cat,photom['NSC'])
             return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'])
-
+        #import pdb; pdb.set_trace()
+        for col in main_cat.colnames:
+            if main_cat[col].dtype==float:
+                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
+                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
+        
         # Finish
         self.catalog = main_cat
         self.validate_catalog()

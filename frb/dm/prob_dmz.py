@@ -162,7 +162,7 @@ def grab_repo_grid():
 
     # Build?
     if not os.path.isfile(PDM_z_grid_file):
-        build_grid_for_repo()
+        build_grid_for_repo(PDM_z_grid_file)
             
     # Load
     print(f"Loading P(DM,z) grid from {PDM_z_grid_file}")
