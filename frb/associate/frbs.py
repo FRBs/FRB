@@ -130,6 +130,20 @@ updates = dict(
 FRB20190102C = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
+# FRB 20190520B
+updates = dict(
+    name='FRB20190520B',
+    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
+    cut_size = 30.,
+    filter = 'LRIS_R',
+    ZP = 33.,
+    deblend=True,
+    plate_scale = 0.28 * units.arcsec,
+    cand_separation=10*units.arcsec,
+)
+FRB20190523A = {**base_config, **updates}  # Use | in 3.9
+
+# ##############################
 # FRB 190523
 updates = dict(
     name='FRB20190523A',
