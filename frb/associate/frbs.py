@@ -141,7 +141,7 @@ updates = dict(
     plate_scale = 0.28 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-FRB20190523A = {**base_config, **updates}  # Use | in 3.9
+FRB20190520B = {**base_config, **updates}  # Use | in 3.9
 
 # ##############################
 # FRB 190523
