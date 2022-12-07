@@ -16,8 +16,12 @@ from frb import rm
 
 def test_galacticrm():
     repeater_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')
-    RM, RM_err = rm.galactic_rm(repeater_coord)
+    RM_2014, RM_err = rm.galactic_rm(repeater_coord, use_map=2014)
     # Test
-    assert RM.unit == units.rad/units.m**2
-    assert np.isclose(RM.value, -17.727994918823242)
+    assert RM_2014.unit == units.rad/units.m**2
+    assert np.isclose(RM_2014.value, -17.727994918823242)
+
+    # New one -- needs to be downloaded
+    #RM_2020, RM_err = rm.galactic_rm(repeater_coord)
+    #assert np.isclose(RM_2020.value, -17.727994918823242)
 
