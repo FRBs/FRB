@@ -2,7 +2,7 @@
 
 # Users
 numpy>=1.18.0
-scipy>=1.4
+scipy>=1.8
 astropy>=4.2
 IPython>=7.2.0
 pytest>=6.0.0

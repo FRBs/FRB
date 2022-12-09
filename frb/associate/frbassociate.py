@@ -443,7 +443,11 @@ def run_individual(config, prior:dict=None, show=False,
         # Image
         print("Using image {}".format(config['image_file']))
         hdul = fits.open(config['image_file'])
-        hdu_full = hdul[0]
+        # A hack for some image packing
+        if 'SCI' in [ihdu.name for ihdu in hdul]:
+            hdu_full = hdul['SCI']
+        else:
+            hdu_full = hdul[0]
 
         if config['cut_size'] is not None:
             size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
