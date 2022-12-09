@@ -293,7 +293,7 @@ def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
     lines = [line.rstrip('\n') for line in open(outfile)]
     instance = []  # going to put all instances of use of input file here
     for kk, line in enumerate(lines):  # for all lines in fit.log
-        if 'Init. par. file : ' + str(initfile) in line:  # if the it is from the input file used
+        if 'Init. par. file : ' + str(initfile.split("/")[-1]) in line:  # if the it is from the input file used
             for pp, item in enumerate(lines[kk:kk + 10]):
                 if 'sersic' in item:  # look for the sersic fit model
                     # This assumes each fitting had a single
