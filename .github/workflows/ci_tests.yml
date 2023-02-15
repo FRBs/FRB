@@ -19,8 +19,8 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest]
-        python: [3.9]
-        deps: [current, numpy118, astropydev, numpydev, astropydev-numpydev]
+        python: [3.9,3.10]
+        deps: [current, numpy120, astropydev, numpydev, astropydev-numpydev]
 
     steps:
     - name: Check out repository
