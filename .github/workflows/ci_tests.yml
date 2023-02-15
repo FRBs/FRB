@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ['3.9','3.10']
-        deps: [current, numpy120, astropydev, numpydev, astropydev-numpydev]
+        deps: [current, numpy122, astropydev, numpydev, astropydev-numpydev]
 
     steps:
     - name: Check out repository
@@ -32,10 +32,10 @@ jobs:
     - name: Install base dependencies
       run: |
         python -m pip install --upgrade pip
-    - name: Test with numpy = 1.20
-      if: "contains(matrix.deps, 'numpy120')"
+    - name: Test with numpy = 1.22
+      if: "contains(matrix.deps, 'numpy122')"
       run: |
-        python -m pip install numpy==1.20
+        python -m pip install numpy==1.22
     - name: Test with dev version of numpy
       if: "contains(matrix.deps, 'numpydev')"
       run: |
