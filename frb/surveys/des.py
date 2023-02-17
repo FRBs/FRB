@@ -141,7 +141,6 @@ class DES_Survey(dlsurvey.DL_Survey):
 
         """
         row = imgTable[np.argmax(imgTable['exptime'].data.data.astype('float'))] # pick image with longest exposure time
-        import pdb; pdb.set_trace()
         url = row['access_url']
         if verbose:
             print ('downloading deepest stacked image...')
