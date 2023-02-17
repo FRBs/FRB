@@ -545,7 +545,9 @@ class FRBGalaxy(object):
                 else:
                     self.morphology[key] = fit_tab[key][0]
         # reff kpc?
-        if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
+        if 'reff_kpc' in self.morphology.keys():
+            pass
+        elif (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
                 (self.morphology['reff_ang']*units.arcsec * self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
             self.morphology['reff_kpc_err'] = \
