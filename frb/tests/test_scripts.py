@@ -31,7 +31,9 @@ def test_frb_mag_limit():
 def test_frb_pz_dm():
     # Requires a file on disk that is too slow to generate in CI
     pargs = pz_dm.parser(['J151849.52+122235.8', '200.'])
-    zmin, zmax = pz_dm.main(pargs)
+    zmin, zmax, z_50, z_mode = pz_dm.main(pargs)
 
     assert np.isclose(zmin, 0.04020100502512563)
     assert np.isclose(zmax, 0.16080402010050251)
+    assert np.isclose(z_50, 0.10050251256281408)
+    assert np.isclose(z_mode, 0.12060301507537688)
