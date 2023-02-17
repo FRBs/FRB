@@ -258,7 +258,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col, prior_filter=None
     for filt in filters[1:]:
         phot_tbl[filt] = photom[filt]
     # Convert --
-    fluxtable = catalog_utils.convert_mags_to_flux(photom, fluxunits='uJy')
+    if magnitudes:
+        fluxtable = photom
+    else:
+        fluxtable = catalog_utils.convert_mags_to_flux(photom, fluxunits='uJy')
     # Write
     newfs, newv = [], []
     if write_full_table:
