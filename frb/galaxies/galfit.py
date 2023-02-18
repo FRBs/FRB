@@ -75,8 +75,11 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
     hdulist.writeto(filename, overwrite=overwrite)
     return
 
+
+def _genconf(imgfile:str, psffile:str=None, mode=0,
 def _genconf(imgfile:str, psffile:str=None, mode=0,
             configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
+            noisefile:str=None,
             noisefile:str=None,
             finesample:int = 1, badpix:str = "none",
             constraints:str = "none",
@@ -93,6 +96,8 @@ def _genconf(imgfile:str, psffile:str=None, mode=0,
         psffile (str, optional): path to the PSF model fits file.
             If nothing is given, the fit is performed without
             a PSF model.
+        mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
+            Which mode would you like galfit to run in?
         mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
             Which mode would you like galfit to run in?
         outdir (str): Name of output directory. Default
