@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Estimate p(z|DM) for an assumed location on the sky and DM_FRB
+  Warning:  This assumes a *perfect* telescope
 """
 from IPython import embed
 
@@ -61,10 +62,21 @@ def main(pargs):
 
     z_min = z[np.argmin(np.abs(cum_sum-limits[0]/100.))]
     z_max = z[np.argmin(np.abs(cum_sum-limits[1]/100.))]
+    z_50 = z[np.argmin(np.abs(cum_sum-50./100.))]
+    z_mode = z[np.argmax(PzDM)]
 
     # Finish
     print("")
+    print(f"Allowing for the MW and Host, DM_cosmic = {int(DM_cosmic)} pc/cm^3")
+    print("")
+    print("")
+    print(f"The mean redshift value is: {z_50:.3f}")
+    print(f"The mode redshift value is: {z_mode:.3f}")
+    print("")
     print(f"The redshift range for your confidence interval {pargs.cl} is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
+    print("")
+    print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+    print("-----------------------------------------------------")
 
-    return z_min, z_max
+    return z_min, z_max, z_50, z_mode
