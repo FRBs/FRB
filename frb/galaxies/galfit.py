@@ -77,7 +77,6 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
 
 
 def _genconf(imgfile:str, psffile:str=None, mode=0,
-def _genconf(imgfile:str, psffile:str=None, mode=0,
             configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
             noisefile:str=None,
             noisefile:str=None,
