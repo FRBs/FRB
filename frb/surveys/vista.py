@@ -95,7 +95,7 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         # Return
         return self.query
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
+    def get_catalog(self, query=None, query_fields=None, print_query=False, system='AB', **kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
@@ -103,6 +103,7 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
+            system (str): Magnitude system ['AB', 'Vega']
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
@@ -123,6 +124,19 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             if main_cat[col].dtype==float:
                 mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
                 main_cat[col] = np.where(~mask, main_cat[col], -999.0)
+        # Convert to AB mag
+        if system == 'AB':
+            #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
+            fnu0 = {'VISTA_Y':2087.32,
+                    'VISTA_J':1554.03,
+                    'VISTA_H':1030.40,
+                    'VISTA_Ks':674.83}
+            for filt in fnu0.keys():
+                main_cat[filt] -= 2.5*np.log10(fnu0[filt]/3630.7805)
+        elif system == 'Vega':
+            pass
+        else:
+            raise RuntimeError("Photometry system must be one of 'AB' and 'Vega'")
 
         # Finish
         self.catalog = main_cat
