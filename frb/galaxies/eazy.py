@@ -197,6 +197,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
     # Output filenames
     catfile, param_file, translate_file = eazy_filenames(input_dir, name)
 
+    # Convert dict to table.
+    if isinstance(photom, dict):
+        photom = Table([photom])
+
     # Check output dir
     full_out_dir = os.path.join(input_dir, out_dir)
     if not os.path.isdir(full_out_dir):
