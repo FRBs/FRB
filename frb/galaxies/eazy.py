@@ -137,7 +137,7 @@ def eazy_setup(input_dir, template_dir=None):
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
     return
 
-def eazy_input_files(photom, input_dir, name, out_dir, id_col, prior_filter=None,
+def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter=None,
                      templates='eazy_v1.3', combo="a", cosmo=defs.frb_cosmo,
                      magnitudes=False, prior=_default_prior,
                      zmin=0.050, zmax=7.000, zstep=0.0010, prior_ABZP=23.9,

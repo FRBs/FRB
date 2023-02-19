@@ -20,7 +20,7 @@ def data_path(filename):
 
 @remote_data
 def test_host_build():
-    outfile = data_path('FRB20180924_host.json')
+    outfile = data_path('FRB20180924B_host.json')
     if os.path.isfile(outfile):
         os.remove(outfile)
 

@@ -156,8 +156,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None,
     ns = []
     for iz in zs:
         ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz)
-        import pdb; pdb.set_trace() 
-        ns.append(ins[0]*cosmo.h**3)  # * units.Mpc**-3
+        ns.append(ins*cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii
