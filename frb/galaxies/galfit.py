@@ -535,6 +535,8 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
         return fit_outcome
     # Read fit.log and get the fit results
     # Temporary fix for the crash:
+    if 'mode' not in kwargs.keys():
+        kwargs['mode'] = 0 # Run a profile fit by default.
     if kwargs['mode']==0:
         try:
             pix_dict = read_fitlog("fit.log", configfile)

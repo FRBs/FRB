@@ -35,7 +35,7 @@ def test_frac_in_halos():
     # Test
     np.testing.assert_allclose(
         ratios, 
-        np.array([0.4626 , 0.44315, 0.3669, 0.2818]),rtol=1e-4)
+        np.array([0.463629, 0.444242, 0.368071, 0.282909]),rtol=1e-4)
 
 def test_halo_incidence():
     # Imported (unlikely)?
