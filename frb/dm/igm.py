@@ -147,7 +147,8 @@ def z_from_DM(DM, cosmo=defs.frb_cosmo, coord=None, corr_nuisance=True):
     # Return
     return z
 
-def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False):
+def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False,
+              perturb_Mstar=None):
   """
   Calculate the cosmic fraction of baryons
   in diffuse gas phase based on our empirical
@@ -161,6 +162,9 @@ def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False):
     return_rho (bool, optional): If true, 
       the diffuse gas density
       is returned too.
+    perturb_Mstar (float, optional):
+      If provided, scale rho_Mstar by this value.
+      Useful for exploring the uncertainty in f_diffuse
 
   Returns:
     f_diffuse (float, ndarray): Diffuse gas baryon fraction.
@@ -172,6 +176,9 @@ def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False):
 
   # Dense components
   rho_Mstar = avg_rhoMstar(z, remnants=True)
+  if perturb_Mstar is not None:
+      rho_Mstar *= perturb_Mstar
+      
   rho_ISM = avg_rhoISM(z, cosmo=cosmo)
 
   # Diffuse gas fraction

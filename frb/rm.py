@@ -2,8 +2,6 @@
 """
 from __future__ import print_function, absolute_import, division, unicode_literals
 
-import numpy as np
-import pdb
 import os
 
 from pkg_resources import resource_filename
@@ -12,24 +10,82 @@ from astropy import units
 
 import healpy as hp
 
-def galactic_rm(coord):
+def load_opperman2014():
     """
-    Provide the Oppermann et al. 2014 -- https://arxiv.org/abs/1404.3701
-    estimate for Galactic Farady RM and its uncertainty towards the input coordinate
+    Load the Oppermann et al. 2014 -- https://arxiv.org/abs/1404.3701
+    maps Galactic Farady RM 
+    and its uncertainty 
+
+    Returns:
+        healpy map, healpy map: RM and RM_err with units of rad/m^2
+
+    """
+    print("Loading RM information map from Oppermann et al. 2014")
+    galactic_rm_file = os.path.join(resource_filename('frb', 'data'), 
+                                    'RM','opp14_foreground.fits')
+
+    # Load
+    rm_sky = hp.read_map(galactic_rm_file, hdu=4)
+    sig_sky = hp.read_map(galactic_rm_file, hdu=6)
+    # 
+    return rm_sky, sig_sky
+
+def load_hutschenreuter2020():
+    """
+    Load the Hutschenreuter 2020 map -- https://wwwmpa.mpa-garching.mpg.de/~ensslin/research/data/faraday2020.html
+    Galactic Farady RM and its uncertainty 
+
+    See: https://ui.adsabs.harvard.edu/abs/2022A%26A...657A..43H/abstract
+    for full details
+
+    Returns:
+        healpy map, healpy map: RM and RM_err with units of rad/m^2
+
+    """
+    print("Loading RM information map from Hutschenreuter et al. 2022")
+    galactic_rm_file = os.path.join(
+        resource_filename('frb', 'data'), 'RM',
+        'faraday2020v2.fits')
+
+    # Has it been downloaded?
+    if not os.path.isfile(galactic_rm_file):
+        readme_file = os.path.join(
+            resource_filename('frb', 'data'), 'RM', 'README')
+        print(f"See the README here: {readme_file}")
+        raise IOError("You need to download the Hutschenreuter 2020 map to proceed")
+
+    # Load
+    rm_sky = hp.read_map(galactic_rm_file)
+    sig_sky = hp.read_map(galactic_rm_file, field=1)
+    # 
+    return rm_sky, sig_sky
+
+def galactic_rm(coord, use_map=2020):
+    """
+    Provide an RM and error estimate for a coordinate
+    on the sky. 
+
+    Default is the new Hutschenreuter 2020 map 
 
     Args:
-        coord (astropy.coordinates.SkyCoord): Coordinate for the RM esimation
+        coord (astropy.coordinates.SkyCoord): 
+            Coordinate for the RM esimation
+        use_map (int, optional):
+            Specifies the map to use.  Options are [2014, 2020]
+            Default is 2020
 
     Returns:
         Quantity, Quantity: RM and RM_err with units of rad/m^2
 
     """
-    print("Loading RM information map from Oppermann et al. 2014")
-    galactic_rm_file = resource_filename('frb', 'data/RM/opp14_foreground.fits')
+    if use_map == 2014:
+        rm_sky, sig_sky = load_opperman2014()
+    elif use_map == 2020:
+        rm_sky, sig_sky = load_hutschenreuter2020()
+    else:
+        raise IOError("Bad use_map input.  Allowed choices are [2014, 2020]")
 
     # Load
-    rm_sky = hp.read_map(galactic_rm_file, hdu=4)
-    sig_sky = hp.read_map(galactic_rm_file, hdu=6)
     nside = hp.get_nside(rm_sky)
 
     # Find the pixel
@@ -37,4 +93,3 @@ def galactic_rm(coord):
 
     # Return
     return rm_sky[pix]*units.rad/units.m**2, sig_sky[pix]*units.rad/units.m**2
-

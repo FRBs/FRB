@@ -1,0 +1,29 @@
+{
+    "FRB": "FRB20190520B",
+    "cosmo": "Planck18",
+    "dec": -11.288472222222222,
+    "dec_FRB": -11.288147,
+    "derived": {
+        "Mstar": 600000000.0,
+        "Mstar_err": 300000000.0,
+        "Mstar_ref": "Niu2021",
+        "SFR_nebular": 0.4,
+        "SFR_nebular_err": 0.2,
+        "SFR_nebular_ref": "Niu2021"
+    },
+    "offsets": {
+        "ang_avg": 1.3413642318176482,
+        "ang_avg_err": 0.09232386183213664,
+        "ang_best": 1.337789955015851,
+        "ang_best_err": 0.0923930241861113,
+        "physical": 5.256403749890446,
+        "physical_err": 0.3630278706867998
+    },
+    "ra": 240.5179583333333,
+    "ra_FRB": 240.517775,
+    "redshift": {
+        "z": 0.241,
+        "z_FRB": 0.241,
+        "z_spec": 0.241
+    }
+}

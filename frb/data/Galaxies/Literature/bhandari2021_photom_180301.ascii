@@ -1,2 +1,2 @@
-|     Name |                ra |               dec | NOT_g | NOT_g_err | NOT_r | NOT_r_err | NOT_i | NOT_i_err | NOT_z | NOT_z_err | NOT_u | NOT_u_err | MMIRS_J | MMIRS_J_err | MMIRS_H | MMIRS_H_err | MMIRS_K | MMIRS_K_err |
-| HG180301 | 93.22682999999999 | 4.670476944444445 | 23.14 |      0.09 | 22.25 |      0.06 | 21.83 |      0.06 | 21.15 |      0.11 |  23.7 |       0.3 |  20.907 |       0.066 |  20.611 |      0.0827 |  20.638 |       0.076 |
+|     Name    |                ra |               dec | NOT_g | NOT_g_err | NOT_r | NOT_r_err | NOT_i | NOT_i_err | NOT_z | NOT_z_err | NOT_u | NOT_u_err | MMIRS_J | MMIRS_J_err | MMIRS_H | MMIRS_H_err | MMIRS_K | MMIRS_K_err |
+| HG20180301A | 93.22682999999999 | 4.670476944444445 | 23.14 |      0.09 | 22.25 |      0.06 | 21.83 |      0.06 | 21.15 |      0.11 |  23.7 |       0.3 |  20.907 |       0.066 |  20.611 |      0.0827 |  20.638 |       0.076 |

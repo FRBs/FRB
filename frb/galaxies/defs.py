@@ -112,6 +112,19 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
+NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
+for band in NSC_bands:
+    valid_filters.append('NSC_{:s}'.format(band))
+
+DECam_bands = ['u','g', 'r', 'i', 'z']
+for band in DECam_bands:
+    valid_filters.append("DECam_{:s}".format(band))
+
+SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
+            'cousins_R','stromgren_v','stromgren_b','stromgren_y']
+for band in SOAR_bands:
+    valid_filters.append("SOAR_{:s}".format(band))
+
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
 valid_flux = [entry+'_flux' for entry in valid_filters]
@@ -120,9 +133,10 @@ valid_ref = [entry+'_ref' for entry in valid_filters]
 valid_photom = valid_filters + ['EBV']  # Galactic
 
 ##############################################################
-# Line measurements -- Use linetools naming only!!!
+# Line measurements -- Use ppxf naming only!
+#   Not corrected for internal dust extinction
 
-valid_neb_lines = [
+valid_neb_lines = [  
     'Halpha',  # Halpha flux erg/s/cm^2; pPXF
     'Hbeta',  # Hbeta flux erg/s/cm^2; pPXF
     'Hgamma',  # Hgamma flux erg/s/cm^2; pPXF
@@ -193,5 +207,23 @@ valid_derived_nebular = [
     'SFR_nebular',     # SFR in Msun/yr from nebular emission (e.g. Halpha); pPXF+
     ]
 
-valid_derived = valid_derived_photom + valid_derived_nebular
+# Local measurements (usually from high-spatial resolution imaging)
+valid_derived_local = [
+    'UV_filter', # name of UV filter
+    'IR_filter', # name of UV filter
+    'UV_SB', # comment='UV SB in UV_filter at FRB position')
+    'IR_SB', # comment='IR SB in IR_filter at FRB position')
+    'UV_global', # comment=UV photometry of entire galaxy
+    'IR_global', # comment=IR photometry of entire galaxy
+    'SSFR', # comment='Surface density of Star formation at FRB position (Msun / yr / kpc^2)')
+    'SMStar', # comment='Surface density of Stars at FRB position')
+    'reff_iso', # comment='Effective Isophotal radius (angular)')
+    'UVff', # comment='Fractional flux at FRB location in UV_filter')
+    'IRff', # comment='Fractional flux at FRB location in IR_filter')
+    'IRfe', # comment='Enclosed flux at FRB location in IR_filter')
+    'IRlim', # comment='Limiting IR flux (mag) at FRB location after subtracting off galfit model.')
+]
+
+
+valid_derived = valid_derived_photom + valid_derived_nebular + valid_derived_local
 valid_derived_ref = [entry+'_ref' for entry in valid_derived]

@@ -97,11 +97,12 @@ class WISE_Survey(surveycoord.SurveyCoord):
                     'WISE_W2':171.787,
                     'WISE_W3':31.674,
                     'WISE_W4':8.363}
-            for item in ['1','2','3','4']:
-                filt = 'WISE_W'+item
-                main_cat[filt] -= 2.5*np.log10(fnu0[filt]/3631.)
+            for filt in fnu0.keys():
+                main_cat[filt] -= 2.5*np.log10(fnu0[filt]/3630.7805)
         elif system == 'Vega':
             pass
+        else:
+            raise RuntimeError("Photometry system must be one of 'AB' and 'Vega'")
 
         # Finish
         self.catalog = main_cat

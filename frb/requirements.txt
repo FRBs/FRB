@@ -1,16 +1,16 @@
 # Required packages for testing FRB repo (not all tests, though)
 
 # Users
-numpy>=1.18.0
-scipy>=1.4
-astropy>=4.2
+numpy>=1.22.0
+scipy>=1.9
+astropy>=5.0
 IPython>=7.2.0
 pytest>=6.0.0
-pandas>=0.25
-photutils>=1.0.1
+pandas>=1.2
+photutils>=1.1
 requests>=2.18
 extinction>=0.4.2
-matplotlib>=3.2
+matplotlib>=3.3
 healpy>=1.12
 linetools==0.3.dev2147
 PyYAML>=5.1

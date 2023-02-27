@@ -15,6 +15,7 @@ Galaxy_DB/
 *.npy
 *.hdf5
 .DS_Store
+*.json
 
 # Tests
 ./pytest_cache

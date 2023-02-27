@@ -261,7 +261,7 @@ class FRBGalaxy(object):
             tuple: uncerta, uncertb [arcsec]
         """
             # set to zero, but change if we have astrometric and source errors
-        if hasattr(self, 'positional_error'):
+        if hasattr(self, 'positional_error') and len(self.positional_error) > 0:
             host_ra_sig = np.sqrt(self.positional_error['ra_astrometric']**2 +  
                 self.positional_error['ra_source']**2)
             host_dec_sig = np.sqrt(self.positional_error['dec_astrometric']**2 + 
@@ -423,6 +423,7 @@ class FRBGalaxy(object):
 
         specDB = gutils.load_specdb(specdb_file=specdb_file)
         if specDB is None:
+            print(f"{specdb_file} yielded nothing. Returning None")
             return
 
         # Grab the spectra
@@ -544,7 +545,9 @@ class FRBGalaxy(object):
                 else:
                     self.morphology[key] = fit_tab[key][0]
         # reff kpc?
-        if (self.z is not None) and ('reff_ang' in self.morphology.keys()):
+        if 'reff_kpc' in self.morphology.keys():
+            pass
+        elif (self.z is not None) and ('reff_ang' in self.morphology.keys()):
             self.morphology['reff_kpc'] = \
                 (self.morphology['reff_ang']*units.arcsec * self.cosmo.kpc_proper_per_arcmin(self.z)).to('kpc').value
             self.morphology['reff_kpc_err'] = \

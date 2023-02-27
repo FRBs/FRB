@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 Estimate p(z|DM) for an assumed location on the sky and DM_FRB
+  Warning:  This assumes a *perfect* telescope
 """
 from IPython import embed
 
@@ -10,7 +11,7 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("coord", type=str, help="Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)")
     parser.add_argument("DM_FRB", type=float, help="FRB DM (pc/cm^3)")
-    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calcualted from NE2001) and Host")
+    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calculated from NE2001) and Host. Default = 100")
     parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
 
@@ -61,10 +62,21 @@ def main(pargs):
 
     z_min = z[np.argmin(np.abs(cum_sum-limits[0]/100.))]
     z_max = z[np.argmin(np.abs(cum_sum-limits[1]/100.))]
+    z_50 = z[np.argmin(np.abs(cum_sum-50./100.))]
+    z_mode = z[np.argmax(PzDM)]
 
     # Finish
     print("")
+    print(f"Allowing for the MW and Host, DM_cosmic = {int(DM_cosmic)} pc/cm^3")
+    print("")
+    print("")
+    print(f"The mean redshift value is: {z_50:.3f}")
+    print(f"The mode redshift value is: {z_mode:.3f}")
+    print("")
     print(f"The redshift range for your confidence interval {pargs.cl} is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
+    print("")
+    print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+    print("-----------------------------------------------------")
 
-    return z_min, z_max
+    return z_min, z_max, z_50, z_mode

@@ -19,20 +19,14 @@ from astropy.table import Table
 from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB
-from frb.galaxies import frbgalaxy, defs, offsets
+from frb.galaxies import frbgalaxy, offsets
 from frb.galaxies import photom as frbphotom
 try:
     from frb.galaxies import ppxf
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
-from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
-from frb.surveys import des
-from frb.surveys import sdss
-from frb.surveys import wise
-from frb.surveys import panstarrs
-from frb.surveys import catalog_utils
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
@@ -233,7 +227,7 @@ def run(host_input:pandas.core.series.Series,
     # Survey data
     try:
         inside = survey_utils.in_which_survey(Frb.coord)
-    except (requests.exceptions.ConnectionError) as e:  # Catches time-out from survey issues
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
         if override:
             print("Survey timed out.  You should re-run it sometime...")
             inside = {}
@@ -246,19 +240,24 @@ def run(host_input:pandas.core.series.Series,
         # Skip? 
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
             continue
-        # Skip WISE?
-        #if key in ['WISE'] and inside['DES']:
-        #    continue
+
         # Slurp
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
         srvy_tbl = survey.get_catalog(print_query=True)
-        #embed(header='254 of build')
+
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
         elif len(srvy_tbl) > 1:
-            raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+            if override:
+                warnings.warn(f"There was more than 1 galaxy for this FRB for survey: {key}")
+                print("Proceeding without using this survey")
+                continue
+            else:
+                #print("You found more than 1 galaxy.  Taking the 2nd one")
+                #srvy_tbl = srvy_tbl[1:]
+                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
@@ -303,11 +302,19 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
 
+    # Remove NSC for now
+    if merge_tbl is not None:
+        for key in merge_tbl.keys():
+            if 'NSC' in key:
+                merge_tbl.remove_column(key)
+                print(f"Removing NSC column: {key}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
-        frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+        code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+        if code == -1:
+            raise ValueError("Bad extinction correction!")
         # Parse
         Host.parse_photom(merge_tbl, EBV=EBV)
     else:
@@ -340,7 +347,6 @@ def run(host_input:pandas.core.series.Series,
         Host.parse_cigale(cigale_file, sfh_file=sfh_file)
     else:
         print(f"No CIGALE file to read for {file_root}")
-    
 
     # PPXF
     found_ppxf, ppxf_results_file = search_for_file(
@@ -428,7 +434,8 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit analysis slurped in via: {galfit_file}")
             Host.parse_galfit(galfit_file)
         else:
-            print(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+            embed(header='435 of build')
+            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")
 

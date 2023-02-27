@@ -10,6 +10,7 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("coord", type=str, help="Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)")
     parser.add_argument("-v", "--verbose", default=False, action="store_true", help="Overwhelm the screen?")
+    parser.add_argument("-o", "--optical", default=False, action="store_true", help="Overwhelm the screen?")
 
     if options is None:
         pargs = parser.parse_args()
@@ -29,9 +30,14 @@ def main(pargs):
     from frb.galaxies import nebular
     from frb import mw
     from frb.surveys import survey_utils
+    from frb import frb
 
     # Deal with coord
-    icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
+    if 'FRB' in pargs.coord:
+        FRB = frb.FRB.by_name(pargs.coord)
+        icoord = FRB.coord
+    else:
+        icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
 
     # EBV
     EBV = nebular.get_ebv(icoord)['meanValue']  #
@@ -45,5 +51,5 @@ def main(pargs):
 
     # Surveys
     print("Checking the imaging surveys...")
-    inside = survey_utils.in_which_survey(icoord)
+    inside = survey_utils.in_which_survey(icoord, optical_only=True)
     print(inside)

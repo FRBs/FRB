@@ -25,7 +25,7 @@ def data_path(filename):
 def test_frbhost():
     repeater_coord = SkyCoord('05h31m58.698s +33d8m52.59s', frame='icrs')  # Use as host here
     # Instantiate
-    frb121102 = FRB.by_name('FRB20121102')
+    frb121102 = FRB.by_name('FRB20121102A')
     host121102 = frbgalaxy.FRBHost(repeater_coord.ra.value, repeater_coord.dec.value, frb121102)
     # Redshift
     host121102.set_z(0.19273, 'spec', err=0.00008)
@@ -74,11 +74,11 @@ def test_frbhost():
 def test_read_frbhost():
     # This test will fail if the previous failed
     outfile = data_path('test_frbhost.json')
-    frb121102 = FRB.by_name('FRB20121102')
+    frb121102 = FRB.by_name('FRB20121102A')
     host121102 = frbgalaxy.FRBHost.from_json(frb121102, 
                                              outfile)
     # Test
-    assert host121102.frb.frb_name == 'FRB20121102'
+    assert host121102.frb.frb_name == 'FRB20121102A'
     assert np.isclose(host121102.morphology['b/a'], 0.25)
     assert host121102.vet_all()
 
@@ -86,7 +86,7 @@ def test_read_frbhost():
 def test_luminosity():
     # This test will fail if the previous failed
     outfile = data_path('test_frbhost.json')
-    frb121102 = FRB.by_name('FRB20121102')
+    frb121102 = FRB.by_name('FRB20121102A')
     host121102 = frbgalaxy.FRBHost.from_json(frb121102, outfile)
     Lum_Ha, Lum_Ha_err = host121102.calc_nebular_lum('Halpha')
     # Test
@@ -113,7 +113,7 @@ def test_get_spectra():
         assert True
         return
     # Do it!
-    frb180924 = FRB.by_name('FRB20180924')
+    frb180924 = FRB.by_name('FRB20180924B')
     host180924 = frb180924.grab_host()
     meta, xspec = host180924.get_metaspec()
     # Test
@@ -134,3 +134,7 @@ def test_table():
     frbs, hosts = utils.list_of_hosts()
 
     host_tbl, host_units = utils.build_table_of_hosts()
+
+    # Tests
+    assert len(host_tbl) > 15
+    assert np.isclose(np.max(host_tbl.P_Ox), 1.)
