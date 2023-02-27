@@ -37,3 +37,6 @@ def test_frb_pz_dm():
     assert np.isclose(zmax, 0.16080402010050251)
     assert np.isclose(z_50, 0.10050251256281408)
     assert np.isclose(z_mode, 0.12060301507537688)
+
+def test_tns():
+    pass
