@@ -19,20 +19,14 @@ from astropy.table import Table
 from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB
-from frb.galaxies import frbgalaxy, defs, offsets
+from frb.galaxies import frbgalaxy, offsets
 from frb.galaxies import photom as frbphotom
 try:
     from frb.galaxies import ppxf
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
-from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
-from frb.surveys import des
-from frb.surveys import sdss
-from frb.surveys import wise
-from frb.surveys import panstarrs
-from frb.surveys import catalog_utils
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
@@ -233,7 +227,7 @@ def run(host_input:pandas.core.series.Series,
     # Survey data
     try:
         inside = survey_utils.in_which_survey(Frb.coord)
-    except (requests.exceptions.ConnectionError) as e:  # Catches time-out from survey issues
+    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
         if override:
             print("Survey timed out.  You should re-run it sometime...")
             inside = {}
@@ -261,6 +255,8 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
+                #print("You found more than 1 galaxy.  Taking the 2nd one")
+                #srvy_tbl = srvy_tbl[1:]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
@@ -307,10 +303,11 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl['Name'] = file_root
 
     # Remove NSC for now
-    for key in merge_tbl.keys():
-        if 'NSC' in key:
-            merge_tbl.remove_column(key)
-            print(f"Removing NSC column: {key}")
+    if merge_tbl is not None:
+        for key in merge_tbl.keys():
+            if 'NSC' in key:
+                merge_tbl.remove_column(key)
+                print(f"Removing NSC column: {key}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
@@ -437,6 +434,7 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit analysis slurped in via: {galfit_file}")
             Host.parse_galfit(galfit_file)
         else:
+            embed(header='435 of build')
             raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")

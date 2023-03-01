@@ -145,6 +145,8 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     # Hack for LRIS which does not differentiate between cameras
     if 'LRIS' in filt:
         _filter = 'LRIS_{}'.format(filt[-1])
+    elif 'NSC' in filt:
+        _filter = filt.replace("NSC_","DECam_")
     else:
         _filter = filt
     filter_file = os.path.join(path_to_filters, _filter+'.dat')
@@ -172,10 +174,10 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     #AlAV = nebular.load_extinction('MW')
     Alambda = extinction.fm07(wave, AV)
     source_flux = 1.
-
     #calculate linear correction
-    delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
-        throughput * source_flux, wave)
+    delta = np.trapz(throughput * source_flux * 
+                     10 ** (-0.4 * Alambda), wave) / np.trapz(
+                         throughput * source_flux, wave)
 
     correction = 1./delta
 

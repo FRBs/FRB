@@ -60,7 +60,29 @@ frb_to_eazy_filters = {"GMOS_S_r":349,
                            "VISTA_Y":256,
                            "VISTA_J":257,
                            "VISTA_H":258,
-                           "VISTA_Ks":259
+                           "VISTA_Ks":259,
+                           "SOAR_cousins_R":357,
+                           "SOAR_bessell_B":358,
+                           "SOAR_bessell_V":359,
+                           "SOAR_stromgren_b":360,
+                           "SOAR_stromgren_v":361,
+                           "SOAR_stromgren_y":362,
+                           "SOAR_g":363,
+                           "SOAR_r":364,
+                           "SOAR_i":365,
+                           "SOAR_z":366,
+                           "NSC_u":351, # Added DR1 filter curves
+                           "NSC_g":352,
+                           "NSC_r":353,
+                           "NSC_i":354,
+                           "NSC_z":355,
+                           "NSC_Y":356,
+                           "DECam_u":351, # Added DR1 filter curves
+                           "DECam_g":352,
+                           "DECam_r":353,
+                           "DECam_i":354,
+                           "DECam_z":355,
+                           "DECam_Y":356,
                             }
 
 def eazy_filenames(input_dir, name):
@@ -115,7 +137,7 @@ def eazy_setup(input_dir, template_dir=None):
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
     return
 
-def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
+def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter=None,
                      templates='eazy_v1.3', combo="a", cosmo=defs.frb_cosmo,
                      magnitudes=False, prior=_default_prior,
                      zmin=0.050, zmax=7.000, zstep=0.0010, prior_ABZP=23.9,
@@ -175,6 +197,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     # Output filenames
     catfile, param_file, translate_file = eazy_filenames(input_dir, name)
 
+    # Convert dict to table.
+    if isinstance(photom, dict):
+        photom = Table([photom])
+
     # Check output dir
     full_out_dir = os.path.join(input_dir, out_dir)
     if not os.path.isdir(full_out_dir):
@@ -184,7 +210,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     # Prior
     if prior_filter is not None:
         assert prior in _acceptable_priors, "Allowed priors are {}".format(_acceptable_priors)
-        if prior_filter.split('_')[-1] not in ['r', 'R', 'k', 'K', 'Ks']:
+        if prior_filter.split('_')[-1] not in ['r', 'R', 'Rc', 'k', 'K', 'Ks']:
             raise IOError("Not prepared for this type of prior filter")
     
     # Test combo
@@ -199,7 +225,8 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     # Generate the translate file
     filters = []
     codes = []
-    for filt in photom.colnames:
+    magcols, magerrcols = catalog_utils._detect_mag_cols(photom)
+    for filt in magcols+magerrcols:
         if 'EBV' in filt:
             continue
         if 'err' in filt:
@@ -235,7 +262,10 @@ def eazy_input_files(photom, input_dir, name, out_dir, prior_filter=None,
     for filt in filters[1:]:
         phot_tbl[filt] = photom[filt]
     # Convert --
-    fluxtable = catalog_utils.convert_mags_to_flux(photom, fluxunits='uJy')
+    if magnitudes:
+        fluxtable = photom
+    else:
+        fluxtable = catalog_utils.convert_mags_to_flux(photom, fluxunits='uJy')
     # Write
     newfs, newv = [], []
     if write_full_table:
@@ -350,7 +380,6 @@ def run_eazy(input_dir, name, logfile):
     # Dump stdout to logfile
     with open(logfile, "a") as fstream:
         fstream.write(eazy_out.stdout.decode('utf-8'))
-
     # Check if the process ran successfully
     if eazy_out.returncode == 0:
         print("EAZY ran successfully!")

@@ -11,13 +11,15 @@ from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
 from astropy import wcs as astropy_wcs
-from astropy.table import Table 
+from astropy.table import Table
+from astropy.coordinates import SkyCoord
+
+import pandas 
 
 from frb import frb
-from astropath import bayesian
+import astropy_healpix
 from astropath import chance
 from astropath import path
-from astropath import localization
 from frb.galaxies import photom
 from frb.galaxies import nebular
 
@@ -425,37 +427,56 @@ def run_individual(config, prior:dict=None, show=False,
         for key in internals.keys():
             setattr(frbA, key, internals[key])
     
-    # Image
-    print("Using image {}".format(config['image_file']))
-    hdul = fits.open(config['image_file'])
-    hdu_full = hdul[0]
+    if 'cand_file' in config.keys():
+        # Read
+        frbA.candidates = pandas.read_csv(config['cand_file'])
+        # Coords
+        frbA.coords = SkyCoord(ra=frbA.candidates.ra.values,
+                               dec=frbA.candidates.dec.values,
+                               unit='deg')
+        # Add separation?
+        if 'separation' not in frbA.candidates.keys():
+            seps = frbA.frb.coord.separation(frbA.coords)
+            frbA.candidates['separation'] = seps.to('arcsec').value
+        
+    elif 'image_file' in config.keys():
+        # Image
+        print("Using image {}".format(config['image_file']))
+        hdul = fits.open(config['image_file'])
+        # A hack for some image packing
+        if 'SCI' in [ihdu.name for ihdu in hdul]:
+            hdu_full = hdul['SCI']
+        else:
+            hdu_full = hdul[0]
 
-    if config['cut_size'] is not None:
-        size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
-        cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
-        frbA.wcs = cutout.wcs
-        frbA.hdu = cutout  # not really an HDU
-    else:
-        frbA.hdu = hdu_full  # not really an HDU
-        frbA.wcs = WCS(hdu_full.header)
+        if config['cut_size'] is not None:
+            size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
+            cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            frbA.wcs = cutout.wcs
+            frbA.hdu = cutout  # not really an HDU
+        else:
+            frbA.hdu = hdu_full  # not really an HDU
+            frbA.wcs = WCS(hdu_full.header)
 
-    frbA.header = hdu_full.header
+        frbA.header = hdu_full.header
 
-    # Threshold + Segment
-    frbA.threshold()
-    frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
+        # Threshold + Segment
+        frbA.threshold()
+        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
 
-    # Photometry
-    frbA.photometry(config['ZP'], config['filter'], show=show)
-    if verbose:
-        print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
+        # Photometry
+        frbA.photometry(config['ZP'], config['filter'], show=show)
+        if verbose:
+            print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
-    # Candidates
-    frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
+        # Candidates
+        frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
                         separation=config['cand_separation'])
 
-    # Chance probability
-    frbA.calc_pchance(ndens_eval='driver', extinction_correct=extinction_correct)
+        # Chance probability
+        frbA.calc_pchance(ndens_eval='driver', extinction_correct=extinction_correct)
+
+        frbA.candidates['mag'] = frbA.candidates[frbA.filter]
 
     if verbose:
         print(frbA.candidates[['id', config['filter'], 'ang_size', 'separation', 'P_c']])
@@ -464,7 +485,7 @@ def run_individual(config, prior:dict=None, show=False,
     if skip_bayesian:
         return frbA
 
-    frbA.candidates['mag'] = frbA.candidates[frbA.filter]
+    # Init
     frbA.init_cand_coords()
 
     # Set priors
@@ -475,7 +496,27 @@ def run_individual(config, prior:dict=None, show=False,
 
     # Localization
     if loc is None:
-        frbA.init_localization('eellipse', 
+        if 'hpix_file' in config.keys():
+            # Load healpix
+            hpix = Table.read(config['hpix_file'])
+            header = fits.open(config['hpix_file'])[1].header
+
+            nside = 2**header['MOCORDER']
+
+            # Normalize
+            healpix = astropy_healpix.HEALPix(nside=nside)
+            norm =  np.sum(hpix['PROBDENSITY']) *  healpix.pixel_area.to('arcsec**2').value
+            hpix['PROBDENSITY'] /= norm
+
+            # Set
+            localiz = dict(type='healpix',
+                        healpix_data=hpix, 
+                        healpix_nside=nside,
+                        healpix_ordering='NUNIQ',
+                        healpix_coord='C')            
+            frbA.init_localization('healpix', **localiz)
+        else:
+            frbA.init_localization('eellipse', 
                             center_coord=frbA.frb.coord,
                             eellipse=frbA.frb_eellipse)
     else:                    
@@ -487,7 +528,7 @@ def run_individual(config, prior:dict=None, show=False,
     # Calculate p(O_i|x)
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
-                         max_radius=frbA.max_radius,
+                         max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
 
 

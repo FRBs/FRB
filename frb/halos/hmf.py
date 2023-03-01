@@ -155,8 +155,8 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None,
     # Mean density
     ns = []
     for iz in zs:
-        ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) 
-        ns.append(ins[0]*cosmo.h**3)  # * units.Mpc**-3
+        ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz)
+        ns.append(ins*cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii

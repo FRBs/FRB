@@ -15,6 +15,8 @@ from frb.surveys.catalog_utils import xmatch_and_merge_cats
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table
+from pyvo.dal import DALServiceError
+from requests import ReadTimeout
 
 import numpy as np
 import warnings
@@ -82,7 +84,14 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
 
     # Instantiate survey and run a cone search with 1 arcmin radius
     survey = load_survey_by_name(surveyname, coord, 1*u.arcmin)
-    cat = survey.get_catalog()
+    try:
+        cat = survey.get_catalog()
+    except DALServiceError:
+        warnings.warn("Couldn't reach IPAC.", RuntimeWarning)
+        cat = None
+    except ReadTimeout:
+        warnings.warn("Couldn't reach NOIRLAB.", RuntimeWarning)
+        cat = None
 
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
@@ -179,18 +188,19 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
-        if (survey.catalog is not None) & (len(survey.catalog)>0):
-            print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
-            if len(combined_cat)==0:
-                # First time
-                combined_cat = survey.catalog
-            else:
-                # Combine otherwise
-                # TODO: Need to deal with duplicate column names more elegantly.
-                combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
-        # No objects found?
-        elif len(survey.catalog)==0:
-            print("Empty table in "+surveyname)
+        if (survey.catalog is not None):
+            if len(survey.catalog)>0:
+                print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
+                if len(combined_cat)==0:
+                    # First time
+                    combined_cat = survey.catalog
+                else:
+                    # Combine otherwise
+                    # TODO: Need to deal with duplicate column names more elegantly.
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
+            # No objects found?
+            elif len(survey.catalog)==0:
+                print("Empty table in "+surveyname)
     
     return combined_cat
 
