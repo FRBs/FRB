@@ -75,6 +75,7 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
     hdulist.writeto(filename, overwrite=overwrite)
     return
 
+
 def _genconf(imgfile:str, psffile:str=None, mode=0,
             configfile:str=None, cdkfile:str=None, outdir:str=None, outfile:str=None,
             noisefile:str=None,
@@ -93,6 +94,8 @@ def _genconf(imgfile:str, psffile:str=None, mode=0,
         psffile (str, optional): path to the PSF model fits file.
             If nothing is given, the fit is performed without
             a PSF model.
+        mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
+            Which mode would you like galfit to run in?
         mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
             Which mode would you like galfit to run in?
         outdir (str): Name of output directory. Default
@@ -303,7 +306,7 @@ def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
     lines = [line.rstrip('\n') for line in open(outfile)]
     instance = []  # going to put all instances of use of input file here
     for kk, line in enumerate(lines):  # for all lines in fit.log
-        if 'Init. par. file : ' + str(initfile) in line:  # if the it is from the input file used
+        if 'Init. par. file : ' + str(initfile.split("/")[-1]) in line:  # if the it is from the input file used
             for pp, item in enumerate(lines[kk:kk + 10]):
                 if 'sersic' in item:  # look for the sersic fit model
                     # This assumes each fitting had a single
@@ -532,6 +535,8 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
         return fit_outcome
     # Read fit.log and get the fit results
     # Temporary fix for the crash:
+    if 'mode' not in kwargs.keys():
+        kwargs['mode'] = 0 # Run a profile fit by default.
     if kwargs['mode']==0:
         try:
             pix_dict = read_fitlog("fit.log", configfile)

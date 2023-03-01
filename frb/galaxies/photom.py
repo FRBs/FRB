@@ -175,9 +175,9 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     Alambda = extinction.fm07(wave, AV)
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
-        throughput * source_flux, wave)
-    
+    delta = np.trapz(throughput * source_flux * 
+                     10 ** (-0.4 * Alambda), wave) / np.trapz(
+                         throughput * source_flux, wave)
 
     correction = 1./delta
 
