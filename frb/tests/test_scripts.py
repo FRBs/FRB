@@ -10,6 +10,7 @@ import pytest
 from frb.scripts import frb_summary
 from frb.scripts import limiting_mag
 from frb.scripts import pz_dm
+from frb.scripts import tns
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
