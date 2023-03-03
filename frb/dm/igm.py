@@ -347,11 +347,11 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
     DM_IGM = DM_cosmic - DM_halos
 
     # Return
-    if cumul&return_DMhalos:
+    if cumul and return_DMhalos:
         return DM_IGM, zeval, DM_halos
-    elif cumul&~return_DMhalos:
+    elif cumul and not return_DMhalos:
         return DM_IGM, zeval
-    elif ~cumul&return_DMhalos:
+    elif not cumul and return_DMhalos:
         return DM_IGM[-1], DM_halos[-1]
     else:
         return DM_IGM[-1]
