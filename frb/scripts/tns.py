@@ -81,3 +81,4 @@ def main(pargs):
 
     # Print to screen
     print(df)
+    return df

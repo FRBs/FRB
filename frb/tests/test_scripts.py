@@ -43,7 +43,8 @@ def test_tns():
     tns.parser.units = 'deg'
     tns.parser.radius = 0.5
     tns.parser.dec = 19.17
-    tns.parsec.ra = 4.49
+    tns.parser.ra = 4.49
     
-    tns.main(tns.parser)
+    df = tns.main(tns.parser)
+    pytest.set_trace()
     
