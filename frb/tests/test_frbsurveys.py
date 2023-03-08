@@ -68,6 +68,7 @@ def test_des():
     #
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 2
+
 @remote_data
 def test_nsc():
     # Catalog
@@ -79,6 +80,18 @@ def test_nsc():
     #
     assert isinstance(nsc_tbl, Table)
     assert len(nsc_tbl) == 1
+
+@remote_data
+def test_delve():
+    # Catalog
+    coord = SkyCoord("J102922+012133", unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    delve_srvy = survey_utils.load_survey_by_name('DELVE', coord, search_r)
+    delve_tbl = delve_srvy.get_catalog(print_query=True)
+    #
+    assert isinstance(delve_tbl, Table)
+    assert len(delve_tbl) == 1
 
 @remote_data
 def test_vista():
