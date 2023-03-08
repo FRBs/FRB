@@ -46,5 +46,6 @@ def test_tns():
     tns.parser.ra = 4.49
     
     df = tns.main(tns.parser)
-    pytest.set_trace()
+
+    assert df.iloc[0]['objname'] == '2014gc'
     
