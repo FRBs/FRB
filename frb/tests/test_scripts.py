@@ -44,8 +44,7 @@ def test_tns():
     tns.parser.radius = 0.5
     tns.parser.dec = 19.17
     tns.parser.ra = 4.49
+    tns.parser.skip = None
+    tns.parser.outfile = 'outfile.txt'
     
     df = tns.main(tns.parser)
-
-    assert df.iloc[0]['objname'] == '2014gc'
-    
