@@ -86,6 +86,11 @@ MASS_bands = ['J','H','K']
 for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
 
+#6dF
+sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']:
+for band in sixdF_bands:
+    valid_filters.append('6dF_{:s}'.format(band))
+
 # HST instruments
 # WFC3
 WFC3_bands = ['F300X', 'F110W', 'F160W', 'F763M']
