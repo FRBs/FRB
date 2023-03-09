@@ -87,7 +87,7 @@ for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
 
 #6dF
-sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']:
+sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']
 for band in sixdF_bands:
     valid_filters.append('6dF_{:s}'.format(band))
 
