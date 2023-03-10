@@ -48,3 +48,5 @@ def test_tns():
     tns.parser.outfile = 'outfile.txt'
     
     df = tns.main(tns.parser)
+
+    assert df['prefix'][0] == 'FRB'
