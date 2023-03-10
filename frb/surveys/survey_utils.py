@@ -9,6 +9,7 @@ from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
 from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
+from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
@@ -21,7 +22,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES',  'DECaL', 'VISTA', 'NSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES',  'DECaL', 'VISTA', 'NSC', 'DELVE']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -66,6 +67,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = Pan_STARRS_Survey(coord, radius,**kwargs)
     elif name == 'NSC':
         survey = NSC_Survey(coord, radius, **kwargs)
+    elif name == 'DELVE':
+        survey = DELVE_Survey(coord, radius, **kwargs)
     elif name == 'VISTA':
         survey = VISTA_Survey(coord, radius, **kwargs)
 

@@ -32,16 +32,6 @@ valid_filters = []
 SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
     valid_filters.append('SDSS_{:s}'.format(band))
-    
-# DES
-DES_bands = ['g', 'r', 'i', 'z', 'Y']
-for band in DES_bands:
-    valid_filters.append('DES_{:s}'.format(band))
-
-# DECaLS
-DECaL_bands = ['g', 'r', 'z']
-for band in DECaL_bands:
-    valid_filters.append('DECaL_{:s}'.format(band))
 
 #PanSTARRS
 PanSTARRS_bands = ['g','r','i','z','y']
@@ -96,6 +86,11 @@ MASS_bands = ['J','H','K']
 for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
 
+#6dF
+sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']
+for band in sixdF_bands:
+    valid_filters.append('6dF_{:s}'.format(band))
+
 # HST instruments
 # WFC3
 WFC3_bands = ['F300X', 'F110W', 'F160W', 'F763M']
@@ -112,14 +107,34 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
-NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
-for band in NSC_bands:
-    valid_filters.append('NSC_{:s}'.format(band))
+# DECam-based surveys
 
+# Generic
 DECam_bands = ['u','g', 'r', 'i', 'z']
 for band in DECam_bands:
     valid_filters.append("DECam_{:s}".format(band))
 
+# NSC
+NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
+for band in NSC_bands:
+    valid_filters.append('NSC_{:s}'.format(band))
+
+# DES
+DES_bands = ['g', 'r', 'i', 'z', 'Y']
+for band in DES_bands:
+    valid_filters.append('DES_{:s}'.format(band))
+
+# DELVE
+DELVE_bands = ['g', 'r', 'i', 'z']
+for band in DELVE_bands:
+    valid_filters.append('DELVE_{:s}'.format(band))
+
+# DECaLS
+DECaL_bands = ['g', 'r', 'z']
+for band in DECaL_bands:
+    valid_filters.append('DECaL_{:s}'.format(band))
+
+# SOAR Goodman
 SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
             'cousins_R','stromgren_v','stromgren_b','stromgren_y']
 for band in SOAR_bands:
