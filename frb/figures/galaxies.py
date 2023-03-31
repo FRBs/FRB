@@ -202,16 +202,16 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
 
     # Labels
     lsz = 13.
-    ax_BPT.annotate(r"\textbf{Star-forming}", (-1.30, 0), fontsize=lsz)
-    ax_BPT.annotate(r"\textbf{LINER}", (0.23, 0), fontsize=lsz)
-    ax_BPT.annotate(r"\textbf{Seyfert}", (-0.5, 1), fontsize=lsz)
+    ax_BPT.annotate(r"Star-forming", (-1.30, 0), fontsize=lsz)
+    ax_BPT.annotate(r"LINER", (0.23, 0), fontsize=lsz)
+    ax_BPT.annotate(r"Seyfert", (-0.5, 1), fontsize=lsz)
 
     # Legend
     if show_legend:
         ax_BPT.legend(loc="lower left")
     # Axes
-    ax_BPT.set_xlabel(r"$\log \, ({\rm [N\textsc{ii}]/H\,\alpha)}$")
-    ax_BPT.set_ylabel(r"$\log \, ({\rm [O\textsc{iii}]/H\,\beta)}$")
+    ax_BPT.set_xlabel(r"$\log \, ({\rm [NII]/H\,\alpha)}$")
+    ax_BPT.set_ylabel(r"$\log \, ({\rm [OIII]/H\,\beta)}$")
     ax_BPT.set_xlim(-1.5, 0.5)
     ax_BPT.set_ylim(-1, 1.2)
     utils.set_fontsize(ax_BPT, 13.)
