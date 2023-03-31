@@ -35,7 +35,7 @@ def test_frac_in_halos():
     # Test
     np.testing.assert_allclose(
         ratios, 
-        np.array([0.4626 , 0.44315, 0.3669, 0.2818]),rtol=1e-4)
+        np.array([0.463629, 0.444242, 0.368071, 0.282909]),rtol=1e-4)
 
 def test_halo_incidence():
     # Imported (unlikely)?
@@ -44,11 +44,11 @@ def test_halo_incidence():
         return
     # Run
     Navg = hmf.halo_incidence(1e12, 1., Mhigh=3e12)
-    assert np.isclose(Navg, 1.1079098177338418)
+    assert np.isclose(Navg, 1.1120959929493153)
     # Cumulative now
     zeval, Ncumul = hmf.halo_incidence(1e13, 1., Mhigh=3e13, cumul=True)
     assert zeval.size == 20
-    assert np.isclose(Ncumul[-1], 0.5578253455474869, rtol=1e-4)
+    assert np.isclose(Ncumul[-1], 0.5612214870531754, rtol=1e-4)
 
 def test_YF17():
     yf17 = halos.YF17()

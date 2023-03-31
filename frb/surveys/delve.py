@@ -1,4 +1,4 @@
-"""NOIRLab source catalog"""
+"""DELVE survey"""
 
 import numpy as np
 from astropy import units, io, utils
@@ -13,26 +13,29 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/nsc_dr2"
+    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/delve_dr2"
     _svc = sia.SIAService(_DEF_ACCESS_URL)
 
-# Define the data model for DES data
+# Define the data model for DELVE data
+# See https://datalab.noirlab.edu/query.php?name=delve_dr2.objects for
+# table schema
 photom = {}
-photom['NSC'] = {}
-photom['NSC']['NSC_ID'] = 'id'
-photom['NSC']['ra'] = 'ra'
-photom['NSC']['dec'] = 'dec'
-photom['NSC']['class_star'] = 'class_star'
-NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
-for band in NSC_bands:
-    photom['NSC']['NSC_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
-    photom['NSC']['NSC_{:s}_err'.format(band)] = '{:s}rms'.format(band.lower())
+photom['DELVE'] = {}
+photom['DELVE']['DELVE_ID'] = 'quick_object_id'
+photom['DELVE']['ra'] = 'ra'
+photom['DELVE']['dec'] = 'dec'
+photom['DELVE']['ebv'] = 'ebv' # Schegel, Finkbeiner, Davis (1998)
+DELVE_bands = ['g', 'r', 'i', 'z']
+for band in DELVE_bands:
+    photom['DELVE'][f'DELVE_{band}'] = f'mag_auto_{band}' #mag
+    photom['DELVE'][f'DELVE_{band}_err'] = f'magerr_auto_{band}' #magerr
+    photom['DELVE'][f'class_star_{band}'] = f'extended_class_{band}' #morphology class
 
 
 
-class NSC_Survey(dlsurvey.DL_Survey):
+class DELVE_Survey(dlsurvey.DL_Survey):
     """
-    Class to handle queries on the NSC survey
+    Class to handle queries on the DELVE survey
 
     Child of DL_Survey which uses datalab to access NOAO
 
@@ -44,11 +47,11 @@ class NSC_Survey(dlsurvey.DL_Survey):
 
     def __init__(self, coord, radius, **kwargs):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
-        self.survey = 'NSC'
-        self.bands = NSC_bands
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/nsc_dr2")
+        self.survey = 'DELVE'
+        self.bands = DELVE_bands
+        self.svc = sia.SIAService("https://datalab.noao.edu/sia/delve_dr2")
         self.qc_profile = "default"
-        self.database = "nsc_dr2.object"
+        self.database = "delve_dr2.objects"
 
     def _parse_cat_band(self,band):
         """
@@ -83,11 +86,11 @@ class NSC_Survey(dlsurvey.DL_Survey):
             photometry for matched sources.
         """
         # Main DES query
-        main_cat = super(NSC_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
+        main_cat = super(DELVE_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
         if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat,photom['NSC'])
+            main_cat = catalog_utils.clean_cat(main_cat,photom['DELVE'])
             return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'])
+        main_cat = catalog_utils.clean_cat(main_cat, photom['DELVE'])
         #import pdb; pdb.set_trace()
         for col in main_cat.colnames:
             if main_cat[col].dtype==float:
@@ -113,7 +116,7 @@ class NSC_Survey(dlsurvey.DL_Survey):
             query_fields = []
             # Main query
             if qtype == 'main':
-                for key,value in photom['NSC'].items():
+                for key,value in photom['DELVE'].items():
                     query_fields += [value]
                 database = self.database
             else:
