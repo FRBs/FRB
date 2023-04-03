@@ -27,6 +27,7 @@ except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
 from frb.galaxies import hosts
+from frb.galaxies import defs as galaxy_defs
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
@@ -148,6 +149,8 @@ def read_lit_table(lit_entry, coord=None):
         sep = coord.separation(tbl_coord)
         match = sep < 1*units.arcsec
         nmatch = np.sum(match)
+        #if 'derived' in lit_entry.Table:
+        #    embed(header='151 of build_hosts')
         if nmatch == 0:
             return None
         elif nmatch == 1:
@@ -162,6 +165,7 @@ def read_lit_table(lit_entry, coord=None):
 def run(host_input:pandas.core.series.Series, 
         build_ppxf:bool=False, 
         lit_refs:str=None,
+        skip_surveys:bool=False,
         build_cigale:bool=False, is_host:bool=True,
         override:bool=False, out_path:str=None,
         outfile:str=None):
@@ -180,6 +184,8 @@ def run(host_input:pandas.core.series.Series,
             Mainly for time-outs of public data. Defaults to False.
         outfile (str, optional): Over-ride default outfile [not recommended; mainly for testing]
         out_path (str, optional): Over-ride default outfile [not recommended; mainly for testing]
+        skip_surveys (bool, optional): 
+            Skip the survey data.  Useful for testing. Defaults to False.
 
 
     Raises:
@@ -225,14 +231,17 @@ def run(host_input:pandas.core.series.Series,
     search_r = 1 * units.arcsec
 
     # Survey data
-    try:
-        inside = survey_utils.in_which_survey(Frb.coord)
-    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
-        if override:
-            print("Survey timed out.  You should re-run it sometime...")
-            inside = {}
-        else:
-            raise e
+    if not skip_surveys:
+        try:
+            inside = survey_utils.in_which_survey(Frb.coord)
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
+            if override:
+                print("Survey timed out.  You should re-run it sometime...")
+                inside = {}
+            else:
+                raise e
+    else:
+        inside = {}
 
     # Loop on em
     merge_tbl = None
@@ -270,7 +279,7 @@ def run(host_input:pandas.core.series.Series,
     if lit_refs is None:
         lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
             'Literature', 'all_refs.csv')
-    lit_tbls = pandas.read_csv(lit_refs)
+    lit_tbls = pandas.read_csv(lit_refs, comment='#')
 
     for kk in range(len(lit_tbls)):
         lit_entry = lit_tbls.iloc[kk]
@@ -450,13 +459,46 @@ def run(host_input:pandas.core.series.Series,
             continue
         # Fill me in 
         for key in lit_tbl.keys():
-            if '_err' in key:
+            # Handle multiple approaches to errors
+            for err_type in galaxy_defs.allowed_errors:
+                if err_type in key and '_uperr' not in key: 
+                    valkey = key.replace(err_type, '')
+                    refkey = valkey+'_ref'
+                    # Scrub any existing!
+                    if valkey in Host.derived.keys():
+                        Host.derived.pop(valkey)
+                        for err_type in galaxy_defs.allowed_errors:
+                            errkey = valkey+err_type
+                            if errkey in Host.derived.keys():
+                                Host.derived.pop(errkey)
+                    if refkey in Host.derived.keys():
+                        Host.derived.pop(refkey)
+                    # Fill
+                    Host.derived[valkey] = float(lit_tbl[valkey].data[0])
+                    Host.derived[refkey] = lit_entry.Reference
+                    # Errors
+                    Host.derived[key] = float(lit_tbl[key].data[0])
+                    if '_loerr' in key:
+                        hikey = key.replace('lo', 'up')
+                        Host.derived[hikey] = float(lit_tbl[hikey].data[0])
+                '''
                 Host.derived[key] = float(lit_tbl[key].data[0])
                 newkey = key.replace('err', 'ref')
                 Host.derived[newkey] = lit_entry.Reference
                 # Value
                 newkey = newkey.replace('_ref', '')
                 Host.derived[newkey] = float(lit_tbl[newkey].data[0])
+            if '_loerr' in key:
+                # Deal wit herrors
+                Host.derived[key] = float(lit_tbl[key].data[0])
+                hikey = key.replace('lo', 'up')
+                Host.derived[hikey] = float(lit_tbl[hikey].data[0])
+                refkey = key.replace('loerr', 'ref')
+                Host.derived[refkey] = lit_entry.Reference
+                # Value
+                valkey = refkey.replace('_ref', '')
+                Host.derived[valkey] = float(lit_tbl[valkey].data[0])
+                '''
 
     # Vet all
     assert Host.vet_all()
@@ -488,12 +530,14 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
             Here for testing
     """
     # Options
-    build_cigale, build_ppxf = False, False
+    build_cigale, build_ppxf, skip_surveys = False, False, False
     if options is not None:
         if 'cigale' in options:
             build_cigale = True
         if 'ppxf' in options:
             build_ppxf = True
+        if 'skip_surveys' in options:
+            skip_surveys = True
 
     # Read public host table
     host_tbl = hosts.load_host_tbl(hosts_file=hosts_file)
@@ -514,6 +558,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         for ii in idx:
             run(host_tbl.iloc[ii], 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
+                skip_surveys=skip_surveys,
                 is_host=is_host, lit_refs=lit_refs, override=override,
                 outfile=outfile, out_path=out_path)
             # Any additional ones are treated as candidates

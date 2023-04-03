@@ -684,6 +684,10 @@ class FRBGalaxy(object):
             # Skip error
             if '_err' in key:
                 continue
+            if '_loerr' in key:
+                continue
+            if '_uperr' in key:
+                continue
             if key not in defs_list:
                 vet = False
                 warnings.warn("{} in {} is not valid!".format(key,attr))

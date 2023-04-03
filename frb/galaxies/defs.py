@@ -1,8 +1,11 @@
 """ Define allowed quantities for FRB galaxies
 
   Uncertainty is valid for any quantity with '_err' add-on, eg. W1_err
+     Now _loerr and _uperr are also allowed
   Am also likely to add _flg for each as well
 """
+
+allowed_errors = ['_err', '_loerr', '_uperr']
 
 ##############################################################
 # Redshift
