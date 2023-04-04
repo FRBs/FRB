@@ -3,18 +3,17 @@
 import numpy as np
 from astropy import units, io, utils
 
-from frb.surveys import dlsurvey
+from frb.surveys import dlsurvey, defs
 from frb.surveys import catalog_utils
 
 # Dependencies
 try:
     from pyvo.dal import sia
 except ImportError:
-    print("Warning:  You need to install pyvo to retrieve DES images")
+    print("Warning:  You need to install pyvo to retrieve DELVE images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/delve_dr2"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'delve_dr1')
 
 # Define the data model for DELVE data
 # See https://datalab.noirlab.edu/query.php?name=delve_dr2.objects for
@@ -140,7 +139,7 @@ class DELVE_Survey(dlsurvey.DL_Survey):
 
         """
         row = imgTable[np.argmax(imgTable['exptime'].data.data.astype('float'))] # pick image with longest exposure time
-        url = row['access_url'].decode()
+        url = row['access_url']
         if verbose:
             print ('downloading deepest stacked image...')
 

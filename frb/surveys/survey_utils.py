@@ -22,7 +22,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES',  'DECaL', 'VISTA', 'NSC', 'DELVE']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'DELVE']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 

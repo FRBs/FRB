@@ -3,7 +3,7 @@
 import numpy as np
 from astropy import units, io, utils
 
-from frb.surveys import dlsurvey
+from frb.surveys import dlsurvey, defs
 from frb.surveys import catalog_utils
 
 # Dependencies
@@ -13,8 +13,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DES images")
     _svc = None
 else:
-    _DEF_ACCESS_URL = "https://datalab.noao.edu/sia/nsc_dr2"
-    _svc = sia.SIAService(_DEF_ACCESS_URL)
+    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'nsa')
 
 # Define the data model for DES data
 photom = {}
@@ -46,7 +45,7 @@ class NSC_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'NSC'
         self.bands = NSC_bands
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/nsc_dr2")
+        self.svc = _svc
         self.qc_profile = "default"
         self.database = "nsc_dr2.object"
 
@@ -122,25 +121,4 @@ class NSC_Survey(dlsurvey.DL_Survey):
         self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
         # Return
         return self.query
-
-    def _select_best_img(self,imgTable,verbose,timeout=120):
-        """
-        Select the best band for a cutout
-
-        Args:
-            imgTable: Table of images
-            verbose (bool):  Print status
-            timeout (int or float):  How long to wait before timing out, in seconds
-
-        Returns:
-            HDU: header data unit for the downloaded image
-
-        """
-        row = imgTable[np.argmax(imgTable['exptime'].data.data.astype('float'))] # pick image with longest exposure time
-        url = row['access_url'].decode()
-        if verbose:
-            print ('downloading deepest stacked image...')
-
-        imagedat = io.fits.open(utils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))
-        return imagedat
 
