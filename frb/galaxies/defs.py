@@ -205,6 +205,7 @@ valid_derived_photom = [
     'SFR_SED',         # 0-100 Myr integrated SFR in Msun/yr; Prospector
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'SFR_radio',       # SFR in Msun/yr from radio photometry
+    'log_sSFR'         # 0-100 Myr integrated specific SFR in yr ^-1; Prospector
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE
