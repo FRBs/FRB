@@ -190,19 +190,27 @@ valid_positional_error = [
 # Derived quantities
 
 valid_derived_photom = [
-    'Mstar',           # Stellar mass; linear in Msun CIGALE
+    'z_SED',           # Redshift; Prospector-derived
+    'Mtotal',          # Total mass; linear in Msun; Prospector
+    'Mstar',           # Stellar mass; linear in Msun CIGALE (or Prospector if Gordon2023)
     'Mstar_spec',      # Stellar mass from pPXF; linear in Msun
-    'f_AGN',           # Fraction of AGN contribution to light; CIGALE
+    'f_AGN',           # Fraction of AGN contribution to light; CIGALE (or Prospector if Gordon2023)
+    'agn_tau',         # Optical depth of AGN dust torus; Prospector 
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
-    'age_mass',        # Age weighted mass from CIGALE
+    'AV_young',        # Dust attenuation of young stellar light; magnitudes; Prospector
+    'AV_old',          # Dust attenuation of old stellar light; magnitudes; Prospector
+    'age_mass',        # Age weighted mass from CIGALE (or Prospector if Gordon2023)
+    'SFR_SED',         # 0-100 Myr integrated SFR in Msun/yr; Prospector
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'SFR_radio',       # SFR in Msun/yr from radio photometry
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE
     'Z_spec',          # Metallicity from spectra; pPXF
+    'Z_stellar'        # Stellar metallicity; Prospector
+    'Z_gas'            # Gas-phase metallicity; Prospector
     ]
 
 valid_derived_nebular = [
