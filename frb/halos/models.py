@@ -10,6 +10,7 @@ from pkg_resources import resource_filename
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
+from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -491,7 +492,7 @@ def halomass_from_stellarmass(log_mstar,z=0, randomize=False):
         params = [N10,N11,beta10,beta11,gamma10,gamma11,M10,M11]
         f = lambda x: stellarmass_from_halomass(x, z = z, params = params)-log_mstar
     guess = 2+log_mstar
-    if isiterable(log_mstar):
+    if hasattr(log_mstar, "__iter__"):
         return fsolve(f, guess)
     else:
         return fsolve(f, guess)[0]

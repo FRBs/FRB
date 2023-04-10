@@ -1,8 +1,11 @@
 """ Define allowed quantities for FRB galaxies
 
   Uncertainty is valid for any quantity with '_err' add-on, eg. W1_err
+     Now _loerr and _uperr are also allowed
   Am also likely to add _flg for each as well
 """
+
+allowed_errors = ['_err', '_loerr', '_uperr']
 
 ##############################################################
 # Redshift
@@ -120,7 +123,8 @@ DECam_bands = ['u','g', 'r', 'i', 'z']
 for band in DECam_bands:
     valid_filters.append("DECam_{:s}".format(band))
 
-SOAR_bands = ['U','bessell_B','bessell_V','bessell_R','cousins_R','stromgren_v','stromgren_b','stromgren_y']
+SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
+            'cousins_R','stromgren_v','stromgren_b','stromgren_y']
 for band in SOAR_bands:
     valid_filters.append("SOAR_{:s}".format(band))
 

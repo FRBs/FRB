@@ -51,13 +51,16 @@ class FRBGalaxy(object):
 
     """
     @classmethod
-    def from_dict(cls, frb, idict, **kwargs):
+    def from_dict(cls, frb, idict, override:bool=False, **kwargs):
         """
         Instantiate from a dict
 
         Args:
             frb (frb.FRB):
             idict (dict):
+            override (bool, optional):
+                Over-ride the cosmology error
+                Not recommended unless you know what you are doing
             **kwargs: Passed to the __init__ call
 
         Returns:
@@ -71,7 +74,7 @@ class FRBGalaxy(object):
             slf.frb_coord = SkyCoord(ra=idict['ra_FRB'], dec=idict['dec_FRB'], unit='deg')
 
         # Check cosmology
-        if slf.cosmo.name != idict['cosmo']:
+        if slf.cosmo.name != idict['cosmo'] and not override:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
 
         # Fill me up
@@ -683,6 +686,10 @@ class FRBGalaxy(object):
         for key in getattr(self, attr).keys():
             # Skip error
             if '_err' in key:
+                continue
+            if '_loerr' in key:
+                continue
+            if '_uperr' in key:
                 continue
             if key not in defs_list:
                 vet = False
