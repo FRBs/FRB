@@ -109,25 +109,25 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.validate_catalog()
         return self.catalog.copy()
     
-    def get_cutout(self, imsize, filter, timeout=120):
+    def get_cutout(self, imsize, band, timeout=120):
         """
         Download an image from IRSA
         Args:
             imsize(Quantity): Size of the cutout in angular units.
-            filter(str): One of "W1", "W2", "W3" or "W4"
+            band(str): One of "W1", "W2", "W3" or "W4"
             timeout(float): Number of seconds to wait to hear a response from
                 the IRSA SIA server.
         Returns:
             imghdu(fits.HDU): Fits HDU with image
         """
-        assert filter.upper() in self.bands, "Invalid filter name "+filter
+        assert band.upper() in self.bands, "Invalid filter name "+band
         # First get a table with the image coadd_id
         meta_url = "https://irsa.ipac.caltech.edu/ibe/search/wise/allsky/4band_p3am_cdd?POS={:f},{:f}".format(self.coord.ra.value, self.coord.dec.value)
         img_metatab = Table.read(utils.data.download_file(meta_url, cache=True, show_progress=False, timeout=timeout), format="ascii")
-        coadd_id = img_metatab['coadd_id'][img_metatab['band']==int(filter[1])][0]
+        coadd_id = img_metatab['coadd_id'][img_metatab['band']==int(band[1])][0]
 
         # Now generate the image url
-        img_url = "https://irsa.ipac.caltech.edu/ibe/data/wise/allsky/4band_p3am_cdd/{:s}/{:s}/{:s}/{:s}-{:s}-int-3.fits".format(coadd_id[:2], coadd_id[:4], coadd_id, coadd_id, filter.lower())
+        img_url = "https://irsa.ipac.caltech.edu/ibe/data/wise/allsky/4band_p3am_cdd/{:s}/{:s}/{:s}/{:s}-{:s}-int-3.fits".format(coadd_id[:2], coadd_id[:4], coadd_id, coadd_id, band.lower())
         img_url +="?center={:f},{:f}&size={:f}pix".format(self.coord.ra.value, self.coord.dec.value, imsize.to("arcsec").value/2.75)
         self.cutout = io.fits.open(utils.data.download_file(img_url,cache=True,show_progress=False,timeout=timeout))[0]
         self.cutout_size = imsize

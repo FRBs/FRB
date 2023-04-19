@@ -22,7 +22,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'DELVE']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -186,6 +186,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
+            print(f"{surveyname} has {survey.catalog.colnames}")
         except ConnectionError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except HTTPError:
