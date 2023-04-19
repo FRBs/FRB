@@ -247,5 +247,54 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         combined_cat = combined_cat[['ra', 'dec', 'separation']+other_cols.tolist()]
     
     return combined_cat
+           
+def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
+    """
+    Tile multiple 20' cone searches of 
+    the Pan-STARRS catalog to cover a larger
+    roughly square region in the sky. Doing
+    this manually because MAST doesn't
+    allow cone searches of radius greater than
+    30'.
+    Args:
+        coord (SkyCoord): Center of search region.
+        side (astropy Quantity): Angular size
+            of the square region to be searched.
+        kwargs: Additional keyword arguments
+            to be passed onto the Pan-STARRS_Survey
+            get_catalog method.
+    Returns:
+        combined_tab (Table): A PS1 catalog.
+    """
+    assert side>=30*u.arcmin, "Use a regular Pan-STARRS search for this radius."
+    RA0, DEC0 = coord.ra, coord.dec
 
-            
+    radius = 20*u.arcmin
+
+    # Make a grid of RA, Dec to search
+    n = 2*int((side/2)//(radius*np.sqrt(2)))+1
+    ra_vals = RA0 + radius*np.sqrt(2)*np.linspace(-1,1,n)
+    dec_vals = DEC0 + radius*np.sqrt(2)*np.linspace(-1,1,n)
+
+    # Loop over grid points, search and collate catalogs
+    print("Looping through {:d} pointings.".format(n*n))
+    combined_table = Table()
+    for i, ra in enumerate(ra_vals):
+        for j, dec in enumerate(dec_vals):
+            print("Getting pointing #",i*len(ra_vals)+j+1)
+            coord = SkyCoord(ra,dec)
+            survey = load_survey_by_name("Pan-STARRS", coord, radius=radius)
+            cat = survey.get_catalog(**kwargs)
+            # Remove columns so that
+            # the join function further down the 
+            # line has no trouble merging duplicates.
+            cat.remove_column('separation')
+            if len(cat)>0:
+                if len(combined_table)>0:
+                    combined_table = join(combined_table, cat, join_type='outer')
+                else:
+                    combined_table = cat
+            else:
+                continue
+    combined_table = remove_duplicates(combined_table, 'Pan-STARRS_ID')
+    return combined_table
