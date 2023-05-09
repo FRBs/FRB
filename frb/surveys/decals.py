@@ -148,7 +148,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
             
         """
         row = imgTable[0]
-        url = row['access_url'].decode()
+        url = row['access_url']
         if verbose:
             print('downloading image...')
         
