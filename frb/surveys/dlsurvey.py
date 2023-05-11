@@ -41,12 +41,57 @@ class DL_Survey(surveycoord.SurveyCoord):
         #Generate query
         self.query = None
         self.qc_profile = None
+        self.default_query_fields = None
     
     def _parse_cat_band(self,band):
-        return None, None, None
+        """
+        Internal method to generate the bands for grabbing
+        a cutout image
 
-    def _gen_cat_query(self,query_fields=None):
-        pass
+        For most child classes, nothing much is necessary. Only
+        gets modified in DECaLS. 
+
+        Args:
+            band (str): Band desired
+
+        Returns:
+            list, list, str:  Table columns, Column values, band string for cutout
+
+        """
+        table_cols = ['proctype','prodtype']
+        col_vals = ['Stack','image']
+
+        return table_cols, col_vals, band
+
+    def _gen_cat_query(self,query_fields=None, qtype='main'):
+        """
+        Generate SQL Query for catalog search
+
+        self.query is modified in place
+
+        Args:
+            query_fields (list):  Override the default list for the SQL query
+
+        """
+        if self.default_query_fields is None:
+            raise IOError("DLSurvey child incorrectly instantiated.  Missing default_query_fields")
+        if query_fields is None:
+            # Main query
+            if qtype == 'main':
+                query_fields = self.default_query_fields
+                database = self.database
+            else:
+                raise IOError("Bad qtype")
+        else:
+            if qtype == 'main':
+                assert isinstance(query_fields, list), "query_fields must be a list"
+                query_fields = np.union1d(self.default_query_fields, query_fields)
+                database = self.database
+                raise IOError("Bad qtype")
+
+        self.query = _default_query_str(query_fields, database,self.coord,self.radius)
+        # Return
+        return self.query
     
     def _select_best_img(self,imgTable,verbose,timeout=120):
         """

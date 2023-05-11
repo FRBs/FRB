@@ -27,8 +27,6 @@ for band in NSC_bands:
     photom['NSC']['NSC_{:s}'.format(band)] = '{:s}mag'.format(band.lower())
     photom['NSC']['NSC_{:s}_err'.format(band)] = '{:s}rms'.format(band.lower())
 
-
-
 class NSC_Survey(dlsurvey.DL_Survey):
     """
     Class to handle queries on the NSC survey
@@ -48,25 +46,7 @@ class NSC_Survey(dlsurvey.DL_Survey):
         self.svc = _svc
         self.qc_profile = "default"
         self.database = "nsc_dr2.object"
-
-    def _parse_cat_band(self,band):
-        """
-        Internal method to generate the bands for grabbing
-        a cutout image
-
-        For DES, nothing much is necessary.
-
-        Args:
-            band (str): Band desired
-
-        Returns:
-            list, list, str:  Table columns, Column values, band string for cutout
-
-        """
-        table_cols = ['proctype','prodtype']
-        col_vals = ['Stack','image']
-
-        return table_cols, col_vals, band
+        self.default_query_fields = list(photom['NSC'].values())
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
         """
@@ -82,7 +62,9 @@ class NSC_Survey(dlsurvey.DL_Survey):
             photometry for matched sources.
         """
         # Main DES query
-        main_cat = super(NSC_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
+        main_cat = super(NSC_Survey, self).get_catalog(query=query,
+                                                       query_fields=query_fields,
+                                                       print_query=print_query,**kwargs)
         if len(main_cat) == 0:
             main_cat = catalog_utils.clean_cat(main_cat,photom['NSC'])
             return main_cat
@@ -97,28 +79,4 @@ class NSC_Survey(dlsurvey.DL_Survey):
         self.catalog = main_cat
         self.validate_catalog()
         return self.catalog
-
-    def _gen_cat_query(self,query_fields=None, qtype='main'):
-        """
-        Generate SQL Query for catalog search
-
-        self.query is modified in place
-
-        Args:
-            query_fields (list):  Override the default list for the SQL query
-
-        """
-        if query_fields is None:
-            query_fields = []
-            # Main query
-            if qtype == 'main':
-                for key,value in photom['NSC'].items():
-                    query_fields += [value]
-                database = self.database
-            else:
-                raise IOError("Bad qtype")
-
-        self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
-        # Return
-        return self.query
 
