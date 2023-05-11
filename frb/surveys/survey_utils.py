@@ -18,7 +18,7 @@ from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astropy.table import Table
+from astropy.table import Table, join
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
 
