@@ -28,7 +28,7 @@ DELVE_bands = ['g', 'r', 'i', 'z']
 for band in DELVE_bands:
     photom['DELVE'][f'DELVE_{band}'] = f'mag_auto_{band}' #mag
     photom['DELVE'][f'DELVE_{band}_err'] = f'magerr_auto_{band}' #magerr
-    photom['DELVE'][f'class_star_{band}'] = f'extended_class_{band}' #morphology class
+    photom['DELVE'][f'class_star_{band}'] = f'class_star_{band}' #morphology class
 
 
 class DELVE_Survey(dlsurvey.DL_Survey):
