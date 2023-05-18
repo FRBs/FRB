@@ -478,8 +478,8 @@ def run_individual(config, prior:dict=None, show=False,
 
         frbA.candidates['mag'] = frbA.candidates[frbA.filter]
 
-    if verbose:
-        print(frbA.candidates[['id', config['filter'], 'ang_size', 'separation', 'P_c']])
+    #if verbose:
+    #    print(frbA.candidates[['id', config['filter'], 'ang_size', 'separation', 'P_c']])
 
     # BAYESIAN 
     if skip_bayesian:

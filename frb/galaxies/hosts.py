@@ -228,3 +228,24 @@ def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
 
     # Return
     return host_tbl
+
+def load_Mr_pdf(pdf_file:str=None):
+    """ Load the PDF for Mr for Host galaxies
+
+    Args:
+        pdf_file (str, optional): 
+            Filename for the PDF. Defaults to None.
+
+    Returns:
+        tuple: Mr, PDF
+    """
+    
+    if pdf_file is None:
+        pdf_file = os.path.join(resource_filename('frb', 'data'), 
+                                    'Galaxies', 'PDF_Mr.csv')
+
+    #host galaxy M_r
+    df = pandas.read_csv(pdf_file)
+
+    #
+    return df.Mr.values, df.PDF.values #Host Galaxy PDF using 33 localized FRBs
