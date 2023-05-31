@@ -289,6 +289,7 @@ def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1.,
     # Fraction of total mass in halos
     zvals = np.linspace(0, z, 20)
     fhalos = frb_hmf.frac_in_halos(zvals, Mlow = 10**logMmin, Mhigh = 10**logMmax, rmax = rmax)
+
     fhalos_interp = IUS(zvals, fhalos)(zeval)
 
     # Electron number density in halos only
@@ -306,9 +307,10 @@ def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1.,
     else:
         return DM_halos[-1]
     
-def average_DMIGM(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., 
-                  logMmin=10.3, neval = 10000, cumul=False, 
-                  return_DMhalos=False):
+def average_DMIGM(z, cosmo = defs.frb_cosmo,
+                  f_hot = 0.75, rmax=1.,
+                  logMmin=10.3, neval = 10000,
+                  cumul=False, return_DMhalos=False):
     """
     Estimate DM_IGM in a cumulative fashion
 
@@ -329,8 +331,7 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1.,
           0 and z the function is evaluated at.
         cumul (bool, optional):
           Return a cumulative evaluation?
-        return_DMhalos (bool, optional):
-            Return the DM_halos term as well?
+        return_DMHalos (bool, optional): Also return avgDM_halos?
     Returns:
         float or list: 
             DM_IGM (Quantity or Quantity array): One value if cumul=False

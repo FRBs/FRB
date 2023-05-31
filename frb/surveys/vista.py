@@ -23,6 +23,7 @@ photom['VISTA'] = {}
 photom['VISTA']['VISTA_ID'] = 'sourceid'
 photom['VISTA']['ra'] = 'ra2000'
 photom['VISTA']['dec'] = 'dec2000'
+photom['VISTA']['VISTA_CLASS'] = 'mergedclass' #Class flag,1|0|-1|-2|-3|-9=gal|noise|star|probStar|probGal|saturated
 for band in VISTA_bands:
     photom['VISTA']['VISTA_{:s}'.format(band)] = '{:s}petromag'.format(band.lower())
     photom['VISTA']['VISTA_{:s}_err'.format(band)] = '{:s}petromagerr'.format(band.lower())

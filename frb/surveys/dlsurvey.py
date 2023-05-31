@@ -4,16 +4,24 @@ available through the NOAO datalab-client.
 """
 import numpy as np
 import warnings
-from astropy import units
+from astropy import units, io, utils
 import warnings
 
 from frb.surveys import catalog_utils
 
+# Dependencies
 try:
     from dl import queryClient as qc, authClient as ac
     from dl.helpers.utils import convert
 except:
     print("Warning:  datalab-client is not installed or will not properly connect")
+
+
+try:
+    from pyvo.dal import DALFormatError
+except ImportError:
+    print("Warning:  You need to install pyvo to retrieve images")
+    _svc = None
 
 from frb.surveys import surveycoord
 
@@ -33,15 +41,79 @@ class DL_Survey(surveycoord.SurveyCoord):
         #Generate query
         self.query = None
         self.qc_profile = None
+        self.default_query_fields = None
     
     def _parse_cat_band(self,band):
-        return None, None, None
+        """
+        Internal method to generate the bands for grabbing
+        a cutout image
 
-    def _gen_cat_query(self,query_fields=None):
-        pass
+        For most child classes, nothing much is necessary. Only
+        gets modified in DECaLS. 
+
+        Args:
+            band (str): Band desired
+
+        Returns:
+            list, list, str:  Table columns, Column values, band string for cutout
+
+        """
+        table_cols = ['proctype','prodtype']
+        col_vals = ['Stack','image']
+
+        return table_cols, col_vals, band
+
+    def _gen_cat_query(self,query_fields=None, qtype='main'):
+        """
+        Generate SQL Query for catalog search
+
+        self.query is modified in place
+
+        Args:
+            query_fields (list):  Override the default list for the SQL query
+
+        """
+        if self.default_query_fields is None:
+            raise IOError("DLSurvey child incorrectly instantiated.  Missing default_query_fields")
+        if query_fields is None:
+            # Main query
+            if qtype == 'main':
+                query_fields = self.default_query_fields
+                database = self.database
+            else:
+                raise IOError("Bad qtype")
+        else:
+            if qtype == 'main':
+                assert isinstance(query_fields, list), "query_fields must be a list"
+                query_fields = np.union1d(self.default_query_fields, query_fields)
+                database = self.database
+                raise IOError("Bad qtype")
+
+        self.query = _default_query_str(query_fields, database,self.coord,self.radius)
+        # Return
+        return self.query
     
     def _select_best_img(self,imgTable,verbose,timeout=120):
-        pass
+        """
+        Select the best band for a cutout
+
+        Args:
+            imgTable: Table of images
+            verbose (bool):  Print status
+            timeout (int or float):  How long to wait before timing out, in seconds
+
+        Returns:
+            HDU: header data unit for the downloaded image
+
+        """
+        # Get one with maximum zero point.
+        row = imgTable[np.argmax(imgTable['magzero'].data.data.astype('float'))] # pick image with longest exposure time
+        url = row['access_url']
+        if verbose:
+            print ('downloading deepest stacked image...')
+
+        imagedat = io.fits.open(utils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))
+        return imagedat
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,timeout=120, photomdict=None):
         """
@@ -94,9 +166,6 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         if self.svc is None:
             raise RuntimeError("svc attribute cannot be None. Have you installed pyvo?")
-        ra = self.coord.ra.value
-        dec = self.coord.dec.value
-        fov = imsize.to(units.deg).value
         
         if band.lower() not in self.bands and band not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
@@ -105,7 +174,12 @@ class DL_Survey(surveycoord.SurveyCoord):
         
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            imgTable = self.svc.search((ra,dec), (fov/np.cos(dec*np.pi/180), fov), verbosity=2).to_table()
+        try:
+            imgTable = self.svc.search(self.coord, imsize, verbosity=2).to_table()
+        except DALFormatError:
+            warnings.warn_explicit(f"Image cannot be retrieved. Invalid base URL?: {self.svc._baseurl}.",
+                               category=RuntimeWarning, filename="FRB/frb/surveys/dlsurvey.py", lineno=114)
+            return None
         if verbose:
             print("The full image list contains", len(imgTable), "entries")
         
