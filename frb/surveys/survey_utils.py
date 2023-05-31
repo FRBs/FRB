@@ -29,7 +29,8 @@ allowed_surveys = optical_surveys+radio_surveys
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
-    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
+    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
+    'PSRCAT', 'WISE', 'Pan-STARRS']
 
     Args:
         name (str): Name of the survey 
