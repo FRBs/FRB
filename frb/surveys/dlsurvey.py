@@ -87,6 +87,7 @@ class DL_Survey(surveycoord.SurveyCoord):
                 assert isinstance(query_fields, list), "query_fields must be a list"
                 query_fields = np.union1d(self.default_query_fields, query_fields)
                 database = self.database
+            else:
                 raise IOError("Bad qtype")
 
         self.query = _default_query_str(query_fields, database,self.coord,self.radius)
