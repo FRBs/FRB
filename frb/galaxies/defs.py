@@ -42,9 +42,12 @@ for band in PanSTARRS_bands:
     valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
 # VLT
-VLT_bands = ['u', 'g', 'I', 'z']
+VLT_bands = ['u', 'g', 'I', 'z', 'J', 'H', 'Ks']
 for band in VLT_bands:
+# FORS2
     valid_filters.append('VLT_FORS2_{:s}'.format(band))
+# HAWK-I
+    valid_filters.append('VLT_HAWKI_{:s}'.format(band))
 
 # GMOS
 #south
@@ -65,6 +68,11 @@ NIRI_bands = ['J']
 for band in NIRI_bands:
     valid_filters.append('NIRI_{:s}'.format(band))
 
+#Subaru
+Subaru_bands = ['J']
+for band in Subaru_bands:
+    valid_filters.append('Subaru_{:s}'.format(band))
+
 #LRIS
 LRISb_bands = ['U', 'G', 'V', 'B']
 for band in LRISb_bands:
@@ -73,6 +81,11 @@ for band in LRISb_bands:
 LRISr_bands = ['V', 'R', 'I']
 for band in LRISr_bands:
     valid_filters.append('LRISr_{:s}'.format(band))
+
+#DEIMOS
+DEIMOS_bands = ['R']
+for band in DEIMOS_bands:
+    valid_filters.append('DEIMOS_{:s}'.format(band))
 
 # VISTA (VIRCAM)
 VISTA_bands = ['Y','J','H','Ks']
