@@ -550,6 +550,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
 
     for frb in frbs:
         frb_name = utils.parse_frb_name(frb, prefix='')
+        print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
         # Loop on em
