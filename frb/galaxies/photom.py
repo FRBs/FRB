@@ -244,6 +244,8 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
+        elif 'DELVE' in filt:
+            _filter = filt.replace("DELVE_","DECam_")
         else:
             _filter = filt
         # Do it
