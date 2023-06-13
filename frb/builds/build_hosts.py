@@ -264,8 +264,10 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                #print("You found more than 1 galaxy.  Taking the 2nd one")
+                print("You found more than 1 galaxy.  Taking the 2nd one")
+                #embed(header='line 260ish')
                 #srvy_tbl = srvy_tbl[1:]
+                #srvy_tbl = srvy_tbl[:1]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
@@ -321,9 +323,8 @@ def run(host_input:pandas.core.series.Series,
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
-        embed()
         code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
-        embed()
+
         if code == -1:
             raise ValueError("Bad extinction correction!")
         # Parse
