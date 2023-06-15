@@ -1,0 +1,33 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 103.5
+    },
+    "DMISM_NE2001": {
+        "unit": "pc / cm3",
+        "value": 41
+    }
+    "DMISM_YMW16": {
+        "unit": "pc / cm3",
+        "value": 33
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.3
+    },
+    "FRB": "FRB20181030A",
+    "cosmo": "Planck18",
+    "dec": 73.7478,
+    "eellipse": {
+        "a": 68.0,
+        "b": 29.0,
+        "cl": 68.0,
+        "theta": 0.0
+    },
+    "ra": 158.574,
+    "refs": [
+        "Bhardwaj2021b",
+    ],
+    "repeater": True,
+    "z": 0.0039
+}
