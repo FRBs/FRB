@@ -157,7 +157,10 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
         else:
             warnings.warn(msg)
             return 1.
+
+    print(filter_file)
     filter_tbl = Table.read(filter_file, format='ascii')
+
 
     #get wave and transmission (file should have these headers in first row)
     wave = filter_tbl['col1'].data
@@ -244,6 +247,8 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
+        elif 'DELVE' in filt:
+            _filter = filt.replace("DELVE_","DECam_")
         else:
             _filter = filt
         # Do it
