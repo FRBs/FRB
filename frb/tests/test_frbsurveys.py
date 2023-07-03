@@ -14,6 +14,8 @@ from astropy.io.fits.hdu.image import PrimaryHDU
 from frb.surveys import survey_utils
 from PIL import Image
 
+from numpy import setdiff1d
+
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
 
@@ -40,7 +42,7 @@ def test_wise():
     assert len(wise_tbl) == 1
 
     #Test get_image
-    imghdu = wise_srvy.get_cutout(imsize=search_r, filter="W1")
+    imghdu = wise_srvy.get_cutout(imsize=search_r, band="W1")
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (5,5)
 
@@ -65,9 +67,13 @@ def test_des():
 
     des_srvy = survey_utils.load_survey_by_name('DES', coord, search_r)
     des_tbl = des_srvy.get_catalog(print_query=True)
-    #
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 2
+    
+    # Image
+    data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
+    assert data.shape == (39,39)
+    
 
 @remote_data
 def test_nsc():
@@ -81,6 +87,10 @@ def test_nsc():
     assert isinstance(nsc_tbl, Table)
     assert len(nsc_tbl) == 1
 
+    # Image
+    data, hdr = nsc_srvy.get_cutout(imsize=search_r, band="g")
+    assert data.shape == (38,38)
+
 @remote_data
 def test_delve():
     # Catalog
@@ -92,6 +102,8 @@ def test_delve():
     #
     assert isinstance(delve_tbl, Table)
     assert len(delve_tbl) == 1
+
+    # No image service available for DELVE
 
 @remote_data
 def test_vista():
@@ -115,6 +127,10 @@ def test_decals():
     #
     assert isinstance(decal_tbl, Table)
     assert len(decal_tbl) == 3
+
+    # Image
+    data, hdr = decal_srvy.get_cutout(imsize=search_r, band="g")
+    assert data.shape == (39, 39)
 
 
 
@@ -165,6 +181,7 @@ def test_in_which_survey():
                     'WISE': True,
                     'SDSS': True,
                     'DES': False,
+                    'DELVE': True,
                     'DECaL': True,
                     'VISTA': False,
                     'NSC': True,
@@ -197,20 +214,12 @@ def test_search_all():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
     assert len(combined_cat)==2
-    colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag', 'rKronRad',
-                'gPSFmag','rPSFmag','iPSFmag','zPSFmag','yPSFmag','gPSFmagErr','rPSFmagErr',
-                'iPSFmagErr','zPSFmagErr','yPSFmagErr','Pan-STARRS_g','Pan-STARRS_r',
-                'Pan-STARRS_i','Pan-STARRS_z','Pan-STARRS_y','Pan-STARRS_g_err','Pan-STARRS_r_err',
-                'Pan-STARRS_i_err','Pan-STARRS_z_err','Pan-STARRS_y_err','separation_1',
-                'source_id','tmass_key','WISE_W1','WISE_W1_err','WISE_W2','WISE_W2_err',
-                'WISE_W3','WISE_W3_err','WISE_W4','WISE_W4_err','SDSS_ID','run',
-                'rerun','camcol','SDSS_field','type','SDSS_u','SDSS_g','SDSS_r','SDSS_i',
-                'SDSS_z','SDSS_u_err','SDSS_g_err','SDSS_r_err','SDSS_i_err','SDSS_z_err',
-                'extinction_u','extinction_g','extinction_r','extinction_i','extinction_z',
-                'photo_z','photo_zerr','z_spec','separation_2','DECaL_ID','brick_primary',
-                'DECaL_brick','gaia_pointsource','DECaL_g','DECaL_r','DECaL_z','DECaL_g_err',
-                'DECaL_r_err','DECaL_z_err','NSC_ID','class_star','NSC_u','NSC_u_err',
-                'NSC_g','NSC_g_err','NSC_r','NSC_r_err','NSC_i','NSC_i_err','NSC_z',
-                'NSC_z_err','NSC_Y','NSC_Y_err','NSC_VR','NSC_VR_err']
-    assert combined_cat.colnames==colnames
+    colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag',
+                'rKronRad', 'gPSFmag', 'rPSFmag', 'iPSFmag', 'zPSFmag', 'yPSFmag', 'gPSFmagErr', 'rPSFmagErr', 'iPSFmagErr', 'zPSFmagErr', 'yPSFmagErr', 'Pan-STARRS_g', 'Pan-STARRS_r', 'Pan-STARRS_i', 'Pan-STARRS_z', 'Pan-STARRS_y', 'Pan-STARRS_g_err', 'Pan-STARRS_r_err', 'Pan-STARRS_i_err', 'Pan-STARRS_z_err', 'Pan-STARRS_y_err', 'separation_1',
+                'source_id', 'tmass_key', 'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
+                'SDSS_ID', 'run', 'rerun', 'camcol', 'SDSS_field', 'type', 'SDSS_u', 'SDSS_g', 'SDSS_r', 'SDSS_i', 'SDSS_z', 'SDSS_u_err', 'SDSS_g_err', 'SDSS_r_err', 'SDSS_i_err', 'SDSS_z_err', 'extinction_u', 'extinction_g', 'extinction_r', 'extinction_i', 'extinction_z', 'photo_z', 'photo_zerr', 'z_spec', 'separation_2',
+                'DELVE_ID', 'ebv', 'DELVE_g', 'DELVE_g_err', 'class_star_g', 'DELVE_r', 'DELVE_r_err', 'class_star_r', 'DELVE_i', 'DELVE_i_err', 'class_star_i', 'DELVE_z', 'DELVE_z_err', 'class_star_z',
+                'DECaL_ID', 'DECaL_brick', 'gaia_pointsource', 'DECaL_g', 'DECaL_r', 'DECaL_z', 'DECaL_g_err', 'DECaL_r_err', 'DECaL_z_err',
+                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err']
+    assert len(setdiff1d(combined_cat.colnames, colnames))==0
     assert combined_cat['Pan-STARRS_ID'][1] == -999.
