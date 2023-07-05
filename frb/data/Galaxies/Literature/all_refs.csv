@@ -17,4 +17,5 @@ fong2021_photom.ascii,ascii.fixed_width,Fong2021,arXiv:2106.11993
 fong2021_nebular.csv,csv,Fong2021,arXiv:2106.11993
 fong2021_derived.csv,csv,Fong2021,arXiv:2106.11993
 niu2021_derived.csv,csv,Niu2021,arXiv:2110.07418
-gordon2023_derived.csv,csv,Gordon2023,arXiv:BLAHBLAH
+gordon2023_derived.csv,csv,Gordon2023,arXiv:2302.05465
+gordon2023_photom.csv,csv,Gordon2023,arXiv:2302.05465

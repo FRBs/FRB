@@ -264,8 +264,10 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                #print("You found more than 1 galaxy.  Taking the 2nd one")
+                print("You found more than 1 galaxy.  Taking the 2nd one")
+                #embed(header='line 260ish')
                 #srvy_tbl = srvy_tbl[1:]
+                #srvy_tbl = srvy_tbl[:1]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
@@ -322,6 +324,7 @@ def run(host_input:pandas.core.series.Series,
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
         code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+
         if code == -1:
             raise ValueError("Bad extinction correction!")
         # Parse
@@ -421,6 +424,7 @@ def run(host_input:pandas.core.series.Series,
     if isinstance(host_input.Bad_EM_lines, str):
         lines = host_input.Bad_EM_lines.split(',')
         for line in lines:
+            embed()
             Host.neb_lines.pop(line)
             Host.neb_lines.pop(line+'_err')
 
@@ -550,6 +554,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
 
     for frb in frbs:
         frb_name = utils.parse_frb_name(frb, prefix='')
+        print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
         # Loop on em
@@ -569,3 +574,4 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
 
 # Run em all
 #  frb_build Hosts --frb 20181112A
+# Gordon+23 hosts: frb_build Hosts --frb 20121102A,20180301A,20180916B,20180924B,20181112A,20190102C,20190520B,20190608B,20190611B,20190711A,20190714A,20191001A,20200430A,20200906A,20201124A,20210117A,20210320C,20210410D,20210807D,20211127I,20211203C,20211212A,20220105A
