@@ -521,7 +521,8 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
+    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False,
+                     galight:bool=False):
         """
         Parse an output GALFIT file
 
@@ -536,13 +537,17 @@ class FRBGalaxy(object):
             twocomponent (bool, optional): Should the morphology
                 attribute generated contain fit parameters of
                 two components?
+            galight (bool, optional): If True, parse GALight
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
-        try:
-            fit_tab = Table.read(galfit_file, hdu=4)
-        except:
-            raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
+        if galight:
+            fit_tab = utils.loadjson(galfit_file)
+        else:
+            try:
+                fit_tab = Table.read(galfit_file, hdu=4)
+            except:
+                raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
         for key in fit_tab.keys():
             if 'mag' in key:
                 continue
