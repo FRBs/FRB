@@ -449,11 +449,13 @@ def run(host_input:pandas.core.series.Series,
             Host.parse_galfit(galfit_file)
         else:
             found_galight, galight_file = search_for_file(
-                project_list, ref_list, '_gallight.json',
+                project_list, ref_list, '_galight.json',
                 prefix=file_root+'_'+host_input.Galfit_filter)
-            print(f"Galigh analysis slurped in via: {galight_file}")
-            Host.parse_galfit(galight_file, galight=True)
-            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+            print(f"Galight analysis slurped in via: {galight_file}")
+            if found_galight:
+                Host.parse_galfit(galight_file, galight=True)
+            else:
+                raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")
 

@@ -542,6 +542,7 @@ class FRBGalaxy(object):
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
         if galight:
+            # Note this is a dict, not a table but so it goes
             fit_tab = utils.loadjson(galfit_file)
         else:
             try:
@@ -552,7 +553,9 @@ class FRBGalaxy(object):
             if 'mag' in key:
                 continue
             if (key not in self.morphology.keys()) or (overwrite):
-                if twocomponent:
+                if galight:
+                    self.morphology[key] = fit_tab[key]
+                elif twocomponent:
                     self.morphology[key] = fit_tab[key].data
                 else:
                     self.morphology[key] = fit_tab[key][0]
