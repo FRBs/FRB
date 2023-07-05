@@ -568,4 +568,4 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
     print("All done!")
 
 # Run em all
-#  frb_build Hosts --frb 20181112,20190711,20200906,20121102,20190102,20190714,20201124,20171020,20190523,20191001,20180301,20190608,20191228,20180916,20190611,20180924,20190614,20200430
+#  frb_build Hosts --frb 20181112A
