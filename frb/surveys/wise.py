@@ -85,11 +85,11 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat = self.service.run_async(self.query).to_table()
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
         if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
             return main_cat
         
-        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
+        embed(header='WISE 92')
 
         # Convert to AB mag
         if system == 'AB':
@@ -103,6 +103,7 @@ class WISE_Survey(surveycoord.SurveyCoord):
             pass
         else:
             raise RuntimeError("Photometry system must be one of 'AB' and 'Vega'")
+
 
         # Finish
         self.catalog = main_cat
