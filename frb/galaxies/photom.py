@@ -158,7 +158,6 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
             warnings.warn(msg)
             return 1.
 
-    print(filter_file)
     filter_tbl = Table.read(filter_file, format='ascii')
 
 

@@ -124,12 +124,12 @@
         "VLT_FORS2_I_err": 0.07,
         "VLT_FORS2_I_flux": 0.005378825219122234,
         "VLT_FORS2_I_flux_err": 0.000358208896369033,
-        "VLT_FORS2_I_ref": "Gordon2023",
+        "VLT_FORS2_I_ref": "Bhandari2021",
         "VLT_FORS2_g": 23.36422654609205,
         "VLT_FORS2_g_err": 0.09,
         "VLT_FORS2_g_flux": 0.0016379829463913733,
         "VLT_FORS2_g_flux_err": 0.00014156369761599282,
-        "VLT_FORS2_g_ref": "Gordon2023"
+        "VLT_FORS2_g_ref": "Bhandari2021"
     },
     "ra": 320.7428208333333,
     "ra_FRB": 320.7455833,

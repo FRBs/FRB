@@ -486,14 +486,14 @@ class FRBGalaxy(object):
         # Do it
         cigale = {}
         for item in cigale_translate:
-            try:
-                if not(item[0] in defs.valid_derived_photom):
-                    raise AssertionError("{} not valid!!".format(item[0]))
-                if item[1] in cigale_tbl.keys():
-                    cigale[item[0]] = cigale_tbl[item[1]][0]          # Solar masses, linear
-                    cigale[item[0]+'_err'] = cigale_tbl[item[1]+'_err'][0]          # Solar masses, linear
-            except AssertionError:
-                print('Error with', item[0])
+            #try:
+            if not(item[0] in defs.valid_derived_photom):
+                raise AssertionError("{} not valid!!".format(item[0]))
+            if item[1] in cigale_tbl.keys():
+                cigale[item[0]] = cigale_tbl[item[1]][0]          # Solar masses, linear
+                cigale[item[0]+'_err'] = cigale_tbl[item[1]+'_err'][0]          # Solar masses, linear
+            #except AssertionError:
+            #    print('Error with', item[0])
 
 
         # Absolute magnitude (astronomers...)

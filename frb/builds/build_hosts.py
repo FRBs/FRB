@@ -149,8 +149,6 @@ def read_lit_table(lit_entry, coord=None):
         sep = coord.separation(tbl_coord)
         match = sep < 1*units.arcsec
         nmatch = np.sum(match)
-        #if 'derived' in lit_entry.Table:
-        #    embed(header='151 of build_hosts')
         if nmatch == 0:
             return None
         elif nmatch == 1:
@@ -264,8 +262,7 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                print("You found more than 1 galaxy.  Taking the 2nd one")
-                #embed(header='line 260ish')
+                #print("You found more than 1 galaxy.  Taking the 2nd one")
                 #srvy_tbl = srvy_tbl[1:]
                 #srvy_tbl = srvy_tbl[:1]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
@@ -301,13 +298,16 @@ def run(host_input:pandas.core.series.Series,
                     if key == 'Name':
                         continue
                     if key in merge_tbl.keys():
-                        if sub_tbl[key] == fill_value:
-                            continue
+                        # make sure to compare photometry, not reference string
+                        if isinstance(sub_tbl[key].data[0],str):
+                            pass
                         else:
-                            merge_tbl[key] = sub_tbl[key]
+                            np.isclose(sub_tbl[key].data[0],fill_value)
                     else:
-                        if sub_tbl[key] != fill_value:
-                            merge_tbl[key] = sub_tbl[key]
+                        merge_tbl[key] = sub_tbl[key]
+                else:
+                    if sub_tbl[key] != fill_value:
+                        merge_tbl[key] = sub_tbl[key]
                 #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
                 merge_tbl = sub_tbl
@@ -424,7 +424,6 @@ def run(host_input:pandas.core.series.Series,
     if isinstance(host_input.Bad_EM_lines, str):
         lines = host_input.Bad_EM_lines.split(',')
         for line in lines:
-            embed()
             Host.neb_lines.pop(line)
             Host.neb_lines.pop(line+'_err')
 
@@ -485,24 +484,6 @@ def run(host_input:pandas.core.series.Series,
                     if '_loerr' in key:
                         hikey = key.replace('lo', 'up')
                         Host.derived[hikey] = float(lit_tbl[hikey].data[0])
-                '''
-                Host.derived[key] = float(lit_tbl[key].data[0])
-                newkey = key.replace('err', 'ref')
-                Host.derived[newkey] = lit_entry.Reference
-                # Value
-                newkey = newkey.replace('_ref', '')
-                Host.derived[newkey] = float(lit_tbl[newkey].data[0])
-            if '_loerr' in key:
-                # Deal wit herrors
-                Host.derived[key] = float(lit_tbl[key].data[0])
-                hikey = key.replace('lo', 'up')
-                Host.derived[hikey] = float(lit_tbl[hikey].data[0])
-                refkey = key.replace('loerr', 'ref')
-                Host.derived[refkey] = lit_entry.Reference
-                # Value
-                valkey = refkey.replace('_ref', '')
-                Host.derived[valkey] = float(lit_tbl[valkey].data[0])
-                '''
 
     # Vet all
     assert Host.vet_all()

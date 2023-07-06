@@ -71,7 +71,7 @@ for band in NIRI_bands:
 #Subaru
 Subaru_bands = ['J']
 for band in Subaru_bands:
-    valid_filters.append('Subaru_{:s}'.format(band))
+    valid_filters.append('Subaru_MOIRCS_{:s}'.format(band))
 
 #LRIS
 LRISb_bands = ['U', 'G', 'V', 'B']
@@ -83,7 +83,7 @@ for band in LRISr_bands:
     valid_filters.append('LRISr_{:s}'.format(band))
 
 #DEIMOS
-DEIMOS_bands = ['R']
+DEIMOS_bands = ['r']
 for band in DEIMOS_bands:
     valid_filters.append('DEIMOS_{:s}'.format(band))
 
