@@ -28,6 +28,9 @@ valid_e = [
 ##############################################################
 # Photometry
 
+# Upper limits are specified by setting the error to 999.0
+# No measurement is specified by -999.0
+
 # Filters
 valid_filters = []
 
