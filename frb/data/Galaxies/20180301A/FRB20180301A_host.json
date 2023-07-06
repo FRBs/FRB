@@ -107,12 +107,10 @@
         "Pan-STARRS_r_err": 0.13599200546741486,
         "Pan-STARRS_r_flux": 0.014868172092610906,
         "Pan-STARRS_r_flux_err": 0.001983941638071415,
-        "Pan-STARRS_r_ref": "Bhandari2021",
         "Pan-STARRS_z": 20.954430809530397,
         "Pan-STARRS_z_err": 0.1679369956254959,
         "Pan-STARRS_z_flux": 0.015073970828580882,
-        "Pan-STARRS_z_flux_err": 0.0025215638653315604,
-        "Pan-STARRS_z_ref": "Bhandari2021"
+        "Pan-STARRS_z_flux_err": 0.0025215638653315604
     },
     "ra": 93.22682999999999,
     "ra_FRB": 93.22683333,

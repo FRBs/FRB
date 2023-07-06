@@ -67,9 +67,9 @@
     "photom": {
         "EBV": 0.2496,
         "SOAR_U": 23.231649845654815,
-        "SOAR_U_err": -999,
+        "SOAR_U_err": 999.0,
         "SOAR_U_flux": 0.0018507171780525996,
-        "SOAR_U_flux_err": -99,
+        "SOAR_U_flux_err": -99.0,
         "SOAR_U_ref": "Gordon2023",
         "SOAR_g": 23.02686411385207,
         "SOAR_g_err": 0.1366,
