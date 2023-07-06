@@ -299,9 +299,9 @@ def run(host_input:pandas.core.series.Series,
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
         if sub_tbl is not None:
-            # Add Ref
+            # Add References, unless the value is masked
             for key in sub_tbl.keys():
-                if 'err' in key:
+                if 'err' in key and not chk_fill(sub_tbl[key].data[0]):
                     newkey = key.replace('err', 'ref')
                     sub_tbl[newkey] = lit_entry.Reference
             # Merge?
@@ -309,11 +309,8 @@ def run(host_input:pandas.core.series.Series,
                 for key in sub_tbl.keys():
                     if key == 'Name':
                         continue
-                    if key in merge_tbl.keys():
-                        if chk_fill(sub_tbl[key].data[0]):
-                            pass
-                        else:
-                            merge_tbl[key] = sub_tbl[key]
+                    if key in merge_tbl.keys() and not chk_fill(sub_tbl[key].data[0]):
+                        merge_tbl[key] = sub_tbl[key]
                     else:
                         if not chk_fill(sub_tbl[key].data[0]):
                             merge_tbl[key] = sub_tbl[key]
