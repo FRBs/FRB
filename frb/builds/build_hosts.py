@@ -66,6 +66,18 @@ mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
         mannings2021_astrom.Filter == 'F110W')].copy()
 
+def chk_fill(value):
+    if isinstance(value,str):
+        # Allow for -999 as a string
+        try:
+            value = float(value)
+        except:
+            return False
+        else:
+            return np.isclose(value, fill_value)
+    else:
+        return np.isclose(value, fill_value)
+
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     """Assign a redshift using one of the Galaxy_DB tables
 
@@ -298,19 +310,13 @@ def run(host_input:pandas.core.series.Series,
                     if key == 'Name':
                         continue
                     if key in merge_tbl.keys():
-                        #if sub_tbl[key] == fi
-                        # make sure to compare photometry, not reference string
-                        if isinstance(sub_tbl[key].data[0],str):
+                        if chk_fill(sub_tbl[key].data[0]):
                             pass
                         else:
-                            if np.isclose(sub_tbl[key].data[0],fill_value):
-                                
+                            merge_tbl[key] = sub_tbl[key]
                     else:
-                        merge_tbl[key] = sub_tbl[key]
-                else:
-                    if sub_tbl[key] != fill_value:
-                        merge_tbl[key] = sub_tbl[key]
-                #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
+                        if not chk_fill(sub_tbl[key].data[0]):
+                            merge_tbl[key] = sub_tbl[key]
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
