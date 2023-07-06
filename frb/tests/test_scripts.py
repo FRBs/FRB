@@ -39,6 +39,7 @@ def test_frb_pz_dm():
     assert np.isclose(z_50, 0.10050251256281408)
     assert np.isclose(z_mode, 0.12060301507537688)
 
+@remote_data
 def test_tns():
     tns.parser.units = 'deg'
     tns.parser.radius = 0.5
