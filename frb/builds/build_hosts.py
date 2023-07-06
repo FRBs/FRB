@@ -298,11 +298,13 @@ def run(host_input:pandas.core.series.Series,
                     if key == 'Name':
                         continue
                     if key in merge_tbl.keys():
+                        #if sub_tbl[key] == fi
                         # make sure to compare photometry, not reference string
                         if isinstance(sub_tbl[key].data[0],str):
                             pass
                         else:
-                            np.isclose(sub_tbl[key].data[0],fill_value)
+                            if np.isclose(sub_tbl[key].data[0],fill_value):
+                                
                     else:
                         merge_tbl[key] = sub_tbl[key]
                 else:
