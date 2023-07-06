@@ -85,12 +85,10 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat = self.service.run_async(self.query).to_table()
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
-        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=-999.)
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=999.)
         if len(main_cat) == 0:
             return main_cat
         
-        embed(header='WISE 92')
-
         # Convert to AB mag
         if system == 'AB':
             fnu0 = {'WISE_W1':309.54,
