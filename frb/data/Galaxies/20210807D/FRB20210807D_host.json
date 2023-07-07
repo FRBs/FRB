@@ -114,7 +114,7 @@
         "WISE_W3_flux_err": 0.13057368410388248,
         "WISE_W3_ref": "Gordon2023",
         "WISE_W4": 13.86108684539795,
-        "WISE_W4_err": -999.0,
+        "WISE_W4_err": 999.0,
         "WISE_W4_flux": 10.364908218383789,
         "WISE_W4_flux_err": -99.0
     },
