@@ -1,4 +1,5 @@
-""" Created by Yuxin Dong """
+""" Created by Yuxin (Vic) Dong """
+""" Reach out to Vic via yuxin.dong[at]northwestern.edu if you need help with the API key :) """
 import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
