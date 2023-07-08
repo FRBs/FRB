@@ -10,3 +10,5 @@ scale0.5.csv -- Generated on 2022-03-04 by JXP
 
 
     frb_build PATH --options new_prior
+
+Update on 2023-Feb-15 by JXP to account for PATH normalization error

@@ -9,6 +9,7 @@ from frb.surveys.psrcat import PSRCAT_Survey
 from frb.surveys import heasarc
 from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
+from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
@@ -21,7 +22,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES',  'DECaL', 'VISTA', 'NSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -29,7 +30,8 @@ allowed_surveys = optical_surveys+radio_surveys
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
-    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 'PSRCAT', 'WISE', 'Pan-STARRS']
+    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
+    'PSRCAT', 'WISE', 'Pan-STARRS']
 
     Args:
         name (str): Name of the survey 
@@ -66,6 +68,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = Pan_STARRS_Survey(coord, radius,**kwargs)
     elif name == 'NSC':
         survey = NSC_Survey(coord, radius, **kwargs)
+    elif name == 'DELVE':
+        survey = DELVE_Survey(coord, radius, **kwargs)
     elif name == 'VISTA':
         survey = VISTA_Survey(coord, radius, **kwargs)
 
@@ -183,23 +187,25 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
+            print(f"{surveyname} has {survey.catalog.colnames}")
         except ConnectionError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
-        if (survey.catalog is not None) & (len(survey.catalog)>0):
-            print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
-            if len(combined_cat)==0:
-                # First time
-                combined_cat = survey.catalog
-            else:
-                # Combine otherwise
-                # TODO: Need to deal with duplicate column names more elegantly.
-                combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
-        # No objects found?
-        elif len(survey.catalog)==0:
-            print("Empty table in "+surveyname)
+        if (survey.catalog is not None):
+            if len(survey.catalog)>0:
+                print("Found {:d} objects in {:s}".format(len(survey.catalog), surveyname))
+                if len(combined_cat)==0:
+                    # First time
+                    combined_cat = survey.catalog
+                else:
+                    # Combine otherwise
+                    # TODO: Need to deal with duplicate column names more elegantly.
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
+            # No objects found?
+            elif len(survey.catalog)==0:
+                print("Empty table in "+surveyname)
     
     return combined_cat
 

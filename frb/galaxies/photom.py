@@ -1,6 +1,5 @@
 """ Methods related to galaxy photometry """
 
-from email import header
 import os
 import warnings
 import numpy as np
@@ -158,7 +157,9 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
         else:
             warnings.warn(msg)
             return 1.
+
     filter_tbl = Table.read(filter_file, format='ascii')
+
 
     #get wave and transmission (file should have these headers in first row)
     wave = filter_tbl['col1'].data
@@ -176,9 +177,9 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     Alambda = extinction.fm07(wave, AV)
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapz(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapz(
-        throughput * source_flux, wave)
-    
+    delta = np.trapz(throughput * source_flux * 
+                     10 ** (-0.4 * Alambda), wave) / np.trapz(
+                         throughput * source_flux, wave)
 
     correction = 1./delta
 
@@ -245,6 +246,8 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
+        elif 'DELVE' in filt:
+            _filter = filt.replace("DELVE_","DECam_")
         else:
             _filter = filt
         # Do it

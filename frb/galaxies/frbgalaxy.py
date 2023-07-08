@@ -51,13 +51,16 @@ class FRBGalaxy(object):
 
     """
     @classmethod
-    def from_dict(cls, frb, idict, **kwargs):
+    def from_dict(cls, frb, idict, override:bool=False, **kwargs):
         """
         Instantiate from a dict
 
         Args:
             frb (frb.FRB):
             idict (dict):
+            override (bool, optional):
+                Over-ride the cosmology error
+                Not recommended unless you know what you are doing
             **kwargs: Passed to the __init__ call
 
         Returns:
@@ -71,7 +74,7 @@ class FRBGalaxy(object):
             slf.frb_coord = SkyCoord(ra=idict['ra_FRB'], dec=idict['dec_FRB'], unit='deg')
 
         # Check cosmology
-        if slf.cosmo.name != idict['cosmo']:
+        if slf.cosmo.name != idict['cosmo'] and not override:
             raise AssertionError("Your cosmology does not match the expected.  Gotta deal..")
 
         # Fill me up
@@ -483,11 +486,15 @@ class FRBGalaxy(object):
         # Do it
         cigale = {}
         for item in cigale_translate:
+            #try:
             if not(item[0] in defs.valid_derived_photom):
                 raise AssertionError("{} not valid!!".format(item[0]))
             if item[1] in cigale_tbl.keys():
                 cigale[item[0]] = cigale_tbl[item[1]][0]          # Solar masses, linear
                 cigale[item[0]+'_err'] = cigale_tbl[item[1]+'_err'][0]          # Solar masses, linear
+            #except AssertionError:
+            #    print('Error with', item[0])
+
 
         # Absolute magnitude (astronomers...)
         if 'Lnu_r' in cigale.keys():
@@ -683,6 +690,10 @@ class FRBGalaxy(object):
         for key in getattr(self, attr).keys():
             # Skip error
             if '_err' in key:
+                continue
+            if '_loerr' in key:
+                continue
+            if '_uperr' in key:
                 continue
             if key not in defs_list:
                 vet = False

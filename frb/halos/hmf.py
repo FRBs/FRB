@@ -77,7 +77,13 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         ratios: ndarray
           rho_halo / rho_m
     """
-
+    # Deal with scalar input
+    if np.isscalar(zvals):
+        zvals = np.atleast_1d([zvals])
+    # Cheeky edge case
+    if np.isclose(Mlow, Mhigh, rtol=1e-05):
+       return np.zeros(len(zvals))
+    
     M = np.logspace(np.log10(Mlow*cosmo.h), np.log10(Mhigh*cosmo.h), num=1000)
     lM = np.log(M)
 
@@ -155,8 +161,8 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None,
     # Mean density
     ns = []
     for iz in zs:
-        ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) 
-        ns.append(ins[0]*cosmo.h**3)  # * units.Mpc**-3
+        ins = hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz)
+        ns.append(ins*cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
     ns = units.Quantity(ns*units.Mpc**-3)
     # Radii
