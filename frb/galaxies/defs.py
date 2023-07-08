@@ -28,6 +28,9 @@ valid_e = [
 ##############################################################
 # Photometry
 
+# Upper limits are specified by setting the error to 999.0
+# No measurement is specified by -999.0
+
 # Filters
 valid_filters = []
 
@@ -35,16 +38,6 @@ valid_filters = []
 SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
     valid_filters.append('SDSS_{:s}'.format(band))
-    
-# DES
-DES_bands = ['g', 'r', 'i', 'z', 'Y']
-for band in DES_bands:
-    valid_filters.append('DES_{:s}'.format(band))
-
-# DECaLS
-DECaL_bands = ['g', 'r', 'z']
-for band in DECaL_bands:
-    valid_filters.append('DECaL_{:s}'.format(band))
 
 #PanSTARRS
 PanSTARRS_bands = ['g','r','i','z','y']
@@ -52,9 +45,12 @@ for band in PanSTARRS_bands:
     valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
 # VLT
-VLT_bands = ['u', 'g', 'I', 'z']
+VLT_bands = ['u', 'g', 'I', 'z', 'J', 'H', 'Ks']
 for band in VLT_bands:
+# FORS2
     valid_filters.append('VLT_FORS2_{:s}'.format(band))
+# HAWK-I
+    valid_filters.append('VLT_HAWKI_{:s}'.format(band))
 
 # GMOS
 #south
@@ -75,6 +71,11 @@ NIRI_bands = ['J']
 for band in NIRI_bands:
     valid_filters.append('NIRI_{:s}'.format(band))
 
+#Subaru
+Subaru_bands = ['J']
+for band in Subaru_bands:
+    valid_filters.append('Subaru_MOIRCS_{:s}'.format(band))
+
 #LRIS
 LRISb_bands = ['U', 'G', 'V', 'B']
 for band in LRISb_bands:
@@ -83,6 +84,11 @@ for band in LRISb_bands:
 LRISr_bands = ['V', 'R', 'I']
 for band in LRISr_bands:
     valid_filters.append('LRISr_{:s}'.format(band))
+
+#DEIMOS
+DEIMOS_bands = ['r']
+for band in DEIMOS_bands:
+    valid_filters.append('DEIMOS_{:s}'.format(band))
 
 # VISTA (VIRCAM)
 VISTA_bands = ['Y','J','H','Ks']
@@ -98,6 +104,11 @@ for band in MMIRS_bands:
 MASS_bands = ['J','H','K']
 for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
+
+#6dF
+sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']
+for band in sixdF_bands:
+    valid_filters.append('6dF_{:s}'.format(band))
 
 # HST instruments
 # WFC3
@@ -115,14 +126,34 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
-NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
-for band in NSC_bands:
-    valid_filters.append('NSC_{:s}'.format(band))
+# DECam-based surveys
 
+# Generic
 DECam_bands = ['u','g', 'r', 'i', 'z']
 for band in DECam_bands:
     valid_filters.append("DECam_{:s}".format(band))
 
+# NSC
+NSC_bands = ['u','g', 'r', 'i', 'z', 'Y', 'VR']
+for band in NSC_bands:
+    valid_filters.append('NSC_{:s}'.format(band))
+
+# DES
+DES_bands = ['g', 'r', 'i', 'z', 'Y']
+for band in DES_bands:
+    valid_filters.append('DES_{:s}'.format(band))
+
+# DELVE
+DELVE_bands = ['g', 'r', 'i', 'z']
+for band in DELVE_bands:
+    valid_filters.append('DELVE_{:s}'.format(band))
+
+# DECaLS
+DECaL_bands = ['g', 'r', 'z']
+for band in DECaL_bands:
+    valid_filters.append('DECaL_{:s}'.format(band))
+
+# SOAR Goodman
 SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
             'cousins_R','stromgren_v','stromgren_b','stromgren_y']
 for band in SOAR_bands:
@@ -201,16 +232,16 @@ valid_derived_photom = [
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
     'AV_young',        # Dust attenuation of young stellar light; magnitudes; Prospector
     'AV_old',          # Dust attenuation of old stellar light; magnitudes; Prospector
-    'age_mass',        # Age weighted mass from CIGALE (or Prospector if Gordon2023)
+    'age_mass',        # Mass-weighted age (Gyr) from CIGALE (or Prospector if Gordon2023)
     'SFR_SED',         # 0-100 Myr integrated SFR in Msun/yr; Prospector
     'SFR_photom',      # SFR in Msun/yr from photometry; CIGALE
     'SFR_radio',       # SFR in Msun/yr from radio photometry
-    'log_sSFR'         # 0-100 Myr integrated specific SFR in yr ^-1; Prospector
+    'lg_sSFR',          # log of 0-100 Myr integrated specific SFR in yr ^-1; Prospector
     'EBV_photom',      # E(B-V) from photometry; CIGALE
     'EBV_spec',        # E(B-V) from spectral SED; pPXF
     'Z_photom',        # Metallicity from photometry; CIGALE
     'Z_spec',          # Metallicity from spectra; pPXF
-    'Z_stellar'        # Stellar metallicity; Prospector
+    'Z_stellar',        # Stellar metallicity; Prospector
     'Z_gas'            # Gas-phase metallicity; Prospector
     ]
 

@@ -66,6 +66,18 @@ mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
         mannings2021_astrom.Filter == 'F110W')].copy()
 
+def chk_fill(value):
+    if isinstance(value,str):
+        # Allow for -999 as a string
+        try:
+            value = float(value)
+        except:
+            return False
+        else:
+            return np.isclose(value, fill_value)
+    else:
+        return np.isclose(value, fill_value)
+
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     """Assign a redshift using one of the Galaxy_DB tables
 
@@ -149,8 +161,6 @@ def read_lit_table(lit_entry, coord=None):
         sep = coord.separation(tbl_coord)
         match = sep < 1*units.arcsec
         nmatch = np.sum(match)
-        #if 'derived' in lit_entry.Table:
-        #    embed(header='151 of build_hosts')
         if nmatch == 0:
             return None
         elif nmatch == 1:
@@ -266,6 +276,7 @@ def run(host_input:pandas.core.series.Series,
             else:
                 #print("You found more than 1 galaxy.  Taking the 2nd one")
                 #srvy_tbl = srvy_tbl[1:]
+                #srvy_tbl = srvy_tbl[:1]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
@@ -288,9 +299,9 @@ def run(host_input:pandas.core.series.Series,
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
         if sub_tbl is not None:
-            # Add Ref
+            # Add References, unless the value is masked
             for key in sub_tbl.keys():
-                if 'err' in key:
+                if 'err' in key and not chk_fill(sub_tbl[key].data[0]):
                     newkey = key.replace('err', 'ref')
                     sub_tbl[newkey] = lit_entry.Reference
             # Merge?
@@ -298,15 +309,11 @@ def run(host_input:pandas.core.series.Series,
                 for key in sub_tbl.keys():
                     if key == 'Name':
                         continue
-                    if key in merge_tbl.keys():
-                        if sub_tbl[key] == fill_value:
-                            continue
-                        else:
-                            merge_tbl[key] = sub_tbl[key]
+                    if key in merge_tbl.keys() and not chk_fill(sub_tbl[key].data[0]):
+                        merge_tbl[key] = sub_tbl[key]
                     else:
-                        if sub_tbl[key] != fill_value:
+                        if not chk_fill(sub_tbl[key].data[0]):
                             merge_tbl[key] = sub_tbl[key]
-                #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
@@ -322,6 +329,7 @@ def run(host_input:pandas.core.series.Series,
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
         code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+
         if code == -1:
             raise ValueError("Bad extinction correction!")
         # Parse
@@ -481,24 +489,6 @@ def run(host_input:pandas.core.series.Series,
                     if '_loerr' in key:
                         hikey = key.replace('lo', 'up')
                         Host.derived[hikey] = float(lit_tbl[hikey].data[0])
-                '''
-                Host.derived[key] = float(lit_tbl[key].data[0])
-                newkey = key.replace('err', 'ref')
-                Host.derived[newkey] = lit_entry.Reference
-                # Value
-                newkey = newkey.replace('_ref', '')
-                Host.derived[newkey] = float(lit_tbl[newkey].data[0])
-            if '_loerr' in key:
-                # Deal wit herrors
-                Host.derived[key] = float(lit_tbl[key].data[0])
-                hikey = key.replace('lo', 'up')
-                Host.derived[hikey] = float(lit_tbl[hikey].data[0])
-                refkey = key.replace('loerr', 'ref')
-                Host.derived[refkey] = lit_entry.Reference
-                # Value
-                valkey = refkey.replace('_ref', '')
-                Host.derived[valkey] = float(lit_tbl[valkey].data[0])
-                '''
 
     # Vet all
     assert Host.vet_all()
@@ -550,6 +540,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
 
     for frb in frbs:
         frb_name = utils.parse_frb_name(frb, prefix='')
+        print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
         # Loop on em
@@ -568,4 +559,5 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
     print("All done!")
 
 # Run em all
-#  frb_build Hosts --frb 20181112,20190711,20200906,20121102,20190102,20190714,20201124,20171020,20190523,20191001,20180301,20190608,20191228,20180916,20190611,20180924,20190614,20200430
+#  frb_build Hosts --frb 20181112A
+# Gordon+23 hosts: frb_build Hosts --frb 20121102A,20180301A,20180916B,20180924B,20181112A,20190102C,20190520B,20190608B,20190611B,20190711A,20190714A,20191001A,20200430A,20200906A,20201124A,20210117A,20210320C,20210410D,20210807D,20211127I,20211203C,20211212A,20220105A

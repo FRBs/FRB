@@ -32,7 +32,7 @@ photom['DECaL']['DECaL_ID'] = 'ls_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
 photom['DECaL']['DECaL_brick'] = 'brickid'
-
+photom['DECaL']['gaia_pointsource'] = 'gaia_pointsource'
 
 class DECaL_Survey(dlsurvey.DL_Survey):
     """
@@ -53,6 +53,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
         self.qc_profile = "default"
         self.database = "ls_dr8.tractor"
+        self.default_query_fields = list(photom['DECaL'].values())
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
         """
@@ -70,7 +71,9 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         # Query
-        main_cat = super(DECaL_Survey, self).get_catalog(query_fields=query_fields, print_query=print_query,**kwargs)
+        main_cat = super(DECaL_Survey, self).get_catalog(query=query,
+                                                         query_fields=query_fields,
+                                                         print_query=print_query,**kwargs)
         main_cat = Table(main_cat,masked=True)
         #
         for col in main_cat.colnames:
@@ -114,44 +117,3 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         table_cols = ['prodtype']
         col_vals = ['image']
         return table_cols, col_vals, bandstr
-    
-    def _gen_cat_query(self,query_fields=None):
-        """
-        Generate SQL query for catalog search
-        
-        self.query is modified in place
-        
-        Args:
-            query_fields (list):  Override the default list for the SQL query
-
-        """
-        if query_fields is None:
-            object_id_fields = ['ls_id','brick_primary','brickid','ra','dec','gaia_pointsource']
-            mag_fields = ['mag_'+band for band in self.bands]
-            snr_fields = ['snr_'+band for band in self.bands]
-            query_fields = object_id_fields+mag_fields+snr_fields
-        
-        
-        self.query = dlsurvey._default_query_str(query_fields, self.database, self.coord, self.radius)
-        
-    def _select_best_img(self,imgTable, verbose=True, timeout=120):
-        """
-        Select the best band for a cutout
-        
-        Args:
-            imgTable: Table of images
-            verbose (bool):  Print status
-            timeout (int or float):  How long to wait before timing out, in seconds
-
-        Returns:
-            HDU: header data unit for the downloaded image
-            
-        """
-        row = imgTable[0]
-        url = row['access_url'].decode()
-        if verbose:
-            print('downloading image...')
-        
-        imagedat = io.fits.open(utils.data.download_file(
-            url,cache=True,show_progress=False,timeout=timeout))
-        return imagedat
