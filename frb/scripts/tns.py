@@ -1,10 +1,9 @@
 """ Created by Yuxin (Vic) Dong """
-""" Reach out to Vic via yuxin.dong[at]northwestern.edu if you need help with the API key :) """
+
 import pandas as pd
 from astropy import units as u
 from astropy.coordinates import SkyCoord
 from frb.surveys import tns_util
-from os import environ
 
 from IPython import embed
 
@@ -38,19 +37,6 @@ def main(pargs):
                    unit=(u.hourangle,u.deg))
 
     # SEARCHING
-
-    # ID of your Bot:
-    YOUR_BOT_ID=input('your Bot ID is: ')
-
-    # name of your Bot:
-    YOUR_BOT_NAME=input('your Bot name is: ')
-
-    # API key of your Bot:
-    if "TNS_API_KEY" in environ:
-        api_key=environ["TNS_API_KEY"]
-    else: 
-        api_key=input('your TNS_API_key is: ')
-
 
     # how large of an area to search?
     #radius = float(input("Enter radius to search in: "))
