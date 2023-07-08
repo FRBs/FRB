@@ -1,0 +1,17 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script does a TNS search around an input coord
+  Created by Yuxin Dong 
+"""
+
+from frb.scripts import tns
+
+if __name__ == '__main__':
+    args = tns.parser()
+    tns.main(args)
