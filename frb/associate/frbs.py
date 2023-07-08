@@ -46,7 +46,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252202*units.arcsec,
 )
-FRB20190608B = {**base_config, **updates}  # Use | in 3.9
+FRB20190608B = base_config | updates
 
 
 # ##############################
@@ -64,7 +64,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1459 * units.arcsec,
 )
-FRB20121102A = {**base_config, **updates}  # Use | in 3.9
+FRB20121102A = base_config | updates
 
 # ##############################
 # FRB 180916
@@ -81,7 +81,7 @@ updates = dict(
     cand_separation=20*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-FRB20180916B = {**base_config, **updates}  # Use | in 3.9
+FRB20180916B = base_config | updates
 
 
 # ##############################
@@ -97,7 +97,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-FRB20180924B = {**base_config, **updates}  # Use | in 3.9
+FRB20180924B = base_config | updates
 
 # ##############################
 # FRB 181112
@@ -112,7 +112,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.25226 * units.arcsec,
 )
-FRB20181112A = {**base_config, **updates}  # Use | in 3.9
+FRB20181112A = base_config | updates
 
 # ##############################
 # FRB 190102
@@ -127,7 +127,21 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.252 * units.arcsec,
 )
-FRB20190102C = {**base_config, **updates}  # Use | in 3.9
+FRB20190102C = base_config | updates
+
+# ##############################
+# FRB 20190520B
+updates = dict(
+    name='FRB20190520B',
+    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
+    cut_size = 30.,
+    filter = 'LRIS_R',
+    ZP = 33.,
+    deblend=True,
+    plate_scale = 0.28 * units.arcsec,
+    cand_separation=10*units.arcsec,
+)
+FRB20190520B = base_config | updates
 
 # ##############################
 # FRB 190523
@@ -141,7 +155,7 @@ updates = dict(
     plate_scale = 0.28 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-FRB20190523A = {**base_config, **updates}  # Use | in 3.9
+FRB20190523A = base_config | updates
 
 # ##############################
 # FRB 190611
@@ -155,7 +169,7 @@ updates = dict(
     plate_scale = 0.160 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-FRB20190611B = {**base_config, **updates}
+FRB20190611B = base_config | updates
 
 # ##############################
 # FRB 190614
@@ -169,7 +183,7 @@ updates = dict(
     plate_scale = 0.135 * units.arcsec,
     cand_separation=10*units.arcsec,
 )
-FRB20190614D = {**base_config, **updates}
+FRB20190614D = base_config | updates
 
 # ##############################
 # FRB 190711
@@ -188,7 +202,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.160*units.arcsec,
 )
-FRB20190711A = {**base_config, **updates}  # Use | in 3.9
+FRB20190711A = base_config | updates
 
 # ##############################
 # FRB 190714A
@@ -206,7 +220,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-FRB20190714A = {**base_config, **updates}  # Use | in 3.9
+FRB20190714A = base_config | updates
 
 # ##############################
 # FRB 191001
@@ -224,7 +238,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-FRB20191001A = {**base_config, **updates}  # Use | in 3.9
+FRB20191001A = base_config | updates
 
 # ##############################
 # FRB 191228
@@ -243,7 +257,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-FRB20191228A = {**base_config, **updates}  # Use | in 3.9
+FRB20191228A = base_config | updates
 
 ##############################
 # FRB 200430
@@ -261,7 +275,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.134*units.arcsec,
 )
-FRB20200430A = {**base_config, **updates}  # Use | in 3.9
+FRB20200430A = base_config | updates
 
 # ##############################
 # FRB 200906
@@ -281,7 +295,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale=0.252*units.arcsec,
 )
-FRB20200906A = {**base_config, **updates}  # Use | in 3.9
+FRB20200906A = base_config | updates
 
 ##############################
 # FRB 180301
@@ -300,7 +314,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.1616 * units.arcsec,
 )
-FRB20180301A = {**base_config, **updates}  # Use | in 3.9
+FRB20180301A = base_config | updates
 #
 #
 
@@ -318,7 +332,7 @@ updates = dict(
     cand_separation=10*units.arcsec,
     plate_scale = 0.250 * units.arcsec,
 )
-FRB20201124A = {**base_config, **updates}  # Use | in 3.9
+FRB20201124A = base_config | updates
 #
 #
 ##############################
@@ -338,6 +352,143 @@ updates = dict(
     filter = 'GMOS-r',
 )
 
-FRB20201123A = {**base_config, **updates}  # Use | in 3.9
+FRB20201123A = base_config | updates 
 #
 #
+##############################
+# FRB 20210117A
+updates = dict(
+    name='FRB20210117A',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20210117_VLT-FORS2_g-HIGH_2021-06-12.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_g',
+    ZP = 27.32,  # From Lachlan on 2021-12-15
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.252 * units.arcsec,
+)
+
+FRB20210117A = base_config | updates 
+
+##############################
+# FRB 20210320C
+updates = dict(
+    name='FRB20210320C',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20210320_VLT-FORS2_g-HIGH_2021-04-15.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_g',
+    ZP = 27.51,  # From Lachlan on 2021-12-15
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.252 * units.arcsec,
+)
+FRB20210320C = base_config | updates 
+
+##############################
+# FRB 20210410D
+updates = dict(
+    name='FRB20210410D',
+    image_file=os.path.join(gdb_path, 'MeerTRAP', 
+                            'caleb2023',
+                            'FRB20210410A_SOAR_Goodman_r_20210718.fits'),
+    cut_size = 30.,
+    filter = 'r-SDSS',
+    ZP = 31.62,  # CK on 27 Jan 2022 (Slack)
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.290 * units.arcsec,
+)
+
+FRB20210410D = base_config | updates 
+
+##############################
+# FRB 20210806D
+updates = dict(
+    name='FRB20210807D',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20210807_VLT-FORS2_g-HIGH_WCS.fits'),
+    cut_size = 29.,
+    filter = 'VLT_FORS1_g',
+    ZP = 26.51,  # TO BE UPDATED
+    deblend=True,
+    cand_bright=16.,
+    cand_separation=9*units.arcsec,
+    plate_scale = -1.252 * units.arcsec,
+)
+FRB20210807D = base_config | updates 
+
+##############################
+# FRB 20211127I
+updates = dict(
+    name='FRB20211127I',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20211127_VLT-FORS2_g-HIGH_2022-01-29.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_g',
+    ZP = 27.51,  # TO BE UPDATED
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.252 * units.arcsec,
+)
+FRB20211127I = base_config | updates 
+
+##############################
+# FRB 20211203C
+updates = dict(
+    name='FRB20211203C',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20211203_VLT-FORS2_R-SPECIAL_2022-02-11.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_R',
+    ZP = 28.14, # Taken from the Header
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.248 * units.arcsec,  # Using CDELT1
+)
+FRB20211203C = base_config | updates 
+
+##############################
+# FRB 20211212A
+updates = dict(
+    name='FRB20211212A',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20211212_VLT-FORS2_g-HIGH_2022-01-28.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_g',
+    ZP = 27.51,  # TO BE UPDATED
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.252 * units.arcsec,
+)
+FRB20211212A = base_config | updates 
+
+##############################
+# FRB 20220105A
+updates = dict(
+    name='20220105A',
+    image_file=os.path.join(gdb_path, 'CRAFT', 
+                            'Shannon2023', 
+                            'FRB20220105A_VLT-FORS2_g-HIGH_2022-01-28.fits'),
+    cut_size = 30.,
+    filter = 'VLT_FORS2_g',
+    ZP = 27.51,  # TO BE UPDATED
+    deblend=True,
+    cand_bright=17.,
+    cand_separation=10*units.arcsec,
+    plate_scale = 0.252 * units.arcsec,
+)
+FRB20220105A = base_config | updates 
