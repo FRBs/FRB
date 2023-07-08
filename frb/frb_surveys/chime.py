@@ -111,6 +111,7 @@ def calc_mr_dist(catalog_file:str=None,
     Index_Ar = np.random.shuffle(index_Ar)
     mw_extinction = np.squeeze(Ar[Index_Ar]) #don't know why but np.random.shuffle(mw_extinction) is not working
 
+    # This needs to be replaced with a more sophisticated calculation from zdm
     z = (dm_excess[index_5_Jyms] - dm_mw_host) / 935
     z[z < 0.01] = (dm_excess[index_5_Jyms][z < 0.01] - 30) / 935
     redshift = np.array(z)
@@ -196,13 +197,14 @@ def calc_mr_dist(catalog_file:str=None,
              Dist=np.concatenate(Dist_s)))
 
     df.to_parquet(tblfile)
+
         
 # Command line execution
-if __name__ == '__main__':
-    check_frb_mr()
-
-    # Runs
-    #calc_mr_dist()
-    #calc_mr_dist(figfile='mr_dist_150.png',
-    #             tblfile='CHIME_mr_5Jyms_150.parquet',
-    #             dm_mw_host=150.)
+#if __name__ == '__main__':
+#    check_frb_mr()
+#
+#    # Runs
+#    #calc_mr_dist()
+#    #calc_mr_dist(figfile='mr_dist_150.png',
+#    #             tblfile='CHIME_mr_5Jyms_150.parquet',
+#    #             dm_mw_host=150.)
