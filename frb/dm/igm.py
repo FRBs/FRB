@@ -253,7 +253,8 @@ def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
         return DM_cum[-1]
 
 
-def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
+def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., 
+                    logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
     """
     Average DM_halos term from halos along the sightline to an FRB
 
@@ -332,9 +333,11 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
           Return a cumulative evaluation?
         return_DMHalos (bool, optional): Also return avgDM_halos?
     Returns:
-        DM (Quantity or Quantity array): One value if cumul=False
-          else evaluated at a series of z
-        zeval (ndarray, optional): Evaluation redshifts if cumul=True
+        float or list: 
+            DM_IGM (Quantity or Quantity array): One value if cumul=False
+              else evaluated at a series of z
+            zeval (ndarray, optional): Evaluation redshifts if cumul=True
+            DM_halos (ndarray, optinal):
     """
     # DM cosmic
     DM_cosmic, zeval = average_DM(z, cosmo = cosmo, cumul=True, neval=neval)
@@ -347,14 +350,18 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
     DM_IGM = DM_cosmic - DM_halos
 
     # Return
-    if cumul and return_DMhalos:
-        return DM_IGM, zeval, DM_halos
-    elif cumul and not return_DMhalos:
-        return DM_IGM, zeval
-    elif not cumul and return_DMhalos:
-        return DM_IGM[-1], DM_halos[-1]
+    if cumul:
+        ret_val = [DM_IGM, zeval]
     else:
-        return DM_IGM[-1]
+        ret_val = DM_IGM[-1]
+
+    if return_DMhalos:
+        if not isinstance(ret_val, list):
+            ret_val = [ret_val]
+        ret_val += [DM_halos]
+
+    # Finally
+    return ret_val
 
 def avg_rhoISM(z, cosmo=defs.frb_cosmo):
     """

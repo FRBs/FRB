@@ -27,6 +27,7 @@ except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
 from frb.galaxies import hosts
+from frb.galaxies import defs as galaxy_defs
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
@@ -64,6 +65,18 @@ mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data
 mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
         mannings2021_astrom.Filter == 'F110W')].copy()
+
+def chk_fill(value):
+    if isinstance(value,str):
+        # Allow for -999 as a string
+        try:
+            value = float(value)
+        except:
+            return False
+        else:
+            return np.isclose(value, fill_value)
+    else:
+        return np.isclose(value, fill_value)
 
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     """Assign a redshift using one of the Galaxy_DB tables
@@ -162,6 +175,7 @@ def read_lit_table(lit_entry, coord=None):
 def run(host_input:pandas.core.series.Series, 
         build_ppxf:bool=False, 
         lit_refs:str=None,
+        skip_surveys:bool=False,
         build_cigale:bool=False, is_host:bool=True,
         override:bool=False, out_path:str=None,
         outfile:str=None):
@@ -180,6 +194,8 @@ def run(host_input:pandas.core.series.Series,
             Mainly for time-outs of public data. Defaults to False.
         outfile (str, optional): Over-ride default outfile [not recommended; mainly for testing]
         out_path (str, optional): Over-ride default outfile [not recommended; mainly for testing]
+        skip_surveys (bool, optional): 
+            Skip the survey data.  Useful for testing. Defaults to False.
 
 
     Raises:
@@ -225,14 +241,17 @@ def run(host_input:pandas.core.series.Series,
     search_r = 1 * units.arcsec
 
     # Survey data
-    try:
-        inside = survey_utils.in_which_survey(Frb.coord)
-    except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
-        if override:
-            print("Survey timed out.  You should re-run it sometime...")
-            inside = {}
-        else:
-            raise e
+    if not skip_surveys:
+        try:
+            inside = survey_utils.in_which_survey(Frb.coord)
+        except (requests.exceptions.ConnectionError, requests.exceptions.ReadTimeout) as e:  # Catches time-out from survey issues
+            if override:
+                print("Survey timed out.  You should re-run it sometime...")
+                inside = {}
+            else:
+                raise e
+    else:
+        inside = {}
 
     # Loop on em
     merge_tbl = None
@@ -257,6 +276,7 @@ def run(host_input:pandas.core.series.Series,
             else:
                 #print("You found more than 1 galaxy.  Taking the 2nd one")
                 #srvy_tbl = srvy_tbl[1:]
+                #srvy_tbl = srvy_tbl[:1]
                 raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
@@ -270,7 +290,7 @@ def run(host_input:pandas.core.series.Series,
     if lit_refs is None:
         lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
             'Literature', 'all_refs.csv')
-    lit_tbls = pandas.read_csv(lit_refs)
+    lit_tbls = pandas.read_csv(lit_refs, comment='#')
 
     for kk in range(len(lit_tbls)):
         lit_entry = lit_tbls.iloc[kk]
@@ -279,9 +299,9 @@ def run(host_input:pandas.core.series.Series,
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
         if sub_tbl is not None:
-            # Add Ref
+            # Add References, unless the value is masked
             for key in sub_tbl.keys():
-                if 'err' in key:
+                if 'err' in key and not chk_fill(sub_tbl[key].data[0]):
                     newkey = key.replace('err', 'ref')
                     sub_tbl[newkey] = lit_entry.Reference
             # Merge?
@@ -289,15 +309,11 @@ def run(host_input:pandas.core.series.Series,
                 for key in sub_tbl.keys():
                     if key == 'Name':
                         continue
-                    if key in merge_tbl.keys():
-                        if sub_tbl[key] == fill_value:
-                            continue
-                        else:
-                            merge_tbl[key] = sub_tbl[key]
+                    if key in merge_tbl.keys() and not chk_fill(sub_tbl[key].data[0]):
+                        merge_tbl[key] = sub_tbl[key]
                     else:
-                        if sub_tbl[key] != fill_value:
+                        if not chk_fill(sub_tbl[key].data[0]):
                             merge_tbl[key] = sub_tbl[key]
-                #merge_tbl = frbphotom.merge_photom_tables(sub_tbl, merge_tbl)
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
@@ -313,6 +329,7 @@ def run(host_input:pandas.core.series.Series,
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
         code = frbphotom.correct_photom_table(merge_tbl, EBV, Host.name)
+
         if code == -1:
             raise ValueError("Bad extinction correction!")
         # Parse
@@ -450,13 +467,28 @@ def run(host_input:pandas.core.series.Series,
             continue
         # Fill me in 
         for key in lit_tbl.keys():
-            if '_err' in key:
-                Host.derived[key] = float(lit_tbl[key].data[0])
-                newkey = key.replace('err', 'ref')
-                Host.derived[newkey] = lit_entry.Reference
-                # Value
-                newkey = newkey.replace('_ref', '')
-                Host.derived[newkey] = float(lit_tbl[newkey].data[0])
+            # Handle multiple approaches to errors
+            for err_type in galaxy_defs.allowed_errors:
+                if err_type in key and '_uperr' not in key: 
+                    valkey = key.replace(err_type, '')
+                    refkey = valkey+'_ref'
+                    # Scrub any existing!
+                    if valkey in Host.derived.keys():
+                        Host.derived.pop(valkey)
+                        for err_type in galaxy_defs.allowed_errors:
+                            errkey = valkey+err_type
+                            if errkey in Host.derived.keys():
+                                Host.derived.pop(errkey)
+                    if refkey in Host.derived.keys():
+                        Host.derived.pop(refkey)
+                    # Fill
+                    Host.derived[valkey] = float(lit_tbl[valkey].data[0])
+                    Host.derived[refkey] = lit_entry.Reference
+                    # Errors
+                    Host.derived[key] = float(lit_tbl[key].data[0])
+                    if '_loerr' in key:
+                        hikey = key.replace('lo', 'up')
+                        Host.derived[hikey] = float(lit_tbl[hikey].data[0])
 
     # Vet all
     assert Host.vet_all()
@@ -488,12 +520,14 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
             Here for testing
     """
     # Options
-    build_cigale, build_ppxf = False, False
+    build_cigale, build_ppxf, skip_surveys = False, False, False
     if options is not None:
         if 'cigale' in options:
             build_cigale = True
         if 'ppxf' in options:
             build_ppxf = True
+        if 'skip_surveys' in options:
+            skip_surveys = True
 
     # Read public host table
     host_tbl = hosts.load_host_tbl(hosts_file=hosts_file)
@@ -506,6 +540,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
 
     for frb in frbs:
         frb_name = utils.parse_frb_name(frb, prefix='')
+        print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
         # Loop on em
@@ -514,6 +549,7 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         for ii in idx:
             run(host_tbl.iloc[ii], 
                 build_cigale=build_cigale, build_ppxf=build_ppxf,
+                skip_surveys=skip_surveys,
                 is_host=is_host, lit_refs=lit_refs, override=override,
                 outfile=outfile, out_path=out_path)
             # Any additional ones are treated as candidates
@@ -523,4 +559,5 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
     print("All done!")
 
 # Run em all
-#  frb_build Hosts --frb 20181112,20190711,20200906,20121102,20190102,20190714,20201124,20171020,20190523,20191001,20180301,20190608,20191228,20180916,20190611,20180924,20190614,20200430
+#  frb_build Hosts --frb 20181112A
+# Gordon+23 hosts: frb_build Hosts --frb 20121102A,20180301A,20180916B,20180924B,20181112A,20190102C,20190520B,20190608B,20190611B,20190711A,20190714A,20191001A,20200430A,20200906A,20201124A,20210117A,20210320C,20210410D,20210807D,20211127I,20211203C,20211212A,20220105A
