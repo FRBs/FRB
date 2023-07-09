@@ -49,10 +49,10 @@ except:
 
 from linetools.spectra.xspectrum1d import XSpectrum1D
 
-db_path = os.getenv('FRB_GDB')
-if db_path is None:
-    print("Warning, you need to set $FRB_GDB to build hosts")
-    #embed(header='You need to set $FRB_GDB')
+try:
+    db_path = os.getenv('FRB_GDB')
+except NameError:
+    warnings.warn("You will need to set $FRB_GDB to build hosts")
 
 ebv_method = 'SandF'
 fill_value = -999.
