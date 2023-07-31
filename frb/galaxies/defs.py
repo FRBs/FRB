@@ -104,6 +104,7 @@ for band in MMIRS_bands:
 MASS_bands = ['J','H','K']
 for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
+    valid_filters.append('WIRC_{:s}'.format(band))
 
 #6dF
 sixdF_bands = ['Bj', 'Rf', 'H', 'J', 'K']
