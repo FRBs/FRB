@@ -1,0 +1,29 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 315.0
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 39.64272016252608
+    },
+    "FRB": "FRB20220920A",
+    "cosmo": "Planck18",
+    "dec": 70.91880028,
+    "eellipse": {
+        "a": 2.193,
+        "b": 1.29,
+        "cl": 68.0,
+        "theta": 90.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 4.6
+    },
+    "ra": 240.2570833,
+    "refs": [
+        "Law2023"
+    ],
+    "repeater": false,
+    "z": 0.158239
+}
