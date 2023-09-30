@@ -195,6 +195,10 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
                 ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
                     -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
                      fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
+            else:
+                ax.text(0.5, 1.22, 'Separation between Secondary target (cyan) to Primary Target (red):\n{:.2f} arcsec'.format(
+                    sep.to('arcsec')),
+                     fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
     # Add tertiary
     if third_coord is not None:
         c = SphericalCircle((third_coord.ra, third_coord.dec),
@@ -221,7 +225,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         apermap.plot(color='purple', lw=1)
         
-        plt.text(0.5, -0.15, 'Slit PA={} deg'.format(pa_deg), color='purple',
+        plt.text(0.5, -0.15, 'Slit PA={:.2f} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
