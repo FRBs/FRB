@@ -57,7 +57,9 @@ def from_hdu(hdu, title, **kwargs):
 def generate(image, wcs, title, flip_ra=False, flip_dec=False,
              log_stretch=False,
              cutout=None,
-             primary_coord=None, secondary_coord=None,
+             primary_coord=None, 
+             secondary_coord=None,
+             secondary_offset:bool=True,
              third_coord=None, slit=None,
              vmnx=None, extra_text=None, outfile=None, figsize=None):
     """
@@ -84,6 +86,8 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         secondary_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in cyan at this coordinate
           Assume it is an offset star (i.e. calculate offsets)
+        secondary_offset (bool, optional):
+          If True, secondary_coord is an offset star
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         slit (tuple, optional):
@@ -187,8 +191,9 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
             # RA/DEC
             dec_off = np.cos(PA) * sep # arcsec
             ra_off = np.sin(PA) * sep # arcsec (East is *higher* RA)
-            ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
-                -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
+            if secondary_offset:
+                ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
+                    -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
                      fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
     # Add tertiary
     if third_coord is not None:
@@ -235,7 +240,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     #ax.set_ylabel(r'\textbf{RA (SOUTH direction)}')
 
     if outfile is not None:
-        plt.savefig(outfile, dpi=400)
+        plt.savefig(outfile, dpi=250)
         plt.close()
     else:
         plt.show()
