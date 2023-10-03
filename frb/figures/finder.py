@@ -206,6 +206,10 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
                             2*units.arcsec, transform=ax.get_transform('icrs'),
                             edgecolor='yellow', facecolor='none')
         ax.add_patch(c)
+        sep = primary_coord.separation(third_coord).to('arcsec')
+        plt.text(0.5, -0.20, f'Third target (yellow) is {sep:.2f} from primary target (red)',
+                color='y',
+                 fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     # Slit
     if ((slit is not None) and (flag_photu is True)):
