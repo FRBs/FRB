@@ -88,6 +88,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
           Assume it is an offset star (i.e. calculate offsets)
         secondary_offset (bool, optional):
           If True, secondary_coord is an offset star
+          Otherwise, it is considered part of a pair of sources
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         slit (tuple, optional):
