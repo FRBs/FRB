@@ -68,6 +68,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         Returns:
             astropy.table.Table:  Catalog of sources returned
+                Can be empty
 
         """
         # Query
@@ -75,9 +76,16 @@ class DECaL_Survey(dlsurvey.DL_Survey):
                                                          query_fields=query_fields,
                                                          print_query=print_query,**kwargs)
         main_cat = Table(main_cat,masked=True)
+        if len(main_cat)==0:
+            return main_cat 
         #
         for col in main_cat.colnames:
+            # Skip strings
+            if isinstance(main_cat[col][0], str):
+                continue
+            # Mask 
             main_cat[col].mask = np.isnan(main_cat[col])
+        
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:
