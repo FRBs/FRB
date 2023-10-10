@@ -85,10 +85,12 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
           If provided, place a mark in red at this coordinate
         secondary_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in cyan at this coordinate
-          Assume it is an offset star (i.e. calculate offsets)
+          It is assumeed this is for an offset star (i.e. calculate offsets)
+          unless secondary_offset = False
         secondary_offset (bool, optional):
-          If True, secondary_coord is an offset star
-          Otherwise, it is considered part of a pair of sources
+          If True, the secondary_coord provide is for an offset star
+          Otherwise, secondary_coord is considered the second
+          of a pair of scientific sources
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         slit (tuple, optional):
