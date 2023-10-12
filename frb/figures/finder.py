@@ -57,7 +57,9 @@ def from_hdu(hdu, title, **kwargs):
 def generate(image, wcs, title, flip_ra=False, flip_dec=False,
              log_stretch=False,
              cutout=None,
-             primary_coord=None, secondary_coord=None,
+             primary_coord=None, 
+             secondary_coord=None,
+             secondary_offset:bool=True,
              third_coord=None, slit=None,
              vmnx=None, extra_text=None, outfile=None, figsize=None):
     """
@@ -83,7 +85,12 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
           If provided, place a mark in red at this coordinate
         secondary_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in cyan at this coordinate
-          Assume it is an offset star (i.e. calculate offsets)
+          It is assumeed this is for an offset star (i.e. calculate offsets)
+          unless secondary_offset = False
+        secondary_offset (bool, optional):
+          If True, the secondary_coord provide is for an offset star
+          Otherwise, secondary_coord is considered the second
+          of a pair of scientific sources
         third_coord (astropy.coordinates.SkyCoord, optional):
           If provided, place a mark in yellow at this coordinate
         slit (tuple, optional):
@@ -187,8 +194,13 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
             # RA/DEC
             dec_off = np.cos(PA) * sep # arcsec
             ra_off = np.sin(PA) * sep # arcsec (East is *higher* RA)
-            ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
-                -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
+            if secondary_offset:
+                ax.text(0.5, 1.22, 'Offset from Ref. Star (cyan) to Target (red):\nRA(to targ) = {:.2f}  DEC(to targ) = {:.2f}'.format(
+                    -1*ra_off.to('arcsec'), -1*dec_off.to('arcsec')),
+                     fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
+            else:
+                ax.text(0.5, 1.22, 'Separation between Secondary target (cyan) to Primary Target (red):\n{:.2f} arcsec'.format(
+                    sep.to('arcsec')),
                      fontsize=15, horizontalalignment='center',transform=ax.transAxes, color='blue', va='top')
     # Add tertiary
     if third_coord is not None:
@@ -196,6 +208,10 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
                             2*units.arcsec, transform=ax.get_transform('icrs'),
                             edgecolor='yellow', facecolor='none')
         ax.add_patch(c)
+        sep = primary_coord.separation(third_coord).to('arcsec')
+        plt.text(0.5, -0.20, f'Third target (yellow) is {sep:.2f} from primary target (red)',
+                color='y',
+                 fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     # Slit
     if ((slit is not None) and (flag_photu is True)):
@@ -216,7 +232,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
         
         apermap.plot(color='purple', lw=1)
         
-        plt.text(0.5, -0.15, 'Slit PA={} deg'.format(pa_deg), color='purple',
+        plt.text(0.5, -0.15, 'Slit PA={:.2f} deg'.format(pa_deg), color='purple',
                  fontsize=15, ha='center', va='top', transform=ax.transAxes)
     
     if ((slit is not None) and (flag_photu is False)):
@@ -235,7 +251,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
     #ax.set_ylabel(r'\textbf{RA (SOUTH direction)}')
 
     if outfile is not None:
-        plt.savefig(outfile, dpi=400)
+        plt.savefig(outfile, dpi=250)
         plt.close()
     else:
         plt.show()
