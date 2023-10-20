@@ -8,6 +8,8 @@ from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
 from frb.surveys import defs
 
+import pandas as pd
+
 # Dependencies
 try:
     from pyvo.dal import sia
@@ -77,7 +79,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         main_cat = Table(main_cat,masked=True)
         #
         for col in main_cat.colnames:
-            main_cat[col].mask = np.isnan(main_cat[col])
+            main_cat[col].mask = pd.isnull(main_cat[col])
+            # main_cat[col].mask = np.isnan(main_cat[col])
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:
