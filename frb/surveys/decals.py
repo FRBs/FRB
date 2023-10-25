@@ -77,7 +77,10 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         main_cat = Table(main_cat,masked=True)
         #
         for col in main_cat.colnames:
-            main_cat[col].mask = np.isnan(main_cat[col])
+            try:
+                main_cat[col].mask = np.isnan(main_cat[col])
+            except TypeError:
+                pass
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:
