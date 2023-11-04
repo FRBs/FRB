@@ -4,7 +4,7 @@ from astropy.io import ascii
 import numpy as np
 import matplotlib.pyplot as plt
 
-from pkg_resources import resource_filename
+from importlib import resources
 #%matplotlib inline
 import json
 import pandas
@@ -14,6 +14,12 @@ from astropy.coordinates import SkyCoord
 from astropy.cosmology import Planck18 as cosmo
 
 from frb.galaxies import hosts
+
+try:
+    from zdm.chime import grids
+except ImportError:
+    print('WARNING:  zdm.chime.grids not available')
+    grids = None
 
 #import dustmaps.sfd
 #dustmaps.sfd.fetch()
@@ -74,9 +80,13 @@ def calc_mr_dist(catalog_file:str=None,
     # Hiding this here to avoid a dependency
     from dustmaps.sfd import SFDQuery
 
+    # Generate p(z|DM)
+    #  Requires zdm
+    dmvals, zvals, all_rates, all_singles, all_reps = grids.load()
+
     # Load up
     if catalog_file is None:
-        catalog_file = os.path.join(resource_filename('frb', 'data'), 
+        catalog_file = os.path.join(resources.files('frb'), 'data', 
                                     'FRBs', 'CHIME_catalog-2021-1-27.json')
 
     #host galaxy M_r
