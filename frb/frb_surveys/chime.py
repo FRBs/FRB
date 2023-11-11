@@ -218,3 +218,37 @@ def calc_mr_dist(catalog_file:str=None,
 #    #calc_mr_dist(figfile='mr_dist_150.png',
 #    #             tblfile='CHIME_mr_5Jyms_150.parquet',
 #    #             dm_mw_host=150.)
+
+def load_catalog(catalog_file:str=None):
+    # Load
+    if catalog_file is None:
+        catalog_file = os.path.join(resources.files('frb'), 'data', 
+                                    'FRBs', 'CHIME_catalog-2021-1-27.json')
+    dm_excess = []
+    fluence = []
+    ra = []
+    dec = []
+    with open(catalog_file) as json_file:
+        data = json.load(json_file)
+        for i in data:
+            rep = i['repeater_of']   
+            if len(rep) == 0:
+                fluence.append(i['fluence'])
+                ra.append(i['ra'])
+                dec.append(i['dec'])
+                dm_excess.append((i['dm_excess_ne2001']+i['dm_excess_ymw16'])/2)
+    dm_excess = np.array(dm_excess)
+    fluence = np.array(fluence)
+    ra = np.array(ra)
+    dec = np.array(dec)
+
+    # Build table
+    df = pandas.DataFrame()
+    df['DMex'] = dm_excess
+    df['ra'] = ra
+    df['dec'] = dec
+    df['fluence'] = fluence
+
+    # Return
+    return df
+    
