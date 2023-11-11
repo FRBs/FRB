@@ -84,7 +84,7 @@ def for_chime(NFRB:int=10000, cut_fluence:float=5.):
     df['M_r'] = M_r
     df['m_r'] = host_m_r
 
-    embed(header='87')
+    #embed(header='87')
 
     # Return
     return df
