@@ -11,6 +11,7 @@ from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
+from frb.surveys.hsc import HSC_Survey
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
 from astropy.coordinates import SkyCoord
@@ -22,7 +23,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -72,6 +73,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = DELVE_Survey(coord, radius, **kwargs)
     elif name == 'VISTA':
         survey = VISTA_Survey(coord, radius, **kwargs)
+    elif name == 'HSC':
+        survey = HSC_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
