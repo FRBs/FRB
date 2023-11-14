@@ -28,8 +28,8 @@ photom = {}
 photom['HSC'] = {}
 HSC_bands = ['g', 'r', 'i', 'z', 'Y']
 for band in HSC_bands:
-    photom['HSC']['HSC_{:s}'.format(band)] = '{:s}_cmodel_mag'.format(band.lower())
-    photom['HSC']['HSC_{:s}_err'.format(band)] = '{:s}_cmodel_magerr'.format(band.lower())
+    photom['HSC']['HSC_{:s}'.format(band)] = '{:s}_kronflux_mag'.format(band.lower())
+    photom['HSC']['HSC_{:s}_err'.format(band)] = '{:s}_kronflux_magerr'.format(band.lower())
     photom['HSC']['HSC_{:s}_extendedness'.format(band)] = '{:s}_extendedness_value'.format(band.lower())
 
 photom['HSC']['HSC_ID'] = 'object_id'
@@ -52,28 +52,28 @@ class HSC_Survey(surveycoord.SurveyCoord):
         #
         self.survey = 'HSC'
         self.data_release = 'pdr3'
-        if 'photoz_table' in kwargs.keys():
-            self.photoz_table = kwargs['photoz_table']
-        else:
-            self.photoz_table = 'mizuki'
 
 
-    def get_catalog(self, query_fields=None, timeout=120,
-                    print_query=False):
+    def get_catalog(self, query_fields=None, query=None, max_time=120,
+                    print_query=False, query_table='pdr3_wide.summary',
+                    photoz_table = 'mizuki'):
         """
         Query HSC for all objects within a given
         radius of the input coordinates.
 
         Args:
-            coord: astropy.coordiantes.SkyCoord
-            radius: Angle, optional
-              Search radius
-            photoobj_fields: list
-              Fields for querying
-            timeout: float, optional
-              Default value - 120 s.
+            query_fields: list, optional
+              Column names to be queried. Default values are
+              list(photom['HSC'].values()) if None is passed.
+            query: str, optional
+              Full query as a string to be passed to the database.
+              Overrides the default query.
+            max_time: float, optional
+              The maximum time interval to wait between query status checks. Defaults to 120s.
             print_query: bool, optional
               Print the SQL query for the photo-z values
+            query_table: str, optional
+              The table to query. Defaults to 'pdr3_wide.forced'
 
         Returns:
             catalog: astropy.table.Table
@@ -84,22 +84,27 @@ class HSC_Survey(surveycoord.SurveyCoord):
         """
         if query_fields is None:
             query_fields = list(photom['HSC'].values())
-        else:
-            query_fields += list(photom['HSC'].values())
         # Call
 
+
         # Now query for photo-z
-        query = f"SELECT {','.join(query_fields)}\n"
-        query += "FROM pdr3_wide.forced\n"
-        query += f"FULL OUTER JOIN pdr3_wide.photoz_{self.photoz_table} USING (object_id)"
-        query += "WHERE isprimary\n"
-        query += f"AND conesearch(coord, {self.coord.ra.value}, {self.coord.dec.value}, {self.radius.to('arcsec').value})"
+        if query is None:
+            query = f"SELECT {','.join(query_fields)}\n"
+            query += f"FROM {query_table}\n"
+            iswide = query_table.split(".")[0].split("_")[-1]=='wide'
+            if iswide:
+                query += f"FULL OUTER JOIN {query_table.split('.')[0]}.photoz_{photoz_table} USING (object_id)"
+            query += "WHERE\n"
+            if iswide:
+                query += 'isprimary \n'
+                query += 'AND '
+            query += f"conesearch(coord, {self.coord.ra.value}, {self.coord.dec.value}, {self.radius.to('arcsec').value})"
 
         if print_query:
             print(query)
 
         # SQL command
-        query_cat = run_query(query, timeout=timeout,
+        query_cat = run_query(query, max_time=max_time,
                               release_version=self.data_release, delete_job=True)
 
         catalog = catalog_utils.clean_cat(query_cat, photom['HSC'])
@@ -125,7 +130,7 @@ def run_query(query:str,
               preview:bool=False,
               out_format:str='csv',
               delete_job:bool=False,
-              timeout:int=120
+              max_time:int=120
               ):
     """
     Submits a query to the HSC database and downloads the results in the specified format.
@@ -135,8 +140,9 @@ def run_query(query:str,
         user (str, optional): The account name to use for authentication. Defaults to None.
         release (str, optional): The release version of the HSC database to query. Defaults to 'pdr3'.
         preview (bool, optional): Whether to use quick mode (short timeout). Defaults to False.
-        out_format (str, optional): The format in which to download the query results. Defaults to 'fits'.
+        out_format (str, optional): The format in which to download the query results. Defaults to 'csv'.
         delete_job (bool, optional): Whether to delete the job after downloading the results. Defaults to False.
+        max_time (int, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
 
     Raises:
         urllib.error.HTTPError: If there is an HTTP error while submitting the query.
@@ -159,7 +165,7 @@ def run_query(query:str,
                             out_format=out_format,
                             release_version=release_version)
             blockUntilJobFinishes(credential, job['id'],
-                                  timeout=timeout)
+                                  max_time=max_time)
             res = download(credential, job['id'])
             pseudo_file = StringIO(res.read().decode('utf-8').split("# ")[1])
             table = Table.from_pandas(read_csv(pseudo_file)).filled(-99.)
@@ -241,7 +247,7 @@ def preview(credential, sql, out, release_version:str="pdr3"):
         raise QueryError('only top %d records are displayed !' % len(result['result']['rows']))
 
 
-def blockUntilJobFinishes(credential, job_id, timeout=120):
+def blockUntilJobFinishes(credential, job_id, max_time=120):
     interval = 1
     while True:
         time.sleep(interval)
@@ -251,8 +257,8 @@ def blockUntilJobFinishes(credential, job_id, timeout=120):
         if job['status'] == 'done':
             break
         interval *= 2
-        if interval > timeout:
-            interval = timeout
+        if interval > max_time:
+            interval = max_time
 
 
 def download(credential, job_id):
