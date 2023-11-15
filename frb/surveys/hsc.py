@@ -95,9 +95,6 @@ class HSC_Survey(surveycoord.SurveyCoord):
             if iswide:
                 query += f"FULL OUTER JOIN {query_table.split('.')[0]}.photoz_{photoz_table} USING (object_id)"
             query += "WHERE\n"
-            if iswide:
-                query += 'isprimary \n'
-                query += 'AND '
             query += f"conesearch(coord, {self.coord.ra.value}, {self.coord.dec.value}, {self.radius.to('arcsec').value})"
 
         if print_query:
