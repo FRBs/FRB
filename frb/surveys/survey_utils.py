@@ -99,6 +99,9 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except ReadTimeout:
         warnings.warn("Couldn't reach NOIRLAB.", RuntimeWarning)
         cat = None
+    except QueryError:
+        warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
+        cat = None
 
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
