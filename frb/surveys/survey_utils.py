@@ -194,6 +194,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+        else:
+            warnings.warn("Couldn't search {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
         if (survey.catalog is not None):
             if len(survey.catalog)>0:
