@@ -190,12 +190,9 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-        except ConnectionError:
+        except (ConnectionError, HTTPError, QueryError):
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
-        except HTTPError:
-            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
-        except QueryError:
-            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+
         # Did the survey return something?
         if (survey.catalog is not None):
             if len(survey.catalog)>0:
