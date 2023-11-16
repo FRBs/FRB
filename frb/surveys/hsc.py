@@ -277,5 +277,5 @@ def getCredentials():
     if isinstance(user_from_envvar, str) & isinstance(password_from_envvar, str):
         return user_from_envvar, password_from_envvar
     else:
-        raise ValueError("Please set the environment variables HSC_SSP_CAS_USER and HSC_SSP_CAS_PASSWORD to your CAS credentials. Follow the instructions at https://hsc-release.mtk.nao.ac.jp/doc/index.php/data-access__pdr3/ to register.")
+        raise QueryError("Please set the environment variables HSC_SSP_CAS_USER and HSC_SSP_CAS_PASSWORD to your CAS credentials. Follow the instructions at https://hsc-release.mtk.nao.ac.jp/doc/index.php/data-access__pdr3/ to register.")
 

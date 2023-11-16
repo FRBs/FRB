@@ -11,7 +11,7 @@ from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
-from frb.surveys.hsc import HSC_Survey
+from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
 from astropy.coordinates import SkyCoord
@@ -194,7 +194,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except HTTPError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
-        except ValueError:
+        except QueryError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         # Did the survey return something?
         if (survey.catalog is not None):
