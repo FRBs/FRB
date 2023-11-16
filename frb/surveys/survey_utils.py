@@ -190,7 +190,6 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-            print(f"{surveyname} has {survey.catalog.colnames}")
         except ConnectionError:
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except HTTPError:
@@ -209,6 +208,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             # No objects found?
             elif len(survey.catalog)==0:
                 print("Empty table in "+surveyname)
+        
     
     return combined_cat
 
