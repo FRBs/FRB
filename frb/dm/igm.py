@@ -147,71 +147,83 @@ def z_from_DM(DM, cosmo=defs.frb_cosmo, coord=None, corr_nuisance=True):
     # Return
     return z
 
-def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False,
-              perturb_Mstar=None):
-  """
-  Calculate the cosmic fraction of baryons
-  in diffuse gas phase based on our empirical
-  knowledge of baryon distributions and their 
-  ionization state.
+def f_diffuse(z, cosmo=defs.frb_cosmo, 
+              return_rho:bool=False,
+              perturb_Mstar:float=None):
+    """
+    Calculate the cosmic fraction of baryons
+    in diffuse gas phase based on our empirical
+    knowledge of baryon distributions and their 
+    ionization state.
 
-  Args:
-    z (float or ndarray): Redshift
-    cosmo (Cosmology, optional): Cosmology of
-      the universe.
-    return_rho (bool, optional): If true, 
-      the diffuse gas density
-      is returned too.
-    perturb_Mstar (float, optional):
-      If provided, scale rho_Mstar by this value.
-      Useful for exploring the uncertainty in f_diffuse
+    Args:
+        z (float or ndarray): Redshift
+        cosmo (Cosmology, optional): Cosmology of
+        the universe.
+        return_rho (bool, optional): If true, 
+            the diffuse gas density
+            is returned too.
+        perturb_Mstar (float, optional):
+            If provided, scale rho_Mstar by this value.
+            Useful for exploring the uncertainty in f_diffuse
 
-  Returns:
-    f_diffuse (float, ndarray): Diffuse gas baryon fraction.
-    rho_diffuse (Quantity): Physical diffuse gas density.
-      Returned if return_rho is set to true.
-  """
-  # Get comoving baryon mass density
-  rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
+    Returns:
+        f_diffuse (float, ndarray): Diffuse gas baryon fraction.
+        rho_diffuse (Quantity, optional): Physical diffuse gas density.
+            Returned if return_rho is set to true.
+    """
+    # Get comoving baryon mass density
+    rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
 
-  # Dense components
-  rho_Mstar = avg_rhoMstar(z, remnants=True)
-  if perturb_Mstar is not None:
-      rho_Mstar *= perturb_Mstar
-      
-  rho_ISM = avg_rhoISM(z, cosmo=cosmo)
+    # Dense components
+    rho_Mstar = avg_rhoMstar(z, remnants=True)
+    if perturb_Mstar is not None:
+        rho_Mstar *= perturb_Mstar
+        
+    rho_ISM = avg_rhoISM(z, cosmo=cosmo)
 
-  # Diffuse gas fraction
-  f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
-  if not return_rho:
-    return f_diffuse
-  else:
-    return f_diffuse, rho_b*f_diffuse*(1+z)**3
+    # Diffuse gas fraction
+    f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
+    if not return_rho:
+        return f_diffuse
+    else:
+        return f_diffuse, rho_b*f_diffuse*(1+z)**3
 
+def sigma_fd(z, rel_err_Mstar):
+
+    # Calculate the 3 values
+    f_d_low = f_diffuse(z, perturb_Mstar=1-rel_err_Mstar)
+    f_d_high = f_diffuse(z, perturb_Mstar=1+rel_err_Mstar)
+
+    # Calculate the sigma
+    sigma_fd = np.abs(f_d_high - f_d_low)/2.
+
+    # Return
+    return sigma_fd
 
 def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
-  """
-  Calculate the average cosmic electron
-  number density as a function of redshift.
-  Args:
-    z (float or ndarray): Redshift
-    cosmo (Cosmology, optional): Cosmology in 
-      which the calculations are to be performed.
-    mu (float): Reduced mass
-  Returns:
-    ne_cosmic (Quantity): Average physical number
-      density of electrons in the unverse in cm^-3.
-  """
-  # Get diffuse gas density
-  _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
+    """
+    Calculate the average cosmic electron
+    number density as a function of redshift.
+    Args:
+        z (float or ndarray): Redshift
+        cosmo (Cosmology, optional): Cosmology in 
+        which the calculations are to be performed.
+        mu (float): Reduced mass
+    Returns:
+        ne_cosmic (Quantity): Average physical number
+        density of electrons in the unverse in cm^-3.
+    """
+    # Get diffuse gas density
+    _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
 
-  # Number densities of H and He
-  n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
-  n_He = n_H / 12.  # 25% He mass fraction
+    # Number densities of H and He
+    n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
+    n_He = n_H / 12.  # 25% He mass fraction
 
-  # Compute electron number density
-  ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
-  return ne_cosmic
+    # Compute electron number density
+    ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
+    return ne_cosmic
 
 def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
     """
