@@ -190,16 +190,26 @@ def f_diffuse(z, cosmo=defs.frb_cosmo,
         return f_diffuse, rho_b*f_diffuse*(1+z)**3
 
 def sigma_fd(z, rel_err_Mstar):
+    """
+    Calculate the uncertainty in the diffuse fraction at a given redshift.
+
+    Args:
+        z (float or np.ndarray): The redshift value.
+        rel_err_Mstar (float): The relative error in the stellar mass.
+
+    Returns:
+        sigma_fd (float or np.ndarray): The uncertainty in the diffuse fraction.
+    """
 
     # Calculate the 3 values
     f_d_low = f_diffuse(z, perturb_Mstar=1-rel_err_Mstar)
     f_d_high = f_diffuse(z, perturb_Mstar=1+rel_err_Mstar)
 
     # Calculate the sigma
-    sigma_fd = np.abs(f_d_high - f_d_low)/2.
+    s_fd = np.abs(f_d_high - f_d_low)/2.
 
     # Return
-    return sigma_fd
+    return s_fd
 
 def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
     """
