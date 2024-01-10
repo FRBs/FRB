@@ -156,6 +156,11 @@ def f_diffuse(z, cosmo=defs.frb_cosmo,
     knowledge of baryon distributions and their 
     ionization state.
 
+    Note that the default values use the standard
+    values from Madau & Dickinson (2014) and Fukugita (2004).
+    The former use a Salpeter IMF for rho_* which is no longer
+    in fashion.
+
     Args:
         z (float or ndarray): Redshift
         cosmo (Cosmology, optional): Cosmology of
@@ -437,7 +442,10 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
 def avg_rhoMstar(z, remnants=True):
     """
     Return mass density in stars as calculated by
-    Madau & Dickinson (2014)
+    Madau & Dickinson (2014).  
+
+    Note: these authors assumed the Salpeter IMF
+    which is no longer in fashion.
 
     Args:
       z (float or ndarray): Redshift
