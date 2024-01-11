@@ -117,9 +117,6 @@ class FRBAssociate(path.PATH):
             Cutout2D: Cutout of the image
         """
 
-        if self.image_file is None:
-            raise IOError("Set image_file before calling this method")
-
         # Cutout
         cutout = Cutout2D(imgdata, self.frb.coord, size, wcs=wcs)
         _, med, std = sigma_clipped_stats(cutout.data)
