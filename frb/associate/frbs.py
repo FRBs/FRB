@@ -21,6 +21,7 @@ else:
 base_config = dict(
     max_radius=10.,
     cut_size=None,
+    host_cut_size=10.,
     deblend=False,
     cand_bright=None,
     cand_separation=None,

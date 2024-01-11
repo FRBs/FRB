@@ -6,13 +6,15 @@ from astropy.wcs import WCS
 from astropy.nddata import Cutout2D
 from astropy.io import fits
 from astropy.convolution import Gaussian2DKernel
-from astropy.stats import gaussian_fwhm_to_sigma
+from astropy.stats import gaussian_fwhm_to_sigma, sigma_clipped_stats
 from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
+from astropy.visualization import LogStretch
 from astropy import wcs as astropy_wcs
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
+from pkg_resources import resource_filename
 
 import pandas 
 
@@ -22,6 +24,7 @@ from astropath import chance
 from astropath import path
 from frb.galaxies import photom
 from frb.galaxies import nebular
+from frb.galaxies.galfit import write_cutout
 
 import photutils
 
@@ -99,6 +102,44 @@ class FRBAssociate(path.PATH):
         self.hdu = fits.open(self.image_file)[0]
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
+
+    def make_host_cutout(self, imgdata, wcs, size=5. * units.arcsec)->Cutout2D:
+        """
+        Make a cutout of the image around the FRB
+        and write to the data directory under "Galaxies".
+
+        Args:
+            imgdata (np.ndarray): Image data
+            wcs (astropy.wcs.WCS): WCS of the image
+            size (Quantity, optional): Size of the cutout
+        
+        Returns:
+            Cutout2D: Cutout of the image
+        """
+
+        if self.image_file is None:
+            raise IOError("Set image_file before calling this method")
+
+        # Cutout
+        cutout = Cutout2D(imgdata, self.frb.coord, size, wcs=wcs)
+        _, med, std = sigma_clipped_stats(cutout.data)
+
+        # Make the figure
+        fig,ax = plt.subplots(1, 1, figsize=(6, 6), subplot_kw={'projection': cutout.wcs})
+        norm = ImageNormalize(stretch=LogStretch(), vmin=med, vmax=med+10*std)
+
+        ax.imshow(cutout.data, origin='lower', cmap='hot', norm=norm)
+        ax.set_xlabel('RA')
+        ax.set_ylabel('Dec')
+        ax.set_title(self.frb.frb_name+" Host")
+        ax.set_xlim(0, cutout.data.shape[1])
+        ax.set_ylim(0, cutout.data.shape[0])
+
+        # Write
+        output_file = resource_filename('frb', f'data/Galaxies/{self.frb.frb_name[3:]}/{self.frb.frb_name}_cutout.png')
+        fig.savefig(output_file, dpi=300)
+
+        return cutout
 
     def calc_pchance(self, ndens_eval='driver', extinction_correct=False):
         """
@@ -442,6 +483,9 @@ def run_individual(config, prior:dict=None, show=False,
     elif 'image_file' in config.keys():
         # Image
         print("Using image {}".format(config['image_file']))
+
+
+        # Load image
         hdul = fits.open(config['image_file'])
         # A hack for some image packing
         if 'SCI' in [ihdu.name for ihdu in hdul]:
@@ -459,6 +503,9 @@ def run_individual(config, prior:dict=None, show=False,
             frbA.wcs = WCS(hdu_full.header)
 
         frbA.header = hdu_full.header
+
+        # Make a cutout of the host
+        frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
 
         # Threshold + Segment
         frbA.threshold()
