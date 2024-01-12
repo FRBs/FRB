@@ -83,6 +83,11 @@ frb_to_eazy_filters = {"GMOS_S_r":349,
                            "DECam_i":354,
                            "DECam_z":355,
                            "DECam_Y":356,
+                           "HSC_g":314,
+                           "HSC_r":315,
+                           "HSC_i":316,
+                           "HSC_z":317,
+                           "HSC_Y":318,
                             }
 
 def eazy_filenames(input_dir, name):
