@@ -133,8 +133,6 @@ def frbs_in_hosts(outfile:str,
                   frb_tbl:pandas.DataFrame,
                   galaxy_df:pandas.DataFrame,
                   localization:tuple,
-                  m_r_min:float=15., 
-                  m_r_max:float=26.,
                   scale:float=2., # half-light
                   trim_catalog:units.Quantity=1*units.arcmin,
                   debug:bool=False,
@@ -169,10 +167,6 @@ def frbs_in_hosts(outfile:str,
                 mag_best
                 half_light
         localization (tuple): (sig_a, sig_b, PA)
-        m_r_min (float, optional): Defaults to 15..
-            Minimum m_r value for the distribution
-        m_r_max (float, optional): Defaults to 26..
-            Maximum m_r value for the distribution
         scale (float, optional): Defaults to 2..
             Scale factor for the galaxy half-light radius
         trim_catalog (units.Quantity):
@@ -288,19 +282,18 @@ def frbs_in_hosts(outfile:str,
     gd = np.abs(randn) < 3. # limit to 3 sigma
     randn = randn[gd]
 
-    # TODO -- include PA here
-    raoff = randn[0:nsample] * radec_sigma[0]
-    decoff = randn[nsample:2*nsample] * radec_sigma[1]
-    pa = np.arctan2(decoff, raoff) * 180./np.pi - 90.
-    local_offset = np.sqrt(raoff**2 + decoff**2) * units.arcsec
-
-    if plots:
-        sns.histplot(x=pa)
-        plt.show()
+    # TODO -- Make sure this is right
+    a_off = randn[0:nsample] * localization[0]
+    b_off = randn[nsample:2*nsample] * localization[1]
+    #pa = np.arctan2(decoff, raoff) * 180./np.pi - 90.
+    local_offset = np.sqrt(a_off**2 + b_off**2) * units.arcsec
 
     print("Offsetting FRB by localization...")
     frb_coord = [coord.directional_offset_by(
-        pa[kk]*units.deg, local_offset[kk]) 
+        localization[2]*units.deg, local_offset[kk]) 
+                 for kk, coord in enumerate(frb_coord)]
+    frb_coord = [coord.directional_offset_by(
+        localization[2]*units.deg, local_offset[kk]) 
                  for kk, coord in enumerate(frb_coord)]
 
     # Write to disk
