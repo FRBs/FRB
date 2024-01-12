@@ -72,9 +72,15 @@ class DECaL_Survey(dlsurvey.DL_Survey):
 
         """
         # Query
+        if query is None:
+            query = super(DECaL_Survey, self)._gen_cat_query(query_fields=query_fields, qtype='main')
+            # include photo_z
+            query = query.replace("SELECT", "SELECT z_phot_median, z_spec, survey, z_phot_l68, z_phot_u68, ")
+            query = query.replace("ls_id", "t.ls_id")
+            query = query.replace("brickid", "t.brickid")
+            query = query.replace(f"FROM {self.database}\n", f"FROM {self.database} as t LEFT JOIN {self.database.split('.')[0]}.photo_z AS p ON t.ls_id=p.ls_id\n")
         main_cat = super(DECaL_Survey, self).get_catalog(query=query,
-                                                         query_fields=query_fields,
-                                                         print_query=print_query,**kwargs)
+                                                        print_query=print_query,**kwargs)
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
             return main_cat 
