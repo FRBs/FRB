@@ -180,11 +180,15 @@ def f_diffuse(z, cosmo=defs.frb_cosmo,
     # Get comoving baryon mass density
     rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
 
+    # ##
     # Dense components
+
+    # Stars
     rho_Mstar = avg_rhoMstar(z, remnants=True)
     if perturb_Mstar is not None:
         rho_Mstar *= perturb_Mstar
         
+    # ISM
     rho_ISM = avg_rhoISM(z, cosmo=cosmo)
 
     # Diffuse gas fraction
@@ -390,7 +394,8 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
     # Finally
     return ret_val
 
-def avg_rhoISM(z, cosmo=defs.frb_cosmo):
+def avg_rhoISM(z, cosmo=defs.frb_cosmo,
+               perturb_Mstar:float=None):
     """
     Co-moving Mass density of the ISM
 
@@ -402,6 +407,9 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
         cosmo (Cosmology, optional): Cosmology in which
           the calculations are to be performed. LambdaCDM
           with defs.frb_cosmo parameters assumed by default.
+        perturb_Mstar (float, optional):
+            If provided, scale rho_Mstar by this value.
+            Useful for exploring the uncertainty in f_diffuse
 
     Returns:
       rhoISM (Quantity): Units of Msun/Mpc^3
@@ -411,6 +419,8 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
 
     # Mstar
     rhoMstar = avg_rhoMstar(z, remnants=False)
+    if perturb_Mstar is not None:
+        rho_Mstar *= perturb_Mstar
 
     # z=0 (Fukugita+ 2004)
     f04_dict = fukugita04_dict()
