@@ -189,7 +189,7 @@ def f_diffuse(z, cosmo=defs.frb_cosmo,
         rho_Mstar *= perturb_Mstar
         
     # ISM
-    rho_ISM = avg_rhoISM(z, cosmo=cosmo)
+    rho_ISM = avg_rhoISM(z, cosmo=cosmo, perturb_Mstar=perturb_Mstar)
 
     # Diffuse gas fraction
     f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
