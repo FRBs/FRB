@@ -283,17 +283,17 @@ def frbs_in_hosts(outfile:str,
     randn = randn[gd]
 
     # TODO -- Make sure this is right
-    a_off = randn[0:nsample] * localization[0]
-    b_off = randn[nsample:2*nsample] * localization[1]
+    a_off = randn[0:nsample] * localization[0] * units.arcsec
+    b_off = randn[nsample:2*nsample] * localization[1] * units.arcsec
     #pa = np.arctan2(decoff, raoff) * 180./np.pi - 90.
-    local_offset = np.sqrt(a_off**2 + b_off**2) * units.arcsec
+    local_offset = np.sqrt(a_off**2 + b_off**2) 
 
     print("Offsetting FRB by localization...")
     frb_coord = [coord.directional_offset_by(
-        localization[2]*units.deg, local_offset[kk]) 
+        localization[2]*units.deg, a_off[kk])
                  for kk, coord in enumerate(frb_coord)]
     frb_coord = [coord.directional_offset_by(
-        localization[2]*units.deg, local_offset[kk]) 
+        (localization[2]+90)*units.deg, b_off[kk])
                  for kk, coord in enumerate(frb_coord)]
 
     # Write to disk

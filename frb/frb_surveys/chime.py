@@ -56,14 +56,15 @@ def check_frb_mr(outfile:str='mr_pdf.png',
     print('Wrote {:s}'.format(outfile))
 
 
-    
-
 def calc_mr_dist(catalog_file:str=None, 
                  pdf_file:str=None,
                  figfile:str=None,
                  tblfile:str='CHIME_mr_5Jyms.csv',
                  dm_mw_host:float=200.):
-    """ Generate a distribution of m_r values for bright CHIME/FRBs
+    """ Generate a distribution of m_r values for CHIME/FRBs
+        with fluence > 5 Jyms
+
+    Save to a table
 
     Args:
         catalog_file (str, optional): 
@@ -208,18 +209,21 @@ def calc_mr_dist(catalog_file:str=None,
 
     df.to_parquet(tblfile)
 
-        
-# Command line execution
-#if __name__ == '__main__':
-#    check_frb_mr()
-#
-#    # Runs
-#    #calc_mr_dist()
-#    #calc_mr_dist(figfile='mr_dist_150.png',
-#    #             tblfile='CHIME_mr_5Jyms_150.parquet',
-#    #             dm_mw_host=150.)
 
 def load_catalog(catalog_file:str=None):
+    """
+    Load FRB catalog from a JSON file.
+
+    Args:
+        catalog_file (str): Path to the JSON file containing the FRB catalog. If not provided, a default file path will be used.
+
+    Returns:
+        pandas.DataFrame: DataFrame containing the loaded FRB catalog with columns for DMex (DM excess), ra (right ascension), dec (declination), and fluence.
+            - DMex: Extragalactic Dispersion Measure (DM) values
+            - ra: Right Ascension (RA) values
+            - dec: Declination (Dec) values
+            - fluence: Fluence values
+    """
     # Load
     if catalog_file is None:
         catalog_file = os.path.join(resources.files('frb'), 'data', 
