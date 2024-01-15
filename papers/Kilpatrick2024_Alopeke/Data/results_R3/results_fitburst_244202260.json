@@ -1,0 +1,118 @@
+{
+    "model_parameters": {
+        "amplitude": [
+            -2.3867582869350814
+        ],
+        "arrival_time": [
+            1270684.8964626202
+        ],
+        "burst_width": [
+            0.0027468856073360618
+        ],
+        "dm": [
+            349.9345159524652
+        ],
+        "dm_index": [
+            -2.0
+        ],
+        "scattering_timescale": [
+            0.0
+        ],
+        "scattering_index": [
+            -4.0
+        ],
+        "spectral_index": [
+            21.457180284733205
+        ],
+        "spectral_running": [
+            -58.66944617541479
+        ],
+        "ref_freq": [
+            400.1953125
+        ]
+    },
+    "fit_statistics": {
+        "num_freq": 16384,
+        "num_freq_good": 10832,
+        "num_fit_parameters": 6,
+        "num_observations": 1754778,
+        "num_time": 162,
+        "chisq_initial": 1754783.9999999998,
+        "chisq_final": 1754330.1705535743,
+        "chisq_final_reduced": 0.9997447942438157,
+        "snr": 21.303273138779137,
+        "bestfit_parameters": {
+            "amplitude": [
+                -2.3867582869350814
+            ],
+            "peak_flux": [
+                0.5
+            ],
+            "fluence": [
+                3.5
+            ],
+            "arrival_time": [
+                1270684.8964626202
+            ],
+            "burst_width": [
+                0.0027468856073360618
+            ],
+            "dm": [
+                -0.011583182214040137
+            ],
+            "spectral_index": [
+                21.457180284733205
+            ],
+            "spectral_running": [
+                -58.66944617541479
+            ]
+        },
+        "bestfit_uncertainties": {
+            "amplitude": [
+                0.12275319439771248
+            ],
+            "peak_flux": [
+                0.2
+            ],
+            "fluence": [
+                0.8
+            ],
+            "arrival_time": [
+                0.0006242139225926881
+            ],
+            "burst_width": [
+                0.00017966657020020762
+            ],
+            "dm": [
+                0.07693552535645061
+            ],
+            "spectral_index": [
+                3.0836709596285234
+            ],
+            "spectral_running": [
+                8.097462123965938
+            ]
+        },
+        "bestfit_covariance": null
+    },
+    "fit_logistics": {
+        "dm_incoherent": [
+            349.94609913467923
+        ],
+        "factor_freq_upsample": 8,
+        "factor_time_upsample": 4,
+        "is_repeater": true,
+        "normalize_variance": false,
+        "spectrum_window": 0.08,
+        "variance_range": [
+            0.85,
+            1.15
+        ],
+        "variance_weight": 0.020833333333333332
+    },
+    "derived_parameters": {
+        "arrival_time_UTC": [
+            "2022-09-08 10:53:26.896729"
+        ]
+    }
+}

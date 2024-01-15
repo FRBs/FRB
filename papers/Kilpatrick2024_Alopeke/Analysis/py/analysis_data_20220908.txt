@@ -1,0 +1,46 @@
+This camera = red
+Time of start (UTC) 2022-09-08T10:39:04.629
+We started 14.370993955526501 minutes before
+And ended 7.545006988802925 minutes after
+N values (+/-0.16300306745579976 s): 28
+Max flux: 99.15800454694453
+Mean flux: 88.44920933888261
+Standard deviation: 8.789814983629809
+Zeropoint: 22.118906012299913 AB mag
+Zeropoint error: 0.03531093383954578 mag
+The upper limit is 41.997860785932886
+Extinction (A_filter): 1.5465383884105393
+AB mag (no dust correction): 18.279726116280635
+AB mag (MW dust correction): 16.733187727870096
+fluence (no dust correction): 1.8447418125932844 s uJy
+fluence (MW dust correction): 7.665684606755237 s uJy
+fluence ratio (opt/radio): 0.002190195601930068
+Equivalent isotropic energy: 8.114022356042966e+40 erg
+Intercept is: 825.3673651910062 electrons/s
+Slope is: 7.763991414138952 electrons/s
+The upper limit is 41.988571154215386
+Fraction exceeding: 0.9929
+Total observing = 1314.9600566597655s
+This camera = blue
+Time of start (UTC) 2022-09-08T10:39:04.629
+We started 14.370995422359556 minutes before
+And ended 7.546799898846075 minutes after
+N values (+/-0.16300306745579976 s): 28
+Max flux: 134.17818092168486
+Mean flux: 112.8543244232961
+Standard deviation: 16.212168141402877
+Zeropoint: 21.993747416781208 AB mag
+Zeropoint error: 0.042791267583366197 mag
+The upper limit is 76.1798582600194
+Extinction (A_filter): 2.205121094427004
+AB mag (no dust correction): 17.659275130073198
+AB mag (MW dust correction): 15.454154035646194
+fluence (no dust correction): 3.266750648610154 s uJy
+fluence (MW dust correction): 24.89799777377808 s uJy
+fluence ratio (opt/radio): 0.007113713649650881
+Equivalent isotropic energy: 3.2250152574271826e+41 erg
+Intercept is: 555.8676614392847 electrons/s
+Slope is: -1.9068632522228652 electrons/s
+The upper limit is 76.23242942144554
+Fraction exceeding: 0.9591
+Total observing = 1315.0677192723379s
