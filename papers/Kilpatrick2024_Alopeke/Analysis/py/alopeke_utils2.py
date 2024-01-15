@@ -35,7 +35,7 @@ def calc_zeropoint(data_dict, camera:str):
     return(zpt, zpt_err)
 
 def get_star_flux(date:str, data_dict):
-    mask = np.abs(data_dict['MJD_star1_full']-alopeke_defs.FRB_time[date].mjd)*24*3600<0.163
+    mask = np.abs(data_dict['MJD_star1_full']-alopeke_defs.FRB_time[date].mjd)*24*3600<alopeke_defs.ata.to('s').value
 
     data_dict['mean_bkg'] = np.mean(data_dict['C_bkg_full'][mask])
     data_dict['mean_star1'] = np.mean(data_dict['C_star1_full'][mask])
