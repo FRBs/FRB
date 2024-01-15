@@ -118,11 +118,6 @@ def get_frame_alignment(fitsfile, coord, camera, catalog, save_stack=''):
 
     return(fitsfile)
 
-
-#data_path = '/Users/ckilpatrick/Dropbox/Data/FRB/FRB180916/Data/Alopeke'
-#date = '20220908'
-#camera = 'r'
-
 tipo = "reduced"     #change filename
 
 data_path = sys.argv[1]
@@ -203,7 +198,6 @@ for filename in sorted(glob.glob(os.path.join(data_path, date,
     # We also want the exposure time, which is slightly different accounting for dead time
     time_per_exposure = orighdu[0].header['EXPTIME']
 
-    #UTC = fitsfile[0].header['UTC']
     data = fitsfile[0].data
     data = data.astype(float)
 
