@@ -3,24 +3,16 @@
 from pkg_resources import resource_filename
 import os
 import sys
-import warnings
 
 from IPython import embed
 
 import numpy as np
-import requests
 
 import pandas
 
-from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.table import Table
-from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB, load_frb_data
-from frb.galaxies import frbgalaxy, defs, offsets
-from frb.galaxies import photom as frbphotom
-from frb.surveys import survey_utils
 from frb import utils
 import pandas
 
