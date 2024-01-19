@@ -44,6 +44,11 @@ PanSTARRS_bands = ['g','r','i','z','y']
 for band in PanSTARRS_bands:
     valid_filters.append('Pan-STARRS_{:s}'.format(band))
 
+# HSC
+HSC_bands = ['g', 'r', 'i', 'z', 'Y']
+for band in HSC_bands:
+    valid_filters.append('HSC_{:s}'.format(band))
+
 # VLT
 VLT_bands = ['u', 'g', 'I', 'z', 'J', 'H', 'Ks']
 for band in VLT_bands:
