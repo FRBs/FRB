@@ -5,7 +5,7 @@ from matplotlib import pyplot as plt
 from astropy.wcs import WCS
 from astropy.nddata import Cutout2D
 from astropy.io import fits
-from astropy.convolution import Gaussian2DKernel
+from astropy.convolution import Gaussian2DKernel, convolve
 from astropy.stats import gaussian_fwhm_to_sigma, sigma_clipped_stats
 from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
@@ -118,22 +118,24 @@ class FRBAssociate(path.PATH):
         """
 
         # Cutout
-        cutout = Cutout2D(imgdata, self.frb.coord, size, wcs=wcs)
+        host_gal = self.frb.grab_host()
+        cutout = Cutout2D(imgdata, host_gal.coord, size, wcs=wcs)
         _, med, std = sigma_clipped_stats(cutout.data)
 
         # Make the figure
         fig,ax = plt.subplots(1, 1, figsize=(6, 6), subplot_kw={'projection': cutout.wcs})
-        norm = ImageNormalize(stretch=LogStretch(), vmin=med, vmax=med+10*std)
+        norm = ImageNormalize(stretch=LogStretch(), vmin=med+std, vmax=med+20*std)
 
         ax.imshow(cutout.data, origin='lower', cmap='hot', norm=norm)
         ax.set_xlabel('RA')
-        ax.set_ylabel('Dec')
+        ax.set_ylabel('Dec', labelpad=-2)
         ax.set_title(self.frb.frb_name+" Host")
         ax.set_xlim(0, cutout.data.shape[1])
         ax.set_ylim(0, cutout.data.shape[0])
 
         # Write
         output_file = resource_filename('frb', f'data/Galaxies/{self.frb.frb_name[3:]}/{self.frb.frb_name}_cutout.png')
+        plt.subplots_adjust(left=0.2, bottom=0.15, right=0.95, top=0.95)
         fig.savefig(output_file, dpi=300)
 
         return cutout
@@ -333,15 +335,28 @@ class FRBAssociate(path.PATH):
         self.kernel.normalize()
 
         # Segment
-        self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
+        try:
+            self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
                                              npixels=npixels, 
                                              kernel=self.kernel)
+        except TypeError:
+            warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
+            convolved_data = convolve(self.hdu.data, self.kernel)
+            self.segm = photutils.segmentation.detect_sources(convolved_data, self.thresh_img,
+                                             npixels=npixels)
 
         # Debelnd?
         if deblend:
-            segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
+            try:
+                segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
                                                      npixels=npixels,
                                                      kernel=self.kernel,
+                                                     nlevels=32,
+                                                     contrast=0.001)
+            except TypeError:
+                warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
+                segm_deblend = photutils.segmentation.deblend_sources(convolved_data, self.segm,
+                                                     npixels=npixels,
                                                      nlevels=32,
                                                      contrast=0.001)
             self.orig_segm = self.segm.copy()
