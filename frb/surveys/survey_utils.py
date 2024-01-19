@@ -11,6 +11,7 @@ from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
+from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
 from astropy.coordinates import SkyCoord
@@ -22,7 +23,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -72,6 +73,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = DELVE_Survey(coord, radius, **kwargs)
     elif name == 'VISTA':
         survey = VISTA_Survey(coord, radius, **kwargs)
+    elif name == 'HSC':
+        survey = HSC_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
@@ -95,6 +98,9 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         cat = None
     except ReadTimeout:
         warnings.warn("Couldn't reach NOIRLAB.", RuntimeWarning)
+        cat = None
+    except QueryError:
+        warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
         cat = None
 
     # Are there any objects in the returned catalog?
@@ -187,11 +193,9 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-            print(f"{surveyname} has {survey.catalog.colnames}")
-        except ConnectionError:
+        except (ConnectionError, HTTPError, QueryError):
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
-        except HTTPError:
-            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+
         # Did the survey return something?
         if (survey.catalog is not None):
             if len(survey.catalog)>0:
@@ -206,6 +210,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             # No objects found?
             elif len(survey.catalog)==0:
                 print("Empty table in "+surveyname)
+        
     
     return combined_cat
 

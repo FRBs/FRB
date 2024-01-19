@@ -1,0 +1,46 @@
+This camera = red
+Time of start (UTC) 2020-10-23T07:41:40.265
+We started 6.841878353152424 minutes before
+And ended 12.09422416635789 minutes after
+N values (+/-0.16300306745579976 s): 28
+Max flux: 72.33394791687047
+Mean flux: 47.82070429999975
+Standard deviation: 9.000776067207367
+Zeropoint: 22.136190941626683 AB mag
+Zeropoint error: 0.035881878355318225 mag
+The upper limit is 51.61662613981765
+Extinction (A_filter): 1.5465383884105393
+AB mag (no dust correction): 18.18696094759817
+AB mag (MW dust correction): 16.64042255918763
+fluence (no dust correction): 2.0092855408094445 s uJy
+fluence (MW dust correction): 8.349433582310564 s uJy
+fluence ratio (opt/radio): 0.003211320608580986
+Equivalent isotropic energy: 8.837761298901163e+40 erg
+Intercept is: 908.6946900880495 electrons/s
+Slope is: -3.99180150411254 electrons/s
+The upper limit is 51.66037543041208
+Fraction exceeding: 0.0678
+Total observing = 1136.1661511706188s
+This camera = blue
+Time of start (UTC) 2020-10-23T07:41:40.265
+We started 6.84188335086219 minutes before
+And ended 12.095297552878037 minutes after
+N values (+/-0.16300306745579976 s): 28
+Max flux: 56.42290357139614
+Mean flux: 43.515621034091886
+Standard deviation: 7.255609825974984
+Zeropoint: 22.151109428099474 AB mag
+Zeropoint error: 0.04506495957178212 mag
+The upper limit is 38.949428571428534
+Extinction (A_filter): 2.205121094427004
+AB mag (no dust correction): 18.59129404177557
+AB mag (MW dust correction): 16.386172947348566
+fluence (no dust correction): 1.3845492902092602 s uJy
+fluence (MW dust correction): 10.552536404938659 s uJy
+fluence ratio (opt/radio): 0.00405866784805333
+Equivalent isotropic energy: 1.366860549177359e+41 erg
+Intercept is: 576.6310231475677 electrons/s
+Slope is: 4.910245350656469 electrons/s
+The upper limit is 38.94579361689137
+Fraction exceeding: 0.6364
+Total observing = 1136.2308542244136s
