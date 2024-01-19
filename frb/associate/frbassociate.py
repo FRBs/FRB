@@ -273,7 +273,7 @@ class FRBAssociate(path.PATH):
             a = obj.semimajor_sigma.value * radius
             b = obj.semiminor_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
-            apertures.append(photutils.EllipticalAperture(position, a, b, theta=theta))
+            apertures.append(photutils.aperture.EllipticalAperture(position, a, b, theta=theta))
         self.apertures = apertures
 
         # Magnitudes
