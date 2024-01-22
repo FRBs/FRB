@@ -18,8 +18,7 @@ from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 from astropy import stats
 
-from photutils import SkyCircularAperture
-from photutils import aperture_photometry
+from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
 

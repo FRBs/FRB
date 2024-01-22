@@ -12,7 +12,7 @@ requests>=2.18
 extinction>=0.4.2
 matplotlib>=3.3
 healpy>=1.12
-linetools==0.3.dev2147
+linetools>=0.3.1
 PyYAML>=5.1
 numba>=0.50.0
 
