@@ -23,6 +23,7 @@ def frbs_for_chime(NFRB:int=10000, cut_fluence:float=5.):
     Parameters:
     - NFRB (int): Number of FRBs to generate (default: 10000)
     - cut_fluence (float): Minimum fluence threshold for FRB selection (default: 5.0)
+        in mJy
 
     Returns:
     - df (pandas.DataFrame): DataFrame containing the mock FRB catalog with the following columns:
@@ -47,7 +48,7 @@ def frbs_for_chime(NFRB:int=10000, cut_fluence:float=5.):
     
     # Cumulative
     cum_all = np.cumsum(all_rates, axis=0)
-    norm = np.outer(np.ones(zvals.size), cum_all[-1,:]) 
+    norm = np.outer(np.ones(zvals.size), cum_all[-1,:])
     cum_all /= norm
     cum_all[0,:] = 0.
 
