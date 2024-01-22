@@ -21,6 +21,7 @@ else:
 base_config = dict(
     max_radius=10.,
     cut_size=None,
+    host_cut_size=10.,
     deblend=False,
     cand_bright=None,
     cand_separation=None,
@@ -74,6 +75,7 @@ updates = dict(
     name='FRB20180916B',
     image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB20180916_GMOS_N_r.fits'),
     cut_size = 40.,
+    host_cut_size=10.,
     filter = 'GMOS_N_r',
     ZP = 31.2,
     deblend=False,

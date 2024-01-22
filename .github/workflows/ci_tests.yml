@@ -49,6 +49,7 @@ jobs:
         python -m pip install wheel scipy IPython
         python -m pip install git+https://github.com/FRBs/ne2001.git#egg=ne2001
         python -m pip install git+https://github.com/FRBs/astropath.git#egg=astropath
+        python -m pip install git+https://github.com/linetools/linetools#egg=linetools
         python -m pip install -r frb/requirements.txt
     - name: Install numba
       run: |
