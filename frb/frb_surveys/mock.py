@@ -213,6 +213,8 @@ def frbs_in_hosts(outfile:str,
     while(np.any(frb_idx < 0)):
 
         print(f"Remaining: {np.sum(frb_idx < 0)}")
+        print(f"Brightest: {np.min(fake_coords.dec)}")
+
         # Sub me
         sub_fake_coords = fake_coords[frb_idx < 0]
         sub_frb_idx = np.where(frb_idx < 0)[0]
