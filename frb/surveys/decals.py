@@ -89,8 +89,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
             # Skip strings
             if isinstance(main_cat[col][0], str):
                 continue
-            # Mask 
-            main_cat[col].mask = np.isnan(main_cat[col])
+            else:
+                main_cat[col].mask = np.isnan(main_cat[col])
         
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
