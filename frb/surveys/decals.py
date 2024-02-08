@@ -87,10 +87,13 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         #
         for col in main_cat.colnames:
             # Skip strings
-            if isinstance(main_cat[col][0], str):
+            if main_cat[col].dtype not in [float, int]:
                 continue
             else:
-                main_cat[col].mask = np.isnan(main_cat[col])
+                try:
+                    main_cat[col].mask = np.isnan(main_cat[col])
+                except:
+                    import pdb; pdb.set_trace()
         
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
