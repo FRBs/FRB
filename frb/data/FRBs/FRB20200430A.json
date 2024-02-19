@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 27.01954160466707
+        "value": 27.01954160466705
     },
     "FRB": "FRB20200430A",
     "cosmo": "Planck18",
@@ -19,6 +19,14 @@
         "cl_sys": 68.0,
         "theta": 0.0,
         "theta_sys": 0.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 35.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 4.0
     },
     "ra": 229.7064167,
     "refs": [
