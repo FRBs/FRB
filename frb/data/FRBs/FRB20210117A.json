@@ -1,11 +1,11 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 729.1
+        "value": 728.95
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 35.07709430751135
+        "value": 35.077094307511366
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -19,6 +19,10 @@
         "b": 0.12,
         "cl": 68.0,
         "theta": 90.0
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 36.0
     },
     "ra": 339.979229,
     "refs": [

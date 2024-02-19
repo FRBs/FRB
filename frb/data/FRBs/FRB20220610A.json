@@ -9,7 +9,7 @@
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.2
+        "value": 0.5
     },
     "FRB": "FRB20220610A",
     "RM": {
@@ -42,7 +42,7 @@
     },
     "ra": 351.073204,
     "refs": [
-        "Ryder2022"
+        "Ryder2023"
     ],
     "repeater": false,
     "z": 1.015
