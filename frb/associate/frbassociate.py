@@ -430,6 +430,7 @@ def run_individual(config, prior:dict=None, show=False,
                    loc:dict=None,
                    posterior_method:str='fixed',
                    extinction_correct=False,
+                   generate_png:bool=False,
                    FRB:frb.FRB=None,
                    internals:dict=None,
                    debug:bool=False):
@@ -448,6 +449,7 @@ def run_individual(config, prior:dict=None, show=False,
                 ZP (float): Zero point value (magnitudes)
                 plate_scale (float): Plate scale in arcsec
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
+                host_cut_size (float, optional): Size of the host cutout; required if generate_png=True
         prior(dict, optional):
             Contains information on the priors
         posterior_method(str, optional):
@@ -464,6 +466,8 @@ def run_individual(config, prior:dict=None, show=False,
             FRB object
         internals(dict, optional):
             Attributes to set in the FRBA object
+        generate_png (bool, optional):
+            Generate PNGs of the cutouts
         verbose (bool, optional):
     """
     if not skip_bayesian and prior == None:
@@ -517,7 +521,8 @@ def run_individual(config, prior:dict=None, show=False,
         frbA.header = hdu_full.header
 
         # Make a cutout of the host
-        frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
+        if generate_png:
+            frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
 
         # Threshold + Segment
         frbA.threshold()
