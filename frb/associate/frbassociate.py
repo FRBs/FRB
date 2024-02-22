@@ -449,6 +449,7 @@ def run_individual(config, prior:dict=None, show=False,
                 ZP (float): Zero point value (magnitudes)
                 plate_scale (float): Plate scale in arcsec
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
+                host_cut_size (float, optional): Size of the host cutout; required if generate_png=True
         prior(dict, optional):
             Contains information on the priors
         posterior_method(str, optional):
