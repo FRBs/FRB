@@ -411,7 +411,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
 
     # tab1 INTERSECTION tab2
     inner_join = hstack([matched_tab1, matched_tab2],
-                        table_names=table_names)
+                        table_names=table_names, metadata_conflicts='silent')
     # Remove unnecessary ra/dec columns and rename remaining coordinate
     # columns corectly. 
     tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
@@ -422,22 +422,33 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
     # Now get all objects that weren't matched.
-    not_matched_tab1 = setdiff(tab1, matched_tab1)
-    not_matched_tab2 = setdiff(tab2, matched_tab2)
+    if len(matched_tab1)!=0:
+        try:
+            not_matched_tab1 = setdiff(tab1, matched_tab1)
+            not_matched_tab2 = setdiff(tab2, matched_tab2)
+        except:
+            import pdb; pdb.set_trace()
+    else:
+        not_matched_tab1 = tab1
+        not_matched_tab2 = tab2
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
 
     # Are there unmatched entries in both tables?
     if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
-                    keys=['ra','dec'], join_type='outer', table_names=table_names)
-        merged = vstack([inner_join, outer_join]).filled(-999.)
+                    keys=['ra','dec'], join_type='outer',
+                    table_names=table_names, metadata_conflicts='silent')
+        merged = vstack([inner_join, outer_join],
+                        metadata_conflicts='silent')
     # Only table 1 has unmatched entries?
     elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
-        merged = vstack([inner_join, not_matched_tab1])
+        merged = vstack([inner_join, not_matched_tab1], 
+                        metadata_conflicts='silent')
     # Only table 2?
     elif (len(not_matched_tab1)==0)&(len(not_matched_tab2)!=0):
-        merged = vstack([inner_join, not_matched_tab2])
+        merged = vstack([inner_join, not_matched_tab2],
+                        metadata_conflicts='silent')
     # Neither?
     else:
         merged = inner_join
