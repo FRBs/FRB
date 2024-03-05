@@ -191,6 +191,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                 warnings.warn("Pan=STARRS doesn't allow cone searches wider than 0.5 deg. Skipping.", RuntimeWarning)
                 continue
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
+
         try:
             survey.get_catalog()
         except (ConnectionError, HTTPError, QueryError):
@@ -209,7 +210,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                     combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
             # No objects found?
             elif len(survey.catalog)==0:
-                print("Empty table in "+surveyname)
+                print(f"Empty table in {surveyname}.")
         
     
     return combined_cat
