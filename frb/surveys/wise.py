@@ -37,6 +37,7 @@ for band in WISE_bands:
     photom['WISE']['WISE_{:s}_err'.format(band)] = errcol
     _DEFAULT_query_fields.append(magcol)
     _DEFAULT_query_fields.append(errcol)
+photom['WISE']['WISE_ID'] = 'source_id'
 photom['WISE']['ra'] = 'ra'
 photom['WISE']['dec'] = 'dec'
 
@@ -86,7 +87,10 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
         main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=999.)
+        main_cat['WISE_ID'] = main_cat['WISE_ID'].astype(str)
         if len(main_cat) == 0:
+            self.catalog = main_cat
+            self.validate_catalog()
             return main_cat
         
         # Convert to AB mag
