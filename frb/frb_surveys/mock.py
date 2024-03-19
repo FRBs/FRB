@@ -273,7 +273,7 @@ def frbs_in_hosts(outfile:str,
     galaxy_offset = randn * theta_max * units.arcsec
     gal_pa = np.random.uniform(size=nsample, low=0., high=360.)
 
-    print("Offsetting FRB in galaxy...")
+    print("Offsetting FRBs in galaxy...")
     frb_coord = [coord.directional_offset_by(
         gal_pa[kk]*units.deg, galaxy_offset[kk]) 
                  for kk, coord in enumerate(galaxy_coords)]
