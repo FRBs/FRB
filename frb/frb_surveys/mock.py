@@ -130,8 +130,7 @@ def lognorm_pdf(DM:np.ndarray, logs:tuple=None):
     norm = (2.0 * np.pi) ** -0.5 / DM / logsigma
     return norm * np.exp(-0.5 * ((logDM - logmean) / logsigma) ** 2)
 
-def frbs_in_hosts(outfile:str, 
-                  frb_tbl:pandas.DataFrame,
+def frbs_in_hosts(frb_tbl:pandas.DataFrame,
                   galaxy_df:pandas.DataFrame,
                   localization:tuple,
                   scale:float=2., # half-light
@@ -149,24 +148,24 @@ def frbs_in_hosts(outfile:str,
         - dec (deg) FRB Dec as observed (i.e. allows for localization error)
         - true_ra (deg) True FRB RA in the galaxy
         - true_dec (deg) True FRB Dec in the galaxy
-        - gal_ID (int) Index of galaxy in input catalog
+        - gal_ID (int) ID of galaxy in input catalog
         - gal_off (arcsec) Offset of true FRB coord from galaxy center (true)
         - mag (float) Galaxy magnitude (m_r)
         - half_light (arcsec)
         - loc_off (arcsec) Offset of observed FRB coord from its true position
 
     Args:
-        outfile (str): 
-            Filename for the output table (pandas)
         frb_tbl (pandas.DataFrame): Table of FRB information
             Required columns:
                 m_r
+                ID (int)
         galaxy_df (pandas.DataFrame):
             Galaxy catalog.  Required columns:
                 ra
                 dec
                 mag_best
                 half_light
+                ID (int)
         localization (tuple): (sig_a, sig_b, PA)
         scale (float, optional): Defaults to 2..
             Scale factor for the galaxy half-light radius
@@ -177,6 +176,9 @@ def frbs_in_hosts(outfile:str,
             Debugging mode
         plots (bool, optional): Defaults to False.
             Generate plots
+
+    Returns:
+        pandas.DataFrame: Table of FRB/Host information
     """
     # Prep
     nsample = len(frb_tbl['m_r'])
@@ -305,11 +307,11 @@ def frbs_in_hosts(outfile:str,
     df['dec'] = [coord.dec.deg for coord in frb_coord]
     df['true_ra'] = [coord.ra.deg for coord in true_frb_coord]
     df['true_dec'] = [coord.dec.deg for coord in true_frb_coord]
-    df['gal_ID'] = galaxy_sample.index.values
+    df['gal_ID'] = galaxy_sample.ID.values
     df['gal_off'] = galaxy_offset.value # arcsec
     df['mag'] = galaxy_sample.mag_best.values
     df['half_light'] = galaxy_sample.half_light.values
     df['loc_off'] = local_offset.value # arcsec
 
-    df.to_csv(outfile, index=False)
-    print(f"Wrote: {outfile}")
+    # Return
+    return df
