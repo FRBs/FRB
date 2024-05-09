@@ -164,7 +164,7 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
     for iz in zs:
         ns.append(hmfe.n_in_bins((Mlow * cosmo.h, Mhigh * cosmo.h), iz) * cosmo.h**3)  # * units.Mpc**-3
     # Interpolate
-    ns = units.Quantity(ns*units.Mpc**-3)
+    ns = units.Quantity(ns*units.Mpc**-3).T
     # Radii
     if radius is None:
         rhoc = cosmo.critical_density(zs)
