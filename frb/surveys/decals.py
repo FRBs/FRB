@@ -32,7 +32,7 @@ photom['DECaL']['DECaL_ID'] = 'ls_id'
 photom['DECaL']['ra'] = 'ra'
 photom['DECaL']['dec'] = 'dec'
 photom['DECaL']['DECaL_brick'] = 'brickid'
-photom['DECaL']['gaia_pointsource'] = 'gaia_pointsource'
+photom['DECaL']['DECaL_type'] = 'type' # Replaces `gaia_pointsource` from DR8.
 
 class DECaL_Survey(dlsurvey.DL_Survey):
     """
@@ -50,19 +50,19 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'DECaL'
         self.bands = ['g', 'r', 'z']
-        self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr7")
+        self.svc = _svc # sia.SIAService("https://datalab.noao.edu/sia/ls_dr8")
         self.qc_profile = "default"
-        self.database = "ls_dr8.tractor"
+        self.database = "ls_dr10.tractor"
         self.default_query_fields = list(photom['DECaL'].values())
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_gaia=False,**kwargs):
+    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_stars=False,**kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
         
         Args:
             query: SQL query
             query_fields (list, optional): Over-ride list of items to query
-            exclude_gaia (bool,optional): If the field 'gaia_pointsource' is present and is 1,
+            exclude_gaia (bool,optional): If the field 'type' is present and is 'PSF',
                                          remove those objects from the output catalog.
             print_query (bool): Print the SQL query generated 
 
@@ -75,11 +75,12 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         if query is None:
             query = super(DECaL_Survey, self)._gen_cat_query(query_fields=query_fields, qtype='main')
             # include photo_z
-            query = query.replace("SELECT", "SELECT z_phot_median, z_spec, survey, z_phot_l68, z_phot_u68, ")
+            query = query.replace("SELECT", "SELECT z_phot_median, z_spec, survey, z_phot_l68, z_phot_u68, z_phot_l95, z_phot_u95")
             query = query.replace("ls_id", "t.ls_id")
             query = query.replace("brickid", "t.brickid")
             query = query.replace(f"FROM {self.database}\n", f"FROM {self.database} as t LEFT JOIN {self.database.split('.')[0]}.photo_z AS p ON t.ls_id=p.ls_id\n")
-        main_cat = super(DECaL_Survey, self).get_catalog(query=query,
+        self.query = query
+        main_cat = super(DECaL_Survey, self).get_catalog(query=self.query,
                                                         print_query=print_query,**kwargs)
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
@@ -103,8 +104,11 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         
         main_cat = main_cat.filled(-99.0)
         #Remove gaia objects if necessary
-        if exclude_gaia:
-            self.catalog = main_cat[main_cat['gaia_pointsource']==0]
+        if exclude_stars and 'type' in main_cat.colnames:
+            self.catalog = main_cat[main_cat['DECaL_type']=='PSF']
+        elif exclude_stars and 'type' not in main_cat.colnames:
+            print("Warning: 'type' not found in catalog, cannot exclude stars.")
+            self.catalog = main_cat
         else:
             self.catalog = main_cat
         # Clean
