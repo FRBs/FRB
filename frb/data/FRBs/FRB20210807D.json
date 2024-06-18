@@ -20,6 +20,14 @@
         "cl": 68.0,
         "theta": 0.0
     },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 113.0
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 9.0
+    },
     "ra": 299.221433,
     "refs": [
         "Shannon2023",
