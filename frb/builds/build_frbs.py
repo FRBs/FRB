@@ -108,7 +108,7 @@ def run(frb_input:pandas.core.series.Series,
 
     # Write
     if out_path is None:
-        out_path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+        out_path = os.path.join(resources.files('frb'), 'data', 'FRBs')
     ifrb.write_to_json(path=out_path) #'/home/xavier/Projects/FRB_Software/FRB/frb/tests/files')
 
 
