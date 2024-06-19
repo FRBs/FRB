@@ -19,7 +19,7 @@ from frb.galaxies import utils as frb_gal_u
 from IPython import embed
 
 
-def r_vs_dm(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
+def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
                flipy=True, known_hosts = False):
     """
     Plots the intersection of galaxy apparent magnitude evolution with redshift 

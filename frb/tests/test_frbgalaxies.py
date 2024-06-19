@@ -146,7 +146,7 @@ def test_mag_dm_figure():
     from scipy import stats
     import os
     # check that the figure is created and saved
-    mag_dm.r_vs_dm(1.4, 2.5, np.linspace(0,4,100), stats.norm(loc=2.,  scale=0.25).pdf(np.linspace(0,4,100)), outfile='temp_fig.png',
+    mag_dm.r_vs_dm_figure(1.4, 2.5, np.linspace(0,4,100), stats.norm(loc=2.,  scale=0.25).pdf(np.linspace(0,4,100)), outfile='temp_fig.png',
                flipy=True, known_hosts = False)
     assert os.path.exists('./temp_fig.png') 
     os.system('rm ./temp_fig.png')

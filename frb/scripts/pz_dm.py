@@ -86,7 +86,7 @@ def main(pargs):
 
     # make the magnitude vs redshift plot with z-range if requested
     if pargs.magdm_plot:
-        mag_dm.r_vs_dm(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
+        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
                flipy=True, known_hosts = False)
 
     return z_min, z_max, z_50, z_mode
