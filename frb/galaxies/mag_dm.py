@@ -112,7 +112,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     ax.set_ylim(ymnx)
 
     ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
-    plt.colorbar(c,label='PDF (a.u.)',ax=ax)
+    plt.colorbar(c,label='p(z|DM) [a.u.]',ax=ax)
 
     ax.legend()
 
