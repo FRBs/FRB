@@ -8,7 +8,7 @@ import warnings
 import glob
 
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -811,7 +811,7 @@ class FRBHost(FRBGalaxy):
         else:
             name = frb.frb_name
         #
-        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), name)
+        path = importlib_resources.files('frb.data.Galaxies')/ name
         json_file = os.path.join(path, FRBHost._make_outfile(name))
         slf = cls.from_json(frb, json_file, **kwargs)
         return slf
