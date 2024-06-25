@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
@@ -928,7 +928,7 @@ class YF17(ModifiedNFW):
 
         # Read
         #faerman_file = resource_filename('pyigm', '/data/CGM/Models/Faerman_2017_ApJ_835_52-density-full.txt')
-        faerman_file = resource_filename('frb', '/data/Halos/Faerman_2017_ApJ_835_52-density-full.txt')
+        faerman_file = importlib_resources.files('frb') / 'data/Halos/Faerman_2017_ApJ_835_52-density-full.txt'
         self.yf17 = Table.read(faerman_file, format='ascii.cds')
         self.yf17['nH'] = self.yf17['nHhot'] + self.yf17['nHwarm']
 
