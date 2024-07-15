@@ -20,7 +20,7 @@ from IPython import embed
 
 
 def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
-               flipy=True, known_hosts = False):
+               flipy=True, known_hosts = False, title=None):
     """
     Plots the intersection of galaxy apparent magnitude evolution with redshift 
     and redshift distribution of the FRB and saves it. 
@@ -75,7 +75,9 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
 
     # plot
     # L curves
-    zvals = np.linspace(0.021, 4.0, 200)
+
+
+    zvals = np.linspace(0.021, z_max+0.5, 200)
     m_Lstar = f_mL(zvals)
     ax.plot(zvals, m_Lstar, '-r', label='L*')
 
@@ -87,13 +89,14 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
 
 
     # Add P(z|DM)
-    xmnx = (0., 4.)
-    ymnx = (14, 33.)
+    xmnx = (0., z_max+0.5)
+    ymnx = (14, max(15, m_001Lstar[-1]+0.5))
     if flipy:
         ymnx = (ymnx[1], ymnx[0])
     
     y_range = np.linspace(ymnx[0], ymnx[1], 300) 
     x_range = np.linspace(z_min,z_max,300)
+
     pzd = np.interp(x_range,z,PzDM)
     X,Y = np.meshgrid(x_range,y_range)
     Z = X/X*pzd
@@ -102,7 +105,9 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     #zlbl = 'P(z|DM) [95% c.l.]'
     c=ax.pcolor(X, Y, Z*1000, cmap='Blues')
     zlbl = '95% c.l. FRB Redshift \n estimated from DM'
-    ax.text(np.mean([z_min,z_max]), 20.5, zlbl,
+    text_x = 0.25 * (xmnx[1] - xmnx[0]) + xmnx[0]
+    text_y = 0.5 * (ymnx[1] - ymnx[0]) + ymnx[0]
+    ax.text(text_x, text_y, zlbl,
             color='k', 
             size='large', ha='center')
 
@@ -111,11 +116,17 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     ax.set_xlim(xmnx)
     ax.set_ylim(ymnx)
 
-    ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
+    if z_max <= 0.5:
+        ax.set_xscale('log')
+        ax.set_xlim(1e-2,z_max+0.5)
+        ax.xaxis.set_major_locator(plt.LogLocator(base=10, numticks=12))
+    else:
+        ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     plt.colorbar(c,label='p(z|DM) [a.u.]',ax=ax)
 
     ax.legend()
-
+    # set the title of the figure
+    ax.set_title(title)
     frb_fig_u.set_fontsize(ax, 15.)
 
     # End

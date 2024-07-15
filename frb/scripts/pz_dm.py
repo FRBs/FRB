@@ -16,6 +16,7 @@ def parser(options=None):
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
                         help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
+    parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
 
     if options is None:
         pargs = parser.parse_args()
@@ -84,9 +85,11 @@ def main(pargs):
     print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     print("-----------------------------------------------------")
 
+
+
     # make the magnitude vs redshift plot with z-range if requested
     if pargs.magdm_plot:
         mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
-               flipy=True, known_hosts = False)
+               flipy=True, known_hosts=False, title=pargs.fig_title)
 
     return z_min, z_max, z_50, z_mode
