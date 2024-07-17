@@ -176,6 +176,32 @@ def grab_repo_grid():
     return sdict
 
 
+
+def grab_chime_repo_grid():
+    """
+    Grab the CHIME grid from the Repository
+
+    Returns:
+        dict: Numpy dict from the npz save file
+    """
+
+    # File
+    CHIME_PDM_z_grid_file = os.path.join(
+        resource_filename('frb', 'data'), 'DM',
+        'CHIME_pzdm.npz')
+
+    # assert the file exists
+    if not os.path.isfile(CHIME_PDM_z_grid_file):
+        raise IOError("You need to download the CHIME grid from the FRB repo")
+            
+    # Load
+    print(f"Loading P(DM,z) grid from {CHIME_PDM_z_grid_file}")
+    sdict = np.load(CHIME_PDM_z_grid_file)
+
+    # Return
+    return sdict
+
+
 def get_DMcosmic_from_z(zarray, perc=0.5, redo_pdmz_grid=False, DMevals=np.linspace(1.,2000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):
     """
     Gives DMcosmic values of zarray, considering the percentile.

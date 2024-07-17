@@ -105,7 +105,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     #zlbl = 'P(z|DM) [95% c.l.]'
     c=ax.pcolor(X, Y, Z*1000, cmap='Blues')
     zlbl = '95% c.l. FRB Redshift \n estimated from DM'
-    text_x = 0.25 * (xmnx[1] - xmnx[0]) + xmnx[0]
+    text_x = 0.35 * (xmnx[1] - xmnx[0]) + xmnx[0]
     text_y = 0.5 * (ymnx[1] - ymnx[0]) + ymnx[0]
     ax.text(text_x, text_y, zlbl,
             color='k', 
@@ -124,7 +124,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
         ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     plt.colorbar(c,label='p(z|DM) [a.u.]',ax=ax)
 
-    ax.legend()
+    ax.legend(loc='upper right')
     # set the title of the figure
     ax.set_title(title)
     frb_fig_u.set_fontsize(ax, 15.)

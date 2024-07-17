@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 """
 Estimate p(z|DM) for an assumed location on the sky and DM_FRB
   Warning:  This assumes a *perfect* telescope
@@ -54,18 +54,26 @@ def main(pargs):
     # Redshift estimates
 
     # Load
-    #sdict = np.load(PDM_z_grid_file)
-    if pargs.perfect_telescope:
-        sdict = prob_dmz.grab_repo_grid()
-
-    lkadsfa
-    PDM_z = sdict['PDM_z']
+    # consider CHIME telescope
+    sdict = prob_dmz.grab_chime_repo_grid() 
+    PDM_z = sdict['pzdm']
     z = sdict['z']
     DM = sdict['DM']
-
-    # Do it
     iDM = np.argmin(np.abs(DM - DM_cosmic))
-    PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
+    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
+
+    # perfect telescope case
+    if pargs.perfect_telescope:
+        sdict = prob_dmz.grab_repo_grid()
+        PDM_z = sdict['PDM_z']
+        z = sdict['z']
+        DM = sdict['DM']
+        iDM = np.argmin(np.abs(DM - DM_cosmic))
+        PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
+
+
+
+
 
     cum_sum = np.cumsum(PzDM)
     limits = pargs.cl
@@ -87,7 +95,10 @@ def main(pargs):
     print(f"The redshift range for your confidence interval {pargs.cl} is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
     print("")
-    print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+    if pargs.perfect_telescope:
+        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+    else:
+        print("This assumes the CHIME telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     print("-----------------------------------------------------")
 
 
