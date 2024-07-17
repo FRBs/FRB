@@ -399,6 +399,7 @@ class FRBAssociate(path.PATH):
 
         # Background
         bkg_estimator = photutils.MedianBackground()
+        #embed(header='threshold 402 frbassociate')
         self.bkg = photutils.Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
@@ -529,7 +530,8 @@ def run_individual(config, prior:dict=None, show=False,
         frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
 
         # Photometry
-        frbA.photometry(config['ZP'], config['filter'], show=show)
+        ZP = config['ZP'] if 'ZP' in config.keys() else frbA.header['ZP']
+        frbA.photometry(ZP, config['filter'], show=show)
         if verbose:
             print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 

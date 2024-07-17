@@ -5,6 +5,7 @@ At the moment the Zero Points used include Galactic Extinction!
 """
 import os
 from pkg_resources import resource_filename
+import glob
 
 from astropy import units
 import warnings
@@ -20,8 +21,8 @@ else:
 
 base_config = dict(
     max_radius=10.,
-    cut_size=None,
-    host_cut_size=10.,
+    cut_size=None, # Size of the cutout in arcsec for PATH analysis
+    host_cut_size=10., # Size of the host cutout in arcsec for plotting
     deblend=False,
     cand_bright=None,
     cand_separation=None,
@@ -494,3 +495,40 @@ updates = dict(
     plate_scale = 0.252 * units.arcsec,
 )
 FRB20220105A = base_config | updates 
+
+##############################
+# ICS Sample
+
+for tns_name in ['FRB20240210A']:
+    # Find the image
+    images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
+                                    'Shannon2024', 
+                                    f'{tns_name}_VLT-FORS2_*'))
+    use_this_image = None
+    for image in images:
+        if 'FORS2_R' in image:
+            use_this_image = image 
+            ifilter = 'VLT_FORS2_R'
+        if use_this_image is None and 'FORS2_G' in image:
+            use_this_image = image 
+            ifilter = 'VLT_FORS2_G'
+    if use_this_image is None:
+        embed(header=f'No image found for {tns_name}')
+        raise IOError("No image found")
+
+    updates = dict(
+        name=tns_name,
+        image_file=use_this_image,
+        cut_size=30.,
+        filter=ifilter,
+        deblend=True,
+        cand_bright=17.,
+        cand_separation=10*units.arcsec,
+        plate_scale = 0.252 * units.arcsec,
+    )
+
+    # FRB specific
+    if tns_name == 'FRB20240210A':
+        updates['cut_size'] = 60.
+
+    globals()[tns_name] = base_config | updates
