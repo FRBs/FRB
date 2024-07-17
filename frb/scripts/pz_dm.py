@@ -16,6 +16,7 @@ def parser(options=None):
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
                         help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
+    parser.add_argument("--perfect_telescope", default=False, action='store_true', help="Use a perfect telescope model for the DM-z grid instead of CHIME")
     parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
 
     if options is None:
@@ -53,7 +54,11 @@ def main(pargs):
     # Redshift estimates
 
     # Load
-    sdict = prob_dmz.grab_repo_grid()
+    #sdict = np.load(PDM_z_grid_file)
+    if pargs.perfect_telescope:
+        sdict = prob_dmz.grab_repo_grid()
+
+    lkadsfa
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
