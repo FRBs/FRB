@@ -40,6 +40,10 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     f_mL = frb_gal_u.load_f_mL()
 
 
+
+    # Increase default font size
+    plt.rcParams.update({'font.size': 12})
+
     # set up the figure
     plt.figure(figsize=(6, 5))
     gs = gridspec.GridSpec(1,1)
@@ -111,8 +115,8 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
             color='k', 
             size='large', ha='center')
 
-    ax.set_xlabel(r'$z$')
-    ax.set_ylabel(r'$m_r$')
+    ax.set_xlabel(r'Redshift ($z$)')
+    ax.set_ylabel(r'Apparent Magnitude ($m_r$)')
     ax.set_xlim(xmnx)
     ax.set_ylim(ymnx)
 
@@ -124,7 +128,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
         ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
     plt.colorbar(c,label='p(z|DM) [a.u.]',ax=ax)
 
-    ax.legend(loc='upper right')
+    ax.legend(loc='upper right', frameon=True, shadow=True)
     # set the title of the figure
     ax.set_title(title)
     frb_fig_u.set_fontsize(ax, 15.)
