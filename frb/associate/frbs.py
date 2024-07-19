@@ -394,9 +394,9 @@ for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FR
         if 'FORS2_R' in image:
             use_this_image = image 
             ifilter = 'VLT_FORS2_R'
-        if use_this_image is None and 'FORS2_G' in image:
+        if use_this_image is None and 'FORS2_g' in image:
             use_this_image = image 
-            ifilter = 'VLT_FORS2_G'
+            ifilter = 'VLT_FORS2_g'
     if use_this_image is None:
         embed(header=f'No image found for {tns_name}')
         raise IOError("No image found")
