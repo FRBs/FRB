@@ -358,40 +358,6 @@ updates = dict(
 FRB20201123A = base_config | updates 
 #
 #
-##############################
-# FRB 20210117A
-updates = dict(
-    name='FRB20210117A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210117_VLT-FORS2_g-HIGH_2021-06-12.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.32,  # From Lachlan on 2021-12-15
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-
-FRB20210117A = base_config | updates 
-
-##############################
-# FRB 20210320C
-updates = dict(
-    name='FRB20210320C',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210320_VLT-FORS2_g-HIGH_2021-04-15.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # From Lachlan on 2021-12-15
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20210320C = base_config | updates 
 
 ##############################
 # FRB 20210410D
@@ -412,94 +378,13 @@ updates = dict(
 FRB20210410D = base_config | updates 
 
 ##############################
-# FRB 20210806D
-updates = dict(
-    name='FRB20210807D',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210807_VLT-FORS2_g-HIGH_WCS.fits'),
-    cut_size = 29.,
-    filter = 'VLT_FORS1_g',
-    ZP = 26.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=16.,
-    cand_separation=9*units.arcsec,
-    plate_scale = -1.252 * units.arcsec,
-)
-FRB20210807D = base_config | updates 
-
-##############################
-# FRB 20211127I
-updates = dict(
-    name='FRB20211127I',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211127_VLT-FORS2_g-HIGH_2022-01-29.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20211127I = base_config | updates 
-
-##############################
-# FRB 20211203C
-updates = dict(
-    name='FRB20211203C',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211203_VLT-FORS2_R-SPECIAL_2022-02-11.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_R',
-    ZP = 28.14, # Taken from the Header
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.248 * units.arcsec,  # Using CDELT1
-)
-FRB20211203C = base_config | updates 
-
-##############################
-# FRB 20211212A
-updates = dict(
-    name='FRB20211212A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211212_VLT-FORS2_g-HIGH_2022-01-28.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20211212A = base_config | updates 
-
-##############################
-# FRB 20220105A
-updates = dict(
-    name='20220105A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20220105A_VLT-FORS2_g-HIGH_2022-01-28.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20220105A = base_config | updates 
-
-##############################
 # ICS Sample
 
-for tns_name in ['FRB20240210A']:
+for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B','FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                 'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D','FRB20211127I','FRB20211203C',
+                 'FRB20211212A','FRB20220105A','FRB20220501C','FRB20220610A','FRB20220725A','FRB20220918A','FRB20221106A',
+                 'FRB20230526A','FRB20230708A','FRB20230718A','FRB20230731A','FRB20230902A','FRB20231226A','FRB20240201A',
+                 'FRB20240208A','FRB20240210A','FRB20240304A','FRB20240310A']:
     # Find the image
     images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
                                     'Shannon2024', 
