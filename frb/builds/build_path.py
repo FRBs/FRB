@@ -126,9 +126,11 @@ def main(options:str=None, frb:str=None):
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
     else:
-        ifrb = FRB.by_name(frb)
+        # Generate the list
+        frb_list = frb.split(',')
+        #ifrb = [FRB.by_name(ifrb) for ifrb in frbs]
         #host = ifrb.grab_host()
-        frb_list = [ifrb.frb_name]
+        #frb_list = [ifrb.frb_name]
         #host_coords = [host.coord]
 
     # Load prior
