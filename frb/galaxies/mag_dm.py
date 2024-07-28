@@ -20,7 +20,7 @@ from IPython import embed
 
 
 def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
-               flipy=True, known_hosts = False, title=None):
+               flipy=True, known_hosts = False, title=None, logz_scale=False):
     """
     Plots the intersection of galaxy apparent magnitude evolution with redshift 
     and redshift distribution of the FRB and saves it. 
@@ -109,7 +109,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     #zlbl = 'P(z|DM) [95% c.l.]'
     c=ax.pcolor(X, Y, Z*1000, cmap='Blues')
     zlbl = '95% c.l. FRB Redshift \n estimated from DM'
-    text_x = 0.35 * (xmnx[1] - xmnx[0]) + xmnx[0]
+    text_x = 0.3 * (xmnx[1] - xmnx[0]) + xmnx[0]
     text_y = 0.5 * (ymnx[1] - ymnx[0]) + ymnx[0]
     ax.text(text_x, text_y, zlbl,
             color='k', 
@@ -120,7 +120,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     ax.set_xlim(xmnx)
     ax.set_ylim(ymnx)
 
-    if z_max <= 0.5:
+    if logz_scale == True:
         ax.set_xscale('log')
         ax.set_xlim(1e-2,z_max+0.5)
         ax.xaxis.set_major_locator(plt.LogLocator(base=10, numticks=12))

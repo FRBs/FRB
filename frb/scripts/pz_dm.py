@@ -1,7 +1,7 @@
 
 """
 Estimate p(z|DM) for an assumed location on the sky and DM_FRB
-  Warning:  This assumes a *perfect* telescope
+Defaults to using the CHIME telescope model for the DM-z grid
 """
 from IPython import embed
 
@@ -11,12 +11,14 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("coord", type=str, help="Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)")
     parser.add_argument("DM_FRB", type=float, help="FRB DM (pc/cm^3)")
-    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calculated from NE2001) and Host. Default = 100")
+    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calculated from NE2001) \
+                        and Host. Default = 100")
     parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
                         help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
-    parser.add_argument("--perfect_telescope", default=False, action='store_true', help="Use a perfect telescope model for the DM-z grid instead of CHIME")
+    parser.add_argument("--telescope", type=str, default='CHIME', help="telescope model for the DM-z grid: CHIME, DSA, Parkes, FAST, CRAFT, \
+                        CRAFT_ICS_892/1300/1632, perfect. Default = CHIME")
     parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
 
     if options is None:
@@ -53,27 +55,42 @@ def main(pargs):
 
     # Redshift estimates
 
-    # Load
-    # consider CHIME telescope
-    sdict = prob_dmz.grab_chime_repo_grid() 
+    # Load the telescope specific grid
+    telescope_dict = {
+        'CHIME': 'CHIME_pzdm.npz',
+        'DSA': 'DSA_pzdm.npy',
+        'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
+        'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
+        'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
+        'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
+        'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
+        'FAST': 'FAST_pzdm.npy',
+        'perfect': 'PDM_z.npz'
+    }
+
+    # Get z and DM arrays from CHIME
+    sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
     PDM_z = sdict['pzdm']
     z = sdict['z']
     DM = sdict['DM']
-    iDM = np.argmin(np.abs(DM - DM_cosmic))
-    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
-    # perfect telescope case
-    if pargs.perfect_telescope:
-        sdict = prob_dmz.grab_repo_grid()
+    # Get the telescope specific PZDM grid
+    if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
+        if pargs.telescope not in telescope_dict:
+            raise ValueError(f"Unknown telescope: {pargs.telescope}")
+        sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
+        PDM_z = sdict['pzdm']
+
+    iDM = np.argmin(np.abs(DM - DM_cosmic))
+    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM, :])
+
+    if pargs.telescope and pargs.telescope == 'perfect':
+        sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
         PDM_z = sdict['PDM_z']
         z = sdict['z']
         DM = sdict['DM']
         iDM = np.argmin(np.abs(DM - DM_cosmic))
         PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
-
-
-
-
 
     cum_sum = np.cumsum(PzDM)
     limits = pargs.cl
@@ -106,6 +123,6 @@ def main(pargs):
     # make the magnitude vs redshift plot with z-range if requested
     if pargs.magdm_plot:
         mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
-               flipy=True, known_hosts=False, title=pargs.fig_title)
+               flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
     return z_min, z_max, z_50, z_mode
