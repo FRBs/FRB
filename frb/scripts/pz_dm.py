@@ -79,7 +79,7 @@ def main(pargs):
         if pargs.telescope not in telescope_dict:
             raise ValueError(f"Unknown telescope: {pargs.telescope}")
         sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
-        PDM_z = sdict['pzdm']
+        PDM_z = sdict
 
     iDM = np.argmin(np.abs(DM - DM_cosmic))
     PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
@@ -112,10 +112,10 @@ def main(pargs):
     print(f"The redshift range for your confidence interval {pargs.cl} is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
     print("")
-    if pargs.perfect_telescope:
+    if pargs.telescope == 'perfect':
         print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     else:
-        print("This assumes the CHIME telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     print("-----------------------------------------------------")
 
 

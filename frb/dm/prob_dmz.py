@@ -3,7 +3,7 @@ import numpy as np
 import os
 
 
-from importlib.resources import files as filename
+from importlib.resources import files
 
 from scipy.stats import norm, lognorm
 from scipy.interpolate import interp1d, interp2d
@@ -165,9 +165,7 @@ def grab_repo_grid(grid_name):
     """
 
     # File
-    grid_file = os.path.join(
-        filename('frb', 'data'), 'DM',
-        f'{grid_name}')
+    grid_file = files('frb.data.DM').joinpath( grid_name)
     
     # Build?
     if grid_name == 'PDM_z.npz':
