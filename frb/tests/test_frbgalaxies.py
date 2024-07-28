@@ -162,8 +162,8 @@ def test_pzdm_telescopes():
 
     # Test
     assert len(z) == 500
-    assert len(DM) == 1000
-    assert PDM_z.shape == (1000, 500)
+    assert len(DM) == 1400
+    assert PDM_z.shape == (500, 1400)
 
 
 
