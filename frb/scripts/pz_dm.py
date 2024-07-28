@@ -82,7 +82,7 @@ def main(pargs):
         PDM_z = sdict['pzdm']
 
     iDM = np.argmin(np.abs(DM - DM_cosmic))
-    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM, :])
+    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
     if pargs.telescope and pargs.telescope == 'perfect':
         sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
