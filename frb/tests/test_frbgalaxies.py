@@ -156,7 +156,7 @@ def test_pzdm_telescopes():
     # Load the CHIME grid
     from frb.dm import prob_dmz
     sdict = prob_dmz.grab_repo_grid('CHIME_pzdm.npz')
-    PDM_z = sdict['Pzdm']
+    PDM_z = sdict['pzdm']
     z = sdict['z']
     DM = sdict['DM']
 
