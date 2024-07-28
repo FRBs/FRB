@@ -154,7 +154,8 @@ def test_mag_dm_figure():
 
 def test_pzdm_telescopes():
     # Load the CHIME grid
-    sdict = utils.grab_repo_grid('PDM_z.npz')
+    from frb.dm import prob_dmz
+    sdict = prob_dmz.grab_repo_grid('PDM_z.npz')
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
@@ -166,7 +167,7 @@ def test_pzdm_telescopes():
 
 
     # Load the perfect grid
-    sdict = utils.grab_repo_grid('PDM_z_perfect.npz')
+    sdict = prob_dmz.grab_repo_grid('PDM_z_perfect.npz')
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
