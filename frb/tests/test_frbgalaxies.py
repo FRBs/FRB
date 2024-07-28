@@ -163,7 +163,7 @@ def test_pzdm_telescopes():
     # Test
     assert len(z) == 500
     assert len(DM) == 1000
-    assert PDM_z.shape == (1000, 200)
+    assert PDM_z.shape == (1000, 500)
 
 
     # Load the perfect grid
