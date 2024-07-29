@@ -535,6 +535,7 @@ def run_individual(config, prior:dict=None, show=False,
         if verbose:
             print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
+        #embed(header='threshold 546 frbassociate')
         # Candidates
         frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
                         separation=config['cand_separation'])
@@ -592,11 +593,11 @@ def run_individual(config, prior:dict=None, show=False,
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
+    debug = True
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
-
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
