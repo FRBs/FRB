@@ -74,6 +74,7 @@ def main(pargs):
     z = sdict['z']
     DM = sdict['DM']
 
+
     # Get the telescope specific PZDM grid
     if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
         if pargs.telescope not in telescope_dict:
