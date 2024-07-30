@@ -150,3 +150,21 @@ def test_mag_dm_figure():
                flipy=True, known_hosts = False)
     assert os.path.exists('./temp_fig.png') 
     os.system('rm ./temp_fig.png')
+
+
+def test_pzdm_telescopes():
+    # Load the CHIME grid
+    from frb.dm import prob_dmz
+    sdict = prob_dmz.grab_repo_grid('CHIME_pzdm.npz')
+    PDM_z = sdict['pzdm']
+    z = sdict['z']
+    DM = sdict['DM']
+
+    # Test
+    assert len(z) == 500
+    assert len(DM) == 1400
+    assert PDM_z.shape == (500, 1400)
+
+
+
+
