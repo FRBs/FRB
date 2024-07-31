@@ -27,6 +27,7 @@ base_config = dict(
     cand_bright=None,
     cand_separation=None,
     skip_bayesian=False,
+    xy_kernel=(3,3),
     posterior_method='fixed',
     npixels=9,
 )
@@ -429,7 +430,11 @@ try:
 
         # FRB specific
         if tns_name == 'FRB20240210A':
-            updates['cut_size'] = 60.
+            updates['cut_size'] = 180.
+            updates['cand_bright'] = 14.
+            updates['cand_separation'] = 180. * units.arcsec
+            updates['npixels'] = 70
+            updates['xy_kernel'] = (11,11)
         if tns_name == 'FRB20190608B':
             updates['cand_bright'] = 15.
             updates['cut_size'] = 34.

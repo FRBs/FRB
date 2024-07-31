@@ -527,7 +527,8 @@ def run_individual(config, prior:dict=None, show=False,
 
         # Threshold + Segment
         frbA.threshold()
-        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
+        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show,
+                     xy_kernel=config['xy_kernel'])
 
         # Photometry
         ZP = config['ZP'] if 'ZP' in config.keys() else frbA.header['ZP']
