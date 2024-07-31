@@ -89,7 +89,12 @@ def run(frb_list:list,
         separations.append(frbA.candidates.separation.values[0])
 
         # Write the full candidate table?
+        #embed(header="build_path.py: 92")
         if write:
+            # Add P_U
+            frbA.candidates['P_U'] = prior['U']
+            # Drop coords
+            frbA.candidates.drop(columns=['coords'], inplace=True)
             outfile = os.path.join(files('frb'), 'data', 'Galaxies', 
                                    'PATH', f'{frb_name.upper()}_PATH.csv')
             frbA.candidates.to_csv(outfile)
@@ -103,6 +108,7 @@ def run(frb_list:list,
     df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
     df['P_Ox'] = PATH_Ox
+    df['P_U'] = PATH_Ox
     df['separation'] = separations
 
     for frb_name in skipped:

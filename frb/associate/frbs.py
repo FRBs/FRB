@@ -380,56 +380,67 @@ FRB20210410D = base_config | updates
 ##############################
 # ICS Sample
 
-for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B','FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
-                 'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D','FRB20211127I','FRB20211203C',
-                 'FRB20211212A','FRB20220105A','FRB20220501C','FRB20220610A','FRB20220725A','FRB20220918A','FRB20221106A',
-                 'FRB20230526A','FRB20230708A','FRB20230731A','FRB20230902A','FRB20231226A','FRB20240201A',
-                 'FRB20240210A','FRB20240304A','FRB20240310A']:
-    # Find the image
-    images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
-                                    'Shannon2024', 
-                                    f'{tns_name}_VLT-FORS2_*.fits'))
-    use_this_image = None
-    for ifilter in ['FORS2_R','FORS2_I','FORS2_g']:
-        for image in images:
-            if ifilter in image:
-                use_this_image = image
-                ifilter = 'VLT_'+ifilter
+try:
+    for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B','FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                    'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D','FRB20211127I','FRB20211203C',
+                    'FRB20211212A','FRB20220105A','FRB20220501C',
+                    'FRB20220610A','FRB20220725A','FRB20220918A',
+                    'FRB20221106A',
+                    'FRB20230526A','FRB20230708A', 
+                    #'FRB20230718A', # No HI
+                    'FRB20230731A','FRB20230902A','FRB20231226A','FRB20240201A',
+                    'FRB20240210A','FRB20240304A','FRB20240310A']:
+        # Find the image
+        images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
+                                        'Shannon2024', 
+                                        f'{tns_name}_VLT-FORS2_*.fits'))
+        use_this_image = None
+        for ifilter in ['FORS2_R','FORS2_I','FORS2_g']:
+            for image in images:
+                if ifilter in image:
+                    use_this_image = image
+                    ifilter = 'VLT_'+ifilter
+                    break
+            if use_this_image is not None:
                 break
-        if use_this_image is not None:
-            break
-        #if 'FORS2_R' in image:
-        #    use_this_image = image 
-        #    ifilter = 'VLT_FORS2_R'
-        #if use_this_image is None and 'FORS2_I' in image:
-        #    use_this_image = image 
-        #    ifilter = 'VLT_FORS2_I'
-        #if use_this_image is None and 'FORS2_g' in image:
-        #    use_this_image = image 
-        #    ifilter = 'VLT_FORS2_g'
-    if use_this_image is None:
-        embed(header=f'No image found for {tns_name}')
-        raise IOError("No image found")
+            #if 'FORS2_R' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_R'
+            #if use_this_image is None and 'FORS2_I' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_I'
+            #if use_this_image is None and 'FORS2_g' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_g'
+        if use_this_image is None:
+            #embed(header=f'No image found for {tns_name}')
+            raise IOError("No image found")
 
-    updates = dict(
-        name=tns_name,
-        image_file=use_this_image,
-        cut_size=30.,
-        filter=ifilter,
-        deblend=True,
-        cand_bright=17.,
-        cand_separation=10*units.arcsec,
-        plate_scale = 0.252 * units.arcsec,
-    )
+        updates = dict(
+            name=tns_name,
+            image_file=use_this_image,
+            cut_size=30.,
+            filter=ifilter,
+            deblend=True,
+            cand_bright=17.,
+            cand_separation=10*units.arcsec,
+            plate_scale = 0.252 * units.arcsec,
+        )
 
-    # FRB specific
-    if tns_name == 'FRB20240210A':
-        updates['cut_size'] = 60.
-    if tns_name == 'FRB20190608B':
-        updates['cand_bright'] = 15.
-        updates['cut_size'] = 34.
-    if tns_name == 'FRB20211212A': # Large SDSS galaxy
-        updates['cut_size'] = 90.
-        updates['cand_bright'] = 15.
+        # FRB specific
+        if tns_name == 'FRB20240210A':
+            updates['cut_size'] = 60.
+        if tns_name == 'FRB20190608B':
+            updates['cand_bright'] = 15.
+            updates['cut_size'] = 34.
+        if tns_name == 'FRB20211212A': # Large SDSS galaxy
+            updates['cut_size'] = 90.
+            updates['cand_bright'] = 15.
+        if tns_name == 'FRB20230731A': # Large SDSS galaxy
+            updates['deblend'] = False
+            updates['cut_size'] = 90.
+            updates['cand_bright'] = 15.
 
-    globals()[tns_name] = base_config | updates
+        globals()[tns_name] = base_config | updates
+except IOError:
+    print("Images not found for ICS sample; proceed with care")
