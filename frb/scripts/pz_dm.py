@@ -5,6 +5,7 @@ Defaults to using a perfect telescope model for the DM-z grid
 """
 from IPython import embed
 
+
 def parser(options=None):
     import argparse
     # Parse
@@ -76,9 +77,6 @@ def main(pargs):
     iDM = np.argmin(np.abs(DM - DM_cosmic))
     PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
 
-    print (len(z), len(PzDM), PzDM.shape)   
-    aslkdj
-
 
     # Get the telescope specific PZDM grid
     if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
@@ -86,10 +84,11 @@ def main(pargs):
             raise ValueError(f"Unknown telescope: {pargs.telescope}")
         zdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
         z = zdict['z']
-        sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
-        PDM_z = sdict
+        DM = zdict['DM']
+        PDM_z = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
         iDM = np.argmin(np.abs(DM - DM_cosmic))
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
+
 
     if pargs.telescope and pargs.telescope == 'CHIME':
         sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])

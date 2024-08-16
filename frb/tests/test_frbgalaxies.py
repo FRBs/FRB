@@ -153,6 +153,19 @@ def test_mag_dm_figure():
 
 
 def test_pzdm_telescopes():
+
+    telescope_dict = {
+        'DSA': 'DSA_pzdm.npy',
+        'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
+        'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
+        'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
+        'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
+        'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
+        'FAST': 'FAST_pzdm.npy',
+    }
+
+
+
     # Load the CHIME grid
     from frb.dm import prob_dmz
     sdict = prob_dmz.grab_repo_grid('CHIME_pzdm.npz')
@@ -165,16 +178,22 @@ def test_pzdm_telescopes():
     assert len(DM) == 1400
     assert PDM_z.shape == (500, 1400)
 
-    # Load the perfect grid
+    # check the perfect grid
     sdict = prob_dmz.grab_repo_grid('PDM_z.npz')
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
     
     # Test      
-    assert len(z) == 500    
-    assert len(DM) == 1400
-    assert PDM_z.shape == (500, 1400)
+    assert len(z) == 200    
+    assert len(DM) == 1000
+    assert PDM_z.shape == (1000, 200)
+
+    # check the other grids
+    for key in telescope_dict.keys():
+        PDM_z = prob_dmz.grab_repo_grid(telescope_dict[key])
+        # Test
+        assert PDM_z.shape == (500, 1400)
 
 
 
