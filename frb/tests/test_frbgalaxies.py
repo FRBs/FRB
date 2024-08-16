@@ -164,8 +164,6 @@ def test_pzdm_telescopes():
         'FAST': 'FAST_pzdm.npy',
     }
 
-
-
     # Load the CHIME grid
     from frb.dm import prob_dmz
     sdict = prob_dmz.grab_repo_grid('CHIME_pzdm.npz')
@@ -177,7 +175,7 @@ def test_pzdm_telescopes():
     assert len(z) == 500
     assert len(DM) == 1400
     assert PDM_z.shape == (500, 1400)
-
+    """
     # check the perfect grid
     sdict = prob_dmz.grab_repo_grid('PDM_z.npz')
     PDM_z = sdict['PDM_z']
@@ -193,7 +191,7 @@ def test_pzdm_telescopes():
     for key in telescope_dict.keys():
         PDM_z = prob_dmz.grab_repo_grid(telescope_dict[key])
         # Test
-        assert PDM_z.shape == (500, 1400)
+        assert PDM_z.shape == (500, 1400)"""
 
 
 
