@@ -165,6 +165,19 @@ def test_pzdm_telescopes():
     assert len(DM) == 1400
     assert PDM_z.shape == (500, 1400)
 
+    # Load the perfect grid
+    sdict = prob_dmz.grab_repo_grid('PDM_z.npz')
+    PDM_z = sdict['PDM_z']
+    z = sdict['z']
+    DM = sdict['DM']
+    
+    # Test      
+    assert len(z) == 500    
+    assert len(DM) == 1400
+    assert PDM_z.shape == (500, 1400)
+
+
+
 
 
 

@@ -1,7 +1,7 @@
 
 """
 Estimate p(z|DM) for an assumed location on the sky and DM_FRB
-Defaults to using the CHIME telescope model for the DM-z grid
+Defaults to using a perfect telescope model for the DM-z grid
 """
 from IPython import embed
 
@@ -17,8 +17,8 @@ def parser(options=None):
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
                         help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
-    parser.add_argument("--telescope", type=str, default='CHIME', help="telescope model for the DM-z grid: CHIME, DSA, Parkes, FAST, CRAFT, \
-                        CRAFT_ICS_892/1300/1632, perfect. Default = CHIME")
+    parser.add_argument("--telescope", type=str, default='perfect', help="telescope model for the DM-z grid: CHIME, DSA, Parkes, FAST, CRAFT, \
+                        CRAFT_ICS_892/1300/1632, perfect. Default = perfect")
     parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
 
     if options is None:
@@ -40,7 +40,7 @@ def main(pargs):
     from frb.dm import prob_dmz
     from frb.galaxies import mag_dm
 
- 
+
     # Deal with coord
     icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
    
@@ -68,30 +68,36 @@ def main(pargs):
         'perfect': 'PDM_z.npz'
     }
 
-    # Get z and DM arrays from CHIME
-    sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
-    PDM_z = sdict['pzdm']
+    # Get the perfect telescope grid (default)
+    sdict = prob_dmz.grab_repo_grid(telescope_dict['perfect'])
+    PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
+    iDM = np.argmin(np.abs(DM - DM_cosmic))
+    PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
+
+    print (len(z), len(PzDM), PzDM.shape)   
+    aslkdj
 
 
     # Get the telescope specific PZDM grid
     if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
         if pargs.telescope not in telescope_dict:
             raise ValueError(f"Unknown telescope: {pargs.telescope}")
+        zdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+        z = zdict['z']
         sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
         PDM_z = sdict
+        iDM = np.argmin(np.abs(DM - DM_cosmic))
+        PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
-    iDM = np.argmin(np.abs(DM - DM_cosmic))
-    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
-
-    if pargs.telescope and pargs.telescope == 'perfect':
-        sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
-        PDM_z = sdict['PDM_z']
+    if pargs.telescope and pargs.telescope == 'CHIME':
+        sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+        PDM_z = sdict['pzdm']
         z = sdict['z']
         DM = sdict['DM']
         iDM = np.argmin(np.abs(DM - DM_cosmic))
-        PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
+        PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
     cum_sum = np.cumsum(PzDM)
     limits = pargs.cl
@@ -113,7 +119,7 @@ def main(pargs):
     print(f"The redshift range for your confidence interval {pargs.cl} is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
     print("")
-    if pargs.telescope == 'perfect':
+    if not pargs.telescope or pargs.telescope == 'perfect':
         print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     else:
         print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")

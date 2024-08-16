@@ -110,7 +110,10 @@ input).  For an (optionally input; tuple) confidence interval,
 it reports back the putative redshift range for the FRB. It also 
 allows for plotting the host redshift range on the magnitude vs redshift 
 evolution and setting a title for the figure.  These calculations can be 
-done assuming a few different telescope models or a perfect telescope model.
+done assuming a few different telescope models (CHIME, DSA, Parkes, FAST,
+CRAFT, CRAFT_ICS_892/1300/1632) or a perfect telescope model (default). 
+The telescope models are used to determine the DM-z grids that have been 
+computed with the zdm code/repository.
 
 Here is the usage::
 
@@ -140,7 +143,7 @@ Here is the usage::
 
     --telescope TELESCOPE  telescope model for the DM-z grid: CHIME, DSA, Parkes,
                             FAST, CRAFT, CRAFT_ICS_892/1300/1632, perfect. Default
-                            = CHIME
+                            = perfect
 
 
 
