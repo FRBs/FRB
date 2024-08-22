@@ -4,7 +4,7 @@ import os
 import warnings
 import numpy as np
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from IPython import embed
 
@@ -139,8 +139,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
 
     """
     # Read in filter in Table
-    path_to_filters = os.path.join(resource_filename('frb', 'data'), 
-                                   'analysis', 'CIGALE')
+    path_to_filters = importlib_resources.files('frb.data.analysis.CIGALE')
     # Hack for LRIS which does not differentiate between cameras
     if 'LRIS' in filt:
         _filter = 'LRIS_{}'.format(filt[-1])
