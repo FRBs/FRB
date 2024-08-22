@@ -12,8 +12,8 @@ def parser(options=None):
     parser = argparse.ArgumentParser(description='Script to print a summary of an FRB to the screen [v1.0]')
     parser.add_argument("coord", type=str, help="Coordinates, e.g. J081240.7+320809 or 122.223,-23.2322 or 07:45:00.47,34:17:31.1 or FRB name (FRB180924)")
     parser.add_argument("DM_FRB", type=float, help="FRB DM (pc/cm^3)")
-    parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calculated from NE2001) \
-                        and Host. Default = 100")
+    parser.add_argument("--dm_host", type=float, default=50., help="Assumed DM contribution from the Host. Default = 50")
+    parser.add_argument("--dm_mwhalo", type=float, default=50., help="Assumed DM contribution from the MW halo. Default = 50")
     parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
@@ -51,8 +51,8 @@ def main(pargs):
     print("-----------------------------------------------------")
     print(f"NE2001 = {DM_ISM:.2f}")
 
-    # DM Cosmic
-    DM_cosmic = pargs.DM_FRB - DM_ISM.value - pargs.dm_hostmw
+    # DM extragalactic
+    DM_extragalactic = pargs.DM_FRB - DM_ISM.value - pargs.dm_host - pargs.dm_mwhalo
 
     # Redshift estimates
 
@@ -74,6 +74,7 @@ def main(pargs):
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
+    DM_cosmic = DM_extragalactic + pargs.dm_host  #DM_cosmic = DM_extragalactic + DM_host
     iDM = np.argmin(np.abs(DM - DM_cosmic))
     PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
 
@@ -86,7 +87,7 @@ def main(pargs):
         z = zdict['z']
         DM = zdict['DM']
         PDM_z = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
-        iDM = np.argmin(np.abs(DM - DM_cosmic))
+        iDM = np.argmin(np.abs(DM - DM_extragalactic))
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
 
@@ -95,7 +96,7 @@ def main(pargs):
         PDM_z = sdict['pzdm']
         z = sdict['z']
         DM = sdict['DM']
-        iDM = np.argmin(np.abs(DM - DM_cosmic))
+        iDM = np.argmin(np.abs(DM - DM_extragalactic))
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
     cum_sum = np.cumsum(PzDM)
@@ -109,7 +110,8 @@ def main(pargs):
 
     # Finish
     print("")
-    print(f"Allowing for the MW and Host, DM_cosmic = {int(DM_cosmic)} pc/cm^3")
+    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo))} pc/cm^3")
+    print(f"Allowing for the Host, DM_host = {int(pargs.dm_host)} pc/cm^3")
     print("")
     print("")
     print(f"The mean redshift value is: {z_50:.3f}")
