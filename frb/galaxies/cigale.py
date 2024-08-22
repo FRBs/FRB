@@ -16,7 +16,7 @@ except ImportError:
     print("You will need to install pcigale to use the cigale.py module")
 else:
     from pcigale.analysis_modules import get_module
-    from pcigale.data import Database
+    from pcigale.data import SimpleDatabase as Database
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
