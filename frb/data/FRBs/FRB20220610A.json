@@ -9,7 +9,7 @@
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.2
+        "value": 0.5
     },
     "FRB": "FRB20220610A",
     "cosmo": "Planck18",

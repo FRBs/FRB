@@ -14,6 +14,8 @@ def parser(options=None):
     parser.add_argument("--dm_hostmw", type=float, default=100., help="Assumed DM contribution from the Milky Way Halo (ISM is calculated from NE2001) and Host. Default = 100")
     parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
+    parser.add_argument("--magdm_plot", default=False, action='store_true', 
+                        help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
 
     if options is None:
         pargs = parser.parse_args()
@@ -32,10 +34,12 @@ def main(pargs):
 
     from frb import mw
     from frb.dm import prob_dmz
+    from frb.galaxies import mag_dm
 
+ 
     # Deal with coord
     icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
-
+   
     # NE 2001
     DM_ISM = mw.ismDM(icoord)
     print("")
@@ -62,6 +66,7 @@ def main(pargs):
 
     z_min = z[np.argmin(np.abs(cum_sum-limits[0]/100.))]
     z_max = z[np.argmin(np.abs(cum_sum-limits[1]/100.))]
+    
     z_50 = z[np.argmin(np.abs(cum_sum-50./100.))]
     z_mode = z[np.argmax(PzDM)]
 
@@ -78,5 +83,10 @@ def main(pargs):
     print("")
     print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
     print("-----------------------------------------------------")
+
+    # make the magnitude vs redshift plot with z-range if requested
+    if pargs.magdm_plot:
+        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
+               flipy=True, known_hosts = False)
 
     return z_min, z_max, z_50, z_mode
