@@ -51,8 +51,9 @@ def main(pargs):
     print("-----------------------------------------------------")
     print(f"NE2001 = {DM_ISM:.2f}")
 
-    # DM extragalactic
-    DM_extragalactic = pargs.DM_FRB - DM_ISM.value - pargs.dm_host - pargs.dm_mwhalo
+    # DM cosmic and EG
+    DM_cosmic = pargs.DM_FRB - DM_ISM.value - pargs.dm_mwhalo
+    DM_extragalactic = DM_cosmic + pargs.dm_host  
 
     # Redshift estimates
 
@@ -74,7 +75,8 @@ def main(pargs):
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
-    DM_cosmic = DM_extragalactic + pargs.dm_host  #DM_cosmic = DM_extragalactic + DM_host
+
+    # Grab the right entry
     iDM = np.argmin(np.abs(DM - DM_cosmic))
     PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
 

@@ -70,7 +70,7 @@ def load_specdb(specdb_file=None):
             specdb_file = specdb_files[0]
             print("Loading spectra from {:s}".format(specdb_file))
         else:
-            raise IOError("There are no FRB_specdb.hdf5 files in your SPECDB folder")
+            raise IOError("There are no FRB_specDB_*.hdf5 files in your SPECDB folder")
     # Load it up
     specDB = SpecDB(db_file=specdb_file)
     # Return
