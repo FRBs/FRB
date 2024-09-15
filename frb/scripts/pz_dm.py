@@ -110,7 +110,7 @@ def main(pargs):
 
     # Finish
     print("")
-    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo))} pc/cm^3")
+    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo)} pc/cm^3")
     print(f"Allowing for the Host, DM_host = {int(pargs.dm_host)} pc/cm^3")
     print("")
     print("")
@@ -134,3 +134,4 @@ def main(pargs):
                flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
     return z_min, z_max, z_50, z_mode
+

@@ -153,7 +153,7 @@ def test_mag_dm_figure():
 
 
 def test_pzdm_telescopes():
-
+    
     telescope_dict = {
         'DSA': 'DSA_pzdm.npy',
         'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
@@ -193,8 +193,18 @@ def test_pzdm_telescopes():
         # Test
         assert PDM_z.shape == (500, 1400)
 
+    
+    # test full run
+    from frb.scripts.pz_dm import parser, main
+    args = parser(["J081240.7+320809", "500", "--dm_host", "60", "--dm_mwhalo", "40", "--cl", "(5,95)", "--telescope", "CHIME"])
+    z_min, z_max, z_50, z_mode = main(args)
+    assert isinstance(z_min, float)
+    assert isinstance(z_max, float)
+    assert isinstance(z_50, float)
+    assert isinstance(z_mode, float)
+    assert z_min < z_max
+    assert 0 <= z_50 <= 1
+    assert 0 <= z_mode <= 1
 
 
-
-
-
+test_pzdm_telescopes()
