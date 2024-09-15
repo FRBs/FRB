@@ -207,4 +207,3 @@ def test_pzdm_telescopes():
     assert 0 <= z_mode <= 1
 
 
-test_pzdm_telescopes()
