@@ -196,7 +196,7 @@ def test_pzdm_telescopes():
     
     # test full run
     from frb.scripts.pz_dm import parser, main
-    args = parser(["J081240.7+320809", "500", "--dm_host", "60", "--dm_mwhalo", "40", "--cl", "(5,95)", "--telescope", "CHIME"])
+    args = parser(["J081240.7+320809", "500", "--dm_host", "60", "--dm_mwhalo", "40",  "--telescope", "CHIME"])
     z_min, z_max, z_50, z_mode = main(args)
     assert isinstance(z_min, float)
     assert isinstance(z_max, float)
