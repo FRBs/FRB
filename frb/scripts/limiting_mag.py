@@ -30,10 +30,7 @@ def parser(options=None):
 def main(pargs):
     """ Run
     """
-    import json
-    import os
     import numpy as np
-    from pkg_resources import resource_filename
 
     from linetools import utils as ltu
     from linetools.scripts.utils import coord_arg_to_coord
