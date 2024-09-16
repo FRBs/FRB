@@ -19,6 +19,10 @@ from frb import frb
 from frb.galaxies import photom
 from frb.surveys.catalog_utils import convert_mags_to_flux
 
+
+# TODO -- Turn this test back on when we replace extinction
+extinction = pytest.mark.skipif(True, reason='Extinction module needs to be replaced.')
+@extinction
 def test_dust_correct():
 
     correct = photom.extinction_correction('GMOS_S_r', 0.138)

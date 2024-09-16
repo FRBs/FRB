@@ -12,15 +12,11 @@ from frb.scripts import limiting_mag
 from frb.scripts import pz_dm
 from frb.scripts import tns
 
-remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
-                                 reason='test requires dev suite')
-
 
 def test_frb_summary():
     pargs = frb_summary.parser(['180924'])
     frb_summary.main(pargs)
 
-@remote_data
 def test_frb_mag_limit():
     # Requires a file on disk that is too slow to generate in CI
     pargs = limiting_mag.parser(['J151849.52+122235.8', '200.', '23.'])
@@ -28,7 +24,6 @@ def test_frb_mag_limit():
 
     assert np.isclose(Lmax, 0.018052542432481264)
 
-@remote_data
 def test_frb_pz_dm():
     # Requires a file on disk that is too slow to generate in CI
     pargs = pz_dm.parser(['J151849.52+122235.8', '200.'])
@@ -39,7 +34,6 @@ def test_frb_pz_dm():
     assert np.isclose(z_50, 0.10050251256281408)
     assert np.isclose(z_mode, 0.12060301507537688)
 
-@remote_data
 def test_tns():
     tns.parser.units = 'deg'
     tns.parser.radius = 0.5

@@ -6,6 +6,7 @@ from IPython import embed
 from pkg_resources import resource_filename
 import numpy as np
 from scipy.interpolate import interp1d
+import warnings
 
 import pandas
 
@@ -20,7 +21,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units
 
 import pandas as pd
-import extinction
+
 from linetools.spectra import xspectrum1d
 
 from frb import frb
@@ -37,6 +38,10 @@ def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
     """
 
     # Correct for Galactic extinction
+    # Hidnig this here to avoid a hard dependency
+    # TODO
+    #   Need to replace it 
+    import extinction
     AV = ebv * 3.1  # RV
     Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
     # New spec

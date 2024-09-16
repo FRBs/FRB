@@ -32,7 +32,7 @@ to install and/or update these packages.
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.15 or later
 * `pandas <https://pandas.pydata.org/>`_ version 1.5 or later
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
-* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.2 or greater
+* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.6 or greater
 * `matplotlib <https://matplotlib.org/>`_ version 3.7 or greater
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 * `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
@@ -58,6 +58,7 @@ The following package(s) is/are required to access FRB galaxy spectra:
 The following package is required to map a slit onto a finder chart (frb.figures.finder):
 
 * `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 1.11.0 or later
+* `scikit-image <https://scikit-image.org/>`_  version 0.21.0 or later
 
 The following are required to use our KCWI datacube handling tools:
 
