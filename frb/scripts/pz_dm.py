@@ -124,9 +124,9 @@ def main(pargs):
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
     print("")
     if not pargs.telescope or pargs.telescope == 'perfect':
-        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
     else:
-        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
     print("-----------------------------------------------------")
 
 

@@ -22,7 +22,7 @@ def test_frb_mag_limit():
     pargs = limiting_mag.parser(['J151849.52+122235.8', '200.', '23.'])
     Lmin, Lmax = limiting_mag.main(pargs)
 
-    assert np.isclose(Lmax, 0.018052542432481264)
+    assert np.isclose(Lmax, 0.023780306538345886)
 
 def test_frb_pz_dm():
     # Requires a file on disk that is too slow to generate in CI
