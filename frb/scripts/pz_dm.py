@@ -52,8 +52,8 @@ def main(pargs):
     print(f"NE2001 = {DM_ISM:.2f}")
 
     # DM cosmic and EG
-    DM_cosmic = pargs.DM_FRB - DM_ISM.value - pargs.dm_mwhalo
-    DM_extragalactic = DM_cosmic + pargs.dm_host  
+    DM_extragalactic = pargs.DM_FRB - DM_ISM.value - pargs.dm_mwhalo
+    DM_cosmic = DM_extragalactic - pargs.dm_host
 
     # Redshift estimates
 
