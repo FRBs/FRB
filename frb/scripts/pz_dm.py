@@ -59,6 +59,7 @@ def main(pargs):
 
     # Load the telescope specific grid
     telescope_dict = {
+        'CHIME_repeaters': 'CHIME_pzdm_repeaters.npz',
         'CHIME': 'CHIME_pzdm.npz',
         'DSA': 'DSA_pzdm.npy',
         'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
@@ -82,7 +83,7 @@ def main(pargs):
 
 
     # Get the telescope specific PZDM grid
-    if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
+    if pargs.telescope and pargs.telescope != 'CHIME'  and pargs.telescope != 'CHIME_repeaters' and pargs.telescope != 'perfect':
         if pargs.telescope not in telescope_dict:
             raise ValueError(f"Unknown telescope: {pargs.telescope}")
         zdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
@@ -93,8 +94,10 @@ def main(pargs):
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
 
-    if pargs.telescope and pargs.telescope == 'CHIME':
+    if pargs.telescope and pargs.telescope == 'CHIME' :
         sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+    elif pargs.telescope and pargs.telescope == 'CHIME_repeaters' :
+        sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME_repeaters'])
         PDM_z = sdict['pzdm']
         z = sdict['z']
         DM = sdict['DM']
@@ -119,15 +122,14 @@ def main(pargs):
     print(f"The mean redshift value is: {z_50:.3f}")
     print(f"The mode redshift value is: {z_mode:.3f}")
     print("")
-    print(f"The redshift range for your confidence interval {pargs.cl} is:")
+    print(f"The redshift range for your confidence interval [{pargs.cl}] is:")
     print(f"z = [{z_min:.3f}, {z_max:.3f}]")
     print("")
     if not pargs.telescope or pargs.telescope == 'perfect':
-        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
     else:
-        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macqurt+2020)")
+        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
     print("-----------------------------------------------------")
-
 
 
     # make the magnitude vs redshift plot with z-range if requested

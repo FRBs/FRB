@@ -70,6 +70,7 @@ def main(pargs):
 
     # Load the telescope specific grid
     telescope_dict = {
+        'CHIME_repeaters': 'CHIME_pzdm_repeaters.npz',
         'CHIME': 'CHIME_pzdm.npz',
         'DSA': 'DSA_pzdm.npy',
         'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
@@ -93,7 +94,7 @@ def main(pargs):
 
 
     # Get the telescope specific PZDM grid
-    if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
+    if pargs.telescope and pargs.telescope != 'CHIME'  and pargs.telescope != 'CHIME_repeaters' and pargs.telescope != 'perfect':
         if pargs.telescope not in telescope_dict:
             raise ValueError(f"Unknown telescope: {pargs.telescope}")
         zdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
@@ -104,8 +105,10 @@ def main(pargs):
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
 
-    if pargs.telescope and pargs.telescope == 'CHIME':
+    if pargs.telescope and pargs.telescope == 'CHIME' :
         sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+    elif pargs.telescope and pargs.telescope == 'CHIME_repeaters' :
+        sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME_repeaters'])
         PDM_z = sdict['pzdm']
         z = sdict['z']
         DM = sdict['DM']
