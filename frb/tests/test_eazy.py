@@ -13,9 +13,7 @@ from frb.galaxies.frbgalaxy import FRBHost
 from frb.galaxies import eazy as frbeazy
 from frb.frb import FRB
 
-from distutils.spawn import find_executable
-
-eazy_exec = pytest.mark.skipif(find_executable('eazy') is None,
+eazy_exec = pytest.mark.skipif(shutil.which('eazy') is None,
                                  reason='test requires galfit')
 
 def data_path(filename):
