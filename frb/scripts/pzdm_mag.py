@@ -107,6 +107,11 @@ def main(pargs):
 
     if pargs.telescope and pargs.telescope == 'CHIME' :
         sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+        PDM_z = sdict['pzdm']
+        z = sdict['z']
+        DM = sdict['DM']
+        iDM = np.argmin(np.abs(DM - DM_extragalactic))
+        PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
     elif pargs.telescope and pargs.telescope == 'CHIME_repeaters' :
         sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME_repeaters'])
         PDM_z = sdict['pzdm']
