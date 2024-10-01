@@ -1,7 +1,9 @@
 """ Code for calculations of P(DM|z) and P(z|DM)"""
 import numpy as np
 import os
-from pkg_resources import resource_filename
+
+
+from importlib.resources import files
 
 from scipy.stats import norm, lognorm
 from scipy.interpolate import interp1d, interp2d
@@ -150,30 +152,33 @@ def build_grid_for_repo(outfile:str):
     print("This will be used going forth")
 
 
-def grab_repo_grid():
+
+def grab_repo_grid(grid_name):
     """
-    Grab the grid from the Repository
-    This may require the code to build it first!
+    Grab the grid from the Repository based on the given grid name
+
+    Args:
+        grid_name (str): Name of the grid to grab
 
     Returns:
-        dict: Numpy dict from the npz save file
+        dict: Numpy dict from the npz or npy save file
     """
 
     # File
-    PDM_z_grid_file = os.path.join(
-        resource_filename('frb', 'data'), 'DM',
-        'PDM_z.npz')
-
+    grid_file = files('frb.data.DM').joinpath( grid_name)
+    
     # Build?
-    if not os.path.isfile(PDM_z_grid_file):
-        build_grid_for_repo(PDM_z_grid_file)
-            
+    if grid_name == 'PDM_z.npz':
+        if not os.path.isfile(grid_file):
+            build_grid_for_repo(grid_file)
+
     # Load
-    print(f"Loading P(DM,z) grid from {PDM_z_grid_file}")
-    sdict = np.load(PDM_z_grid_file)
+    print(f"Loading P(DM,z) grid from {grid_file}")
+    sdict = np.load(grid_file)
 
     # Return
     return sdict
+
 
 
 def get_DMcosmic_from_z(zarray, perc=0.5, redo_pdmz_grid=False, DMevals=np.linspace(1.,2000.,1000), beta=3., F=0.31, cosmo=defs.frb_cosmo):

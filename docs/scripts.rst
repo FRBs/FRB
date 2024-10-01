@@ -107,11 +107,18 @@ This script takes as input the FRB DM and its coordinates (approximate
 are fine) and then estimates the redshift range assuming 
 the Macquart relation (and simple host + MW contributions, optionally 
 input).  For an (optionally input; tuple) confidence interval, 
-it reports back the putative redshift range for the FRB.
+it reports back the putative redshift range for the FRB. It also 
+allows for plotting the host redshift range on the magnitude vs redshift 
+evolution and setting a title for the figure.  These calculations can be 
+done assuming a few different telescope models (CHIME, DSA, Parkes, FAST,
+CRAFT, CRAFT_ICS_892/1300/1632) or a perfect telescope model (default). 
+The telescope models are used to determine the DM-z grids that have been 
+computed with the zdm code/repository.
 
 Here is the usage::
 
-    usage: frb_pz_dm [-h] [--dm_hostmw DM_HOSTMW] [--cl CL] coord DM_FRB
+    usage: frb_pz_dm [-h] [--dm_hostmw DM_HOSTMW] [--cl CL] coord DM_FRB 
+                    [--magdm_plot] [--fig_title FIG_TITLE] [--telescope TELESCOPE]
 
     Script to print a summary of an FRB to the screen [v1.0]
 
@@ -128,6 +135,16 @@ Here is the usage::
                             is calculated from NE2001) and Host. Default = 100
     --cl CL               Confidence limits for the z estimate [default is a 95
                             percent c.l., (2.5,97.5)]
+
+    --magdm_plot          Plot the host redshift range given DM on the magnitude
+                            vs redshift evolution. Default=False.   
+
+    --fig_title FIG_TITLE  title for the figure; e.g., FRBXXXXX
+
+    --telescope TELESCOPE  telescope model for the DM-z grid: CHIME, DSA, Parkes,
+                            FAST, CRAFT, CRAFT_ICS_892/1300/1632, perfect. Default
+                            = perfect
+
 
 
 frb_sightline

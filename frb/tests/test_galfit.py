@@ -5,8 +5,7 @@ import pytest
 import os
 import shutil
 import numpy as np
-
-from distutils.spawn import find_executable
+import shutil
 
 from astropy.io import fits
 from astropy.table import Table
@@ -18,7 +17,7 @@ from frb.galaxies.frbgalaxy import FRBHost
 from frb.frb import FRB
 
 from frb.galaxies import galfit as glf
-galfit_exec = pytest.mark.skipif(find_executable('galfit') is None,
+galfit_exec = pytest.mark.skipif(shutil.which('galfit') is None,
                                         reason='test requires galfit')
 
 def test_platescale():
