@@ -155,6 +155,11 @@ def main(options:str=None, frb:str=None):
             print("Using new prior with scale=0.5")
         if 'write_indiv' in options:
             write_indiv = True
+        if 'PU=' in options:
+            for sopt in options.split(','):
+                if 'PU=' in sopt:
+                    prior['U'] = float(sopt.split('=')[1])
+        #embed(header="build_path.py: 155")
         
 
     results = run(frb_list, prior, write=write_indiv)
