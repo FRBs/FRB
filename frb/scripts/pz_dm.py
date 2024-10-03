@@ -14,7 +14,7 @@ def parser(options=None):
     parser.add_argument("DM_FRB", type=float, help="FRB DM (pc/cm^3)")
     parser.add_argument("--dm_host", type=float, default=50., help="Assumed DM contribution from the Host. Default = 50")
     parser.add_argument("--dm_mwhalo", type=float, default=50., help="Assumed DM contribution from the MW halo. Default = 50")
-    parser.add_argument("--cl", type=tuple, default=(2.5,97.5), 
+    parser.add_argument("--cl", type=str, default="2.5,97.5", 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
     parser.add_argument("--magdm_plot", default=False, action='store_true', 
                         help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
@@ -52,8 +52,8 @@ def main(pargs):
     print(f"NE2001 = {DM_ISM:.2f}")
 
     # DM cosmic and EG
-    DM_cosmic = pargs.DM_FRB - DM_ISM.value - pargs.dm_mwhalo
-    DM_extragalactic = DM_cosmic + pargs.dm_host  
+    DM_extragalactic = pargs.DM_FRB - DM_ISM.value - pargs.dm_mwhalo
+    DM_cosmic = DM_extragalactic - pargs.dm_host
 
     # Redshift estimates
 
@@ -102,7 +102,7 @@ def main(pargs):
         PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
     cum_sum = np.cumsum(PzDM)
-    limits = pargs.cl
+    limits = [float(item) for item in pargs.cl.split(',')]
 
     z_min = z[np.argmin(np.abs(cum_sum-limits[0]/100.))]
     z_max = z[np.argmin(np.abs(cum_sum-limits[1]/100.))]
@@ -112,7 +112,7 @@ def main(pargs):
 
     # Finish
     print("")
-    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo))} pc/cm^3")
+    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo)} pc/cm^3")
     print(f"Allowing for the Host, DM_host = {int(pargs.dm_host)} pc/cm^3")
     print("")
     print("")
@@ -136,3 +136,4 @@ def main(pargs):
                flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
     return z_min, z_max, z_50, z_mode
+
