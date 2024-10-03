@@ -97,6 +97,7 @@ def run(frb_list:list,
             frbA.candidates.drop(columns=['coords'], inplace=True)
             outfile = os.path.join(files('frb'), 'data', 'Galaxies', 
                                    'PATH', f'{frb_name.upper()}_PATH.csv')
+            #embed(header="build_path.py: 99")
             frbA.candidates.to_csv(outfile)
             print(f"PATH analysis written to {outfile}")
 
