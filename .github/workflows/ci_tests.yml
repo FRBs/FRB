@@ -20,7 +20,7 @@ jobs:
       matrix:
         os: [ubuntu-latest]
         python: ['3.11', '3.12']
-        deps: [current, numpy211, astropydev, numpydev, astropydev-numpydev]
+        deps: [current, numpy211, astropydev, numpydev, astropydev-numpydev, importlib_resources]
 
     steps:
     - name: Check out repository
