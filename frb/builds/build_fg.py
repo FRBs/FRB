@@ -1,7 +1,7 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies.  This is only for a few persons with access."""
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
 import warnings
 
@@ -90,7 +90,7 @@ def build_fg_181112(build_photom=False):
     fg_13_5.parse_cigale(os.path.join(db_path, 'CRAFT', 'Prochaska2019', 'FG181112_13_5_CIGALE.fits'))
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/181112')
+    path = importlib_resources.files('frb.data.Galaxies.181112')
     fg_13_5.write_to_json(path=path)
     
     

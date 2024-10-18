@@ -1,7 +1,7 @@
 """ Utility pieces for DM calculations"""
 
 import os
-from pkg_resources import resource_filename
+import importlib_resources
 
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -122,8 +122,7 @@ def grab_sigma_spline():
         scipy.interpolate.InterpolatedUnivariateSpline:
 
     """
-    sigma_file = os.path.join(resource_filename('frb', 'data'),
-                              'DM', 'sigma_sigma.ascii')
+    sigma_file = importlib_resources.files('frb.data.DM')/'sigma_sigma.ascii'
     # Load me up
     tbl = Table.read(sigma_file, format='ascii.fixed_width')
     spl_sigma = IUS(tbl['sigma_DMp'], tbl['sigma'])
@@ -161,8 +160,7 @@ def grab_C0_spline(max_log10_sigma=0., npt=100, ret_all=False,
         if ifile is None:
             if beta != 3.:
                 raise IOError("Not ready for anything other than beta=3.")
-            ifile = os.path.join(resource_filename('frb', 'data'),
-                                 'DM', 'sigma_C0_beta3.ascii')
+            ifile = importlib_resources.files('frb.data.DM')/'sigma_C0_beta3.ascii'
         tbl = Table.read(ifile, format='ascii.fixed_width')
         sigmas = tbl['sigma'].data
         C0s = tbl['C0'].data

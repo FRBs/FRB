@@ -460,7 +460,7 @@ def list_of_frbs(require_z=False):
 
     """
     # Grab the files
-    frb_files = glob.glob(importlib_resources.files('frb.data')/ 'FRBs/FRB*.json')
+    frb_files = glob.glob(str(importlib_resources.files('frb.data')/'FRBs/FRB*.json'))
     frb_files.sort()
     # Load up the FRBs
     frbs = []

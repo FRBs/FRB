@@ -9,8 +9,6 @@ import h5py
 
 import glob
 
-from pkg_resources import resource_filename
-
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units

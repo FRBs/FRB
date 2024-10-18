@@ -1,18 +1,12 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
-import sys
-
-from IPython import embed
-
-import numpy as np
 
 import pandas
 
 from astropy.coordinates import SkyCoord
-from astropy import units
 
 from astropath.priors import load_std_priors
 
@@ -139,8 +133,7 @@ def main(options:str=None, frb:str=None):
 
     results = run(frb_list, host_coords, prior)
     # Write
-    outfile = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 
-                           'PATH', 'tmp.csv')
+    outfile = importlib_resources.files('frb.data.Galaxies.PATH')/'tmp.csv'
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")

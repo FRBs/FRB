@@ -1,9 +1,8 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
-import sys
 import warnings
 
 from IPython import embed
@@ -56,9 +55,7 @@ if db_path is None:
 ebv_method = 'SandF'
 
 # New astrometry
-mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data'),
-                                          'Galaxies','Additional','Mannings2021', 
-                                          'astrometry_v2.csv'))
+mannings2021_astrom = pandas.read_csv(importlib_resources.files('frb.data.Galaxies.Additional.Mannings2021')/'astrometry_v2.csv')
 # Probably will rename this                                        
 mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
@@ -244,7 +241,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     assert host121102.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/121102')
+    path = importlib_resources.files('frb.data.Galaxies.121102')
     host121102.write_to_json(path=path, overwrite=True)
 
 
@@ -368,7 +365,7 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
     assert host180301.vet_all()
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files(f'frb.data.Galaxies.{frbname}')
     host180301.write_to_json(path=path)
 
 
@@ -467,7 +464,7 @@ def build_host_180924(build_photom=False, build_cigale=False):
     host180924.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/180924')
+    path = importlib_resources.files('frb.data.Galaxies.180924')
     host180924.write_to_json(path=path)
 
 
@@ -563,7 +560,7 @@ def build_host_181112(build_photom=False, build_cigale=False):
                                    'HG181112_VLT_i_galfit.fits'))
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files(f'frb.data.Galaxies.{frbname}')
     host181112.write_to_json(path=path)
 
 
@@ -683,7 +680,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     host190102.vet_all()
 
     # Write 
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files(f'frb.data.Galaxies.{frbname}')
     host190102.write_to_json(path=path)
 
 
@@ -781,7 +778,7 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     host190523_S1.vet_all()
 
     # Write 
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host190523_S1.write_to_json(path=path)
 
 
@@ -881,7 +878,7 @@ def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
     host190608.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host190608.write_to_json(path=path)
 
 
@@ -1004,7 +1001,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     assert host180916.vet_all()
 
     # Write 
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host180916.write_to_json(path=path)
 
 
@@ -1128,7 +1125,7 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
     assert host190611.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host190611.write_to_json(path=path)
 
 
@@ -1248,7 +1245,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
         assert host190614A.vet_all()
 
         # Write
-        path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+        path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
         host190614A.write_to_json(path=path, outfile='G190614_A.json')
 
 
@@ -1354,7 +1351,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
         assert host190614B.vet_all()
 
         # Write
-        path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+        path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
         host190614B.write_to_json(path=path, outfile='G190614_B.json')
 
 
@@ -1422,7 +1419,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
         assert host190614C.vet_all()
 
         # Write
-        path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+        path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
         host190614C.write_to_json(path=path, outfile='FRB190614_C.json')
 
 
@@ -1546,7 +1543,7 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
     assert host190711.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host190711.write_to_json(path=path)
 
 
@@ -1681,7 +1678,7 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     assert host190714.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host190714.write_to_json(path=path)
 
 
@@ -1808,7 +1805,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
     assert host191001.vet_all()
 
     # Write
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host191001.write_to_json(path=path)
 
 
@@ -1940,7 +1937,7 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
 
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host191228.write_to_json(path=path)
     
     
@@ -2071,7 +2068,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
     assert host200430.vet_all()
 
     # Write 
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host200430.write_to_json(path=path)
 
 
@@ -2237,7 +2234,7 @@ def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
 
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host200906.write_to_json(path=path)
 
 
@@ -2379,7 +2376,7 @@ def build_host_201124(build_ppxf=False,
     assert host201124.vet_all()
 
     # Write 
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host201124.write_to_json(path=path)
 
 def build_host_20200120E(build_ppxf=False, build_photom=False, build_cigale=False):
@@ -2418,7 +2415,7 @@ def build_host_20200120E(build_ppxf=False, build_photom=False, build_cigale=Fals
 
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host20200120E.write_to_json(path=path)
 
 def build_host_171020(build_ppxf=False, build_photom=False, build_cigale=False):
@@ -2510,7 +2507,7 @@ def build_host_171020(build_ppxf=False, build_photom=False, build_cigale=False):
 
 
     # Write -- BUT DO NOT ADD TO REPO (YET)
-    path = resource_filename('frb', 'data/Galaxies/{}'.format(frbname))
+    path = importlib_resources.files('frb.data.Galaxies.{}'.format(frbname))
     host171020.write_to_json(path=path)
 
 

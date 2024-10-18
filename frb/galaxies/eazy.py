@@ -2,7 +2,7 @@
 
 import os
 import warnings
-from pkg_resources import resource_filename
+import importlib_resources
 import subprocess
 import shutil
 
@@ -136,9 +136,9 @@ def eazy_setup(input_dir, template_dir=None):
     # And link
     os.system('ln -s {:s} {:s}'.format(template_dir, os.path.join(input_dir, 'templates')))
     # And FILTER files
-    filter_info = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest.info')
+    filter_info = importlib_resources.files('frb.data.analysis.EAZY')/'FILTER.RES.latest.info'
     os.system('cp -rp {:s} {:s}'.format(filter_info, input_dir))
-    filter_latest = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
+    filter_latest = importlib_resources.files('frb.data.analysis.EAZY')/'FILTER.RES.latest'
     os.system('cp -rp {:s} {:s}'.format(filter_latest, input_dir))
     return
 
@@ -289,7 +289,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
     base_cat = os.path.basename(catfile)
 
     # Input file
-    default_file = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'zphot.param.default')
+    default_file = importlib_resources.files('frb.data.analysis.EAZY')/'zphot.param.default'
     #with open(default_file, 'r') as df:
     #    df_lines = df.readlines()
     in_tab = pandas.read_table(default_file, delim_whitespace=True, comment="#",
@@ -300,7 +300,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
     #_eazy_root = _eazy_path[0:_eazy_path.find('src')]
 
     # Change default parameters to reflect current values
-    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = os.path.join(resource_filename('frb', 'data'), 'analysis', 'EAZY', 'FILTER.RES.latest')
+    in_tab.par_val[in_tab.eazy_par == 'FILTERS_RES'] = importlib_resources.files('frb.data.analysis.EAZY')/'FILTER.RES.latest'
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATES_FILE'] = os.path.join(_eazy_root, 'templates/' + templates + ".spectra.param")
     in_tab.par_val[in_tab.eazy_par == 'TEMP_ERR_FILE'] = os.path.join(_eazy_root,'templates/TEMPLATE_ERROR.eazy_v1.0')
     in_tab.par_val[in_tab.eazy_par == 'TEMPLATE_COMBOS'] = combo
