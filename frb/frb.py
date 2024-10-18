@@ -400,9 +400,8 @@ class FRB(GenericFRB):
         Returns:
 
         """
-        path = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}'
-        json_file = path + '.json'
-        slf = cls.from_json(json_file, **kwargs)
+        json_file = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}.json'
+        slf = cls.from_json(str(json_file), **kwargs)
         return slf
 
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
