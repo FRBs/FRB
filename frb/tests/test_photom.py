@@ -6,7 +6,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pytest
 import os
 import numpy as np
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy.table import Table
 from astropy import units 
@@ -54,8 +54,7 @@ def test_fractional_flux():
     # frbcoord = frbdat.coord
     hg = frbdat.grab_host()
     # Read cutout
-    cutout_file = os.path.join(resource_filename('frb','tests'), 'files',
-                               'FRB180924_cutout.fits')
+    cutout_file = importlib_resources.files('frb.tests.files')/'FRB180924_cutout.fits'
     hdul = fits.open(cutout_file)
 
     hgcoord = hg.coord
