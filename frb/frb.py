@@ -480,7 +480,7 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     Warning:  As standard, missing values are given NaN in the Pandas table
         Be careful!
-
+git config pull.rebase false
     Args:
         fattrs (list, optional):
             Float attributes for the Table
