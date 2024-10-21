@@ -17,4 +17,5 @@ PyYAML>=5.1
 numba>=0.50.0
 setuptools>=75.0.0
 tox>=4.15.0
+pyvo>=1.5.3
 
