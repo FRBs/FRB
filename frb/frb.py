@@ -1,8 +1,8 @@
 """ Module for an FRB event
 """
 import inspect
+from importlib import resources
 
-from pkg_resources import resource_filename
 import os
 import glob
 import copy
@@ -394,13 +394,14 @@ class FRB(GenericFRB):
 
         Args:
             frb_name (str):
-              Name of the FRB,
+              Name of the FRB, with format FRBYYYYMMDDX
+                i.e. FRB + TNS
             **kwargs:
 
         Returns:
 
         """
-        path = os.path.join(resource_filename('frb', 'data'), 'FRBs', frb_name)
+        path = os.path.join(resources.files('frb'), 'data', 'FRBs', frb_name)
         json_file = path + '.json'
         slf = cls.from_json(json_file, **kwargs)
         return slf

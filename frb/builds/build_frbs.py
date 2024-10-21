@@ -1,26 +1,18 @@
 """ Top-level module to build or re-build the JSON files for FRBs """
 
-from pkg_resources import resource_filename
+from importlib import resources
 import os
-import sys
-import warnings
 
 from IPython import embed
 
 import numpy as np
-import requests
 
 import pandas
 
-from astropy.coordinates import SkyCoord
 from astropy import units
-from astropy.table import Table
-from astropy.coordinates import match_coordinates_sky
 
 from frb.frb import FRB, load_frb_data
 from frb.galaxies import frbgalaxy, defs, offsets
-from frb.galaxies import photom as frbphotom
-from frb.surveys import survey_utils
 from frb import utils
 import pandas
 
@@ -86,7 +78,7 @@ def run(frb_input:pandas.core.series.Series,
     ifrb.refs = frb_input.refs.split(',')
 
     # Pulses
-    path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+    path = os.path.join(resources.files('frb'), 'data', 'FRBs')
     tbl_file = os.path.join(path, 'FRB_pulses.csv')
     frb_pulses = pandas.read_csv(tbl_file)
 
@@ -108,7 +100,7 @@ def run(frb_input:pandas.core.series.Series,
 
     # Write
     if out_path is None:
-        out_path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+        out_path = os.path.join(resources.files('frb'), 'data', 'FRBs')
     ifrb.write_to_json(path=out_path) #'/home/xavier/Projects/FRB_Software/FRB/frb/tests/files')
 
 

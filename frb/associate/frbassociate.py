@@ -399,6 +399,7 @@ class FRBAssociate(path.PATH):
 
         # Background
         bkg_estimator = photutils.MedianBackground()
+        #embed(header='threshold 402 frbassociate')
         self.bkg = photutils.Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
@@ -430,6 +431,7 @@ def run_individual(config, prior:dict=None, show=False,
                    loc:dict=None,
                    posterior_method:str='fixed',
                    extinction_correct=False,
+                   generate_png:bool=False,
                    FRB:frb.FRB=None,
                    internals:dict=None,
                    debug:bool=False):
@@ -448,6 +450,7 @@ def run_individual(config, prior:dict=None, show=False,
                 ZP (float): Zero point value (magnitudes)
                 plate_scale (float): Plate scale in arcsec
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
+                host_cut_size (float, optional): Size of the host cutout; required if generate_png=True
         prior(dict, optional):
             Contains information on the priors
         posterior_method(str, optional):
@@ -464,6 +467,8 @@ def run_individual(config, prior:dict=None, show=False,
             FRB object
         internals(dict, optional):
             Attributes to set in the FRBA object
+        generate_png (bool, optional):
+            Generate PNGs of the cutouts
         verbose (bool, optional):
     """
     if not skip_bayesian and prior == None:
@@ -517,17 +522,21 @@ def run_individual(config, prior:dict=None, show=False,
         frbA.header = hdu_full.header
 
         # Make a cutout of the host
-        frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
+        if generate_png:
+            frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
 
         # Threshold + Segment
         frbA.threshold()
-        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
+        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show,
+                     xy_kernel=config['xy_kernel'])
 
         # Photometry
-        frbA.photometry(config['ZP'], config['filter'], show=show)
+        ZP = config['ZP'] if 'ZP' in config.keys() else frbA.header['ZP']
+        frbA.photometry(ZP, config['filter'], show=show)
         if verbose:
             print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
+        #embed(header='threshold 546 frbassociate')
         # Candidates
         frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
                         separation=config['cand_separation'])
@@ -585,11 +594,11 @@ def run_individual(config, prior:dict=None, show=False,
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
+    debug = True
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
-
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)

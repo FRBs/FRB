@@ -3,8 +3,8 @@
 import os
 import warnings
 from pkg_resources import resource_filename
-from distutils import spawn
 import subprocess
+import shutil
 
 import numpy as np
 import pandas
@@ -373,7 +373,7 @@ def run_eazy(input_dir, name, logfile):
     _, param_file, translate_file = eazy_filenames(input_dir, name)
 
     # Find the eazy executable
-    path_to_eazy = spawn.find_executable('eazy')
+    path_to_eazy = shutil.which('eazy')
     if path_to_eazy is None:
         raise ValueError("You must have eazy in your Unix path..")
     # Run it!

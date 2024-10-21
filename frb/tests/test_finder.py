@@ -5,8 +5,7 @@ import numpy as np
 import os
 
 import matplotlib
-
-from distutils.spawn import find_executable
+import shutil
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -23,7 +22,7 @@ def data_path(filename):
 
 
 def test_basic():
-    if not find_executable('latex'):
+    if not shutil.which('latex'):
         pass
         return
     # Requires a local latex installation which travis doesn't have..
