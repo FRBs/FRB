@@ -66,20 +66,8 @@ def main(pargs):
     DM_cosmic = DM_extragalactic - pargs.dm_host
      
 
-    # Redshift estimates
-
-    # Load the telescope specific grid
-    telescope_dict = {
-        'CHIME': 'CHIME_pzdm.npz',
-        'DSA': 'DSA_pzdm.npy',
-        'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
-        'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
-        'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
-        'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
-        'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
-        'FAST': 'FAST_pzdm.npy',
-        'perfect': 'PDM_z.npz'
-    }
+    # Grab the dict
+    telescope_dict = prob_dmz.telescope_dict
 
     # Get the perfect telescope grid (default)
     sdict = prob_dmz.grab_repo_grid(telescope_dict['perfect'])

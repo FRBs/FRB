@@ -2,17 +2,31 @@
 import numpy as np
 import os
 
-
 from importlib.resources import files
 
 from scipy.stats import norm, lognorm
 from scipy.interpolate import interp1d, interp2d
+
+import pandas
 
 from frb.dm import igm
 from frb.dm import cosmic
 from frb import defs
 
 from IPython import embed
+
+# Telescope specific grids
+telescope_dict = {
+    'CHIME': 'CHIME_pzdm.npz',
+    'DSA': 'DSA_pzdm.npy',
+    'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
+    'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
+    'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
+    'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
+    'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
+    'FAST': 'FAST_pzdm.npy',
+    'perfect': 'PDM_z.npz'
+}
 
 class P_DM_z(object):
     pass
@@ -151,8 +165,6 @@ def build_grid_for_repo(outfile:str):
     print(f"File written: {outfile}")
     print("This will be used going forth")
 
-
-
 def grab_repo_grid(grid_name):
     """
     Grab the grid from the Repository based on the given grid name
@@ -161,7 +173,11 @@ def grab_repo_grid(grid_name):
         grid_name (str): Name of the grid to grab
 
     Returns:
-        dict: Numpy dict from the npz or npy save file
+        dict or np.array:  dict if CHIME else np.array
+            dict: Numpy dict from the npz or npy save file
+                z: Redshifts
+                DM: DMcosmic (perfect) or DM_EG (others) values
+                pzdm: PDF(DM|z)
     """
 
     # File
@@ -267,3 +283,58 @@ def get_DMcosmic_from_z(zarray, perc=0.5, redo_pdmz_grid=False, DMevals=np.linsp
     
     # reformat output
     return z_new, perc_macquart
+
+def gen_random_FRBs(grid:dict, nFRBs:int, seed:int=None):
+    """
+    Generate random Fast Radio Bursts (FRBs) based on a given probability grid.
+
+    Parameters:
+    -----------
+    grid : dict
+        A dictionary containing the probability grid with keys 'pzdm', 'z', and 'DM'.
+        - 'pzdm' : 2D array-like, probability distribution over redshift (z) and dispersion measure (DM).
+        - 'z' : 1D array-like, redshift values.
+        - 'DM' : 1D array-like, dispersion measure values.
+    nFRBs : int
+        The number of random FRBs to generate.
+    seed : int, optional
+        Seed for the random number generator to ensure reproducibility. Default is None.
+
+    Returns:
+    --------
+    pandas.DataFrame
+        A DataFrame containing the generated FRBs with columns 'z' (redshift) and 'DM' (dispersion measure).
+    """
+
+    # Seed?
+    if seed is not None:
+        np.random.seed(seed)
+
+    # Flatten 
+    pzDM = grid['pzdm'].flatten()
+
+    # Cum sum
+    cum_sum = np.cumsum(pzDM)
+    cum_sum /= cum_sum[-1]  # Normalize
+
+    # Random numbers
+    randu = np.random.uniform(size=nFRBs)
+
+    # Assign to pzDM
+    uidx = []
+    for irand in randu:
+        uidx.append(np.argmin(np.abs(irand-cum_sum)))
+    # Unravel
+    idx = np.unravel_index(uidx, grid['pzdm'].shape)
+
+    # Generate the arrays
+    z = grid['z'][idx[0]]
+    DM = grid['DM'][idx[1]]
+
+    # Pandas table
+    df = pandas.DataFrame({'z':z, 'DM':DM})
+
+    # Return
+    return df
+    
+    
