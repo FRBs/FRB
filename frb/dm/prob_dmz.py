@@ -165,7 +165,7 @@ def grab_repo_grid(grid_name):
     """
 
     # File
-    grid_file = files('frb.data.DM').joinpath( grid_name)
+    grid_file = files('frb.data.DM').joinpath(grid_name)
     
     # Build?
     if grid_name == 'PDM_z.npz':
