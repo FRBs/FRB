@@ -15,4 +15,5 @@ healpy>=1.12
 linetools>=0.3.1
 PyYAML>=5.1
 numba>=0.50.0
+setuptools>=75.0.0
 
