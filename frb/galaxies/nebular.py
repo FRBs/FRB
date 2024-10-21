@@ -12,10 +12,7 @@ from xml.etree import ElementTree as ET
 from astropy.table import Table
 from astropy import units
 
-try:
-    import extinction
-except ImportError:
-    warnings.warn("extinction package not loaded.  Extinction corrections will fail")
+import dust_extinction
 
 try:
     from linetools.lists import linelist
@@ -33,7 +30,7 @@ def calc_dust_extinct(neb_lines, method):
     """
     Estimate the Visual extinction A_V based on input nebular emission lines
 
-    Uses the Fitzpatrick & Massa (2007) extinction law
+    Uses the Gordon 2024
 
     Args:
         neb_lines (dict):  Line fluxes
@@ -71,8 +68,11 @@ def calc_dust_extinct(neb_lines, method):
         raise IOError("Not ready for this mode")
 
     # Extinction
-    a1AV = extinction.fm07(np.atleast_1d(wave1), 1.0)[0]
-    a2AV = extinction.fm07(np.atleast_1d(wave2), 1.0)[0]
+    #a1AV = extinction.fm07(np.atleast_1d(wave1), 1.0)[0]
+    #a2AV = extinction.fm07(np.atleast_1d(wave2), 1.0)[0]
+    extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+    a1AV = extmod(np.atleast_1d(wave1*units.AA))  # *units.AA)
+    a2AV = extmod(np.atleast_1d(wave2*units.AA))  # *units.AA)
 
     # Observed ratio
     fratio_obs = F1_obs/F2_obs
@@ -153,7 +153,10 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
 
     # Dust correct?
     if AV is not None:
-        al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
+        #al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
+        extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+        AlAV = extmod(np.atleast_1d(wave)*units.AA)[0]
+        al = AlAV * AV
     else:
         al = 0.
 
