@@ -66,52 +66,26 @@ def main(pargs):
     DM_cosmic = DM_extragalactic - pargs.dm_host
      
 
-    # Redshift estimates
-
     # Load the telescope specific grid
-    telescope_dict = {
-        'CHIME': 'CHIME_pzdm.npz',
-        'DSA': 'DSA_pzdm.npy',
-        'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
-        'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
-        'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
-        'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
-        'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
-        'FAST': 'FAST_pzdm.npy',
-        'perfect': 'PDM_z.npz'
-    }
+    telescope_dict = prob_dmz.telescope_dict
 
     # Get the perfect telescope grid (default)
-    sdict = prob_dmz.grab_repo_grid(telescope_dict['perfect'])
-    PDM_z = sdict['PDM_z']
-    z = sdict['z']
-    DM = sdict['DM']
-
-    # Grab the right entry
-    iDM = np.argmin(np.abs(DM - DM_cosmic))
-    PzDM = PDM_z[iDM, :] / np.sum(PDM_z[iDM, :])
-
-
-    # Get the telescope specific PZDM grid
-    if pargs.telescope and pargs.telescope != 'CHIME' and pargs.telescope != 'perfect':
-        if pargs.telescope not in telescope_dict:
-            raise ValueError(f"Unknown telescope: {pargs.telescope}")
-        zdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
-        z = zdict['z']
-        DM = zdict['DM']
-        PDM_z = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
-        iDM = np.argmin(np.abs(DM - DM_extragalactic))
-        PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
-
-
-    if pargs.telescope and pargs.telescope == 'CHIME':
-        sdict = prob_dmz.grab_repo_grid(telescope_dict['CHIME'])
+    if not pargs.telescope or pargs.telescope == 'perfect':
+        sdict = prob_dmz.grab_repo_grid(telescope_dict['perfect'])
+        DM = sdict['DM']
+        PDM_z = sdict['PDM_z']
+        PDM_z = PDM_z.T # Perfect is opposite of the rest 
+        iDM = np.argmin(np.abs(DM - DM_cosmic))
+    else: # Grab a non-perfect telescope grid, which use DM_extragalactic
+        sdict = prob_dmz.grab_repo_grid(telescope_dict[pargs.telescope])
         PDM_z = sdict['pzdm']
-        z = sdict['z']
         DM = sdict['DM']
         iDM = np.argmin(np.abs(DM - DM_extragalactic))
-        PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
 
+    # Grab the right entry
+    z = sdict['z']
+    PzDM = PDM_z[:,iDM] / np.sum(PDM_z[:,iDM])
+    
     cum_sum = np.cumsum(PzDM)
     limits = [float(item) for item in pargs.cl.split(',')]
 
