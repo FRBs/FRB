@@ -30,6 +30,7 @@ if db_path is None:
 def run(frb_list:list, 
         prior:dict, 
         write:bool=False,
+        show:bool=False,
         override:bool=False):
     """Main method for running PATH analysis for a list of FRBs
 
@@ -38,6 +39,7 @@ def run(frb_list:list,
         prior (dict):
             Prior for PATH
         write (bool, optional): Write the results to a CSV file. Defaults to False.
+        show (bool, optional): Show the segmentation image. Defaults to False.
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
 
@@ -69,7 +71,7 @@ def run(frb_list:list,
 
         # Run me
         frbA = frbassociate.run_individual(
-            config, prior=iprior, 
+            config, prior=iprior, show=show,
             posterior_method=config['posterior_method'])
 
         if frbA is None:
@@ -146,6 +148,7 @@ def main(options:str=None, frb:str=None):
 
     # Parse optionsd
     write_indiv = False
+    show = False
     if options is not None:
         if 'new_prior' in options:
             theta_new = dict(method='exp', 
@@ -155,6 +158,8 @@ def main(options:str=None, frb:str=None):
             print("Using new prior with scale=0.5")
         if 'write_indiv' in options:
             write_indiv = True
+        if 'show' in options:
+            show = True
         if 'PU=' in options:
             for sopt in options.split(','):
                 if 'PU=' in sopt:
@@ -162,7 +167,7 @@ def main(options:str=None, frb:str=None):
         #embed(header="build_path.py: 155")
         
 
-    results = run(frb_list, prior, write=write_indiv)
+    results = run(frb_list, prior, write=write_indiv, show=show)
     # Write
     outfile = os.path.join(files('frb'), 'data', 'Galaxies', 
                            'PATH', 'tmp.csv')

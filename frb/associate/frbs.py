@@ -382,11 +382,11 @@ FRB20210410D = base_config | updates
 # ICS Sample
 
 try:
-    for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B','FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
-                    'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D','FRB20211127I','FRB20211203C',
-                    'FRB20211212A','FRB20220105A','FRB20220501C',
-                    'FRB20220610A','FRB20220725A','FRB20220918A',
-                    'FRB20221106A',
+    for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B',
+                     'FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                    'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D',
+                    'FRB20211127I','FRB20211203C', 'FRB20211212A','FRB20220105A','FRB20220501C',
+                    'FRB20220610A','FRB20220725A','FRB20220918A', 'FRB20221106A',
                     'FRB20230526A','FRB20230708A', 
                     #'FRB20230718A', # No HI
                     'FRB20230731A','FRB20230902A','FRB20231226A','FRB20240201A',
@@ -429,22 +429,23 @@ try:
         )
 
         # FRB specific
-        if tns_name == 'FRB20240210A':
+        if tns_name in ['FRB20240210A','FRB20211127I']: # Large galaxies
             updates['cut_size'] = 180.
             updates['cand_bright'] = 14.
             updates['cand_separation'] = 180. * units.arcsec
             updates['npixels'] = 70
             updates['xy_kernel'] = (11,11)
-        if tns_name == 'FRB20190608B':
+        elif tns_name == 'FRB20190608B':
             updates['cand_bright'] = 15.
             updates['cut_size'] = 34.
-        if tns_name == 'FRB20211212A': # Large SDSS galaxy
+        elif tns_name == 'FRB20211212A': # Large SDSS galaxy
             updates['cut_size'] = 90.
             updates['cand_bright'] = 15.
-        if tns_name == 'FRB20230731A': # Large SDSS galaxy
+        elif tns_name == 'FRB20230731A': # Large SDSS galaxy
             updates['deblend'] = False
             updates['cut_size'] = 90.
             updates['cand_bright'] = 15.
+
 
         globals()[tns_name] = base_config | updates
 except IOError:
