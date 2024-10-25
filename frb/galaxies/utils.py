@@ -22,6 +22,8 @@ from astropy import units
 
 import pandas as pd
 
+import dust_extinction
+
 from linetools.spectra import xspectrum1d
 
 from frb import frb
@@ -38,12 +40,13 @@ def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
     """
 
     # Correct for Galactic extinction
-    # Hidnig this here to avoid a hard dependency
-    # TODO
     #   Need to replace it 
-    import extinction
     AV = ebv * 3.1  # RV
-    Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+    extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+    AlAV = extmod(spectrum.wavelength)#*units.AA)
+    Al = AlAV * AV
+    #Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+
     # New spec
     new_flux = spectrum.flux * 10**(Al/2.5)
     new_sig = spectrum.sig * 10**(Al/2.5)
