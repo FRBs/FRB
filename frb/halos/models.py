@@ -12,7 +12,7 @@ from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord,Angle
 from astropy import units
 from astropy import constants
 from astropy.table import Table
@@ -1079,6 +1079,7 @@ class M31(ModifiedNFW):
         # More geometry
         atan = np.arctan(sep.radian)
         b = -1 * a / atan
+        #embed(header='DM_from_Galactic Line 1082')
         # Restrct to within 90deg (everything beyond is 0 anyhow)
         if sep > 90.*units.deg:
             return 0 * units.pc / units.cm**3
@@ -1087,6 +1088,48 @@ class M31(ModifiedNFW):
         # DM
         DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
         return DM
+
+
+    def DM_from_impact_param_b(self, bimpact, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given an impact parameter
+
+        Args:
+            bimpact: Quantity
+               Impact parameter in kpc
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Calculate r200_rad
+        r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
+
+        #embed(header='DM_from_impact_param_b Line 1117')
+
+        # Create an Angle object for sep
+        sep = Angle(bimpact * r200_rad, unit='radian')
+
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+        
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
+
+
 
 
 class LMC(ModifiedNFW):
