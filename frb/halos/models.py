@@ -1079,7 +1079,6 @@ class M31(ModifiedNFW):
         # More geometry
         atan = np.arctan(sep.radian)
         b = -1 * a / atan
-        #embed(header='DM_from_Galactic Line 1082')
         # Restrct to within 90deg (everything beyond is 0 anyhow)
         if sep > 90.*units.deg:
             return 0 * units.pc / units.cm**3
@@ -1097,7 +1096,7 @@ class M31(ModifiedNFW):
 
         Args:
             bimpact: Quantity
-               Impact parameter in kpc
+                Ratio of the impact parameter to r200
             **kwargs:
                Passed to Ne_Rperp
 
@@ -1111,15 +1110,13 @@ class M31(ModifiedNFW):
         # Calculate r200_rad
         r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
 
-        #embed(header='DM_from_impact_param_b Line 1117')
-
         # Create an Angle object for sep
         sep = Angle(bimpact * r200_rad, unit='radian')
 
         # More geometry
         atan = np.arctan(sep.radian)
         b = -1 * a / atan
-        
+
         # Restrct to within 90deg (everything beyond is 0 anyhow)
         if sep > 90.*units.deg:
             return 0 * units.pc / units.cm**3
