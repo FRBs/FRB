@@ -30,6 +30,7 @@ def plot_spec(specDB, meta, frb, dust_correct=False):
     from astropy.coordinates import SkyCoord
     from linetools import utils as ltu
     from frb.galaxies import nebular
+    from frb.galaxies import utils as galaxy_utils
 
     """ Plot galaxy spectra """
     # Grab spectra
@@ -37,15 +38,16 @@ def plot_spec(specDB, meta, frb, dust_correct=False):
 
     # Dust?
     if dust_correct:
-        import extinction
         EBV = nebular.get_ebv(frb.coord)['meanValue']  #
         AV = EBV * 3.1  # RV
 
         for kk in range(spec.nspec):
             spec.select = kk
-            Al = extinction.fm07(spec.wavelength.value, AV)#, 3.1)
-            spec.flux = spec.flux * 10 ** (Al / 2.5)
-            spec.sig = spec.sig * 10 ** (Al / 2.5)
+            embed(header='plot_spec: THIS IS BROKEN')
+            new_spec = galaxy_utils.deredden_spec(spec.select, AV)
+            #Al = extinction.fm07(spec.wavelength.value, AV)#, 3.1)
+            #spec.flux = spec.flux * 10 ** (Al / 2.5)
+            #spec.sig = spec.sig * 10 ** (Al / 2.5)
 
     # Add labels
     lbls = ['None']*len(meta)
