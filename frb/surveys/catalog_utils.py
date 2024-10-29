@@ -273,7 +273,8 @@ def mag_from_flux(flux, flux_err=None):
         err_mag = None
     return mag_AB, err_mag
 
-def _mags_to_flux(mag, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err=None):
+def _mags_to_flux(mag, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err=None,
+                  exact_mag_err=False):
     """
     Convert a magnitude to mJy
 
@@ -282,6 +283,9 @@ def _mags_to_flux(mag, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err=None)
         zpt_flux (Quantity, optional): Zero point flux for the magnitude.
             Assumes AB mags by default (i.e. zpt_flux = 3630.7805 Jy). 
         mag_err (float, optional): uncertainty in magnitude
+        exact_mag_err (bool, optional): True if you are aware that the mag
+            error were estimated exactly and not using a first order (in SNR)
+            approximation. 
     Returns:
         flux (column): flux in mJy
         flux_err (column): if mag_err is given, a corresponding
@@ -302,12 +306,15 @@ def _mags_to_flux(mag, zpt_flux:units.Quantity=3630.7805*units.Jy, mag_err=None)
         flux_err = mag_err.copy()
         baderrs = (mag_err < 0) | (mag_err == 999.)
         flux_err[baderrs] = -99.
-        flux_err[~baderrs] = flux[~baderrs]*(10**(mag_err[~baderrs]/2.5)-1)
+        if exact_mag_err:
+            flux_err[~baderrs] = flux[~baderrs]*(10**(mag_err[~baderrs]/2.5)-1) # exact error
+        else:
+            flux_err[~baderrs] = np.log(10)/2.5*flux[~baderrs]*mag_err[~baderrs] # first order approximation
         return flux, flux_err
     else:
         return flux    
 
-def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
+def convert_mags_to_flux(photometry_table, fluxunits='mJy', exact_mag_err=False):
     """
     Takes a table of photometric measurements
     in mags and converts it to flux units.
@@ -321,6 +328,10 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
         fluxunits (str, optional):
             Flux units to convert the magnitudes
             to, as parsed by astropy.units. Default is mJy.
+        exact_mag_err (bool, optional):
+            Use if you know that the mag errors were estimated
+            exactly as opposed to the first-order approximation
+            that is usually quoted.
 
     Returns:
         fluxtable: astropy Table
@@ -336,7 +347,8 @@ def convert_mags_to_flux(photometry_table, fluxunits='mJy'):
 
     for mag, err in zip(mag_cols, mag_errcols):
         flux, flux_err = _mags_to_flux(photometry_table[mag], 
-                                       mag_err=photometry_table[err])
+                                       mag_err=photometry_table[err],
+                                       exact_mag_err=exact_mag_err)
 
         # Allow for bad flux values
         badflux = flux == -99.
