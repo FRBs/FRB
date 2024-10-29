@@ -26,16 +26,12 @@ try:
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
+from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
 from frb.galaxies import defs as galaxy_defs
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
-
-try:
-    import extinction
-except ImportError:
-    print("extinction package not loaded.  Extinction corrections will fail")
 
 try:
     from frb.galaxies import cigale
@@ -382,14 +378,9 @@ def run(host_input:pandas.core.series.Series,
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(Host.coord)['meanValue'])
         print(f'Correcting the spectrum for Galactic extinction with reddening E(B-V)={ebv}')
-        AV = ebv * 3.1  # RV
-        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
-        # New spec
-        new_flux = spectrum.flux * 10**(Al/2.5)
-        new_sig = spectrum.sig * 10**(Al/2.5)
-        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        new_spec = galaxy_utils.deredden_spec(spectrum, ebv)
 
-        #
+        # Run it
         ppxf.run(new_spec, R, host_input.z, 
                  results_file=ppxf_results_file, 
                  spec_fit=spec_file,

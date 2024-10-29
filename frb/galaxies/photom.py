@@ -2,6 +2,7 @@
 
 import os
 import warnings
+import dust_extinction.parameter_averages
 import numpy as np
 
 import importlib_resources
@@ -22,10 +23,7 @@ from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
 
-try:
-    import extinction
-except ImportError:
-    print("extinction package not loaded.  Extinction corrections will fail")
+import dust_extinction
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -118,7 +116,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     """
     calculate MW extinction correction for given filter
 
-    Uses the Fitzpatrick & Massa (2007) extinction law
+    Uses the Gordon 2024 extinction model 
 
     Args:
         filt (str):
@@ -172,7 +170,14 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     #get MW extinction correction
     AV = EBV * RV
     #AlAV = nebular.load_extinction('MW')
-    Alambda = extinction.fm07(wave, AV)
+    #Alambda = extinction.fm07(wave, AV)
+
+    # Gordon 2024
+    extmod = dust_extinction.parameter_averages.G23(Rv=RV)
+    AlAV = extmod(wave*units.AA)
+    Alambda = AlAV * AV
+
+    
     source_flux = 1.
     #calculate linear correction
     delta = np.trapz(throughput * source_flux * 
