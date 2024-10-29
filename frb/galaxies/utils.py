@@ -101,14 +101,14 @@ def list_of_hosts(skip_bad_hosts=True):
     """
     # FRB files
     frb_data = importlib_resources.files('frb.data.FRBs')
-    frb_files = glob.glob(str(frb_data/'FRBs/FRB*.json'))
+    frb_files = glob.glob(str(frb_data/'FRB*.json'))
     frb_files.sort()
 
     hosts = []
     frbs = []
     for ifile in frb_files:
         # Parse
-        name = ifile.split('.')[-2]
+        name = ifile.split('/')[-1].split('.')[-2]
         ifrb = frb.FRB.by_name(name)
         try:
             host = ifrb.grab_host()
