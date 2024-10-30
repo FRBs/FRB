@@ -3,11 +3,8 @@
 from __future__ import print_function, absolute_import, division, unicode_literals
 
 import numpy as np
-import pdb
-import warnings
-import os
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy import units as u
 from astropy.table import Table
@@ -51,15 +48,14 @@ class FRBCat(object):
 
         """
         import glob
-        path = resource_filename('frb', os.path.join('data','FRBs'))
+        path = importlib_resources.files('frb.data.FRBs')
         if frbcat_file is None:
-            fils = glob.glob(os.path.join(path,'frbcat_*'))
-            #fils = glob.glob(frbdm.__path__[0]+'/data/FRBs/frbcat_*')
+            fils = glob.glob(str(path/'frbcat_*'))
             fils.sort()
             infil = fils[-1]  # Expecting these are ordered by date
             self.frbcat_file = infil
         else:
-            self.frbcat_file = os.path.join(path,frbcat_file)
+            self.frbcat_file = str(path/frbcat_file)
         # Read
         if 'csv' in self.frbcat_file:
             self.frbcat = Table.read(self.frbcat_file, format='csv')#, delimiter='#')

@@ -3,7 +3,8 @@
 import os
 import glob
 from IPython import embed
-from pkg_resources import resource_filename
+
+import importlib_resources
 import numpy as np
 from scipy.interpolate import interp1d
 import warnings
@@ -99,15 +100,15 @@ def list_of_hosts(skip_bad_hosts=True):
 
     """
     # FRB files
-    frb_data = resource_filename('frb', 'data')
-    frb_files = glob.glob(os.path.join(frb_data, 'FRBs', 'FRB*.json'))
+    frb_data = importlib_resources.files('frb.data.FRBs')
+    frb_files = glob.glob(str(frb_data/'FRB*.json'))
     frb_files.sort()
 
     hosts = []
     frbs = []
     for ifile in frb_files:
         # Parse
-        name = ifile.split('.')[-2]
+        name = ifile.split('/')[-1].split('.')[-2]
         ifrb = frb.FRB.by_name(name)
         try:
             host = ifrb.grab_host()
@@ -233,8 +234,7 @@ def load_f_mL():
 
     """
     # Grab m(L) table
-    data_file = os.path.join(resource_filename('frb', 'data'),
-                             'Galaxies', 'galLF_vs_z.txt')
+    data_file = importlib_resources.files('frb.data.Galaxies')/'galLF_vs_z.txt'
     df = pandas.read_table(data_file, index_col=False)
 
     # Interpolate
@@ -253,8 +253,7 @@ def load_PATH(PATH_root_file:str='adopted.csv'):
     Returns:
         pandas.DataFrame: Table of galaxy coordinates and PATH results
     """
-    path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH',
-                             PATH_root_file)
+    path_file = importlib_resources.files('frb.data.Galaxies.PATH')/PATH_root_file
     path_tbl = pd.read_csv(path_file, index_col=False)
 
     return path_tbl

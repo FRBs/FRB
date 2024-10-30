@@ -4,7 +4,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import os
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy import units
 
@@ -21,8 +21,7 @@ def load_opperman2014():
 
     """
     print("Loading RM information map from Oppermann et al. 2014")
-    galactic_rm_file = os.path.join(resource_filename('frb', 'data'), 
-                                    'RM','opp14_foreground.fits')
+    galactic_rm_file = importlib_resources.files('frb.data.RM')/'opp14_foreground.fits'
 
     # Load
     rm_sky = hp.read_map(galactic_rm_file, hdu=4)
@@ -43,14 +42,11 @@ def load_hutschenreuter2020():
 
     """
     print("Loading RM information map from Hutschenreuter et al. 2022")
-    galactic_rm_file = os.path.join(
-        resource_filename('frb', 'data'), 'RM',
-        'faraday2020v2.fits')
+    galactic_rm_file = importlib_resources.files('frb.data.RM')/'faraday2020v2.fits'
 
     # Has it been downloaded?
     if not os.path.isfile(galactic_rm_file):
-        readme_file = os.path.join(
-            resource_filename('frb', 'data'), 'RM', 'README')
+        readme_file = importlib_resources.files('frb.data.RM')/'README'
         print(f"See the README here: {readme_file}")
         raise IOError("You need to download the Hutschenreuter 2020 map to proceed")
 

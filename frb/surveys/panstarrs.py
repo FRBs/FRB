@@ -92,7 +92,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         #assert self.radius <= 0.5*u.deg, "Cone serches have a maximum radius"
         #Validate table and release input
         _check_legal(table,release)
-        url = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/{:s}/{:s}.csv".format(release,table)
+        url = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs/{:s}/{:s}".format(release,table)
         if query_fields is None:
             query_fields = _DEFAULT_query_fields
         else:
@@ -105,6 +105,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         data['dec'] = self.coord.dec.value
         data['radius'] = self.radius.to(u.deg).value
         data['columns'] = query_fields
+        data['format'] = 'csv'
         if print_query:
             print(url)
         ret = requests.get(url,params=data)

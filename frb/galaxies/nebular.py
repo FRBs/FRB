@@ -1,7 +1,4 @@
 """ Methods related to nebular line analysis, e.g. dust extinction, SFR"""
-import pdb
-
-from pkg_resources import resource_filename
 
 import numpy as np
 import requests
@@ -248,7 +245,6 @@ def get_ebv(coords,definition="SandF",
     query_url = \
         "https://irsa.ipac.caltech.edu/cgi-bin/DUST/nph-dust?locstr={:s}+{:s}+equ+J2000&regSize={:s}".format(ra,dec,radius)
     result = requests.get(query_url)
-    #pdb.set_trace()
     tree = ET.ElementTree(ET.fromstring(result.content.decode("ascii")))
     root = tree.getroot()
 

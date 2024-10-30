@@ -2,7 +2,7 @@
 """
 import inspect
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
 import glob
 import copy
@@ -400,9 +400,8 @@ class FRB(GenericFRB):
         Returns:
 
         """
-        path = os.path.join(resource_filename('frb', 'data'), 'FRBs', frb_name)
-        json_file = path + '.json'
-        slf = cls.from_json(json_file, **kwargs)
+        json_file = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}.json'
+        slf = cls.from_json(str(json_file), **kwargs)
         return slf
 
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
@@ -461,7 +460,7 @@ def list_of_frbs(require_z=False):
 
     """
     # Grab the files
-    frb_files = glob.glob(os.path.join(resource_filename('frb', 'data'), 'FRBs', 'FRB*json'))
+    frb_files = glob.glob(str(importlib_resources.files('frb.data')/'FRBs/FRB*.json'))
     frb_files.sort()
     # Load up the FRBs
     frbs = []
@@ -481,7 +480,6 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     Warning:  As standard, missing values are given NaN in the Pandas table
         Be careful!
-
     Args:
         fattrs (list, optional):
             Float attributes for the Table
@@ -567,7 +565,7 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
 def load_frb_data(tbl_file:str=None):
     if tbl_file is None:
-        path = os.path.join(resource_filename('frb', 'data'), 'FRBs')
+        path = importlib_resources.files('frb.data')/ 'FRBs'
         tbl_file = os.path.join(path, 'FRBs_base.csv')
 
     # Load

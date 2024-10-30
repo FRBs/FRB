@@ -1,7 +1,7 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
 import sys
 import warnings
@@ -54,9 +54,7 @@ ebv_method = 'SandF'
 fill_value = -999.
 
 # New astrometry
-mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data'),
-                                          'Galaxies','Additional','Mannings2021', 
-                                          'astrometry_v2.csv'))
+mannings2021_astrom = pandas.read_csv(importlib_resources.files('frb.data.Galaxies.Additional.Mannings2021')/'astrometry_v2.csv')
 # Probably will rename this                                        
 mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
@@ -143,9 +141,8 @@ def read_lit_table(lit_entry, coord=None):
     Returns:
         astropy.table.Table: table of literature data
     """
-    literature_path = os.path.join(resource_filename('frb', 'data'), 
-                                       'Galaxies', 'Literature')
-    lit_file = os.path.join(literature_path, lit_entry.Table)
+    literature_path = importlib_resources.files('frb.data.Galaxies.Literature')
+    lit_file = literature_path/lit_entry.Table
     if lit_entry.Format == 'csv':
         lit_tbl = Table.from_pandas(pandas.read_csv(lit_file))
     else:
@@ -284,8 +281,7 @@ def run(host_input:pandas.core.series.Series,
 
     # Literature time
     if lit_refs is None:
-        lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-            'Literature', 'all_refs.csv')
+        lit_refs = importlib_resources.files('frb.data.Galaxies.Literature')/'all_refs.csv'
     lit_tbls = pandas.read_csv(lit_refs, comment='#')
 
     for kk in range(len(lit_tbls)):
@@ -486,8 +482,7 @@ def run(host_input:pandas.core.series.Series,
 
     # Write
     if out_path is None:
-        out_path = os.path.join(resource_filename('frb', 'data'),
-            'Galaxies', f'{frbname[3:]}')
+        out_path = importlib_resources.files(f'frb.data.Galaxies.{frbname[3:]}')
     if outfile is None:
         outfile = None if is_host else \
             utils.name_from_coord(Host.coord) + '.json'

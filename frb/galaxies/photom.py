@@ -5,7 +5,7 @@ import warnings
 import dust_extinction.parameter_averages
 import numpy as np
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from IPython import embed
 
@@ -137,8 +137,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
 
     """
     # Read in filter in Table
-    path_to_filters = os.path.join(resource_filename('frb', 'data'), 
-                                   'analysis', 'CIGALE')
+    path_to_filters = importlib_resources.files('frb.data.analysis.CIGALE')
     # Hack for LRIS which does not differentiate between cameras
     if 'LRIS' in filt:
         _filter = 'LRIS_{}'.format(filt[-1])
@@ -146,7 +145,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
         _filter = filt.replace("NSC_","DECam_")
     else:
         _filter = filt
-    filter_file = os.path.join(path_to_filters, _filter+'.dat')
+    filter_file = path_to_filters/f'{_filter}.dat'
     if not os.path.isfile(filter_file):
         msg = "Filter {} is not in the Repo.  Add it!!".format(filter_file)
         if required:
