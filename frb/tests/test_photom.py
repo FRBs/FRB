@@ -34,13 +34,13 @@ def test_flux_conversion():
 
     fluxunits = 'mJy'
 
-    fluxtab = convert_mags_to_flux(tab, fluxunits)
+    fluxtab = convert_mags_to_flux(tab, fluxunits, exact_mag_err=False)
 
     # Check fluxes
     assert np.isclose(fluxtab['DES_r'], 0.036307805), "Check AB flux conversion."
 
     # Check errors
-    assert np.isclose(fluxtab['DES_r_err'], 0.02123618797770558), "Check AB flux error."
+    assert np.isclose(fluxtab['DES_r_err'], 0.016720362110466937), "Check AB flux error."
 
 
 def test_fractional_flux():
