@@ -164,13 +164,16 @@ def test_first():
 @remote_data
 def test_panstarrs():
     #Test get_catalog
-    coord = SkyCoord(0, 0,unit="deg")
+    coord = SkyCoord(0., 0.,unit="deg")
     search_r = 30*units.arcsec
     ps_survey = survey_utils.load_survey_by_name('Pan-STARRS',coord,search_r)
-    ps_table = ps_survey.get_catalog()
+    ps_table = ps_survey.get_catalog(photoz=True)
 
     assert isinstance(ps_table, Table)
     assert len(ps_table) == 7
+
+    assert 'z_phot' in ps_table.colnames
+    assert 'z_photErr' in ps_table.colnames
 
     #Test get_cutout
     cutout, = ps_survey.get_cutout()

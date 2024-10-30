@@ -10,7 +10,7 @@ import numpy as np
 from astropy import units as u,utils as astroutils
 from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
-from astropy.table import Table
+from astropy.table import Table, join
 from ..galaxies.defs import PanSTARRS_bands
 
 from .images import grab_from_url
@@ -20,7 +20,7 @@ import requests
 
 from frb.surveys import surveycoord,catalog_utils,images
 
-from IPython import embed
+import os
 
 #TODO: It's potentially viable to use the same code for other
 #catalogs in the VizieR database. Maybe a generalization wouldn't
@@ -65,7 +65,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     
     def get_catalog(self,query_fields=None,release="dr2",
                     table="stack",print_query=False,
-                    use_psf=False):
+                    use_psf=False, photoz=False):
         """
         Query a catalog in the MAST Pan-STARRS database for
         photometry.
@@ -84,6 +84,9 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 search within.
             use_psf: bool, optional
                 If True, use PSFmag instead of KronMag
+            photoz: bool, optional
+                If True, also download photometric redshifts
+                using the Mast CasJobs API.
         
         Returns:
             catalog: astropy.table.Table
@@ -135,6 +138,31 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         bad_dec = (photom_catalog['dec']<-90)+(photom_catalog['dec']>90)
         bad_pos = bad_ra+bad_dec # bad_ra OR bad_dec
         photom_catalog = photom_catalog[~bad_pos]
+
+        # Download photometric redshifts if requested.
+        if photoz:
+            try:
+                import mastcasjobs as mcj
+
+                # Query
+                photoz_query = f"""SELECT m.objID, m.z_phot, m.z_photErr, m.class
+                                  FROM fGetNearbyObjEq({self.coord.ra.value}, {self.coord.dec.value}, {self.radius.to('arcmin').value}) nb
+                                  INNER JOIN catalogRecordRowStore m on m.objid=nb.objid"""
+                # Execute
+                user = os.getenv('MAST_CASJOBS_USER')
+                pwd = os.getenv('MAST_CASJOBS_PWD')
+                if user is None or pwd is None:
+                    raise IOError("You need to set the MAST_CASJOBS_USER and MAST_CASJOBS_PWD environment variables. Create an account at https://mastweb.stsci.edu/mcasjobs/CreateAccount.aspx to get your credentials.")
+                job = mcj.MastCasJobs(context="HLSP_PS1_STRM", username=user, password=pwd)
+                photoz_tab = job.quick(photoz_query, task_name="Photo-z cone search")
+                photoz_tab.rename_column('objID', 'Pan-STARRS_ID')
+
+                # Merge to the main tab
+                photom_catalog = join(photom_catalog, photoz_tab, keys='Pan-STARRS_ID', join_type='left')
+
+                # Now join the 
+            except ImportError:
+                warnings.warn("mastcasjobs not installed. Cannot download photometric redshifts.")
         
         # Remove duplicate entries.
         photom_catalog = catalog_utils.remove_duplicates(photom_catalog, "Pan-STARRS_ID")
