@@ -12,7 +12,7 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
 from scipy import interpolate
 from scipy.integrate import quad
-from pkg_resources import resource_filename
+import importlib_resources
 
 def chance_coincidence(rmag, r_i):
     """
@@ -184,7 +184,7 @@ def prob_eb17(R_frb, m, R_0=0.2, R_h=0.25, ret_numgal=False):
         float: Probability of chance coincidence
 
     """
-    r_dat, mag_uniq, cvs = read_r_mags(resource_filename('frb',os.path.join('data','Galaxies','driver2016_t3data.fits')))
+    r_dat, mag_uniq, cvs = read_r_mags(importlib_resources.files('frb.data.Galaxies')/'driver2016_t3data.fits')
     spl = interpolate.UnivariateSpline(x=mag_uniq,
                                        y=np.log10(r_dat),
                                        bbox=[-100, 100],
@@ -215,11 +215,10 @@ def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
     Returns:
         pandas.DataFrame: [description]
     """
-    galaxy_path = os.path.join(resource_filename('frb', 'data'), 
-                               'Galaxies')
+    galaxy_path = importlib_resources.files('frb.data.Galaxies')
     if host_tbl is None:
         if hosts_file is None:
-            hosts_file = os.path.join(galaxy_path, 'public_hosts.csv')
+            hosts_file = galaxy_path/'public_hosts.csv'
         host_tbl = pandas.read_csv(hosts_file)
 
     # Reformat a few columns
@@ -243,8 +242,7 @@ def load_Mr_pdf(pdf_file:str=None):
     """
     
     if pdf_file is None:
-        pdf_file = os.path.join(resource_filename('frb', 'data'), 
-                                    'Galaxies', 'PDF_Mr.csv')
+        pdf_file = importlib_resources.files('frb.data.Galaxies')/'PDF_Mr.csv'
 
     #host galaxy M_r
     df = pandas.read_csv(pdf_file)

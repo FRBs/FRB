@@ -4,8 +4,7 @@ At the moment the Zero Points used include Galactic Extinction!
 
 """
 import os
-from pkg_resources import resource_filename
-import glob
+import importlib_resources
 
 from astropy import units
 import warnings
@@ -343,12 +342,8 @@ FRB20201124A = base_config | updates
 # FRB 20201123A (MeerTRAP;  Rajwade+2022)
 updates = dict(
     name='FRB20201123A',
-    hpix_file = os.path.join(resource_filename('frb', 'data'), 
-                             'FRBs', 'healpix',
-                             'FRB20201123A_hpix_uniform.fits.gz'),
-    cand_file=os.path.join(resource_filename('frb', 'data'),
-                           'Galaxies', '20201123A',
-                            'FRB20201123A_path_candidates.csv'),
+    hpix_file = importlib_resources.files('frb.data.FRBs.healpix')/'FRB20201123A_hpix_uniform.fits.gz',
+    cand_file=importlib_resources.files('frb.data.Galaxies.20201123A')/'FRB20201123A_path_candidates.csv',
     PU = 0.1, # Unseen prior
     max_radius=23.12431, # arcsec
     posterior_method='local',

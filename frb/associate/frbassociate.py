@@ -14,7 +14,7 @@ from astropy.visualization import LogStretch
 from astropy import wcs as astropy_wcs
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
-from pkg_resources import resource_filename
+import importlib_resources
 
 import pandas 
 
@@ -134,7 +134,7 @@ class FRBAssociate(path.PATH):
         ax.set_ylim(0, cutout.data.shape[0])
 
         # Write
-        output_file = resource_filename('frb', f'data/Galaxies/{self.frb.frb_name[3:]}/{self.frb.frb_name}_cutout.png')
+        output_file = importlib_resources.files(f'frb.data.Galaxies.{self.frb.frb_name[3:]}')/f'{self.frb.frb_name}_cutout.png'
         plt.subplots_adjust(left=0.2, bottom=0.15, right=0.95, top=0.95)
         fig.savefig(output_file, dpi=300)
 

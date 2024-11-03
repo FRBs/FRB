@@ -1,9 +1,5 @@
-from pkg_resources import resource_filename
-
 import numpy as np
-
-
-from frb.frb import FRB, build_table_of_frbs
+from frb.frb import FRB
 from frb.galaxies import offsets as frb_offsets
 
 

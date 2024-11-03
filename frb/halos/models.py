@@ -4,15 +4,16 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import pdb
+import warnings
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord,Angle
 from astropy import units
 from astropy import constants
 from astropy.table import Table
@@ -928,7 +929,7 @@ class YF17(ModifiedNFW):
 
         # Read
         #faerman_file = resource_filename('pyigm', '/data/CGM/Models/Faerman_2017_ApJ_835_52-density-full.txt')
-        faerman_file = resource_filename('frb', '/data/Halos/Faerman_2017_ApJ_835_52-density-full.txt')
+        faerman_file = importlib_resources.files('frb.data.Halos') / 'Faerman_2017_ApJ_835_52-density-full.txt'
         self.yf17 = Table.read(faerman_file, format='ascii.cds')
         self.yf17['nH'] = self.yf17['nHhot'] + self.yf17['nHwarm']
 
@@ -1087,6 +1088,46 @@ class M31(ModifiedNFW):
         # DM
         DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
         return DM
+
+
+    def DM_from_impact_param_b(self, bimpact, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given an impact parameter
+
+        Args:
+            bimpact: Quantity
+                Ratio of the impact parameter to r200
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Calculate r200_rad
+        r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
+
+        # Create an Angle object for sep
+        sep = Angle(bimpact * r200_rad, unit='radian')
+
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
+
+
 
 
 class LMC(ModifiedNFW):
