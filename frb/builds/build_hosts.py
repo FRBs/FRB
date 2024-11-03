@@ -304,6 +304,7 @@ def run(host_input:pandas.core.series.Series,
                     if key in merge_tbl.keys() and not chk_fill(sub_tbl[key].data[0]):
                         merge_tbl[key] = sub_tbl[key]
                     else:
+                        embed(header='307 of build_hosts')
                         if not chk_fill(sub_tbl[key].data[0]):
                             merge_tbl[key] = sub_tbl[key]
             else:
