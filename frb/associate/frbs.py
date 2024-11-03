@@ -5,6 +5,7 @@ At the moment the Zero Points used include Galactic Extinction!
 """
 import os
 import importlib_resources
+import glob
 
 from astropy import units
 import warnings
