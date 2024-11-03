@@ -2,6 +2,7 @@
 FRB host galaxies"""
 
 import importlib_resources
+from importlib.resources import files
 import os
 import sys
 import warnings
@@ -486,12 +487,11 @@ def run(host_input:pandas.core.series.Series,
 
     # Write
     if out_path is None:
-        out_path = importlib_resources.files(f'frb.data.Galaxies.{frbname[3:]}')
+        out_path = str(files('frb').joinpath('data', 'Galaxies', frbname[3:]))
     if outfile is None:
         outfile = None if is_host else \
             utils.name_from_coord(Host.coord) + '.json'
         #utils.name_from_coord(Host.coord) + '_{}.json'.format(frbname)
-    embed(header='494 of build_hosts')
     Host.write_to_json(path=out_path, outfile=outfile)
 
 
