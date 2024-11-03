@@ -491,6 +491,7 @@ def run(host_input:pandas.core.series.Series,
         outfile = None if is_host else \
             utils.name_from_coord(Host.coord) + '.json'
         #utils.name_from_coord(Host.coord) + '_{}.json'.format(frbname)
+    embed(header='494 of build_hosts')
     Host.write_to_json(path=out_path, outfile=outfile)
 
 
