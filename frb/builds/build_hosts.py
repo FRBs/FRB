@@ -61,6 +61,7 @@ mannings2021_astrom = mannings2021_astrom[
         mannings2021_astrom.Filter == 'F110W')].copy()
 
 def chk_fill(value):
+    # Masked?
     if isinstance(value,str):
         # Allow for -999 as a string
         try:
@@ -69,6 +70,8 @@ def chk_fill(value):
             return False
         else:
             return np.isclose(value, fill_value)
+    elif isinstance(value,np.ma.core.MaskedConstant):
+        return False
     else:
         return np.isclose(value, fill_value)
 
