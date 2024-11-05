@@ -271,11 +271,11 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                #print("You found more than 1 galaxy.  Taking the 2nd one")
-                #srvy_tbl = srvy_tbl[1:]
+                print("You found more than 1 galaxy.  Taking the 2nd one")
+                srvy_tbl = srvy_tbl[1:]
                 #srvy_tbl = srvy_tbl[:1]
-                embed(header='277 of build')
-                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                #embed(header='277 of build')
+                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
