@@ -309,7 +309,7 @@ def run(host_input:pandas.core.series.Series,
                         merge_tbl[key] = sub_tbl[key]
                     else:
                         if not chk_fill(sub_tbl[key].data[0]):
-                            merge_tbl[key] = float(sub_tbl[key])
+                            merge_tbl[key] = sub_tbl[key]
             else:
                 merge_tbl = sub_tbl
                 merge_tbl['Name'] = file_root
@@ -321,6 +321,7 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
     # Finish
+    embed(header='324 of build')
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
