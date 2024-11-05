@@ -15,6 +15,8 @@
         "EBV": 0.0158,
         "VLT_FORS2_I": null,
         "VLT_FORS2_I_flux": null,
+        "VLT_FORS2_R": 23.68206713688888,
+        "VLT_FORS2_R_flux": 23.68206713688888,
         "VLT_FORS2_g": 24.1608162987628,
         "VLT_FORS2_g_flux": 24.1608162987628,
         "VLT_FORS2_u": null,
