@@ -1,0 +1,38 @@
+{
+    "FRB": "FRB20240201A",
+    "cosmo": "Planck18",
+    "dec": 14.087250222222222,
+    "dec_FRB": 14.088025093,
+    "offsets": {
+        "ang_avg": 6.27370158560692,
+        "ang_avg_err": 0.5016527721724756,
+        "ang_best": 6.25531727167864,
+        "ang_best_err": 0.5019895286028817,
+        "physical": 5.451000611052975,
+        "physical_err": 0.4374430757566024
+    },
+    "photom": {
+        "EBV": 0.0255,
+        "VLT_FORS2_I": null,
+        "VLT_FORS2_I_flux": null,
+        "VLT_FORS2_R": 16.908794847233704,
+        "VLT_FORS2_R_flux": 16.908794847233704,
+        "VLT_FORS2_g": null,
+        "VLT_FORS2_g_flux": null,
+        "VLT_FORS2_u": null,
+        "VLT_FORS2_u_flux": null,
+        "VLT_FORS2_z": null,
+        "VLT_FORS2_z_flux": null,
+        "VLT_HAWKI_J": null,
+        "VLT_HAWKI_J_flux": null,
+        "VLT_HAWKI_Ks": 15.401594956982045,
+        "VLT_HAWKI_Ks_flux": 15.401594956982045
+    },
+    "ra": 149.9071820833333,
+    "ra_FRB": 149.905578613,
+    "redshift": {
+        "z": 0.042729,
+        "z_FRB": 0.042729,
+        "z_spec": 0.042729
+    }
+}
