@@ -597,7 +597,6 @@ def run_individual(config, prior:dict=None, show=False,
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
-    debug = True
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior
