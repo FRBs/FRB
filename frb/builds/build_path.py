@@ -127,8 +127,7 @@ def main(options:str=None, frb:str=None):
     # Read public host table
     if frb is None:
         host_tbl = hosts.load_host_tbl()
-
-        host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
+        #host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
