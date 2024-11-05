@@ -512,7 +512,10 @@ def run_individual(config, prior:dict=None, show=False,
 
         if config['cut_size'] is not None:
             size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
-            cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            try:
+                cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            except:
+                embed(header='518 frbassociate')
             frbA.wcs = cutout.wcs
             frbA.hdu = cutout  # not really an HDU
         else:
