@@ -321,7 +321,6 @@ def run(host_input:pandas.core.series.Series,
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
     # Finish
-    embed(header='324 of build')
     if merge_tbl is not None:
         # Dust correct
         EBV = nebular.get_ebv(gal_coord)['meanValue']
