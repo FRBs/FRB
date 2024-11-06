@@ -1,7 +1,7 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-import importlib.resources import files
+from importlib.resources import files
 import os
 
 import pandas
