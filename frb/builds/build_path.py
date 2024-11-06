@@ -166,7 +166,7 @@ def main(options:str=None, frb:str=None):
 
     results = run(frb_list, prior, write=write_indiv, show=show)
     # Write
-    outfile = os.path.join(files('frb'),'data','Galaxies','PATH','tmp.csv'))
+    outfile = os.path.join(files('frb'),'data','Galaxies','PATH','tmp.csv')
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")
