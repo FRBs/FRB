@@ -5,7 +5,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy import units as u
 
@@ -28,8 +28,7 @@ class Experiment(object):
     def setup(self):
         """ Load the characteristics of the experiment
         """
-        self.data_file=resource_filename('frb', 'data/experiments/{:s}.yaml'.format(
-            self.name.lower()))
+        self.data_file=importlib_resources.files('frb.data.experiments')/f'{self.name.lower()}.yaml'
         self.data = utils.loadyaml(self.data_file)
 
     def signal_to_noise(self, frb, beta=1., T_Sky=None, t_scatt=None):

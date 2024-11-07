@@ -4,7 +4,7 @@ At the moment the Zero Points used include Galactic Extinction!
 
 """
 import os
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy import units
 import warnings
@@ -21,6 +21,7 @@ else:
 base_config = dict(
     max_radius=10.,
     cut_size=None,
+    host_cut_size=10.,
     deblend=False,
     cand_bright=None,
     cand_separation=None,
@@ -74,6 +75,7 @@ updates = dict(
     name='FRB20180916B',
     image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB20180916_GMOS_N_r.fits'),
     cut_size = 40.,
+    host_cut_size=10.,
     filter = 'GMOS_N_r',
     ZP = 31.2,
     deblend=False,
@@ -339,12 +341,8 @@ FRB20201124A = base_config | updates
 # FRB 20201123A (MeerTRAP;  Rajwade+2022)
 updates = dict(
     name='FRB20201123A',
-    hpix_file = os.path.join(resource_filename('frb', 'data'), 
-                             'FRBs', 'healpix',
-                             'FRB20201123A_hpix_uniform.fits.gz'),
-    cand_file=os.path.join(resource_filename('frb', 'data'),
-                           'Galaxies', '20201123A',
-                            'FRB20201123A_path_candidates.csv'),
+    hpix_file = importlib_resources.files('frb.data.FRBs.healpix')/'FRB20201123A_hpix_uniform.fits.gz',
+    cand_file=importlib_resources.files('frb.data.Galaxies.20201123A')/'FRB20201123A_path_candidates.csv',
     PU = 0.1, # Unseen prior
     max_radius=23.12431, # arcsec
     posterior_method='local',

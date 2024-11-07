@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script performs estimates P(z|DM) and limiting mag
+"""
+
+from frb.scripts import pzdm_mag
+
+if __name__ == '__main__':
+    args = pzdm_mag.parser()
+    pzdm_mag.main(args)

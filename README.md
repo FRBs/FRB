@@ -11,6 +11,7 @@ Kasper Heintz,
 Alexandra Mannings,
 Casey Law,
 Alexa Gordon,
+Vic Dong,
 and others 
 
 For Setup and installations please see the documentation in [/docs](https://github.com/FRBs/FRB/tree/chime/docs)

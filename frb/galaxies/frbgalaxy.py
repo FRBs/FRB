@@ -8,7 +8,7 @@ import warnings
 import glob
 
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -22,7 +22,7 @@ from frb.galaxies import offsets
 from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
 
-from scipy.integrate import simps
+from scipy.integrate import simpson
 
 from IPython import embed
 
@@ -508,9 +508,9 @@ class FRBGalaxy(object):
             except:
                 warnings.warn("Invalid SFH file. Skipping mass-weighted age.")
                 return
-            mass = simps(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
+            mass = simpson(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
             # Computed mass weighted age
-            t_mass = simps(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
+            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
             # Store
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
@@ -811,7 +811,7 @@ class FRBHost(FRBGalaxy):
         else:
             name = frb.frb_name
         #
-        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), name)
+        path = importlib_resources.files('frb.data.Galaxies')/ name
         json_file = os.path.join(path, FRBHost._make_outfile(name))
         slf = cls.from_json(frb, json_file, **kwargs)
         return slf

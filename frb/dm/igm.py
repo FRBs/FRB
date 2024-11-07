@@ -6,7 +6,7 @@ import numpy as np
 import os
 from IPython import embed
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -87,7 +87,7 @@ def average_He_nume(z, z_HIreion=7.):
     """
     z, flg_z = z_to_array(z)
     # Load Kulkarni Table
-    He_file = resource_filename('frb', os.path.join('data','IGM','qheIII.txt'))
+    He_file = importlib_resources.files('frb.data.IGM')/'qheIII.txt'
     qHeIII = Table.read(He_file, format='ascii')
     # Fully re-ionized
     first_ionized = np.where(qHeIII['Q_HeIII_18'] >= 1.)[0][0]
@@ -147,71 +147,102 @@ def z_from_DM(DM, cosmo=defs.frb_cosmo, coord=None, corr_nuisance=True):
     # Return
     return z
 
-def f_diffuse(z, cosmo=defs.frb_cosmo, return_rho = False,
-              perturb_Mstar=None):
-  """
-  Calculate the cosmic fraction of baryons
-  in diffuse gas phase based on our empirical
-  knowledge of baryon distributions and their 
-  ionization state.
+def f_diffuse(z, cosmo=defs.frb_cosmo, 
+              return_rho:bool=False,
+              perturb_Mstar:float=None):
+    """
+    Calculate the cosmic fraction of baryons
+    in diffuse gas phase based on our empirical
+    knowledge of baryon distributions and their 
+    ionization state.
 
-  Args:
-    z (float or ndarray): Redshift
-    cosmo (Cosmology, optional): Cosmology of
-      the universe.
-    return_rho (bool, optional): If true, 
-      the diffuse gas density
-      is returned too.
-    perturb_Mstar (float, optional):
-      If provided, scale rho_Mstar by this value.
-      Useful for exploring the uncertainty in f_diffuse
+    Note that the default values use the standard
+    values from Madau & Dickinson (2014) and Fukugita (2004).
+    The former use a Salpeter IMF for rho_* which is no longer
+    in fashion.
 
-  Returns:
-    f_diffuse (float, ndarray): Diffuse gas baryon fraction.
-    rho_diffuse (Quantity): Physical diffuse gas density.
-      Returned if return_rho is set to true.
-  """
-  # Get comoving baryon mass density
-  rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
+    Args:
+        z (float or ndarray): Redshift
+        cosmo (Cosmology, optional): Cosmology of
+        the universe.
+        return_rho (bool, optional): If true, 
+            the diffuse gas density
+            is returned too.
+        perturb_Mstar (float, optional):
+            If provided, scale rho_Mstar by this value.
+            Useful for exploring the uncertainty in f_diffuse
 
-  # Dense components
-  rho_Mstar = avg_rhoMstar(z, remnants=True)
-  if perturb_Mstar is not None:
-      rho_Mstar *= perturb_Mstar
-      
-  rho_ISM = avg_rhoISM(z, cosmo=cosmo)
+    Returns:
+        f_diffuse (float, ndarray): Diffuse gas baryon fraction.
+        rho_diffuse (Quantity, optional): Physical diffuse gas density.
+            Returned if return_rho is set to true.
+    """
+    # Get comoving baryon mass density
+    rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
 
-  # Diffuse gas fraction
-  f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
-  if not return_rho:
-    return f_diffuse
-  else:
-    return f_diffuse, rho_b*f_diffuse*(1+z)**3
+    # ##
+    # Dense components
 
+    # Stars
+    rho_Mstar = avg_rhoMstar(z, remnants=True)
+    if perturb_Mstar is not None:
+        rho_Mstar *= perturb_Mstar
+        
+    # ISM
+    rho_ISM = avg_rhoISM(z, cosmo=cosmo, perturb_Mstar=perturb_Mstar)
+
+    # Diffuse gas fraction
+    f_diffuse = 1 - ((rho_Mstar+rho_ISM)/rho_b).value
+    if not return_rho:
+        return f_diffuse
+    else:
+        return f_diffuse, rho_b*f_diffuse*(1+z)**3
+
+def sigma_fd(z, rel_err_Mstar):
+    """
+    Calculate the uncertainty in the diffuse fraction at a given redshift.
+
+    Args:
+        z (float or np.ndarray): The redshift value.
+        rel_err_Mstar (float): The relative error in the stellar mass.
+
+    Returns:
+        sigma_fd (float or np.ndarray): The uncertainty in the diffuse fraction.
+    """
+
+    # Calculate the 3 values
+    f_d_low = f_diffuse(z, perturb_Mstar=1-rel_err_Mstar)
+    f_d_high = f_diffuse(z, perturb_Mstar=1+rel_err_Mstar)
+
+    # Calculate the sigma
+    s_fd = np.abs(f_d_high - f_d_low)/2.
+
+    # Return
+    return s_fd
 
 def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
-  """
-  Calculate the average cosmic electron
-  number density as a function of redshift.
-  Args:
-    z (float or ndarray): Redshift
-    cosmo (Cosmology, optional): Cosmology in 
-      which the calculations are to be performed.
-    mu (float): Reduced mass
-  Returns:
-    ne_cosmic (Quantity): Average physical number
-      density of electrons in the unverse in cm^-3.
-  """
-  # Get diffuse gas density
-  _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
+    """
+    Calculate the average cosmic electron
+    number density as a function of redshift.
+    Args:
+        z (float or ndarray): Redshift
+        cosmo (Cosmology, optional): Cosmology in 
+        which the calculations are to be performed.
+        mu (float): Reduced mass
+    Returns:
+        ne_cosmic (Quantity): Average physical number
+        density of electrons in the unverse in cm^-3.
+    """
+    # Get diffuse gas density
+    _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
 
-  # Number densities of H and He
-  n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
-  n_He = n_H / 12.  # 25% He mass fraction
+    # Number densities of H and He
+    n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
+    n_He = n_H / 12.  # 25% He mass fraction
 
-  # Compute electron number density
-  ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
-  return ne_cosmic
+    # Compute electron number density
+    ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
+    return ne_cosmic
 
 def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
     """
@@ -363,7 +394,8 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
     # Finally
     return ret_val
 
-def avg_rhoISM(z, cosmo=defs.frb_cosmo):
+def avg_rhoISM(z, cosmo=defs.frb_cosmo,
+               perturb_Mstar:float=None):
     """
     Co-moving Mass density of the ISM
 
@@ -375,6 +407,9 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
         cosmo (Cosmology, optional): Cosmology in which
           the calculations are to be performed. LambdaCDM
           with defs.frb_cosmo parameters assumed by default.
+        perturb_Mstar (float, optional):
+            If provided, scale rho_Mstar by this value.
+            Useful for exploring the uncertainty in f_diffuse
 
     Returns:
       rhoISM (Quantity): Units of Msun/Mpc^3
@@ -384,6 +419,8 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
 
     # Mstar
     rhoMstar = avg_rhoMstar(z, remnants=False)
+    if perturb_Mstar is not None:
+        rho_Mstar *= perturb_Mstar
 
     # z=0 (Fukugita+ 2004)
     f04_dict = fukugita04_dict()
@@ -415,7 +452,10 @@ def avg_rhoISM(z, cosmo=defs.frb_cosmo):
 def avg_rhoMstar(z, remnants=True):
     """
     Return mass density in stars as calculated by
-    Madau & Dickinson (2014)
+    Madau & Dickinson (2014).  
+
+    Note: these authors assumed the Salpeter IMF
+    which is no longer in fashion.
 
     Args:
       z (float or ndarray): Redshift
@@ -427,7 +467,7 @@ def avg_rhoMstar(z, remnants=True):
     # Init
     z, flg_z = z_to_array(z)
     # Load
-    stellar_mass_file = resource_filename('frb', os.path.join('data','IGM','stellarmass.dat'))
+    stellar_mass_file = importlib_resources.files('frb.data.IGM')/'stellarmass.dat'
     rho_mstar_tbl = Table.read(stellar_mass_file, format='ascii')
     # Output
     rho_Mstar_unitless = np.zeros_like(z)
