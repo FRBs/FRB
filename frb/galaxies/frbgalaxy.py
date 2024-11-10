@@ -508,9 +508,9 @@ class FRBGalaxy(object):
             except:
                 warnings.warn("Invalid SFH file. Skipping mass-weighted age.")
                 return
-            mass = simpson(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
+            mass = simpson(sfh_tab['SFR'], x=sfh_tab['time']) # M_sun/yr *Myr
             # Computed mass weighted age
-            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
+            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], x=sfh_tab['time'])/mass # Myr
             # Store
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
