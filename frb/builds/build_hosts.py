@@ -313,6 +313,7 @@ def run(host_input:pandas.core.series.Series,
                             merge_tbl[key] = sub_tbl[key]
             else:
                 merge_tbl = sub_tbl
+                merge_tbl.remove_column('Name')
                 merge_tbl['Name'] = file_root
 
     # Remove NSC for now
@@ -443,7 +444,6 @@ def run(host_input:pandas.core.series.Series,
             print(f"Galfit analysis slurped in via: {galfit_file}")
             Host.parse_galfit(galfit_file)
         else:
-            embed(header='435 of build')
             raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
     else:
         print("Galfit analysis not enabled")
