@@ -331,7 +331,6 @@ def run(host_input:pandas.core.series.Series,
         if code == -1:
             raise ValueError("Bad extinction correction!")
         # Parse
-        embed(header='334 of build')
         Host.parse_photom(merge_tbl, EBV=EBV)
     else:
         print(f"No photometry for {file_root}")
