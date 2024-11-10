@@ -152,7 +152,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
     if AV is not None:
         #al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
         extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
-        AlAV = extmod(np.atleast_1d(wave)*units.AA)[0]
+        AlAV = extmod(wave)[0]
         al = AlAV * AV
     else:
         al = 0.
