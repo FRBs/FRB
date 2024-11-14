@@ -424,7 +424,7 @@ class FRB(GenericFRB):
         self.frb_name = frb_name
         self.z = z_frb
 
-    def grab_host(self):
+    def grab_host(self, verbose:bool=True):
         """
         Returns the FRBHost object for this FRB
 
@@ -432,8 +432,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_frb(self)
-        return frbHost
+        return frbgalaxy.FRBHost.by_frb(self, verbose=verbose)
 
     def __repr__(self):
         txt = '<{:s}: {} J{}{} DM={}'.format(

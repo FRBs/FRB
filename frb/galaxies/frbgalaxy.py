@@ -91,7 +91,7 @@ class FRBGalaxy(object):
         return slf
 
     @classmethod
-    def from_json(cls, frb, json_file, **kwargs):
+    def from_json(cls, frb, json_file, verbose:bool=True, **kwargs):
         """
 
         Args:
@@ -106,7 +106,8 @@ class FRBGalaxy(object):
         try:
             idict = utils.loadjson(json_file)
         except FileNotFoundError:
-            warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
+            if verbose: 
+                warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
             return None
         slf = cls.from_dict(frb, idict, **kwargs)
         return slf
