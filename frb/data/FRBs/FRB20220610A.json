@@ -9,9 +9,17 @@
     },
     "DM_err": {
         "unit": "pc / cm3",
-        "value": 0.5
+        "value": 0.2
     },
     "FRB": "FRB20220610A",
+    "RM": {
+        "unit": "rad / m2",
+        "value": 215.0
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 2.0
+    },
     "cosmo": "Planck18",
     "dec": -33.513851166,
     "eellipse": {
@@ -30,6 +38,7 @@
     },
     "ra": 351.073272705,
     "refs": [
+        "Ryder2023",
         "Shannon2024"
     ],
     "repeater": false,
