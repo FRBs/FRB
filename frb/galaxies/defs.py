@@ -205,6 +205,9 @@ valid_morphology = [
     'ra',         # RA centroid inferred from Galfit
     'dec',        # DEC centroid inferred from Galfit
     'n',          # Sersic index from Galfit
+    'q',          # galight??
+    'amp',        # galight??
+    'phi_G',      # galight??
 ]
 
 ##############################################################

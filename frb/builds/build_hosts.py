@@ -272,10 +272,10 @@ def run(host_input:pandas.core.series.Series,
                 continue
             else:
                 #print("You found more than 1 galaxy.  Taking the 2nd one")
-                #srvy_tbl = srvy_tbl[1:]
+                srvy_tbl = srvy_tbl[1:]
                 #srvy_tbl = srvy_tbl[:1]
                 #embed(header='277 of build')
-                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
@@ -440,11 +440,15 @@ def run(host_input:pandas.core.series.Series,
         found_galfit, galfit_file = search_for_file(
             project_list, ref_list, '_galfit.fits',
             prefix=file_root+'_'+host_input.Galfit_filter)
-        if found_galfit:
-            print(f"Galfit analysis slurped in via: {galfit_file}")
-            Host.parse_galfit(galfit_file)
-        else:
-            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        if not found_galfit:
+            # Look for galight
+            found_galfit, galfit_file = search_for_file(
+                project_list, ref_list, '_galight.json',
+                prefix=file_root+'_'+host_input.Galfit_filter)
+            if not found_galfit:
+                raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        print(f"Galfit analysis slurped in via: {galfit_file}")
+        Host.parse_galfit(galfit_file)
     else:
         print("Galfit analysis not enabled")
 

@@ -522,9 +522,11 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
+    def parse_galfit(self, galfit_file, overwrite=True, 
+                     twocomponent=False):
         """
         Parse an output GALFIT file
+            or a gallight JSON file
 
         Loaded into self.morphology
 
@@ -532,6 +534,7 @@ class FRBGalaxy(object):
             galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
+                Or a JSON file from gallight
             overwrite (bool, optional): Need to overwrite
                 the object's attributes?
             twocomponent (bool, optional): Should the morphology
@@ -540,18 +543,33 @@ class FRBGalaxy(object):
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
-        try:
-            fit_tab = Table.read(galfit_file, hdu=4)
-        except:
-            raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
+        is_json = False
+        if galfit_file.endswith('.json'):
+            is_json = True
+            fit_tab = utils.loadjson(galfit_file)
+        elif galfit_file.endswith('.fits'):
+            try:
+                fit_tab = Table.read(galfit_file, hdu=4)
+            except:
+                raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
         for key in fit_tab.keys():
             if 'mag' in key:
                 continue
+            if 'center_' in key:
+                continue
+            if 'flux_' in key:
+                continue
             if (key not in self.morphology.keys()) or (overwrite):
-                if twocomponent:
-                    self.morphology[key] = fit_tab[key].data
+                if is_json:
+                    self.morphology[key] = fit_tab[key]
                 else:
-                    self.morphology[key] = fit_tab[key][0]
+                    if twocomponent:
+                        self.morphology[key] = fit_tab[key].data
+                    else:
+                        self.morphology[key] = fit_tab[key][0]
+        # Hack for galight
+        if 'reff_err_ang' in self.morphology.keys():
+            self.morphology['reff_ang_err'] = self.morphology.pop('reff_err_ang')
         # reff kpc?
         if 'reff_kpc' in self.morphology.keys():
             pass
