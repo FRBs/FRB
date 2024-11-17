@@ -1,0 +1,44 @@
+{
+    "FRB": "FRB20220610A",
+    "cosmo": "Planck18",
+    "dec": -33.51372652777778,
+    "dec_FRB": -33.513851166,
+    "offsets": {
+        "ang_avg": 0.8775161419384088,
+        "ang_avg_err": 0.3808474729901055,
+        "ang_best": 0.7300814950140042,
+        "ang_best_err": 0.4083892417739145,
+        "physical": 6.031275755724857,
+        "physical_err": 3.3737440951884703
+    },
+    "photom": {
+        "EBV": 0.0158,
+        "VLT_FORS2_R": 23.68411223106163,
+        "VLT_FORS2_R_err": 0.0395755427123455,
+        "VLT_FORS2_R_flux": 0.0012199867161313308,
+        "VLT_FORS2_R_flux_err": 4.446903048932163e-05,
+        "VLT_FORS2_R_ref": "Shannon2024",
+        "VLT_FORS2_g": 24.159588429862282,
+        "VLT_FORS2_g_err": 0.0543859059807098,
+        "VLT_FORS2_g_flux": 0.0007873441814356501,
+        "VLT_FORS2_g_flux_err": 3.943907040988592e-05,
+        "VLT_FORS2_g_ref": "Shannon2024",
+        "VLT_HAWKI_J": 22.111190633482902,
+        "VLT_HAWKI_J_err": 0.0811974116083502,
+        "VLT_HAWKI_J_flux": 0.005194260673880196,
+        "VLT_HAWKI_J_flux_err": 0.0003884557962512383,
+        "VLT_HAWKI_J_ref": "Shannon2024",
+        "VLT_HAWKI_Ks": 22.004490775705197,
+        "VLT_HAWKI_Ks_err": 0.1007400813535076,
+        "VLT_HAWKI_Ks_flux": 0.005730647351988756,
+        "VLT_HAWKI_Ks_flux_err": 0.000531718365766588,
+        "VLT_HAWKI_Ks_ref": "Shannon2024"
+    },
+    "ra": 351.07346458333325,
+    "ra_FRB": 351.073272705,
+    "redshift": {
+        "z": 1.016,
+        "z_FRB": 1.016,
+        "z_spec": 1.016
+    }
+}

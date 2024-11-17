@@ -213,3 +213,6 @@ def test_pzdm_telescopes():
     assert 0 <= z_mode <= 1
 
 
+# Host table
+def test_host_tbl():
+    hosts, hdict = utils.build_table_of_hosts()

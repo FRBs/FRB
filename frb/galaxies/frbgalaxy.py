@@ -91,7 +91,7 @@ class FRBGalaxy(object):
         return slf
 
     @classmethod
-    def from_json(cls, frb, json_file, **kwargs):
+    def from_json(cls, frb, json_file, verbose:bool=True, **kwargs):
         """
 
         Args:
@@ -106,7 +106,8 @@ class FRBGalaxy(object):
         try:
             idict = utils.loadjson(json_file)
         except FileNotFoundError:
-            warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
+            if verbose: 
+                warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
             return None
         slf = cls.from_dict(frb, idict, **kwargs)
         return slf
@@ -508,9 +509,9 @@ class FRBGalaxy(object):
             except:
                 warnings.warn("Invalid SFH file. Skipping mass-weighted age.")
                 return
-            mass = simpson(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
+            mass = simpson(sfh_tab['SFR'], x=sfh_tab['time']) # M_sun/yr *Myr
             # Computed mass weighted age
-            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
+            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], x=sfh_tab['time'])/mass # Myr
             # Store
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
@@ -521,9 +522,11 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
+    def parse_galfit(self, galfit_file, overwrite=True, 
+                     twocomponent=False):
         """
         Parse an output GALFIT file
+            or a gallight JSON file
 
         Loaded into self.morphology
 
@@ -531,6 +534,7 @@ class FRBGalaxy(object):
             galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
+                Or a JSON file from gallight
             overwrite (bool, optional): Need to overwrite
                 the object's attributes?
             twocomponent (bool, optional): Should the morphology
@@ -539,18 +543,33 @@ class FRBGalaxy(object):
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
-        try:
-            fit_tab = Table.read(galfit_file, hdu=4)
-        except:
-            raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
+        is_json = False
+        if galfit_file.endswith('.json'):
+            is_json = True
+            fit_tab = utils.loadjson(galfit_file)
+        elif galfit_file.endswith('.fits'):
+            try:
+                fit_tab = Table.read(galfit_file, hdu=4)
+            except:
+                raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
         for key in fit_tab.keys():
             if 'mag' in key:
                 continue
+            if 'center_' in key:
+                continue
+            if 'flux_' in key:
+                continue
             if (key not in self.morphology.keys()) or (overwrite):
-                if twocomponent:
-                    self.morphology[key] = fit_tab[key].data
+                if is_json:
+                    self.morphology[key] = fit_tab[key]
                 else:
-                    self.morphology[key] = fit_tab[key][0]
+                    if twocomponent:
+                        self.morphology[key] = fit_tab[key].data
+                    else:
+                        self.morphology[key] = fit_tab[key][0]
+        # Hack for galight
+        if 'reff_err_ang' in self.morphology.keys():
+            self.morphology['reff_ang_err'] = self.morphology.pop('reff_err_ang')
         # reff kpc?
         if 'reff_kpc' in self.morphology.keys():
             pass

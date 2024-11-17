@@ -1,0 +1,50 @@
+{
+    "FRB": "FRB20220918A",
+    "cosmo": "Planck18",
+    "dec": -70.81139694444444,
+    "dec_FRB": -70.811378479,
+    "offsets": {
+        "ang_avg": 0.7197309326451833,
+        "ang_avg_err": 0.3501453909483321,
+        "ang_best": 0.4940852502876244,
+        "ang_best_err": 0.4165546407963407,
+        "physical": 3.0783376053439007,
+        "physical_err": 2.5952926437237833
+    },
+    "photom": {
+        "DELVE_g": 98,
+        "DELVE_g_err": 99,
+        "DELVE_g_flux": 0,
+        "DELVE_g_flux_err": 0,
+        "DELVE_i": 23.7637469426329,
+        "DELVE_i_err": 0.196247,
+        "DELVE_i_flux": 0.001133708015659162,
+        "DELVE_i_flux_err": 0.00020491791281716275,
+        "DELVE_r": 23.74121239073535,
+        "DELVE_r_err": 0.11324,
+        "DELVE_r_flux": 0.0011574841107613656,
+        "DELVE_r_flux_err": 0.00012072315552175623,
+        "DELVE_z": 23.508667623588074,
+        "DELVE_z_err": 0.241014,
+        "DELVE_z_flux": 0.0014339464887322408,
+        "DELVE_z_flux_err": 0.0003183104491871506,
+        "EBV": 0.0239,
+        "VLT_FORS2_R": 23.575934215780755,
+        "VLT_FORS2_R_err": 0.0246125977008119,
+        "VLT_FORS2_R_flux": 0.0013478026563669906,
+        "VLT_FORS2_R_flux_err": 3.055339263429677e-05,
+        "VLT_FORS2_R_ref": "Shannon2024",
+        "VLT_HAWKI_Ks": 22.155285212201946,
+        "VLT_HAWKI_Ks_err": 0.0673992925498388,
+        "VLT_HAWKI_Ks_flux": 0.004987534460801907,
+        "VLT_HAWKI_Ks_flux_err": 0.00030961138880035427,
+        "VLT_HAWKI_Ks_ref": "Shannon2024"
+    },
+    "ra": 17.591728333333332,
+    "ra_FRB": 17.592142105,
+    "redshift": {
+        "z": 0.491,
+        "z_FRB": 0.491,
+        "z_spec": 0.491
+    }
+}

@@ -50,11 +50,13 @@ for band in HSC_bands:
     valid_filters.append('HSC_{:s}'.format(band))
 
 # VLT
-VLT_bands = ['u', 'g', 'I', 'z', 'J', 'H', 'Ks']
-for band in VLT_bands:
+VLT_FORS_bands = ['u', 'g', 'R', 'I','z']
+for band in VLT_FORS_bands:
 # FORS2
     valid_filters.append('VLT_FORS2_{:s}'.format(band))
 # HAWK-I
+VLT_HAWKI_bands = ['J', 'H', 'Ks']
+for band in VLT_HAWKI_bands:
     valid_filters.append('VLT_HAWKI_{:s}'.format(band))
 
 # GMOS
@@ -203,6 +205,9 @@ valid_morphology = [
     'ra',         # RA centroid inferred from Galfit
     'dec',        # DEC centroid inferred from Galfit
     'n',          # Sersic index from Galfit
+    'q',          # galight??
+    'amp',        # galight??
+    'phi_G',      # galight??
 ]
 
 ##############################################################
