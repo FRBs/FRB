@@ -1,0 +1,24 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 438.9
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 43.04935337686666
+    },
+    "FRB": "FRB20231120A",
+    "cosmo": "Planck18",
+    "dec": 73.284667,
+    "eellipse": {
+        "a": 1.1,
+        "b": 1.0,
+        "cl": 68.0,
+        "theta": 90.0
+    },
+    "ra": 143.983958,
+    "refs": [
+        "Sharma24"
+    ],
+    "repeater": false
+}

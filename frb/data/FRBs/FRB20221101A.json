@@ -1,39 +1,33 @@
 {
     "DM": {
         "unit": "pc / cm3",
-        "value": 462.15
+        "value": 1476.5
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 45.4596677829908
+        "value": 77.20972791812183
     },
-    "FRB": "FRB20220310F",
+    "FRB": "FRB20221101A",
     "RM": {
         "unit": "rad / m2",
-        "value": 11.4
+        "value": 4670.4
     },
     "RM_err": {
         "unit": "rad / m2",
-        "value": 0.2
+        "value": 10.8
     },
     "cosmo": "Planck18",
-    "dec": 73.490833,
+    "dec": 72.446525,
     "eellipse": {
-        "a": 1.9,
-        "b": 1.4,
+        "a": 1.6,
+        "b": 1.2,
         "cl": 68.0,
         "theta": 90.0
     },
-    "fluence": {
-        "unit": "Jy ms",
-        "value": 23.9
-    },
-    "ra": 134.7205,
+    "ra": 76.0613333,
     "refs": [
-        "Law2023",
         "Sherman23",
         "Sharma24"
     ],
-    "repeater": false,
-    "z": 0.478
+    "repeater": false
 }
