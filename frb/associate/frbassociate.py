@@ -399,6 +399,7 @@ class FRBAssociate(path.PATH):
 
         # Background
         bkg_estimator = photutils.MedianBackground()
+        #embed(header='threshold 402 frbassociate')
         self.bkg = photutils.Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
@@ -511,7 +512,10 @@ def run_individual(config, prior:dict=None, show=False,
 
         if config['cut_size'] is not None:
             size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
-            cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            try:
+                cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            except:
+                embed(header='518 frbassociate')
             frbA.wcs = cutout.wcs
             frbA.hdu = cutout  # not really an HDU
         else:
@@ -526,13 +530,16 @@ def run_individual(config, prior:dict=None, show=False,
 
         # Threshold + Segment
         frbA.threshold()
-        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
+        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show,
+                     xy_kernel=config['xy_kernel'])
 
         # Photometry
-        frbA.photometry(config['ZP'], config['filter'], show=show)
+        ZP = config['ZP'] if 'ZP' in config.keys() else frbA.header['ZP']
+        frbA.photometry(ZP, config['filter'], show=show)
         if verbose:
             print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
+        #embed(header='threshold 546 frbassociate')
         # Candidates
         frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
                         separation=config['cand_separation'])
@@ -594,7 +601,6 @@ def run_individual(config, prior:dict=None, show=False,
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
-
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)
