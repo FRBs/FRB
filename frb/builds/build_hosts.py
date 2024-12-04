@@ -2,6 +2,7 @@
 FRB host galaxies"""
 
 import importlib_resources
+from importlib.resources import files
 import os
 import sys
 import warnings
@@ -61,6 +62,7 @@ mannings2021_astrom = mannings2021_astrom[
         mannings2021_astrom.Filter == 'F110W')].copy()
 
 def chk_fill(value):
+    # Masked?
     if isinstance(value,str):
         # Allow for -999 as a string
         try:
@@ -69,6 +71,8 @@ def chk_fill(value):
             return False
         else:
             return np.isclose(value, fill_value)
+    elif isinstance(value,np.ma.core.MaskedConstant):
+        return False
     else:
         return np.isclose(value, fill_value)
 
@@ -268,9 +272,10 @@ def run(host_input:pandas.core.series.Series,
                 continue
             else:
                 #print("You found more than 1 galaxy.  Taking the 2nd one")
-                #srvy_tbl = srvy_tbl[1:]
+                srvy_tbl = srvy_tbl[1:]
                 #srvy_tbl = srvy_tbl[:1]
-                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                #embed(header='277 of build')
+                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
@@ -308,6 +313,7 @@ def run(host_input:pandas.core.series.Series,
                             merge_tbl[key] = sub_tbl[key]
             else:
                 merge_tbl = sub_tbl
+                merge_tbl.remove_column('Name')
                 merge_tbl['Name'] = file_root
 
     # Remove NSC for now
@@ -434,12 +440,15 @@ def run(host_input:pandas.core.series.Series,
         found_galfit, galfit_file = search_for_file(
             project_list, ref_list, '_galfit.fits',
             prefix=file_root+'_'+host_input.Galfit_filter)
-        if found_galfit:
-            print(f"Galfit analysis slurped in via: {galfit_file}")
-            Host.parse_galfit(galfit_file)
-        else:
-            embed(header='435 of build')
-            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        if not found_galfit:
+            # Look for galight
+            found_galfit, galfit_file = search_for_file(
+                project_list, ref_list, '_galight.json',
+                prefix=file_root+'_'+host_input.Galfit_filter)
+            if not found_galfit:
+                raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        print(f"Galfit analysis slurped in via: {galfit_file}")
+        Host.parse_galfit(galfit_file)
     else:
         print("Galfit analysis not enabled")
 
@@ -482,7 +491,7 @@ def run(host_input:pandas.core.series.Series,
 
     # Write
     if out_path is None:
-        out_path = importlib_resources.files(f'frb.data.Galaxies.{frbname[3:]}')
+        out_path = str(files('frb').joinpath('data', 'Galaxies', frbname[3:]))
     if outfile is None:
         outfile = None if is_host else \
             utils.name_from_coord(Host.coord) + '.json'

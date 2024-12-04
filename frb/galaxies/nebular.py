@@ -11,6 +11,8 @@ from astropy import units
 
 import dust_extinction
 
+from IPython import embed
+
 try:
     from linetools.lists import linelist
 except ImportError:
@@ -68,8 +70,8 @@ def calc_dust_extinct(neb_lines, method):
     #a1AV = extinction.fm07(np.atleast_1d(wave1), 1.0)[0]
     #a2AV = extinction.fm07(np.atleast_1d(wave2), 1.0)[0]
     extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
-    a1AV = extmod(np.atleast_1d(wave1*units.AA))  # *units.AA)
-    a2AV = extmod(np.atleast_1d(wave2*units.AA))  # *units.AA)
+    a1AV = extmod(np.atleast_1d(wave1*units.AA))[0]  # *units.AA)
+    a2AV = extmod(np.atleast_1d(wave2*units.AA))[0]  # *units.AA)
 
     # Observed ratio
     fratio_obs = F1_obs/F2_obs
@@ -152,7 +154,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
     if AV is not None:
         #al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
         extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
-        AlAV = extmod(np.atleast_1d(wave)*units.AA)[0]
+        AlAV = float(extmod(np.atleast_1d(wave))[0])
         al = AlAV * AV
     else:
         al = 0.

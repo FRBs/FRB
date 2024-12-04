@@ -1,7 +1,7 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-import importlib_resources
+from importlib.resources import files
 import os
 
 import pandas
@@ -18,25 +18,28 @@ from frb.galaxies import hosts
 
 from frb import utils
 
+from IPython import embed
 
 db_path = os.getenv('FRB_GDB')
 if db_path is None:
     raise IOError('You need to have GDB!!')
 
 
-def run(frb_list:list, host_coords:list, prior:dict, 
+def run(frb_list:list, 
+        prior:dict, 
+        write:bool=False,
+        show:bool=False,
         override:bool=False):
     """Main method for running PATH analysis for a list of FRBs
 
     Args:
         frb_list (list): List of FRB names from the database
-        host_coords (list): List of host galaxy coords fom the database
         prior (dict):
             Prior for PATH
+        write (bool, optional): Write the results to a CSV file. Defaults to False.
+        show (bool, optional): Show the segmentation image. Defaults to False.
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
-        tol (float, optional):  Tolerance for a match to the expected host
-            in arcsec.
 
     Raises:
         e: [description]
@@ -48,7 +51,8 @@ def run(frb_list:list, host_coords:list, prior:dict,
     good_frb, PATH_O, PATH_Ox, RAs, Decs = [], [], [], [], []
     ang_sizes, separations, sep_err = [], [], []
     skipped = []
-    for frb, host_coord in zip(frb_list, host_coords):
+    #for frb, host_coord in zip(frb_list, host_coords):
+    for frb in frb_list:
         frb_name = utils.parse_frb_name(frb, prefix='frb')
         # Config
         if not hasattr(frbs, frb_name.upper()):
@@ -65,7 +69,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
 
         # Run me
         frbA = frbassociate.run_individual(
-            config, prior=iprior, 
+            config, prior=iprior, show=show,
             posterior_method=config['posterior_method'])
 
         if frbA is None:
@@ -77,10 +81,25 @@ def run(frb_list:list, host_coords:list, prior:dict,
         good_frb.append(frb_name.upper())
         PATH_Ox.append(frbA.candidates.P_Ox.values[0])
         PATH_O.append(frbA.candidates.P_O.values[0])
-        RAs.append(host_coord.ra.deg)
-        Decs.append(host_coord.dec.deg)
+        RAs.append(frbA.candidates.ra.values[0])
+        Decs.append(frbA.candidates.dec.values[0])
+        #RAs.append(host_coord.ra.deg)
+        #Decs.append(host_coord.dec.deg)
         ang_sizes.append(frbA.candidates.ang_size.values[0])
         separations.append(frbA.candidates.separation.values[0])
+
+        # Write the full candidate table?
+        #embed(header="build_path.py: 92")
+        if write:
+            # Add P_U
+            frbA.candidates['P_U'] = prior['U']
+            # Drop coords
+            frbA.candidates.drop(columns=['coords'], inplace=True)
+            outfile = os.path.join(files('frb'), 'data', 'Galaxies', 
+                                   'PATH', f'{frb_name.upper()}_PATH.csv')
+            #embed(header="build_path.py: 99")
+            frbA.candidates.to_csv(outfile)
+            print(f"PATH analysis written to {outfile}")
 
     # Build the table
     df = pandas.DataFrame()
@@ -90,6 +109,7 @@ def run(frb_list:list, host_coords:list, prior:dict,
     df['ang_size'] = ang_sizes
     df['P_O'] = PATH_O
     df['P_Ox'] = PATH_Ox
+    df['P_U'] = PATH_Ox
     df['separation'] = separations
 
     for frb_name in skipped:
@@ -107,22 +127,25 @@ def main(options:str=None, frb:str=None):
     # Read public host table
     if frb is None:
         host_tbl = hosts.load_host_tbl()
-
-        host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
+        #host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
     else:
-        ifrb = FRB.by_name(frb)
-        host = ifrb.grab_host()
-        frb_list = [ifrb.frb_name]
-        host_coords = [host.coord]
+        # Generate the list
+        frb_list = frb.split(',')
+        #ifrb = [FRB.by_name(ifrb) for ifrb in frbs]
+        #host = ifrb.grab_host()
+        #frb_list = [ifrb.frb_name]
+        #host_coords = [host.coord]
 
     # Load prior
     priors = load_std_priors()
     prior = priors['adopted'] # Default
 
     # Parse optionsd
+    write_indiv = False
+    show = False
     if options is not None:
         if 'new_prior' in options:
             theta_new = dict(method='exp', 
@@ -130,10 +153,20 @@ def main(options:str=None, frb:str=None):
                              scale=0.5)
             prior['theta'] = theta_new
             print("Using new prior with scale=0.5")
+        if 'write_indiv' in options:
+            write_indiv = True
+        if 'show' in options:
+            show = True
+        if 'PU=' in options:
+            for sopt in options.split(','):
+                if 'PU=' in sopt:
+                    prior['U'] = float(sopt.split('=')[1])
+        #embed(header="build_path.py: 155")
+        
 
-    results = run(frb_list, host_coords, prior)
+    results = run(frb_list, prior, write=write_indiv, show=show)
     # Write
-    outfile = importlib_resources.files('frb.data.Galaxies.PATH')/'tmp.csv'
+    outfile = os.path.join(files('frb'),'data','Galaxies','PATH','tmp.csv')
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")

@@ -86,7 +86,7 @@ def load_specdb(specdb_file=None):
     return specDB
 
 
-def list_of_hosts(skip_bad_hosts=True):
+def list_of_hosts(skip_bad_hosts=True, verbose:bool=False):
     """
     Scan through the Repo and generate a list of FRB Host galaxies
 
@@ -94,6 +94,8 @@ def list_of_hosts(skip_bad_hosts=True):
 
     Args:
         skip_bad_hosts (bool):
+        verbose (bool):
+            If True, print more to the screen
 
     Returns:
         list, list:
@@ -111,10 +113,11 @@ def list_of_hosts(skip_bad_hosts=True):
         name = ifile.split('/')[-1].split('.')[-2]
         ifrb = frb.FRB.by_name(name)
         try:
-            host = ifrb.grab_host()
+            host = ifrb.grab_host(verbose=verbose)
         except AssertionError as e:
             if skip_bad_hosts:
-                print(f"Skipping bad host of FRB {ifrb}")
+                if verbose:
+                    print(f"Skipping bad host of FRB {ifrb}")
                 continue
             else:
                 raise e
@@ -144,7 +147,7 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
 
     """
-    frbs, hosts = list_of_hosts()
+    frbs, hosts = list_of_hosts(verbose=False)
     nhosts = len(hosts)
 
     # Table
@@ -165,7 +168,8 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
     host_tbl['FRBobj'] = frbs
 
     # Loop on all the main dicts
-    for attr in ['derived', 'photom', 'neb_lines','offsets','morphology','redshift']:
+    for attr in ['derived', 'photom', 'neb_lines','offsets',
+                 'morphology','redshift']:
         # Load up the dicts
         dicts = [getattr(host, attr) for host in hosts]
 
@@ -190,12 +194,16 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
                 tbl_dict[pkey][ss] = dicts[ss][pkey]
 
         # Now build the table
+        #embed(header='170 of utils ')
+        pd_tbl = pd.DataFrame(tbl_dict)
+        host_tbl = pd.concat([host_tbl, pd_tbl], axis=1)
+
         for key in tbl_dict.keys():
             # Error check
-            if key in host_tbl.keys():
+            if key in tbl_units.keys():
                 raise IOError("Duplicate items!!")
-            # Set
-            host_tbl[key] = tbl_dict[key]
+        #    # Set
+        #    host_tbl[key] = tbl_dict[key]
             tbl_units[key] = 'See galaxies.defs.py'
 
     # Add PATH values

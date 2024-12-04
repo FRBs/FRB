@@ -47,7 +47,7 @@ def test_run():
 def test_parse_galfit():
     frb = FRB.by_name("FRB20121102A")
     host = frb.grab_host()
-    galfit_outfile = importlib_resources.files('frb.tests.files')/'HG121102_galfit.fits'
+    galfit_outfile = str(importlib_resources.files('frb.tests.files')/'HG121102_galfit.fits')
     # Test two components
     host.parse_galfit(galfit_outfile,twocomponent=True)
     assert type(host.morphology['PA'])==np.ndarray
