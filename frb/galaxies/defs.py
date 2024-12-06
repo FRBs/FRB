@@ -39,6 +39,11 @@ SDSS_bands = ['u', 'g', 'r', 'i', 'z']
 for band in SDSS_bands:
     valid_filters.append('SDSS_{:s}'.format(band))
 
+# WASP
+WASP_bands = ['g', 'r', 'i', 'z']
+for band in WASP_bands:
+    valid_filters.append('WASP_{:s}'.format(band))
+    
 #PanSTARRS
 PanSTARRS_bands = ['g','r','i','z','y']
 for band in PanSTARRS_bands:
