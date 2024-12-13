@@ -12,7 +12,7 @@ from astropy import units
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 
-from photutils import SkyEllipticalAperture
+#from photutils import SkyEllipticalAperture
 
 from frb.figures import utils
 
