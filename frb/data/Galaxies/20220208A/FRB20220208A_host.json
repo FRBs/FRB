@@ -1,0 +1,44 @@
+{
+    "FRB": "FRB20220208A",
+    "cosmo": "Planck18",
+    "dec": 70.042,
+    "dec_FRB": 70.041042,
+    "offsets": {
+        "ang_avg": 5.226895038582604,
+        "ang_avg_err": 0.8423572215214188,
+        "ang_best": 5.161425950922279,
+        "ang_best_err": 0.8448975618904105,
+        "physical": 26.3527400557541,
+        "physical_err": 4.313801270026914
+    },
+    "photom": {
+        "EBV": 0.6992,
+        "Pan-STARRS_i": 19.24789001537569,
+        "Pan-STARRS_i_err": 0.14,
+        "Pan-STARRS_i_flux": 0.072584516482043,
+        "Pan-STARRS_i_flux_err": 0.00935939343548904,
+        "Pan-STARRS_i_ref": "Sharma2024",
+        "Pan-STARRS_r": 18.89508946491592,
+        "Pan-STARRS_r_err": 0.22,
+        "Pan-STARRS_r_flux": 0.10045329999164762,
+        "Pan-STARRS_r_flux_err": 0.02035459985704875,
+        "Pan-STARRS_r_ref": "Sharma2024",
+        "Pan-STARRS_z": 19.857301208671377,
+        "Pan-STARRS_z_err": 0.21,
+        "Pan-STARRS_z_flux": 0.0414075477001926,
+        "Pan-STARRS_z_flux_err": 0.008008929774039882,
+        "Pan-STARRS_z_ref": "Sharma2024",
+        "WIRC_J": 20.214088099135417,
+        "WIRC_J_err": 0.08,
+        "WIRC_J_flux": 0.02981019072439763,
+        "WIRC_J_flux_err": 0.0021964960250018353,
+        "WIRC_J_ref": "Sharma2024"
+    },
+    "ra": 322.57199999999995,
+    "ra_FRB": 322.575125,
+    "redshift": {
+        "z": 0.351,
+        "z_FRB": 0.351,
+        "z_spec": 0.351
+    }
+}
