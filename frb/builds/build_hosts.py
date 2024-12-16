@@ -538,6 +538,9 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
+        # Check
+        if len(idx) == 0:
+            print(f"Skipping {frb_name} as it is not in the public host table")
         # Loop on em
         is_host = True
         # Do it!

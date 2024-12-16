@@ -5,14 +5,22 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 126.76504018235829
+        "value": 126.76504021216692
     },
     "FRB": "FRB20220319D",
+    "RM": {
+        "unit": "rad / m2",
+        "value": 59.0
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 14.3
+    },
     "cosmo": "Planck18",
     "dec": 71.03526,
     "eellipse": {
-        "a": 1.247,
-        "b": 1.1825,
+        "a": 0.58,
+        "b": 0.55,
         "cl": 68.0,
         "theta": 90.0
     },
@@ -20,11 +28,12 @@
         "unit": "Jy ms",
         "value": 9.6
     },
-    "ra": 32.17792083,
+    "ra": 32.1779208,
     "refs": [
         "Ravi2023",
-        "Law2023"
+        "Law2023",
+        "Sherman23"
     ],
     "repeater": false,
-    "z": 0.011228
+    "z": 0.0112
 }
