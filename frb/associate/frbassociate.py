@@ -5,14 +5,16 @@ from matplotlib import pyplot as plt
 from astropy.wcs import WCS
 from astropy.nddata import Cutout2D
 from astropy.io import fits
-from astropy.convolution import Gaussian2DKernel
-from astropy.stats import gaussian_fwhm_to_sigma
+from astropy.convolution import Gaussian2DKernel, convolve
+from astropy.stats import gaussian_fwhm_to_sigma, sigma_clipped_stats
 from astropy import units
 from astropy.visualization.mpl_normalize import ImageNormalize
 from astropy.visualization import SqrtStretch
+from astropy.visualization import LogStretch
 from astropy import wcs as astropy_wcs
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
+import importlib_resources
 
 import pandas 
 
@@ -22,6 +24,7 @@ from astropath import chance
 from astropath import path
 from frb.galaxies import photom
 from frb.galaxies import nebular
+from frb.galaxies.galfit import write_cutout
 
 import photutils
 
@@ -99,6 +102,43 @@ class FRBAssociate(path.PATH):
         self.hdu = fits.open(self.image_file)[0]
         self.wcs = astropy_wcs.WCS(self.hdu.header)
         self.header = self.hdu.header
+
+    def make_host_cutout(self, imgdata, wcs, size=5. * units.arcsec)->Cutout2D:
+        """
+        Make a cutout of the image around the FRB
+        and write to the data directory under "Galaxies".
+
+        Args:
+            imgdata (np.ndarray): Image data
+            wcs (astropy.wcs.WCS): WCS of the image
+            size (Quantity, optional): Size of the cutout
+        
+        Returns:
+            Cutout2D: Cutout of the image
+        """
+
+        # Cutout
+        host_gal = self.frb.grab_host()
+        cutout = Cutout2D(imgdata, host_gal.coord, size, wcs=wcs)
+        _, med, std = sigma_clipped_stats(cutout.data)
+
+        # Make the figure
+        fig,ax = plt.subplots(1, 1, figsize=(6, 6), subplot_kw={'projection': cutout.wcs})
+        norm = ImageNormalize(stretch=LogStretch(), vmin=med+std, vmax=med+20*std)
+
+        ax.imshow(cutout.data, origin='lower', cmap='hot', norm=norm)
+        ax.set_xlabel('RA')
+        ax.set_ylabel('Dec', labelpad=-2)
+        ax.set_title(self.frb.frb_name+" Host")
+        ax.set_xlim(0, cutout.data.shape[1])
+        ax.set_ylim(0, cutout.data.shape[0])
+
+        # Write
+        output_file = importlib_resources.files(f'frb.data.Galaxies.{self.frb.frb_name[3:]}')/f'{self.frb.frb_name}_cutout.png'
+        plt.subplots_adjust(left=0.2, bottom=0.15, right=0.95, top=0.95)
+        fig.savefig(output_file, dpi=300)
+
+        return cutout
 
     def calc_pchance(self, ndens_eval='driver', extinction_correct=False):
         """
@@ -233,7 +273,7 @@ class FRBAssociate(path.PATH):
             a = obj.semimajor_sigma.value * radius
             b = obj.semiminor_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
-            apertures.append(photutils.EllipticalAperture(position, a, b, theta=theta))
+            apertures.append(photutils.aperture.EllipticalAperture(position, a, b, theta=theta))
         self.apertures = apertures
 
         # Magnitudes
@@ -295,15 +335,28 @@ class FRBAssociate(path.PATH):
         self.kernel.normalize()
 
         # Segment
-        self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
+        try:
+            self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
                                              npixels=npixels, 
                                              kernel=self.kernel)
+        except TypeError:
+            warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
+            convolved_data = convolve(self.hdu.data, self.kernel)
+            self.segm = photutils.segmentation.detect_sources(convolved_data, self.thresh_img,
+                                             npixels=npixels)
 
         # Debelnd?
         if deblend:
-            segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
+            try:
+                segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
                                                      npixels=npixels,
                                                      kernel=self.kernel,
+                                                     nlevels=32,
+                                                     contrast=0.001)
+            except TypeError:
+                warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
+                segm_deblend = photutils.segmentation.deblend_sources(convolved_data, self.segm,
+                                                     npixels=npixels,
                                                      nlevels=32,
                                                      contrast=0.001)
             self.orig_segm = self.segm.copy()
@@ -346,6 +399,7 @@ class FRBAssociate(path.PATH):
 
         # Background
         bkg_estimator = photutils.MedianBackground()
+        #embed(header='threshold 402 frbassociate')
         self.bkg = photutils.Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
@@ -377,6 +431,7 @@ def run_individual(config, prior:dict=None, show=False,
                    loc:dict=None,
                    posterior_method:str='fixed',
                    extinction_correct=False,
+                   generate_png:bool=False,
                    FRB:frb.FRB=None,
                    internals:dict=None,
                    debug:bool=False):
@@ -395,6 +450,7 @@ def run_individual(config, prior:dict=None, show=False,
                 ZP (float): Zero point value (magnitudes)
                 plate_scale (float): Plate scale in arcsec
                 cand_bright (float): Sources brighter than this are assumed stars and ignored
+                host_cut_size (float, optional): Size of the host cutout; required if generate_png=True
         prior(dict, optional):
             Contains information on the priors
         posterior_method(str, optional):
@@ -411,6 +467,8 @@ def run_individual(config, prior:dict=None, show=False,
             FRB object
         internals(dict, optional):
             Attributes to set in the FRBA object
+        generate_png (bool, optional):
+            Generate PNGs of the cutouts
         verbose (bool, optional):
     """
     if not skip_bayesian and prior == None:
@@ -442,6 +500,9 @@ def run_individual(config, prior:dict=None, show=False,
     elif 'image_file' in config.keys():
         # Image
         print("Using image {}".format(config['image_file']))
+
+
+        # Load image
         hdul = fits.open(config['image_file'])
         # A hack for some image packing
         if 'SCI' in [ihdu.name for ihdu in hdul]:
@@ -451,7 +512,10 @@ def run_individual(config, prior:dict=None, show=False,
 
         if config['cut_size'] is not None:
             size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
-            cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            try:
+                cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            except:
+                embed(header='518 frbassociate')
             frbA.wcs = cutout.wcs
             frbA.hdu = cutout  # not really an HDU
         else:
@@ -460,15 +524,22 @@ def run_individual(config, prior:dict=None, show=False,
 
         frbA.header = hdu_full.header
 
+        # Make a cutout of the host
+        if generate_png:
+            frbA.make_host_cutout(frbA.hdu.data, wcs = frbA.wcs, size=config['host_cut_size']*units.arcsec)
+
         # Threshold + Segment
         frbA.threshold()
-        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show)
+        frbA.segment(deblend=config['deblend'], npixels=config['npixels'], show=show,
+                     xy_kernel=config['xy_kernel'])
 
         # Photometry
-        frbA.photometry(config['ZP'], config['filter'], show=show)
+        ZP = config['ZP'] if 'ZP' in config.keys() else frbA.header['ZP']
+        frbA.photometry(ZP, config['filter'], show=show)
         if verbose:
             print(frbA.photom[['xcentroid', 'ycentroid', config['filter']]])
 
+        #embed(header='threshold 546 frbassociate')
         # Candidates
         frbA.cut_candidates(config['plate_scale'], bright_cut=config['cand_bright'],
                         separation=config['cand_separation'])
@@ -530,7 +601,6 @@ def run_individual(config, prior:dict=None, show=False,
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior
                          debug=debug)
-
 
     # Reverse Sort
     frbA.candidates = frbA.candidates.sort_values('P_Ox', ascending=False)

@@ -1,9 +1,8 @@
 """ Module for basic plots related to FRB host and foreground galaxies"""
 import os
 import numpy as np
-from IPython import embed
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from matplotlib import pyplot as plt
 
@@ -12,13 +11,12 @@ from astropy.table import Table
 from astropy import units
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
-from astropy.visualization.wcsaxes import SphericalCircle
 
-from photutils import SkyEllipticalAperture
+#from photutils import SkyEllipticalAperture
 
 from frb.figures import utils
 
-primus_path = os.path.join(resource_filename('frb', 'data'), 'Public')
+primus_path = importlib_resources.files('frb.data.Public')
 
 
 def sub_image(fig, hdu, FRB, img_center=None,

@@ -3,9 +3,11 @@
 import os
 import glob
 from IPython import embed
-from pkg_resources import resource_filename
+
+import importlib_resources
 import numpy as np
 from scipy.interpolate import interp1d
+import warnings
 
 import pandas
 
@@ -20,7 +22,9 @@ from astropy.coordinates import SkyCoord
 from astropy import units
 
 import pandas as pd
-import extinction
+
+import dust_extinction
+
 from linetools.spectra import xspectrum1d
 
 from frb import frb
@@ -37,8 +41,13 @@ def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
     """
 
     # Correct for Galactic extinction
+    #   Need to replace it 
     AV = ebv * 3.1  # RV
-    Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+    extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+    AlAV = extmod(spectrum.wavelength)#*units.AA)
+    Al = AlAV * AV
+    #Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
+
     # New spec
     new_flux = spectrum.flux * 10**(Al/2.5)
     new_sig = spectrum.sig * 10**(Al/2.5)
@@ -70,14 +79,14 @@ def load_specdb(specdb_file=None):
             specdb_file = specdb_files[0]
             print("Loading spectra from {:s}".format(specdb_file))
         else:
-            raise IOError("There are no FRB_specdb.hdf5 files in your SPECDB folder")
+            raise IOError("There are no FRB_specDB_*.hdf5 files in your SPECDB folder")
     # Load it up
     specDB = SpecDB(db_file=specdb_file)
     # Return
     return specDB
 
 
-def list_of_hosts(skip_bad_hosts=True):
+def list_of_hosts(skip_bad_hosts=True, verbose:bool=False):
     """
     Scan through the Repo and generate a list of FRB Host galaxies
 
@@ -85,27 +94,30 @@ def list_of_hosts(skip_bad_hosts=True):
 
     Args:
         skip_bad_hosts (bool):
+        verbose (bool):
+            If True, print more to the screen
 
     Returns:
         list, list:
 
     """
     # FRB files
-    frb_data = resource_filename('frb', 'data')
-    frb_files = glob.glob(os.path.join(frb_data, 'FRBs', 'FRB*.json'))
+    frb_data = importlib_resources.files('frb.data.FRBs')
+    frb_files = glob.glob(str(frb_data/'FRB*.json'))
     frb_files.sort()
 
     hosts = []
     frbs = []
     for ifile in frb_files:
         # Parse
-        name = ifile.split('.')[-2]
+        name = ifile.split('/')[-1].split('.')[-2]
         ifrb = frb.FRB.by_name(name)
         try:
-            host = ifrb.grab_host()
+            host = ifrb.grab_host(verbose=verbose)
         except AssertionError as e:
             if skip_bad_hosts:
-                print(f"Skipping bad host of FRB {ifrb}")
+                if verbose:
+                    print(f"Skipping bad host of FRB {ifrb}")
                 continue
             else:
                 raise e
@@ -135,7 +147,7 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
 
     """
-    frbs, hosts = list_of_hosts()
+    frbs, hosts = list_of_hosts(verbose=False)
     nhosts = len(hosts)
 
     # Table
@@ -156,7 +168,8 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
     host_tbl['FRBobj'] = frbs
 
     # Loop on all the main dicts
-    for attr in ['derived', 'photom', 'neb_lines','offsets','morphology','redshift']:
+    for attr in ['derived', 'photom', 'neb_lines','offsets',
+                 'morphology','redshift']:
         # Load up the dicts
         dicts = [getattr(host, attr) for host in hosts]
 
@@ -181,12 +194,16 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
                 tbl_dict[pkey][ss] = dicts[ss][pkey]
 
         # Now build the table
+        #embed(header='170 of utils ')
+        pd_tbl = pd.DataFrame(tbl_dict)
+        host_tbl = pd.concat([host_tbl, pd_tbl], axis=1)
+
         for key in tbl_dict.keys():
             # Error check
-            if key in host_tbl.keys():
+            if key in tbl_units.keys():
                 raise IOError("Duplicate items!!")
-            # Set
-            host_tbl[key] = tbl_dict[key]
+        #    # Set
+        #    host_tbl[key] = tbl_dict[key]
             tbl_units[key] = 'See galaxies.defs.py'
 
     # Add PATH values
@@ -225,8 +242,7 @@ def load_f_mL():
 
     """
     # Grab m(L) table
-    data_file = os.path.join(resource_filename('frb', 'data'),
-                             'Galaxies', 'galLF_vs_z.txt')
+    data_file = importlib_resources.files('frb.data.Galaxies')/'galLF_vs_z.txt'
     df = pandas.read_table(data_file, index_col=False)
 
     # Interpolate
@@ -245,8 +261,7 @@ def load_PATH(PATH_root_file:str='adopted.csv'):
     Returns:
         pandas.DataFrame: Table of galaxy coordinates and PATH results
     """
-    path_file = os.path.join(resource_filename('frb', 'data'), 'Galaxies', 'PATH',
-                             PATH_root_file)
+    path_file = importlib_resources.files('frb.data.Galaxies.PATH')/PATH_root_file
     path_tbl = pd.read_csv(path_file, index_col=False)
 
     return path_tbl

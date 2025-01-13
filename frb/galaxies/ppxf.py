@@ -1,6 +1,6 @@
 """ Module for running pPXF analyses"""
 
-from pkg_resources import resource_filename
+import importlib_resources 
 
 import numpy as np
 
@@ -233,10 +233,10 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     FWHM_gal = wave/ specresolution
 
     ### Set up stellar templates
-    #miles_dir = resource_filename('ppxf', '/miles_models/')
-    #miles_dir = resource_filename('ppxf', '/emiles_padova_chabrier/')
+    #miles_dir = importlib_resources.files('ppxf.miles_models')
+    #miles_dir = importlib_resources.files('ppxf.emiles_padova_chabrier')
     if miles_dir is None:
-        miles_dir = resource_filename('ppxf', '/miles_padova_chabrier/')
+        miles_dir = importlib_resources.files('ppxf.miles_padova_chabrier')
     #path4libcall = miles_dir + 'Mun1.30*.fits'
     #path4libcall = miles_dir + 'Ech1.30*.fits'
     path4libcall = miles_dir + 'Mch1.30*.fits'
@@ -368,8 +368,8 @@ def total_mass(miles, weights, quiet=False):
         "Input weight dimensions do not match"
 
     #file_dir = path.dirname(path.realpath(__file__))  # path of this procedure
-    #miles_dir = resource_filename('ppxf', '/miles_models/')
-    miles_dir = resource_filename('ppxf', '/miles_padova_chabrier/')
+    #miles_dir = importlib_resources.files('ppxf.miles_models')
+    miles_dir = importlib_resources.files('ppxf.miles_padova_chabrier')
 
     #file1 = miles_dir + "/Vazdekis2012_ssp_mass_Padova00_UN_baseFe_v10.0.txt"
     file1 = miles_dir + "out_mass_CH_PADOVA00.txt"

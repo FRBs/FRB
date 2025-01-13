@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 # Licensed under a 3-clause BSD style license - see LICENSE.rst
-from __future__ import absolute_import, division, print_function
 #
 # Standard imports
 #
 import glob, os
-from distutils.extension import Extension
 #
 # setuptools' sdist command ignores MANIFEST.in
 #

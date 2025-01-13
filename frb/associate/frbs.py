@@ -4,7 +4,8 @@ At the moment the Zero Points used include Galactic Extinction!
 
 """
 import os
-from pkg_resources import resource_filename
+import importlib_resources
+import glob
 
 from astropy import units
 import warnings
@@ -20,11 +21,13 @@ else:
 
 base_config = dict(
     max_radius=10.,
-    cut_size=None,
+    cut_size=None, # Size of the cutout in arcsec for PATH analysis
+    host_cut_size=10., # Size of the host cutout in arcsec for plotting
     deblend=False,
     cand_bright=None,
     cand_separation=None,
     skip_bayesian=False,
+    xy_kernel=(3,3),
     posterior_method='fixed',
     npixels=9,
 )
@@ -35,18 +38,18 @@ base_config = dict(
 #"""
 #Notes:
 #"""
-updates = dict(
-    name='FRB20190608B',
-    image_file=os.path.join(gdb_path, 'CRAFT', 'Unpublished', 'HG_190608_FORS2_I.fits'),
-    cut_size = 34.,
-    filter = 'VLT_FORS2_I',
-    ZP = 27.9,  # Tied to Pan-Starrs i-band
-    deblend=True,
-    cand_bright=15.,
-    cand_separation=10*units.arcsec,
-    plate_scale=0.252202*units.arcsec,
-)
-FRB20190608B = base_config | updates
+#updates = dict(
+#    name='FRB20190608B',
+#    image_file=os.path.join(gdb_path, 'CRAFT', 'Unpublished', 'HG_190608_FORS2_I.fits'),
+#    cut_size = 34.,
+#    filter = 'VLT_FORS2_I',
+#    ZP = 27.9,  # Tied to Pan-Starrs i-band
+#    deblend=True,
+#    cand_bright=15.,
+#    cand_separation=10*units.arcsec,
+#    plate_scale=0.252202*units.arcsec,
+#)
+#FRB20190608B = base_config | updates
 
 
 # ##############################
@@ -74,6 +77,7 @@ updates = dict(
     name='FRB20180916B',
     image_file=os.path.join(gdb_path, 'CHIME', 'Marcote2020', 'FRB20180916_GMOS_N_r.fits'),
     cut_size = 40.,
+    host_cut_size=10.,
     filter = 'GMOS_N_r',
     ZP = 31.2,
     deblend=False,
@@ -130,18 +134,18 @@ updates = dict(
 FRB20190102C = base_config | updates
 
 # ##############################
-# FRB 20190520B
-updates = dict(
-    name='FRB20190520B',
-    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
-    cut_size = 30.,
-    filter = 'LRIS_R',
-    ZP = 33.,
-    deblend=True,
-    plate_scale = 0.28 * units.arcsec,
-    cand_separation=10*units.arcsec,
-)
-FRB20190520B = base_config | updates
+# FRB 20190520B - No imaging acquired
+#updates = dict(
+#    name='FRB20190520B',
+#    image_file = os.path.join(gdb_path, 'DSA', 'Ravi2019', 'FRB20190523_LRIS_R.fits'),
+#    cut_size = 30.,
+#    filter = 'LRIS_R',
+#    ZP = 33.,
+#    deblend=True,
+#    plate_scale = 0.28 * units.arcsec,
+#    cand_separation=10*units.arcsec,
+#)
+#FRB20190520B = base_config | updates
 
 # ##############################
 # FRB 190523
@@ -339,12 +343,8 @@ FRB20201124A = base_config | updates
 # FRB 20201123A (MeerTRAP;  Rajwade+2022)
 updates = dict(
     name='FRB20201123A',
-    hpix_file = os.path.join(resource_filename('frb', 'data'), 
-                             'FRBs', 'healpix',
-                             'FRB20201123A_hpix_uniform.fits.gz'),
-    cand_file=os.path.join(resource_filename('frb', 'data'),
-                           'Galaxies', '20201123A',
-                            'FRB20201123A_path_candidates.csv'),
+    hpix_file = importlib_resources.files('frb.data.FRBs.healpix')/'FRB20201123A_hpix_uniform.fits.gz',
+    cand_file=importlib_resources.files('frb.data.Galaxies.20201123A')/'FRB20201123A_path_candidates.csv',
     PU = 0.1, # Unseen prior
     max_radius=23.12431, # arcsec
     posterior_method='local',
@@ -355,40 +355,6 @@ updates = dict(
 FRB20201123A = base_config | updates 
 #
 #
-##############################
-# FRB 20210117A
-updates = dict(
-    name='FRB20210117A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210117_VLT-FORS2_g-HIGH_2021-06-12.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.32,  # From Lachlan on 2021-12-15
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-
-FRB20210117A = base_config | updates 
-
-##############################
-# FRB 20210320C
-updates = dict(
-    name='FRB20210320C',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210320_VLT-FORS2_g-HIGH_2021-04-15.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # From Lachlan on 2021-12-15
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20210320C = base_config | updates 
 
 ##############################
 # FRB 20210410D
@@ -409,86 +375,74 @@ updates = dict(
 FRB20210410D = base_config | updates 
 
 ##############################
-# FRB 20210806D
-updates = dict(
-    name='FRB20210807D',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20210807_VLT-FORS2_g-HIGH_WCS.fits'),
-    cut_size = 29.,
-    filter = 'VLT_FORS1_g',
-    ZP = 26.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=16.,
-    cand_separation=9*units.arcsec,
-    plate_scale = -1.252 * units.arcsec,
-)
-FRB20210807D = base_config | updates 
+# ICS Sample
 
-##############################
-# FRB 20211127I
-updates = dict(
-    name='FRB20211127I',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211127_VLT-FORS2_g-HIGH_2022-01-29.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20211127I = base_config | updates 
+try:
+    for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B',
+                     'FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                    'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D',
+                    'FRB20211127I','FRB20211203C', 'FRB20211212A','FRB20220105A','FRB20220501C',
+                    'FRB20220610A','FRB20220725A','FRB20220918A', 'FRB20221106A',
+                    'FRB20230526A','FRB20230708A', 
+                    #'FRB20230718A', # No HI
+                    'FRB20230731A','FRB20230902A','FRB20231226A','FRB20240201A',
+                    'FRB20240210A','FRB20240304A','FRB20240310A']:
+        # Find the image
+        images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
+                                        'Shannon2024', 
+                                        f'{tns_name}_VLT-FORS2_*.fits'))
+        use_this_image = None
+        for ifilter in ['FORS2_R','FORS2_I','FORS2_g']:
+            for image in images:
+                if ifilter in image:
+                    use_this_image = image
+                    ifilter = 'VLT_'+ifilter
+                    break
+            if use_this_image is not None:
+                break
+            #if 'FORS2_R' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_R'
+            #if use_this_image is None and 'FORS2_I' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_I'
+            #if use_this_image is None and 'FORS2_g' in image:
+            #    use_this_image = image 
+            #    ifilter = 'VLT_FORS2_g'
+        if use_this_image is None:
+            #embed(header=f'No image found for {tns_name}')
+            raise IOError("No image found")
 
-##############################
-# FRB 20211203C
-updates = dict(
-    name='FRB20211203C',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211203_VLT-FORS2_R-SPECIAL_2022-02-11.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_R',
-    ZP = 28.14, # Taken from the Header
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.248 * units.arcsec,  # Using CDELT1
-)
-FRB20211203C = base_config | updates 
+        updates = dict(
+            name=tns_name,
+            image_file=use_this_image,
+            cut_size=30.,
+            filter=ifilter,
+            deblend=True,
+            cand_bright=17.,
+            cand_separation=10*units.arcsec,
+            plate_scale = 0.252 * units.arcsec,
+        )
 
-##############################
-# FRB 20211212A
-updates = dict(
-    name='FRB20211212A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20211212_VLT-FORS2_g-HIGH_2022-01-28.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20211212A = base_config | updates 
+        # FRB specific
+        if tns_name in ['FRB20240210A','FRB20211127I']: # Large galaxies
+            updates['cut_size'] = 180.
+            updates['cand_bright'] = 14.
+            updates['cand_separation'] = 180. * units.arcsec
+            updates['npixels'] = 70
+            updates['xy_kernel'] = (11,11)
+        elif tns_name == 'FRB20190608B':
+            updates['cand_bright'] = 15.
+            updates['cut_size'] = 34.
+        elif tns_name == 'FRB20211212A': # Large SDSS galaxy
+            updates['cut_size'] = 90.
+            updates['cand_bright'] = 15.
+        elif tns_name == 'FRB20230731A': # Large SDSS galaxy
+            updates['deblend'] = False
+            updates['cut_size'] = 90.
+            updates['cand_bright'] = 15.
 
-##############################
-# FRB 20220105A
-updates = dict(
-    name='20220105A',
-    image_file=os.path.join(gdb_path, 'CRAFT', 
-                            'Shannon2023', 
-                            'FRB20220105A_VLT-FORS2_g-HIGH_2022-01-28.fits'),
-    cut_size = 30.,
-    filter = 'VLT_FORS2_g',
-    ZP = 27.51,  # TO BE UPDATED
-    deblend=True,
-    cand_bright=17.,
-    cand_separation=10*units.arcsec,
-    plate_scale = 0.252 * units.arcsec,
-)
-FRB20220105A = base_config | updates 
+
+        globals()[tns_name] = base_config | updates
+except IOError:
+    print("Images not found for ICS sample; proceed with care")

@@ -1,6 +1,6 @@
 """ Module to generate individual FRB files """
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 import numpy as np
 
@@ -42,7 +42,7 @@ def frb_121102():
     # References
     frb121102.refs = ['Tendulkar2017', 'Marcote2017']
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb121102.write_to_json(path=path)
     # Test
     #frb121102.from_json('FRB121102.json')
@@ -77,7 +77,7 @@ def frb_180301():
     frb180301.refs = ['Bhandari2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb180301.write_to_json(path=path)
 
 def frb_180916():
@@ -114,7 +114,7 @@ def frb_180916():
     # References
     frb180916.refs = ['Marcote2020']
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb180916.write_to_json(path=path)
 
 def frb_180924():
@@ -161,7 +161,7 @@ def frb_180924():
     frb180924.refs = ['Bannister2019', 'Day2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb180924.write_to_json(path=path)
 
 def frb_181112():
@@ -203,7 +203,7 @@ def frb_181112():
     frb181112.refs = ['Prochaska2019', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb181112.write_to_json(path=path)
 
 def frb_190102():
@@ -245,7 +245,7 @@ def frb_190102():
     frb190102.refs = ['Bhandari2020', 'Day2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190102.write_to_json(path=path)
 
 
@@ -282,7 +282,7 @@ def frb_190523():
     frb190523.refs = ['Ravi2019']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190523.write_to_json(path=path)
 
 
@@ -324,7 +324,7 @@ def frb_190608():
     frb190608.refs = ['Bhandari2020','Day2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190608.write_to_json(path=path)
 
 
@@ -367,7 +367,7 @@ def frb_190611():
     frb190611.refs = ['MacQuart2020', 'Day2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190611.write_to_json(path=path)
 
 def frb_190614():
@@ -395,7 +395,7 @@ def frb_190614():
     frb190614.refs = ['Law2020']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190614.write_to_json(path=path)
 
 
@@ -428,7 +428,7 @@ def frb_190711():
     frb190711.refs = ['MacQuart2020', 'Day2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190711.write_to_json(path=path)
 
 
@@ -465,7 +465,7 @@ def frb_190714():
     frb190714.refs = ['Heintz2020', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb190714.write_to_json(path=path)
 
 
@@ -506,7 +506,7 @@ def frb_191001():
     frb191001.refs = ['Bhandari2020b', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb191001.write_to_json(path=path)
 
 
@@ -537,7 +537,7 @@ def frb_191228():
     frb191228.refs = ['Bhandari2021', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb191228.write_to_json(path=path)
 
 def frb_20200120E():
@@ -570,7 +570,7 @@ def frb_20200120E():
     frb20200120E.refs = ['Bhardwaj2021','Kirsten2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb20200120E.write_to_json(path=path)
 
 def frb_171020():
@@ -597,7 +597,7 @@ def frb_171020():
     frb171020.refs = ['Shannon2018','Mahony2018']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb171020.write_to_json(path=path)
 
 
@@ -633,7 +633,7 @@ def frb_200430():
     frb200430.refs = ['Bhandari2021', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb200430.write_to_json(path=path)
 
 
@@ -668,7 +668,7 @@ def frb_200906():
     frb200906.refs = ['Bhandari2021', 'Day2021']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb200906.write_to_json(path=path)
 
 def frb_201124():
@@ -712,7 +712,7 @@ def frb_201124():
     #frb191001.refs = ['Bhandari2020b']
 
     # Write
-    path = resource_filename('frb', 'data/FRBs')
+    path = importlib_resources.files('frb.data.FRBs')
     frb201124.write_to_json(path=path)
     
 

@@ -3,6 +3,7 @@
 import inspect
 from importlib import resources
 
+import importlib_resources
 import os
 import glob
 import copy
@@ -394,15 +395,15 @@ class FRB(GenericFRB):
 
         Args:
             frb_name (str):
-              Name of the FRB,
+              Name of the FRB, with format FRBYYYYMMDDX
+                i.e. FRB + TNS
             **kwargs:
 
         Returns:
 
         """
-        path = os.path.join(resources.files('frb'), 'data', 'FRBs', frb_name)
-        json_file = path + '.json'
-        slf = cls.from_json(json_file, **kwargs)
+        json_file = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}.json'
+        slf = cls.from_json(str(json_file), **kwargs)
         return slf
 
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
@@ -424,7 +425,7 @@ class FRB(GenericFRB):
         self.frb_name = frb_name
         self.z = z_frb
 
-    def grab_host(self):
+    def grab_host(self, verbose:bool=True):
         """
         Returns the FRBHost object for this FRB
 
@@ -432,8 +433,7 @@ class FRB(GenericFRB):
             frb.galaxies.frbgalaxy.FRBHost
 
         """
-        frbHost = frbgalaxy.FRBHost.by_frb(self)
-        return frbHost
+        return frbgalaxy.FRBHost.by_frb(self, verbose=verbose)
 
     def __repr__(self):
         txt = '<{:s}: {} J{}{} DM={}'.format(
@@ -461,7 +461,7 @@ def list_of_frbs(require_z=False):
 
     """
     # Grab the files
-    frb_files = glob.glob(os.path.join(resources.files('frb'), 'data', 'FRBs', 'FRB*json'))
+    frb_files = glob.glob(str(importlib_resources.files('frb.data')/'FRBs/FRB*.json'))
     frb_files.sort()
     # Load up the FRBs
     frbs = []
@@ -481,7 +481,6 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     Warning:  As standard, missing values are given NaN in the Pandas table
         Be careful!
-
     Args:
         fattrs (list, optional):
             Float attributes for the Table
@@ -567,7 +566,7 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
 def load_frb_data(tbl_file:str=None):
     if tbl_file is None:
-        path = os.path.join(resources.files('frb'), 'data', 'FRBs')
+        path = importlib_resources.files('frb.data')/ 'FRBs'
         tbl_file = os.path.join(path, 'FRBs_base.csv')
 
     # Load

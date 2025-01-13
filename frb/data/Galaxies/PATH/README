@@ -5,6 +5,9 @@ adopted.csv  -- Generated on 2021-12-28 by JXP
     theta_max = 6.
     adopted = dict(theta=theta_e, O='inverse', U=0., name='Adopted', nhalf=nhalf)
 
+Updated by JXP on 2024-11-07
+
+# ##########################################
 scale0.5.csv -- Generated on 2022-03-04 by JXP
     scale = 0.5
 
@@ -12,3 +15,4 @@ scale0.5.csv -- Generated on 2022-03-04 by JXP
     frb_build PATH --options new_prior
 
 Update on 2023-Feb-15 by JXP to account for PATH normalization error
+Update on 2024-Nov-07 by JXP for larger sample

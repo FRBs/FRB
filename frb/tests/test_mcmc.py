@@ -1,7 +1,7 @@
 """Test MCMC code"""
 import os
 import numpy as np
-from pkg_resources import resource_filename
+import importlib_resources
 
 
 from matplotlib import pyplot as plt
@@ -79,8 +79,7 @@ def test_pm():
     import pymc3 as pm
 
     parm_dict = mcmc.grab_parmdict()
-    outroot = os.path.join(resource_filename('frb', 'tests'), 
-                           'files', 'mcmc')
+    outroot = importlib_resources.files('frb.tests.files.mcmc')
 
     with mcmc.pm_four_parameter_model(parm_dict, beta=3.):
         # Sample

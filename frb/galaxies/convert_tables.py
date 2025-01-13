@@ -1,6 +1,5 @@
 """ Methods to convert data into Literature tables"""
-import os
-from pkg_resources import resource_filename
+import importlib_resources
 
 import pandas
 
@@ -13,12 +12,9 @@ from IPython import embed
 def tendulkar_nebular():
     frb121102 = frb.FRB.by_name('FRB20121102')
     # Old host file
-    json_file = os.path.join(
-        resource_filename('frb', 'data'),
-        'Galaxies', '121102',
-        'FRB121102_host.json')
+    json_file = importlib_resources.files('frb.data.Galaxies.121102')/'FRB121102_host.json'
     host = frbgalaxy.FRBHost.from_json(
-        frb121102, json_file, cosmo=defs.frb_cosmo) 
+        frb121102, str(json_file), cosmo=defs.frb_cosmo) 
     # Build  Table
     df = pandas.DataFrame()
     for key in host.neb_lines.keys():
@@ -29,9 +25,7 @@ def tendulkar_nebular():
     df['Name'] = host.name
 
     # Write
-    outfile = os.path.join(
-        resource_filename('frb', 'data'),
-        'Galaxies', 'Literature', 'tendulkar2017_nebular.csv')
+    outfile = importlib_resources.files('frb.data.Galaxies.Literature')/'tendulkar2017_nebular.csv'
     df.to_csv(outfile)
 
 if __name__ == '__main__':

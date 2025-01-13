@@ -1,0 +1,34 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 1391.05
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 43.19115845321518
+    },
+    "FRB": "FRB20221029A",
+    "RM": {
+        "unit": "rad / m2",
+        "value": -155.8
+    },
+    "RM_err": {
+        "unit": "rad / m2",
+        "value": 9.7
+    },
+    "cosmo": "Planck18",
+    "dec": 72.452317,
+    "eellipse": {
+        "a": 0.8,
+        "b": 0.7,
+        "cl": 68.0,
+        "theta": 90.0
+    },
+    "ra": 141.963417,
+    "refs": [
+        "Sherman23",
+        "Sharma24"
+    ],
+    "repeater": false,
+    "z": 0.975
+}

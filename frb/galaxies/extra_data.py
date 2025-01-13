@@ -1,6 +1,6 @@
 """ Methods to load up additional data """
 
-from pkg_resources import resource_filename
+import importlib_resources
 import os
 
 import pandas
@@ -14,9 +14,7 @@ def load_mannings2021():
     Returns:
         tuple: measurements (pandas.DataFrame), units and description (dict)
     """
-    mannings2021_file = os.path.join(resource_filename('frb','data'),
-                                          'Galaxies','Literature',
-                                          'mannings2021_derived.csv')
+    mannings2021_file = importlib_resources.files('frb.data.Galaxies.Literature')/'mannings2021_derived.csv'
     mannings2021 = pandas.read_csv(mannings2021_file)                                        
 
     # Units and comments -- these are not all of them!

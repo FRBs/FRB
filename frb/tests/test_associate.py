@@ -1,10 +1,6 @@
 import os
-import numpy as np
-from pkg_resources import resource_filename
 
 import pandas
-
-from astropy import units
 
 from astropath import priors
 from frb.associate import frbassociate
@@ -19,7 +15,7 @@ remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
 def test_individual():
     # This needs to be hidden
     orig_priors = priors.load_std_priors()
-    config = getattr(frbs, 'FRB20180924B'.lower())
+    config = getattr(frbs, 'FRB20180924B')
     frbA = frbassociate.run_individual(config, orig_priors['adopted'])
 
     # Test
