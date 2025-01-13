@@ -2,6 +2,7 @@
 """
 Build FRB bits and pieces
 """
+
 def parser(options=None):
     import argparse
     # Parse

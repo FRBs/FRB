@@ -1,6 +1,7 @@
 """ Module for an FRB event
 """
 import inspect
+from importlib import resources
 
 import importlib_resources
 import os
