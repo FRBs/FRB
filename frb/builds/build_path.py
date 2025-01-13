@@ -37,6 +37,7 @@ def run(frb_list:list,
         prior (dict):
             Prior for PATH
         write (bool, optional): Write the results to a CSV file. Defaults to False.
+            Uses the --options write_indiv   option in the call
         show (bool, optional): Show the segmentation image. Defaults to False.
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
@@ -88,8 +89,7 @@ def run(frb_list:list,
         ang_sizes.append(frbA.candidates.ang_size.values[0])
         separations.append(frbA.candidates.separation.values[0])
 
-        # Write the full candidate table?
-        #embed(header="build_path.py: 92")
+        # Write the full candidate table for each FRB?
         if write:
             # Add P_U
             frbA.candidates['P_U'] = prior['U']
