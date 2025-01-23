@@ -4,10 +4,7 @@ Currently has only the Tully cluster catalog but can be possibly extended for
 other sources.
 """
 
-import os
-import os.path
 from . import surveycoord
-from astropy.table import Table
 from frb.defs import frb_cosmo
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -15,7 +12,7 @@ from astroquery.vizier import Vizier
 
 import numpy as np
 
-class Tully_Group_Cat(surveycoord.SurveyCoord):
+class TullyGroupCat(surveycoord.SurveyCoord):
     """
     A class to query sources within the Tully 2015
     group/cluster catalog.
@@ -38,13 +35,13 @@ class Tully_Group_Cat(surveycoord.SurveyCoord):
             self.cosmo = cosmo
     
 
-    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc):
+    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc, richness_cut = 5):
         """
         Get the catalog of objects
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
-            impact_par_lim (Quantity): The maximum impact parameter of the objects to include in the catalog.
-            ang_sep_lim (Quantity): The maximum angular separation of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
         Returns:
             A table of objects within the given limits.
@@ -63,6 +60,7 @@ class Tully_Group_Cat(surveycoord.SurveyCoord):
         angular_dist = self.coord.separation(SkyCoord(result['ra'], result['dec'], unit='deg')).to('rad').value
         transverse_dist = result['Dist']*np.sin(angular_dist)
         result = result[transverse_dist<transverse_distance_cut]
+        result = result[result['Nmb']>=richness_cut]
         self.catalog = result
 
         return self.catalog
