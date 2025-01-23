@@ -60,7 +60,7 @@ class NEDLVS(surveycoord.SurveyCoord):
             assert np.isin(query_fields, self.datatab.colnames).all(), "One or more of the requested fields is not in the NEDLVS table. Check the column names with get_column_names()."
         # ...
         distance_cut = self.datatab['DistMpc']<self.cosmo.luminosity_distance(z_lim).to('Mpc').value #Only need foreground objects
-        valid_distances = self.datatab['DistMpc']>2 # Exclude local group
+        valid_distances = self.datatab['DistMpc']>0 # Exclude weird sources with negative distances
         phys_sep_cut = self.datatab['phys_sep']<impact_par_lim # Impact param within limit
 
          # Make sure the earth is not between the FRB and the galaxy
