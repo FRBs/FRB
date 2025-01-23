@@ -155,7 +155,7 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
 
 def main(pargs):
 
-  from frb.surveys.cluster_search import Tully_Group_Cat
+  from frb.surveys.cluster_search import TullyGroupCat
   from frb.surveys.nedlvs import NEDLVS
   
   # First read in the coords
@@ -169,7 +169,7 @@ def main(pargs):
 
   nedlvs_tab = NEDLVS(frb_coord, radius=90*u.deg,).get_catalog(z_lim=frb_z, impact_par_lim=1*u.Mpc)
 
-  tully_clusters = Tully_Group_Cat(frb_coord, radius=90*u.deg).get_catalog()
+  tully_clusters = TullyGroupCat(frb_coord, radius=90*u.deg).get_catalog()
 
   mean_dm_halos_lvs, mean_dm_halos_lvs_phot, mean_grp_dm, close_by_withmass, match_grps = lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rmax=rmax)
 
