@@ -26,7 +26,7 @@ class TullyGroupCat(surveycoord.SurveyCoord):
         # Initialize a SurveyCoord object
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         self.survey = 'Tully_2015' # Name
-        self.catalog = "J/AJ/149/171/table5" # NAme of the Vizier table to draw from.
+        self.catalog = "J/AJ/149/171/table5" # Name of the Vizier table to draw from.
         self.coord = coord # Location around which to perform the search
         self.radius = radius.to('deg').value # Radius of cone search
         if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
