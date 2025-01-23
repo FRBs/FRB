@@ -1,0 +1,68 @@
+"""
+A module to query for galaxy groups/clusters around a given FRB.
+Currently has only the Tully cluster catalog but can be possibly extended for
+other sources.
+"""
+
+import os
+import os.path
+from . import surveycoord
+from astropy.table import Table
+from frb.defs import frb_cosmo
+from astropy.coordinates import SkyCoord
+from astropy import units as u
+from astroquery.vizier import Vizier
+
+import numpy as np
+
+class Tully_Group_Cat(surveycoord.SurveyCoord):
+    """
+    A class to query sources within the Tully 2015
+    group/cluster catalog.
+    This requires the Tully tables to be downloaded
+    from https://ned.ipac.caltech.edu/NED::LVS/
+    and linked via the environment variable NEDLVS
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        self.survey = 'Tully_2015' # Name
+        self.catalog = "J/AJ/149/171/table5" # NAme of the Vizier table to draw from.
+        self.coord = coord # Location around which to perform the search
+        self.radius = radius.to('deg').value # Radius of cone search
+        if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
+            self.cosmo = frb_cosmo
+        else:
+            self.cosmo = cosmo
+    
+
+    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            impact_par_lim (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            ang_sep_lim (Quantity): The maximum angular separation of the objects to include in the catalog.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        if query_fields is None:
+            query_fields = ['**'] # Get all.
+        # Query Vizier
+        v = Vizier(catalog = self.catalog, columns=query_fields, row_limit= -1) # No row limit
+        result = v.query_region(self.coord, radius=self.radius*u.deg)[0] # Just get the first (and only table here)
+        result.rename_columns(['_RA.icrs', '_DE.icrs'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+        
+        # Convert distances from h^-1 Mpc to Mpc based on the cosmology being used.
+        result['Dist'] /=self.cosmo.h
+
+        # Apply a transverse distance cut
+        angular_dist = self.coord.separation(SkyCoord(result['ra'], result['dec'], unit='deg')).to('rad').value
+        transverse_dist = result['Dist']*np.sin(angular_dist)
+        result = result[transverse_dist<transverse_distance_cut]
+        self.catalog = result
+
+        return self.catalog
