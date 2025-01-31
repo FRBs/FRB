@@ -30,13 +30,14 @@ def parser(options=None):
 
 
 def halo_dm(z, offset, log_mhalo, rmax=1, fhot=1, is_grp=False):
-  if log_mhalo<14:
-      if offset>800*u.kpc:
+  if log_mhalo<14: # Low mass halos
+      if offset>800*u.kpc: # Don't bother instantiating the model if the distance is too far
           return 0, -99*u.kpc
       mnfw = ModifiedNFW(log_Mhalo = log_mhalo, alpha = 2, y0 = 2, z = z, f_hot=fhot)
       #mnfw = YF17(log_Mhalo = log_mhalo, z = z)
-  elif log_mhalo>=14:
+  elif log_mhalo>=14 & is_grp: # Clusters
       mnfw = ICM(log_mhalo, f_hot=fhot, z=z)
+      import pdb; pdb.set_trace()
 #         if distance<mnfw.r200: # No local group
 #             return 0
   try:
@@ -128,7 +129,7 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
           log_grp_mass = np.log10(central_entry['Mlum'])+12. # Mlum is in Tera Msun units.
           z_grp = z_at_value(frb_cosmo.luminosity_distance, central_entry['Dist']*u.Mpc)
           dm_halo, rvir = halo_dm(z=z_grp,
-                                  offset=central_entry['phys_sep']*u.kpc,
+                                  offset=central_entry['phys_sep']*u.Mpc,
                                   log_mhalo=log_grp_mass, is_grp=True, rmax=rmax)
           if np.abs(z_grp-frb_z)<=2e-3:
               #dm_halo /= 2.
