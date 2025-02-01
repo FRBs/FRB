@@ -797,6 +797,8 @@ class FRBGalaxy(object):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
             self.__class__.__name__, self.coord.icrs.ra.to_string(unit=units.hour,sep=':', pad=True),
             self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb.frb_name)
+        if self.z is not None:
+            txt += ' z={}'.format(self.z)
         # Finish
         txt = txt + '>'
         return (txt)

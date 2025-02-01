@@ -12,9 +12,9 @@ try:
 except ImportError:
     warnings.warn("extinction package not loaded.  Extinction corrections will fail")
 
-
 from frb.galaxies import nebular
 from frb import em
+from frb.halos import models
 
 def dm_host_from_Halpha(z:float, Halpha:Quantity, reff_ang:Quantity,
                              AV:float=None):
@@ -77,3 +77,30 @@ def dm_host_from_ssfr(z:float, ssfr:Quantity):
 
     # Return
     return dm_host_ssfr
+
+def dm_host_halo(R:units.Quantity, log10_Mstar:float, 
+                 z:float, HMR:str='Moster',
+                 mNFW:models.ModifiedNFW=None):
+
+    # Halo mass
+    if HMR == 'Moster':
+        log10_Mhalo = models.halomass_from_stellarmass(log10_Mstar, z=z)
+    elif HMR == 'Kravstov':
+        log10_Mhalo = models.halomass_from_stellarmass_kravtsov(log10_Mstar)
+    else:
+        raise IOError(f"Not ready for this HMR: {HMR}")
+
+    # Halo
+    if mNFW is None:
+        mNFW = models.ModifiedNFW(log_Mhalo=log10_Mhalo, 
+                                  z=z, 
+                                  alpha=2., 
+                                  y0=2., 
+                                  f_hot=0.55)
+
+
+    # Find the DM
+    DM_host_halo = mNFW.Ne_Rperp(R) / 2
+
+    # Return
+    return DM_host_halo
