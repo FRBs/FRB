@@ -94,9 +94,9 @@ def dm_host_halo(R:units.Quantity, log10_Mstar:float,
     if mNFW is None:
         mNFW = models.ModifiedNFW(log_Mhalo=log10_Mhalo, 
                                   z=z, 
-                                  alpha=2., 
-                                  y0=2., 
+                                  alpha=2., y0=2., 
                                   f_hot=0.55)
+        print(f'Assuming this modified NFW: {mNFW}')
 
 
     # Find the DM
