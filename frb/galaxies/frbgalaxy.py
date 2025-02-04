@@ -21,6 +21,7 @@ from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
 from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
+from frb.dm import host as dm_host
 
 from scipy.integrate import simpson
 
@@ -797,6 +798,8 @@ class FRBGalaxy(object):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
             self.__class__.__name__, self.coord.icrs.ra.to_string(unit=units.hour,sep=':', pad=True),
             self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb.frb_name)
+        if self.z is not None:
+            txt += ' z={}'.format(self.z)
         # Finish
         txt = txt + '>'
         return (txt)
@@ -866,6 +869,21 @@ class FRBHost(FRBGalaxy):
         #
         outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
+
+    def calc_dm_halo(self, mNFW=None):
+        """ Calculate the Halo contribution to the host"""
+
+        # Setup
+        R = self.offsets['physical'] * units.kpc
+        Mstar = self.derived['Mstar']
+        log10_Mstar = np.log10(Mstar)
+
+        # Calculate
+        self.DM_halo = dm_host.dm_host_halo(
+            R, log10_Mstar, self.z, mNFW=mNFW)
+
+        return self.DM_halo
+
 
     def make_outfile(self):
         """

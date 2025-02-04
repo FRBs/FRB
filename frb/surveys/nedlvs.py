@@ -19,12 +19,10 @@ class NEDLVS(surveycoord.SurveyCoord):
     """
 
 
-    def __init__(self, coord, radius, cosmo=None, **kwargs):
+    def __init__(self, coord, radius=90.*u.deg, cosmo=None, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         assert 'NEDLVS' in os.environ, "NEDLVS environment variable not set. Please download the LVS table from https://ned.ipac.caltech.edu/NED::LVS/ and set the environment variable NEDLVS to the path of the downloaded file."        
         self.survey = 'NEDLVS'
-        self.coord = coord 
-        self.radius = radius.to('deg').value
         self.datapath = os.environ['NEDLVS']
         if cosmo is None:
             self.cosmo = frb_cosmo
@@ -34,16 +32,18 @@ class NEDLVS(surveycoord.SurveyCoord):
         # Read in the data and store in memory
         self.datatab = Table.read(self.datapath)
         self.datatab['coord'] = SkyCoord(self.datatab['ra'], self.datatab['dec'], unit="deg")
-        self.datatab['coord'] = SkyCoord(self.datatab['ra'], self.datatab['dec'], unit="deg")
         self.datatab['ang_sep'] = self.coord.separation(self.datatab['coord']).to('arcmin')
+
+        # Set redshift distances using the cosmology of choice
+        redshift_dist_sources = self.datatab['DistMpc_method']=='Redshift'
+        self.datatab['DistMpc'][redshift_dist_sources] = self.cosmo.luminosity_distance(self.datatab['z'][redshift_dist_sources]).to('Mpc').value
         self.datatab['phys_sep'] = self.datatab['DistMpc']*u.Mpc*np.sin(self.datatab['ang_sep'].to('rad').value)
     
     def get_column_names(self):
         return self.datatab.colnames
 
     def get_catalog(self, z_lim=np.inf,
-                    impact_par_lim=np.inf*u.Mpc,
-                    ang_sep_lim=90*u.deg, query_fields=None):
+                    impact_par_lim=np.inf*u.Mpc, query_fields=None):
         """
         Get the catalog of objects within the given limits of redshift, impact parameter, and angular separation.
         Args:
@@ -55,15 +55,21 @@ class NEDLVS(surveycoord.SurveyCoord):
             A table of objects within the given limits.
         """
         if query_fields is None:
-            query_fields = ['objname', 'ra', 'dec', 'ebv', 'z', 'z_unc', 'z_tech', 'DistMpc', 'DistMpc_unc', 'DistMpc_method', 'Mstar', 'Mstar_unc']
+            query_fields = ['objname', 'ra', 'dec', 'ebv', 'z', 'z_unc', 'z_tech', 'DistMpc', 'DistMpc_unc', 'DistMpc_method', 'Mstar', 'Mstar_unc', 'ang_sep', 'phys_sep'] 
         else:
             assert np.isin(query_fields, self.datatab.colnames).all(), "One or more of the requested fields is not in the NEDLVS table. Check the column names with get_column_names()."
         # ...
         distance_cut = self.datatab['DistMpc']<self.cosmo.luminosity_distance(z_lim).to('Mpc').value #Only need foreground objects
-        valid_distances = self.datatab['DistMpc']>2 # Exclude local group
+        valid_distances = self.datatab['DistMpc']>0 # Exclude weird sources with negative distances
         phys_sep_cut = self.datatab['phys_sep']<impact_par_lim # Impact param within limit
-        ang_sep_cut = self.datatab['ang_sep']<ang_sep_lim # Make sure the earth is not between the FRB and the galaxy
+
+         # Make sure the earth is not between the FRB and the galaxy
+        assert self.radius<=90*u.deg, "The radius of the search cone is too large. Please set it to a value less than 90 degrees."
+
+        ang_sep_cut = self.datatab['ang_sep']<self.radius
         is_nearby_fg = valid_distances&distance_cut & phys_sep_cut & ang_sep_cut
         
         close_by = self.datatab[is_nearby_fg][query_fields]
-        return close_by
+
+        self.catalog = close_by
+        return self.catalog
