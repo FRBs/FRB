@@ -152,7 +152,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 user = os.getenv('MAST_CASJOBS_USER')
                 pwd = os.getenv('MAST_CASJOBS_PWD')
                 if user is None or pwd is None:
-                    raise IOError("You need to set the MAST_CASJOBS_USER and MAST_CASJOBS_PWD environment variables. Create an account at https://mastweb.stsci.edu/mcasjobs/CreateAccount.aspx to get your credentials.")
+                    raise IOError("You need to set the MAST_CASJOBS_USER and MAST_CASJOBS_PWD environment variables. Create an account at https://mastweb.stsci.edu/mcasjobs/CreateAccount.aspx to get your credentials. Or set photoz=False in get_catalog.")
                 job = mcj.MastCasJobs(context="HLSP_PS1_STRM", username=user, password=pwd)
                 photoz_tab = job.quick(photoz_query, task_name="Photo-z cone search")
                 photoz_tab.rename_column('objID', 'Pan-STARRS_ID')
