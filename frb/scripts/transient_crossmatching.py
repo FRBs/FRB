@@ -1,6 +1,6 @@
 """ A script to crossmatch TNS transients with KKO FRBs and plot the 2D Gaussian elliptical distribution
 @author: Yuxin Dong
-last edited: Feb 12, 2025 """
+last edited: March 3, 2025 """
 import numpy as np
 import pandas as pd
 import json
@@ -46,22 +46,60 @@ def parser():
 
     return parser.parse_args()
 
-
+# make sure you have your TNS API keys
 def check_tns_api_keywords():
+    """
+    Verifies that the necessary TNS API credentials are set as environment variables.
+
+    This function checks for the required TNS API keys: 
+    'TNS_BOT_ID', 'TNS_BOT_NAME', and 'TNS_API_KEY'. If any of these keys 
+    are missing, an exception is raised.
+
+    Raises:
+    -------
+    Exception:
+        If any required TNS API key is missing from the environment variables.
+    """
     for key in ['TNS_BOT_ID','TNS_BOT_NAME','TNS_API_KEY']:
         if key not in os.environ.keys():
             raise Exception(f'Add {key} to your environmental variables.')
 
 
- # this is for getting metadata
 def set_bot_tns_marker():
+    """
+    Constructs the TNS bot marker string required for API authentication.
+
+    The bot marker is a JSON-formatted string containing the bot's ID and name, 
+    which is used for API authentication when querying the TNS database.
+
+    Returns:
+    --------
+    tns_marker (str):
+        A formatted string containing the bot ID and name, used as the user-agent in TNS API requests.
+    """
+    # your TNS BOT ID
     bot_id = os.environ['TNS_BOT_ID']
+    # your TNS BOT name
     bot_name = os.environ['TNS_BOT_NAME']
     tns_marker = 'tns_marker{"tns_id": "' + bot_id + '", "type": "bot", "name": "' + bot_name + '"}'
     return tns_marker
     
 # New
 def search(json_list, url_tns_api):
+    """
+    Querie TNS for transients based on the provided search parameters.
+
+    Parameters: 
+    -----------
+    json_list (list): 
+        A list of key-value pairs specifying the search parameters, which will be converted into an OrderedDict.
+    url_tns_api (str): 
+        The base URL for the TNS API.
+    Returns: 
+    --------
+    response (requests.Response): 
+        The HTTP response object returned by the TNS API, containing the status code and response data.
+    """
     try:
         search_url = url_tns_api + "/get/search" #'https://www.wis-tns.org/api/get/search'
         tns_marker = set_bot_tns_marker()
@@ -83,8 +121,19 @@ def search(json_list, url_tns_api):
         print("Error occurred:", str(e))
         return None  # Return None instead of a list
 
-
+# read query results out to a json
 def format_to_json(source):
+    """
+    Converts a JSON-formatted string into an OrderedDict.
+
+    Parameters:
+    -----------
+    source (str): A JSON-formatted string to be converted into an OrderedDict.
+
+    Returns:
+    --------
+    OrderedDict: A dictionary-like object with preserved key order, parsed from the input JSON string.
+    """
     #parsed = json.loads(source, object_pairs_hook = OrderedDict)
     #result = json.dumps(parsed, indent = 4) this reverse it back to a string instead of json, so don't do that
     return json.loads(source, object_pairs_hook = OrderedDict)
