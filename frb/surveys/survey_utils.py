@@ -1,6 +1,7 @@
 """ utils related to SurveyCoord objects"""
 
 from urllib.error import HTTPError
+from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
 from frb.surveys.wise import WISE_Survey
@@ -23,7 +24,7 @@ from requests import ReadTimeout
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys
 
@@ -32,7 +33,7 @@ def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
     allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
-    'PSRCAT', 'WISE', 'Pan-STARRS']
+    'PSRCAT', 'WISE', 'Pan-STARRS', 'NEDLVS']
 
     Args:
         name (str): Name of the survey 
@@ -75,6 +76,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = VISTA_Survey(coord, radius, **kwargs)
     elif name == 'HSC':
         survey = HSC_Survey(coord, radius, **kwargs)
+    elif name == 'NEDLVS':
+        survey = NEDLVS(coord, radius, **kwargs)
 
     # Return
     return survey
@@ -90,7 +93,11 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     """
 
     # Instantiate survey and run a cone search with 1 arcmin radius
-    survey = load_survey_by_name(surveyname, coord, 1*u.arcmin)
+    if surveyname == "NEDLVS":
+        radius = 1*u.deg # Not as deep as the rest and hence a larger radius.
+    else:
+        radius = 1*u.arcmin
+    survey = load_survey_by_name(surveyname, coord, radius)
     try:
         cat = survey.get_catalog()
     except DALServiceError:

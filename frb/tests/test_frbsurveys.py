@@ -194,7 +194,6 @@ def test_in_which_survey():
     
     with warnings.catch_warnings(record=True) as allwarns:
         inside = survey_utils.in_which_survey(coord, optical_only=False)
-
     expected_dict = {'Pan-STARRS': True,
                     'WISE': True,
                     'SDSS': True,
@@ -206,7 +205,8 @@ def test_in_which_survey():
                     'HSC': False,
                     'NVSS': False,
                     'FIRST': False,
-                    'WENSS': False}
+                    'WENSS': False,
+                    'NEDLVS': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -233,6 +233,8 @@ def test_search_all():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
     assert len(combined_cat)==2
+
+    # Nothing from NEDLVS and so not in the combined catalog
     colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag',
                 'rKronRad', 'gPSFmag', 'rPSFmag', 'iPSFmag', 'zPSFmag', 'yPSFmag', 'gPSFmagErr', 'rPSFmagErr', 'iPSFmagErr', 'zPSFmagErr', 'yPSFmagErr', 'Pan-STARRS_g', 'Pan-STARRS_r', 'Pan-STARRS_i', 'Pan-STARRS_z', 'Pan-STARRS_y', 'Pan-STARRS_g_err', 'Pan-STARRS_r_err', 'Pan-STARRS_i_err', 'Pan-STARRS_z_err', 'Pan-STARRS_y_err', 'separation_1',
                 'source_id', 'tmass_key', 'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
