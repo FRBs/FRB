@@ -113,7 +113,9 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except QueryError:
         warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
         cat = None
-
+    except HTTPError:
+        warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
+        cat = None
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
         return False
@@ -216,12 +218,33 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                     combined_cat = survey.catalog
                 else:
                     # Combine otherwise
-                    # TODO: Need to deal with duplicate column names more elegantly.
-                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
+                    # Deal with duplicate columns first
+                    # remove separations
+                    if 'separation' in survey.catalog.colnames:
+                        survey.catalog.remove_column('separation')
+                    # Now other duplicates
+                    duplicate_colnames = np.array(survey.catalog.colnames)[np.isin(survey.catalog.colnames, combined_cat.colnames)]
+                    # Ignore ra, dec
+                    duplicate_colnames = duplicate_colnames[~np.isin(duplicate_colnames, ['ra', 'dec'])]
+                    # Rename them
+                    if len(duplicate_colnames)>0:
+                        renamed_duplicates = [colname+"_"+surveyname for colname in duplicate_colnames]
+                        survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
+
+                    # Now merge
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog)
             # No objects found?
             elif len(survey.catalog)==0:
                 print("Empty table in "+surveyname)
-        
+    if len(combined_cat)>0:
+        # Fill in any empty separations and sort them.
+        combined_cat['separation'] = coord.separation(SkyCoord(combined_cat['ra'], combined_cat['dec'], unit='deg')).to(u.arcmin)
+        combined_cat.sort('separation')
+
+        # Make the ra, dec, separation the first columns
+        colnames = combined_cat.colnames
+        other_cols = np.setdiff1d(colnames, ['ra', 'dec', 'separation'])
+        combined_cat = combined_cat[['ra', 'dec', 'separation']+other_cols.tolist()]
     
     return combined_cat
 
