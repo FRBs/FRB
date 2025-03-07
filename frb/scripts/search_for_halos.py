@@ -31,7 +31,7 @@ def parser(options=None):
 
 def halo_dm(z, offset, log_mhalo, rmax=1, fhot=1, is_grp=False):
   if log_mhalo<14: # Low mass halos
-      if offset>800*u.kpc: # Don't bother instantiating the model if the distance is too far
+      if offset>1300*u.kpc: # Don't bother instantiating the model if the distance is too far
           return 0, -99*u.kpc
       mnfw = ModifiedNFW(log_Mhalo = log_mhalo, alpha = 2, y0 = 2, z = z, f_hot=fhot)
       #mnfw = YF17(log_Mhalo = log_mhalo, z = z)
@@ -40,10 +40,8 @@ def halo_dm(z, offset, log_mhalo, rmax=1, fhot=1, is_grp=False):
       import pdb; pdb.set_trace()
 #         if distance<mnfw.r200: # No local group
 #             return 0
-  try:
-    dm_halo, rvir = mnfw.Ne_Rperp(offset, rmax=rmax).to('pc/cm**3').value/(1+z), mnfw.r200
-  except:
-    import pdb; pdb.set_trace()
+
+  dm_halo, rvir = mnfw.Ne_Rperp(offset, rmax=rmax).to('pc/cm**3').value/(1+z), mnfw.r200
   return dm_halo, rvir
     
 def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rmax=1):
@@ -108,6 +106,7 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
   match_grps['coord'] = SkyCoord(ra=match_grps['ra'], dec=match_grps['dec'], unit='deg')
   match_grps['ang_sep'] = frb_coord.separation(match_grps['coord']).to('arcmin')
   match_grps['phys_sep'] = match_grps['Dist']*np.sin(match_grps['ang_sep'].to('rad').value)
+  match_grps = match_grps[match_grps['phys_sep']<5*u.Mpc] # Only consider groups within 5 Mpc
   
   # Cross match with the tully cluster catalog
   if len(match_grps)>0:
@@ -172,7 +171,12 @@ def main(pargs):
 
   tully_clusters = TullyGroupCat(frb_coord, radius=90*u.deg).get_catalog()
 
-  mean_dm_halos_lvs, mean_dm_halos_lvs_phot, mean_grp_dm, close_by_withmass, match_grps = lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rmax=rmax)
+  mean_dm_halos_lvs, mean_dm_halos_lvs_phot, mean_grp_dm, close_by_withmass, match_grps = lvs_avg_dm_halos(frb_name, 
+                                                                                                           frb_coord, 
+                                                                                                           frb_z, 
+                                                                                                           nedlvs_tab, 
+                                                                                                           tully_clusters, 
+                                                                                                           rmax=rmax)
 
   close_by_withmass.write(f"{frb_name}_nedvls_with_mass.fits", overwrite=True)
   if len(match_grps)>0:
