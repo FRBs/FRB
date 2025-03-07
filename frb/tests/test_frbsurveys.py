@@ -2,6 +2,7 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+import re
 import astropy
 import pytest
 import os, warnings
@@ -18,6 +19,8 @@ from numpy import setdiff1d
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
+
+nedlvs = pytest.mark.skipif('NEDLVS' not in os.environ, reason='Test reqires NEDLVS environment variable to be set.')
 
 @remote_data
 def test_sdss():
@@ -184,6 +187,17 @@ def test_panstarrs():
     imghdu = ps_survey.get_image()
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
+
+@nedlvs
+def test_nedlvs():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcmin
+
+    # Test get_catalog
+    nedlvs_srvy = survey_utils.load_survey_by_name('NEDLVS', coord, search_r)
+    nedlvs_tbl = nedlvs_srvy.get_catalog()
+    assert isinstance(nedlvs_tbl, Table)
+    assert len(nedlvs_tbl) == 2
 
 @remote_data
 def test_in_which_survey():
