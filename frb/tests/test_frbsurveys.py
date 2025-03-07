@@ -2,6 +2,7 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+from calendar import c
 import re
 import astropy
 import pytest
@@ -198,6 +199,17 @@ def test_nedlvs():
     nedlvs_tbl = nedlvs_srvy.get_catalog()
     assert isinstance(nedlvs_tbl, Table)
     assert len(nedlvs_tbl) == 2
+
+@remote_data
+def test_tully():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 90 * units.deg
+
+    # Test get_catalog
+    tully_srvy = survey_utils.load_survey_by_name('TullyGroupCat', coord, search_r)
+    tully_tbl = tully_srvy.get_catalog(transverse_distance_cut=5*units.Mpc)
+    assert isinstance(tully_tbl, Table)
+    assert len(tully_tbl) == 6
 
 @remote_data
 def test_in_which_survey():

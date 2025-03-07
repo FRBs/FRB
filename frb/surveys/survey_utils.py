@@ -12,6 +12,7 @@ from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
+from frb.surveys.cluster_search import TullyGroupCat
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
@@ -25,8 +26,9 @@ import numpy as np
 import warnings
 
 optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS']
+group_catalogs = ['TullyGroupCat']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
-allowed_surveys = optical_surveys+radio_surveys
+allowed_surveys = optical_surveys+radio_surveys+group_catalogs
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
@@ -78,6 +80,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = HSC_Survey(coord, radius, **kwargs)
     elif name == 'NEDLVS':
         survey = NEDLVS(coord, radius, **kwargs)
+    elif name == 'TullyGroupCat':
+        survey = TullyGroupCat(coord, radius, **kwargs)
 
     # Return
     return survey
@@ -151,7 +155,7 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
     if optical_only:
         all_surveys = optical_surveys
     else:
-        all_surveys = allowed_surveys
+        all_surveys = optical_surveys+radio_surveys
     for surveyname in all_surveys:
         # Skip PSRCAT
         if surveyname == "PSRCAT":
@@ -188,7 +192,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         combined_cat = Table()
     # Select surveys
     if include_radio: # Careful! NOT TESTED!
-        surveys = allowed_surveys 
+        surveys = optical_surveys+radio_surveys
     else:
         surveys = optical_surveys
     # Loop over them

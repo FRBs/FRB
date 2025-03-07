@@ -40,9 +40,6 @@ class TullyGroupCat(surveycoord.SurveyCoord):
     """
     A class to query sources within the Tully 2015
     group/cluster catalog.
-    This requires the Tully tables to be downloaded
-    from https://ned.ipac.caltech.edu/NED::LVS/
-    and linked via the environment variable NEDLVS
     """
 
 
