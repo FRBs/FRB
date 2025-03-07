@@ -5,8 +5,9 @@ script. Requires pcigale already installed on the system.
 """
 
 import numpy as np
-import sys, os, glob, multiprocessing, warnings
+import os, multiprocessing
 from collections import OrderedDict
+from pathlib import Path
 
 from astropy.table import Table
 
@@ -20,11 +21,9 @@ else:
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
-
-from IPython import embed
-
 # Default list of SED modules for CIGALE
-_DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "dale2014",
+_DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular",
+                        "dustatt_calzleit", "dale2014",
                         "restframe_parameters", "redshifting")
 
 #TODO Create a function to check the input filters
@@ -60,7 +59,12 @@ def _sed_default_params(module, photo_z=False):
         params['logU'] = -2.0 # Ionization parameter
         params['f_esc'] = 0.0 # Escape fraction of Ly continuum photons
         params['f_dust'] = 0.0 # Fraction of Ly continuum photons absorbed
-        params['lines_width'] = 300.0
+        params['ne'] = 100 # Electron density. Possible values are: 10, 100, 1000.
+        params['zgas'] = 0.02 # # Gas metallicity. Possible values are: 0.0001, 0.0004, 0.001, 0.002,
+    # 0.0025, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.011, 0.012,
+    # 0.014, 0.016, 0.019, 0.020, 0.022, 0.025, 0.03, 0.033, 0.037, 0.041,
+    # 0.046, 0.051.
+        params['lines_width'] = 300.0 # Line width in km/s
         params['emission'] = True
     elif module == 'dustatt_calzleit':
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
@@ -72,20 +76,20 @@ def _sed_default_params(module, photo_z=False):
         #  We use the recommendation in Lo Faro+2017
         params['powerlaw_slope'] = -0.13  # Slope delta of the power law modifying the attenuation curve.
         # These filters have no effect
-        params['filters'] = 'B_B90 & V_B90 & FUV'
+        params['filters'] = 'galex.FUV & galex.NUV & sloan.sdss.u'
     elif module == 'dale2014':
         params['fracAGN'] = [0.0,0.05,0.1,0.2]
         params['alpha'] = 2.0
     elif module == 'restframe_parameters':
         params['beta_calz94'] = False
-        params['D4000'] = False
+        params['Dn4000'] = False
         params['IRX'] = False
-        params['EW_lines'] = '500.7/1.0 & 656.3/1.0'
-        params['luminosity_filters'] = 'u_prime & r_prime'
-        params['colours_filters'] = 'u_prime-r_prime'
+        params['EW'] = 'HdeltaA/404.160/407.975/408.350/412.225/412.850/416.100 & Halpha/650.0/652.5/653.5/660.0/661.0/663.5'
+        params['luminosity_filters'] = 'galex.FUV & generic.bessell.V'
+        params['colours_filters'] = 'galex.FUV-galex.NUV & galex.NUV-sloan.sdss.r'
     elif module == 'redshifting':
         if photo_z:
-            params['redshift'] = np.linspace(0.1,2,20).tolist()
+            params['redshift'] = np.linspace(0.01,1.5,20).tolist()
         else:
             params['redshift'] = '' #Use input redshifts
     return params
@@ -147,29 +151,34 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
 
     # Rename our filters to CIGALE names, as needed
     new_names = {
-        'SDSS_u': 'sdss.up',
-        'SDSS_g': 'sdss.gp',
-        'SDSS_r': 'sdss.rp',
-        'SDSS_i': 'sdss.ip',
-        'SDSS_z': 'sdss.zp',
+        'SDSS_u': 'sloan.sdss.u',
+        'SDSS_g': 'sloan.sdss.g',
+        'SDSS_r': 'sloan.sdss.r',
+        'SDSS_i': 'sloan.sdss.i',
+        'SDSS_z': 'sloan.sdss.z',
         'VLT_u': 'VLT_FORS2_u',
         'VLT_g': 'VLT_FORS2_g',
         'VLT_I': 'VLT_FORS2_I',
         'VLT_z': 'VLT_FORS2_z',
-        'WISE_W1': 'WISE1',
-        'WISE_W2': 'WISE2',
-        'WISE_W3': 'WISE3',
-        'WISE_W4': 'WISE4',
-        'VISTA_Y': 'vista.vircam.Y',
-        'VISTA_J': 'vista.vircam.J',
-        'VISTA_H': 'vista.vircam.H',
-        'VISTA_Ks': 'vista.vircam.Ks',
+        'WISE_W1': 'wise.W1',
+        'WISE_W2': 'wise.W2',
+        'WISE_W3': 'wise.W3',
+        'WISE_W4': 'wise.W4',
+        'VISTA_Y': 'paranal.vircam.Y',
+        'VISTA_J': 'paranal.vircam.J',
+        'VISTA_H': 'paranal.vircam.H',
+        'VISTA_Ks': 'paranal.vircam.Ks',
+        'Pan-STARRS_g': 'panstarrs.ps1.g',
+        'Pan-STARRS_r': 'panstarrs.ps1.r',
+        'Pan-STARRS_i': 'panstarrs.ps1.i',
+        'Pan-STARRS_z': 'panstarrs.ps1.z',
+        'Pan-STARRS_y': 'panstarrs.ps1.y',
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
-        'WFC3_F160W': 'hst.wfc3.F160W',
-        'WFC3_F300X': 'WFC3_F300X',
-        'Spitzer_3.6': 'spitzer.irac.ch1',
-        'Spitzer_4.5': 'spitzer.irac.ch2',
+        'WFC3_F160W': 'hst.wfc3.ir.F160W',
+        'WFC3_F300X': 'WFC3_F300X', 
+        'Spitzer_3.6': 'spitzer.irac.l1',
+        'Spitzer_4.5': 'spitzer.irac.l2',
         'NSC_u': 'DECam_u',
         'NSC_g': 'DES_g',
         'NSC_r': 'DES_r',
@@ -188,20 +197,20 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'DELVE_z': 'DECam_z',
         '6dF_Bj': '6dF_Bj',
         '6dF_Rf': '6dF_Rf',
-        '6dF_H': '2MASS_H',
-        '6dF_J': '2MASS_J',
-        '6dF_K': '2MASS_K',
+        '6dF_H': '2mass.H',
+        '6dF_J': '2mass.J',
+        '6dF_K': '2mass.Ks',
         'SOAR_cousins_R':'SOAR_cousins_R',
         'SOAR_bessell_B':'SOAR_bessell_B',
         'SOAR_bessell_V':'SOAR_bessell_V',
         'SOAR_stromgren_b':'SOAR_stromgren_b',
         'SOAR_stromgren_v':'SOAR_stromgren_v',
         'SOAR_stromgren_y':'SOAR_stromgren_y',
-        'HSC_g': 'HSC_g',
-        'HSC_r': 'HSC_r',
-        'HSC_i': 'HSC_i',
-        'HSC_z': 'HSC_z',
-        'HSC_Y': 'HSC_Y'
+        'HSC_g': 'subaru.subprime.g',
+        'HSC_r': 'subaru.subprime.r',
+        'HSC_i': 'subaru.subprime.i',
+        'HSC_z': 'subaru.subprime.z',
+        'HSC_Y': 'subaru.subprime.Y'
     }
     for key in new_names:
         if key in photom_cols:
@@ -256,7 +265,7 @@ def _initialise(data_file, config_file="pcigale.ini",
         assert sed_modules_params is not None,\
              "If you're not using the default modules, you'll have to input SED parameters"
     # Init
-    cigconf = Configuration(config_file) #a set of dicts, mostly
+    cigconf = Configuration(Path(config_file)) #a set of dicts, mostly
     cigconf.create_blank_conf() #Initialises a pcigale.ini file
 
     # fill in initial values
@@ -271,7 +280,7 @@ def _initialise(data_file, config_file="pcigale.ini",
     cigconf.generate_conf() #Writes defaults to config_file
     cigconf.config['analysis_params']['variables'] = variables
     cigconf.config['analysis_params']['save_best_sed'] = save_sed
-    cigconf.config['analysis_params']['lim_flag'] = True
+    cigconf.config['analysis_params']['lim_flag'] = 'noscaling'
 
     # Change the default values to new defaults:
     if sed_modules_params is None:
@@ -346,7 +355,7 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
     _initialise(data_file, config_file=config_file, photo_z=photo_z,**kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
-    cigconf = Configuration(config_file)
+    cigconf = Configuration(Path(config_file))
     analysis_module = get_module(cigconf.configuration['analysis_method'])
     analysis_module.process(cigconf.configuration)
     if plot:
@@ -406,7 +415,6 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
                 photo_obs_model['observed_flux'] = np.array([obj[filt] for filt in filters.keys()])
                 photo_obs_model['observed_flux_err'] = np.array([obj[filt+'_err'] for filt in filters.keys()])
                 photo_obs_model.write(os.path.join(outdir,"photo_observed_model_"+str(model['id'])+".dat"),format="ascii",overwrite=True)
-            #import pdb; pdb.set_trace()
             
     return
 
