@@ -12,6 +12,30 @@ from astroquery.vizier import Vizier
 
 import numpy as np
 
+class VizierCatalogSearch(surveycoord.SurveyCoord):
+    """
+    A class to query sources within a Vizier catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, catalog = None, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        self.survey = None # Name
+        self.catalog = catalog # Name of the Vizier table to draw from.
+        self.coord = coord # Location around which to perform the search
+        self.radius = radius.to('deg').value # Radius of cone search
+        if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
+            self.cosmo = frb_cosmo
+        else:
+            self.cosmo = cosmo
+    
+
+    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc, **kwargs):
+        pass
+
+        
+
 class TullyGroupCat(surveycoord.SurveyCoord):
     """
     A class to query sources within the Tully 2015
@@ -35,7 +59,7 @@ class TullyGroupCat(surveycoord.SurveyCoord):
             self.cosmo = cosmo
     
 
-    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc, richness_cut = 5):
+    def get_catalog(self, query_fields=None, transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
         """
         Get the catalog of objects
         Args:
