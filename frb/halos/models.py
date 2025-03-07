@@ -717,6 +717,9 @@ class ModifiedNFW(object):
         """ Calculate N_e at an input impact parameter Rperp
         Just a simple sum in steps of step_size
 
+        This integrates through the entire halo. 
+        Use half if this is for the host
+
         Parameters
         ----------
         Rperp : Quantity
@@ -872,12 +875,12 @@ class ModifiedNFW(object):
         return Mr.to('M_sun')
 
     def __repr__(self):
-        txt = '<{:s}: {:s} {:s}, logM={:f}, r200={:g}'.format(
+        txt = '<{:s}: alpha={:0.2f} y0={:0.2f} logM={:0.2f}, fhot={:0.2f} r200={:g}'.format(
                 self.__class__.__name__,
-                self.coord.icrs.ra.to_string(unit=units.hour,sep=':',pad=True),
-                self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True),
-                np.log10(self.M_halo.to('Msun').value),
-            self.r200)
+                self.alpha, self.y0,
+                self.f_hot,
+                np.log10(self.M_halo.to('Msun').value), 
+                self.r200)
         # Finish
         txt = txt + '>'
         return (txt)
