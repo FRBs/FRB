@@ -20,7 +20,7 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table
 from pyvo.dal import DALServiceError
-from requests import ReadTimeout
+from requests import ReadTimeout, HTTPError
 
 import numpy as np
 import warnings
