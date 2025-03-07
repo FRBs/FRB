@@ -8,7 +8,11 @@ from . import surveycoord
 from frb.defs import frb_cosmo
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astroquery.vizier import Vizier
+
+try:
+    from astroquery.vizier import Vizier
+except ImportError:
+    print("Warning: You need to install astroquery to use the cluster searches...")
 
 import numpy as np
 
