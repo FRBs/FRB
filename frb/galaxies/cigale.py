@@ -6,7 +6,6 @@ script. Requires pcigale already installed on the system.
 
 import numpy as np
 import os, multiprocessing
-from collections import OrderedDict
 from pathlib import Path
 
 from astropy.table import Table
@@ -17,7 +16,7 @@ except ImportError:
     print("You will need to install pcigale to use the cigale.py module")
 else:
     from pcigale.analysis_modules import get_module
-    from pcigale.data import SimpleDatabase as Database
+    from pcigale.utils.console import INFO, WARNING, ERROR, console
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
@@ -296,8 +295,10 @@ def _initialise(data_file, config_file="pcigale.ini",
     return cigconf
 
 
-def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
+def run(photometry_table, zcol,
+        data_file="cigale_in.fits", config_file="pcigale.ini",
+        wait_for_input=False, save_sed=True,
+        plot=True, outdir='out', **kwargs):
     """
     Input parameters and then run CIGALE.
 
@@ -323,13 +324,10 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         outdir (str, optional):
             Path to the many outputs of CIGALE
             If not supplied, the outputs will appear in a folder named out/
-        compare_obs_model (bool, optional):
-            If True compare the input observed fluxes with the model fluxes
-            This writes a Table to outdir named 'photo_observed_model.dat'
-
-    kwargs:  These are passed into gen_cigale_in() and _initialise()
         save_sed (bool, optional):
             Save the best fit SEDs to disk for each galaxy.
+
+    kwargs:  These are passed into gen_cigale_in() and _initialise()
         variables (str or list, optional):
             A single galaxy property name to save to results
             or a list of variable names. Names must belong
@@ -352,31 +350,34 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         photo_z = True
     else:
         photo_z = False
-    _initialise(data_file, config_file=config_file, photo_z=photo_z,**kwargs)
+    _initialise(data_file, config_file=config_file, photo_z=photo_z, save_sed = save_sed, **kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
     cigconf = Configuration(Path(config_file))
     analysis_module = get_module(cigconf.configuration['analysis_method'])
     analysis_module.process(cigconf.configuration)
     if plot:
-        try:
-            from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
-            old_version = True
-        except ImportError:
-            from pcigale_plots.plot_types.sed import sed
-            old_version = False
-        
-        if old_version:
-            import pcigale
-            #warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
-            sed(cigconf,"mJy",True)
-        else:
+        # Saving the best model is critical to this step
+        if not save_sed:
+            # Check for best model files anyway
+            best_model_files = Path('out').glob('*_best_model.fits')
+            if len(sorted(best_model_files)) == 0:
+                console.print(f"{WARNING} No best model files found for making plots. Please rerun with save_sed=True")
+        else:        
+            try:
+                from pcigale_plots.plot_types.sed import SED
+            except ImportError:
+                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2022 and later. Please update your version.")
+                pass
+
             # TODO: Let the user customize the plot.
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
-            sed(cigconf,"mJy",True, (False, False), (False, False), series, "pdf", "out")
-        # Set back to a GUI
-        import matplotlib
-        matplotlib.use('TkAgg')
+            SED(config = cigconf, sed_type = "mJy", nologo = True,
+                xrange = (False, False), yrange =  (False, False),
+                series = series, format =  "pdf", outdir =  Path("out"))
+            # Set back to a GUI
+            import matplotlib
+            matplotlib.use('TkAgg')
 
     # Rename the default output directory?
     if outdir != 'out':
@@ -384,37 +385,13 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             os.system("rm -rf {}".format(outdir))
             os.system("mv out {:s}".format(outdir))
         except:
-            print("Invalid output directory path. Output stored in out/")
+            console.print(f"{WARNING} Invalid output directory path. Output stored in out/")
 
     # Move input files into outdir too
     os.system("mv {:s} {:s}".format(data_file, outdir))
     data_file = os.path.join(outdir, data_file.split("/")[-1])
     os.system("mv {:s} {:s}".format(config_file, outdir))
     os.system("mv {:s}.spec {:s}".format(config_file, outdir))
-
-    # Compare?
-    if compare_obs_model:
-        #Generate an observation/model flux comparison table.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                for name in cigconf.configuration['bands']
-                                if not (name.endswith('_err') or name.startswith('line')) ])
-            filters_wl = np.array([filt.pivot_wavelength
-                                    for filt in filters.values()])
-            mods = Table.read(outdir+'/results.fits')
-
-            try:
-                obs = Table.read(data_file)
-            except:
-                print("Something went wrong here. Astropy was unable to read the observations table. Please ensure it is in the fits format.")
-                return
-            for model, obj in zip(mods, obs):
-                photo_obs_model = Table()
-                photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
-                photo_obs_model['model_flux'] = np.array([model["best."+filt] for filt in filters.keys()])
-                photo_obs_model['observed_flux'] = np.array([obj[filt] for filt in filters.keys()])
-                photo_obs_model['observed_flux_err'] = np.array([obj[filt+'_err'] for filt in filters.keys()])
-                photo_obs_model.write(os.path.join(outdir,"photo_observed_model_"+str(model['id'])+".dat"),format="ascii",overwrite=True)
             
     return
 
