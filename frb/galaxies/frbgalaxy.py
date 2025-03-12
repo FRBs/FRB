@@ -348,7 +348,7 @@ class FRBGalaxy(object):
             self.photom['EBV'] = EBV
     
     def run_cigale(self, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
+        wait_for_input=False, save_sed=True, plot=True, outdir='out',**kwargs):
         """
         Generates the input data file for CIGALE
         given the photometric points and redshift
@@ -364,6 +364,8 @@ class FRBGalaxy(object):
             wait_for_input (bool, optional):
                 If true, waits for the user to finish editing the auto-generated config file
                 before running.
+            save_sed (bool, optional):
+                Saves the best fit SED if true
             plot (bool, optional):
                 Plots the best fit SED if true
             cores (int, optional):
@@ -372,9 +374,6 @@ class FRBGalaxy(object):
             outdir (str, optional):
                 Path to the many outputs of CIGALE
                 If not supplied, the outputs will appear in a folder named out/
-            compare_obs_model (bool, optional):
-                If True compare the input observed fluxes with the model fluxes
-                This writes a Table to outdir named 'photo_observed_model.dat'
 
         kwargs:  These are passed into gen_cigale_in() and _initialise()
             sed_modules (list of 'str', optional):
@@ -401,8 +400,15 @@ class FRBGalaxy(object):
             new_photom['ID'] = 'FRBGalaxy'
 
 
-        run(new_photom, 'redshift', data_file, config_file,
-        wait_for_input, plot, outdir, compare_obs_model, **kwargs)
+        run(photometry_table = new_photom,
+            zcol = 'redshift',
+            data_file = data_file,
+            config_file = config_file,
+            wait_for_input = wait_for_input,
+            save_sed = save_sed,
+            plot = plot,
+            outdir = outdir,
+            **kwargs)
         return
 
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
