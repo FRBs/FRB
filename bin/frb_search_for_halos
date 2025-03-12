@@ -6,7 +6,8 @@
 
 
 """
-This script builds the galaxy files
+This script searches the NEDLVS for foreground halos
+that could potentially contribute to the FRB DM.
 """
 
 import frb.scripts.search_for_halos as search_for_halos

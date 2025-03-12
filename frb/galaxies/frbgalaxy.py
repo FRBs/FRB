@@ -870,8 +870,17 @@ class FRBHost(FRBGalaxy):
         outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
 
-    def calc_dm_halo(self, mNFW=None):
-        """ Calculate the Halo contribution to the host"""
+    def calc_dm_halo(self, **kwargs):
+        """ Calculate the Halo contribution to the host DM
+        given the host stellar mass in its derived properties
+        dict and the FRB coordinates.
+
+        Args:
+            **kwargs: Passed to dm_host.dm_host_halo
+        
+        Returns:
+            DM_halo (float): Halo contribution to the DM in pc/cm^3
+        """
 
         # Setup
         R = self.offsets['physical'] * units.kpc
@@ -880,7 +889,7 @@ class FRBHost(FRBGalaxy):
 
         # Calculate
         self.DM_halo = dm_host.dm_host_halo(
-            R, log10_Mstar, self.z, mNFW=mNFW)
+            R, log10_Mstar, self.z, **kwargs)
 
         return self.DM_halo
 
