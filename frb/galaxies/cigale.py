@@ -5,7 +5,7 @@ script. Requires pcigale already installed on the system.
 """
 
 import numpy as np
-import os, multiprocessing
+import os
 from pathlib import Path
 
 from astropy.table import Table
@@ -274,7 +274,7 @@ def _initialise(data_file, config_file="pcigale.ini",
     cigconf.config['sed_modules'] = sed_modules
     cigconf.config['analysis_method'] = 'pdf_analysis'
     if cores is None:
-        cores = multiprocessing.cpu_count() #Use all cores
+        cores = os.cpu_count() #Use all cores
     cigconf.config['cores'] = cores
     cigconf.generate_conf() #Writes defaults to config_file
     cigconf.config['analysis_params']['variables'] = variables
@@ -367,7 +367,7 @@ def run(photometry_table, zcol,
             try:
                 from pcigale_plots.plot_types.sed import SED
             except ImportError:
-                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2022 and later. Please update your version.")
+                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
                 pass
 
             # TODO: Let the user customize the plot.
