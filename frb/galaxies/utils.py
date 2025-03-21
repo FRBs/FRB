@@ -108,6 +108,7 @@ def list_of_hosts(skip_bad_hosts=True, verbose:bool=False):
 
     hosts = []
     frbs = []
+    host_names = []
     for ifile in frb_files:
         # Parse
         name = ifile.split('/')[-1].split('.')[-2]
@@ -128,7 +129,7 @@ def list_of_hosts(skip_bad_hosts=True, verbose:bool=False):
     return frbs, hosts
 
 
-def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
+def build_table_of_hosts(attrs:list=None): #PATH_root_file:str='scale0.5.csv'):
     """
     Generate a Pandas table of FRB Host galaxy data.  These are slurped
     from the 'derived', 'photom', and 'neb_lines' dicts of each host object
@@ -140,8 +141,6 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
         RA, DEC are given as RA_host, DEC_host to avoid conflict with the FRB table
 
     Args:
-        PATH_file (str):  Name of the file to use for PATH analysis
-            Defaults to the adopted set of Priors
 
     Returns:
         pd.DataFrame, dict:  Table of data on FRB host galaxies,  dict of their units
@@ -168,8 +167,9 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
     host_tbl['FRBobj'] = frbs
 
     # Loop on all the main dicts
-    for attr in ['derived', 'photom', 'neb_lines','offsets',
-                 'morphology','redshift']:
+    if attrs is None:
+        attrs = ['derived', 'photom', 'neb_lines','offsets', 'morphology','redshift']
+    for attr in attrs:
         # Load up the dicts
         dicts = [getattr(host, attr) for host in hosts]
 
@@ -206,19 +206,25 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
         #    host_tbl[key] = tbl_dict[key]
             tbl_units[key] = 'See galaxies.defs.py'
 
+    '''
     # Add PATH values
     path_tbl = load_PATH(PATH_root_file=PATH_root_file)
     path_coords = SkyCoord(ra=path_tbl.RA, dec=path_tbl.Dec, unit='deg')
 
     host_coords = SkyCoord(ra=host_tbl.RA_host, dec=host_tbl.DEC_host, unit='deg')
+    '''
 
-    # Init
+    # PATH 
     host_tbl['P_Ox'] = np.nan
     host_tbl['P_O'] = np.nan
     host_tbl['ang_size'] = np.nan
 
+    hosts_file = importlib_resources.files('frb.data.Galaxies')/'public_hosts.csv'
+    hosts_df = pandas.read_csv(hosts_file, index_col=False)
+
     # Loop
-    for index, path_row in path_tbl.iterrows():
+    for index, host_row in hosts_df.iterrows():
+        '''
         # Match to table RA, DEC
         sep = host_coords.separation(path_coords[index])
         imin = np.argmin(sep)
@@ -227,6 +233,12 @@ def build_table_of_hosts(PATH_root_file:str='scale0.5.csv'):
         if sep[imin] < 1.0*units.arcsec:
             for key in ['P_Ox', 'P_O', 'ang_size']:
                 host_tbl.loc[imin,key] = path_row[key]
+        '''
+        if 'HG'+host_row.FRB in host_tbl.Host.values:
+            indx = host_tbl[host_tbl.Host == 'HG'+host_row.FRB].index[0]
+            # Set PATH values
+            host_tbl.loc[indx,'P_Ox'] = host_row.P_Ox
+        #embed(header='236 of utils')
 
     # Return
     return host_tbl, tbl_units
