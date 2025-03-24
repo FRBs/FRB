@@ -1,0 +1,36 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 819.666626
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 42.1130739596347
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.0
+    },
+    "FRB": "FRB20231007A",
+    "cosmo": "Planck18",
+    "dec": 79.885144,
+    "eellipse": {
+        "a": 24.5268,
+        "b": 2.0016,
+        "cl": 68.0,
+        "theta": 4.243263
+    },
+    "fluence": {
+        "unit": "Jy ms",
+        "value": 36.74
+    },
+    "fluence_err": {
+        "unit": "Jy ms",
+        "value": 3.88
+    },
+    "ra": 185.384974,
+    "refs": [
+        "Leung+2025"
+    ],
+    "repeater": false
+}

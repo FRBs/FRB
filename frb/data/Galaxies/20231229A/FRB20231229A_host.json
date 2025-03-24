@@ -1,0 +1,40 @@
+{
+    "FRB": "FRB20231229A",
+    "cosmo": "Planck18",
+    "dec": 35.10783055555556,
+    "dec_FRB": 35.112918,
+    "offsets": {
+        "ang_avg": 19.15902296799963,
+        "ang_avg_err": 10.151938097888408,
+        "ang_best": 18.316131786411326,
+        "ang_best_err": 10.186869621594136,
+        "physical": 7.3036424229262344,
+        "physical_err": 4.062061465417686
+    },
+    "photom": {
+        "EBV": 0.0428,
+        "Pan-STARRS_g": 15.810695366537336,
+        "Pan-STARRS_g_err": 0.00267999991774559,
+        "Pan-STARRS_g_flux": 1.7207661239557588,
+        "Pan-STARRS_g_flux_err": 0.004247489445825539,
+        "Pan-STARRS_i": 15.15548637067426,
+        "Pan-STARRS_i_err": 0.001664999988861382,
+        "Pan-STARRS_i_flux": 3.1463385107949,
+        "Pan-STARRS_i_flux_err": 0.004824978261266202,
+        "Pan-STARRS_r": 15.34723335186606,
+        "Pan-STARRS_r_err": 0.0018660000059753656,
+        "Pan-STARRS_r_flux": 2.636978892610115,
+        "Pan-STARRS_r_flux_err": 0.004532042505171461,
+        "Pan-STARRS_y": 16.65718793252776,
+        "Pan-STARRS_y_err": 0.016805000603199005,
+        "Pan-STARRS_y_flux": 0.7890868777727469,
+        "Pan-STARRS_y_flux_err": 0.012213468979697061
+    },
+    "ra": 26.46775,
+    "ra_FRB": 26.467825,
+    "redshift": {
+        "z": 0.019,
+        "z_FRB": 0.019,
+        "z_spec": 0.019
+    }
+}
