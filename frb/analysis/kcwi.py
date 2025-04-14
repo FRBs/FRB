@@ -2,14 +2,12 @@
 Utilities to handle KCWI datacubes
 """
 
-from textwrap import fill
 import numpy as np
 import warnings
 
 from astropy.io import fits
 from astropy.table import Table
 from astropy.stats import sigma_clipped_stats, SigmaClip
-from astropy.coordinates import SkyCoord
 from astropy.wcs import WCS, utils as wcsutils
 from astropy import units as u
 from scipy.interpolate import interp1d
