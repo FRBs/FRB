@@ -8,16 +8,18 @@ import warnings
 
 from astropy.io import fits
 from astropy.table import Table
-from astropy.stats import sigma_clipped_stats
+from astropy.stats import sigma_clipped_stats, SigmaClip
 from astropy.coordinates import SkyCoord
 from astropy.wcs import WCS, utils as wcsutils
 from astropy import units as u
 from scipy.interpolate import interp1d
 
 try:
-    import sep
+    from photutils.segmentation import SourceCatalog, SourceFinder
+    from photutils.aperture import EllipticalAperture
+    from photutils.background import Background2D, MedianBackground
 except ImportError:
-    raise ImportError("Requirement unmet: sep. Run `pip install sep`")
+    raise ImportError("Requirement unmet: photutils. Run `pip install photutils`")
 
 try:
     from spectral_cube import SpectralCube
@@ -116,26 +118,30 @@ def _read_in_data(datafile, reduction_pipeline='pypeit'):
         return flux, flux_hdr, std, wcs, mask, fluxunit
 
 def find_sources(imgfile, nsig = 1.5,
-                    minarea = 10., clean=True, deblend_cont = 0.0001, regfile = None, write = None, bkgsub = True):
+                    minarea = 10.,
+                    deblend_cont = 0.0001, cont_levels = 32,
+                    connectivity = 8,
+                    regfile = None, write = None):
         """
         Find sources in the whitelight image
-        using SExtractor.
+        using Photutils segmentation.
         Args:
             imgfile (str): An image fits file
             n_sig (float, optional): Detection threshold in units
                 of sky background rms.
             minarea (float, optional): minimum area in pixels
                 to be considered a valid detection.
-            clean (bool, optional): Perform cleaning?
             deblend_cont (float, optional): Minimum contrast ratio
                 used for object deblending. Default is 0.0001.
                 To entirely disable deblending, set to 1.0.
+            cont_levels (int, optional): Number of levels
+                for deblending.
+            connectivity (int, optional): Connectivity for
+                segmentation map. Default is 8.
             regfile (str, optional): A ds9 region file of
                 areas to be masked out.
             write (str, optional): write extracted object table
                 to this path.
-            bkgsub (bool, optional): perform background subtraction?
-                Default is set to true.
         Returns:
             objects (Table): Summary table of detected objects.
             segmap (ndarray): Segmentation map.
@@ -145,7 +151,16 @@ def find_sources(imgfile, nsig = 1.5,
         white = hdulist[0]
 
         data = white.data
-        data = data.byteswap().newbyteorder() # sep requires this
+        wcs = WCS(white.header)
+        #data = data.astype(data.dtype.newbyteorder("=")) # sep requires this
+        # Keep this here just in case you want to migrate back to sep in the
+        # future 
+        finder = SourceFinder(npixels=minarea, contrast=deblend_cont,
+                              progress_bar=False,nlevels=cont_levels,
+                              connectivity=connectivity)
+        
+        _, med, std = sigma_clipped_stats(data)
+        threshold = med+nsig*std
         
         # Make a mask if available
         if regfile:
@@ -154,27 +169,13 @@ def find_sources(imgfile, nsig = 1.5,
         else:
             mask = None
 
-        # Characterize sky
-        bkg = sep.Background(data, mask = mask)
-
-        # Subtract background? 
-        if bkgsub:
-            bkg.subfrom(data)
-            # Compute background again
-            bkg = sep.Background(data, mask = mask)
-
-
-        # Compute source detection threshold
-        thresh = nsig*bkg.globalrms
+        segmap = finder(data, threshold=threshold, mask=mask)
         # Extract sources
-        objects, segmap = sep.extract(data, thresh = thresh, mask = mask,
-                                    deblend_cont = deblend_cont,
-                                    minarea = minarea, clean = clean,
-                                    segmentation_map=True)
+        objects = SourceCatalog(data, segmap, wcs = wcs).to_table()
         if write:
             Table(objects).write(write, overwrite = True)
         
-        return Table(objects), segmap
+        return objects, segmap
 
 class KCWIDatacube():
     """
@@ -254,7 +255,7 @@ class KCWIDatacube():
                 "cube" loads the whole thing for summing. "slice"
                 and "ray" do it slicewise or spectral-ray-wise.
             bkgsub (bool, optional): Subtract background continuum?
-            bkgsubkw (dict, optional): Keyword args to be passed to sep.Background
+            bkgsubkw (dict, optional): Keyword args to be passed to Background2D
                 for background estimation.
             trans_readkw (dict, optional): Keyword arguments for reading
                 the transmission curve file using astropy Table.
@@ -290,8 +291,11 @@ class KCWIDatacube():
         # Make image
         img = goodcube.sum(axis = 0, how = how)
         if bkgsub:
-            bkg = sep.Background(img.value, **bkgsubkw)
-            img = img - bkg*img.unit
+            sigma_clip = SigmaClip(sigma=3.0)
+            bkg_estimator = MedianBackground()
+            bkg = Background2D(img.value, sigma_clip=sigma_clip,
+                               bkg_estimator=bkg_estimator, **bkgsubkw)
+            img = img - bkg.background*img.unit
         if save:
             img.write(save, overwrite = overwrite)
         # TODO: Also return the std image, mask?
@@ -333,7 +337,7 @@ class KCWIDatacube():
 
     def spec_from_ellipse(self,
                         x0 = 0., y0 = 0., a = 1.,
-                        b = 1., theta = 0., r = 1.):
+                        b = 1., theta = 0.):
         
         """
         Get the spectrum within an elliptical region
@@ -343,8 +347,6 @@ class KCWIDatacube():
             a, b (float, optional): semi-major and semi-minor axes
             theta (float, optional): rotation angle of the semi-major
                 axis from the positive x axis.
-            r (float, optional): Scaling factor for a and b.
-                If not 1, a = r*a and b = r*b. 
         Returns:
             spec (OneDSpectrum): The extracted spectrum.
             var (OneDSpectrum): Variance in spectrum.
@@ -352,10 +354,11 @@ class KCWIDatacube():
         """
         #TODO: Use photutils aperture object for this.
         # Create 2D mask first
-        mask = np.zeros(self.shape[1:], dtype=np.bool)
-        sep.mask_ellipse(mask, x0, y0, a, b, theta,r)
+        ellipse = EllipticalAperture((x0, y0), a, b, theta)
+        # Create a mask from the ellipse
+        aper_mask = ellipse.to_mask(method='center').to_image(self.cube.shape[1:]).astype(bool)
         
-        return self.spec_from_spatial_mask(mask)
+        return self.spec_from_spatial_mask(aper_mask)
 
 
     def _make_marz(self, speclist, varspeclist, objects,marzfile="marzfile.fits", tovac = True):
@@ -370,7 +373,7 @@ class KCWIDatacube():
                 variances (same object class and
                 shape as speclist elements)
             objects (astropy Table): Table of
-                objects detected using sep.extract
+                objects detected using SourceCatalog.
             marzfile (str, optional): Name of
                 output MARZ fits file.
             tovac (bool, optional): Convert wavelengths
@@ -378,12 +381,12 @@ class KCWIDatacube():
         """
         # TODO: Actually compute sky background
         nobjs = len(objects)
-        wcsinfo = self.wcs.celestial
+        wcsinfo = self.cube.wcs.celestial
 
         sky = np.zeros_like(speclist)
 
         # Convert wavelengths from air to vacuum
-        wave = self.spectral_axis.value
+        wave = self.cube.spectral_axis.value
         if tovac:
             wave = _air_to_vac(wave)
         wavelist = np.tile(wave, (nobjs,1))
@@ -405,8 +408,8 @@ class KCWIDatacube():
         # Create object table
 
         ids = np.arange(nobjs)+1
-        x = objects['x'].data
-        y = objects['y'].data
+        x = objects['xcentroid'].data
+        y = objects['ycentroid'].data
         coords = wcsutils.pixel_to_skycoord(x,y,wcsinfo)
         ra = coords.ra.value
         dec = coords.dec.value
@@ -433,7 +436,7 @@ class KCWIDatacube():
             cubefile (str): A datacube fits file
             varfile (str): Variance datacube fits file
             objects (Table): Table of extracted objects produced
-                by sep.extract
+                by SourceCatalog.
             outdir (str, optional): directory to store spectra
             marzfile (str, optional): name of MARZ file to dump
                 all spectra into. File creation is skipped if
@@ -450,7 +453,7 @@ class KCWIDatacube():
         # Preliminaries
         nobjs = len(objects)
 
-        wave = self.spectral_axis.value
+        wave = self.cube.spectral_axis.value
 
         # Convert to vacuum wavelengths?
         if tovac:
@@ -466,10 +469,10 @@ class KCWIDatacube():
         # Create output folder?
         if not os.path.isdir(outdir):
             os.mkdir(outdir)
-        for idx, obj in enumerate(objects):
-            spec, varspec = self.spec_from_ellipse(obj['x'], obj['y'],
-                                            obj['a'], obj['b'],
-                                            obj['theta'], r = 2)
+        for obj in objects:
+            spec, varspec = self.spec_from_ellipse(obj['xcentroid'], obj['ycentroid'],
+                                            2*obj['semimajor_sigma'].value, 2*obj['semiminor_sigma'].value,
+                                            obj['orientation'])
 
             # Produce spectrum fits file
             spechdu = fits.PrimaryHDU(spec.data, header=spec.header)
@@ -477,12 +480,12 @@ class KCWIDatacube():
             varhdu = fits.ImageHDU(varspec.data, header=varspec.header)
             varhdu.header.set('extname', 'VAR')
             hdulist = fits.HDUList([spechdu, varhdu, wavehdu])
-            specfile_name = os.path.join(outdir,str(idx)+"_spec1d.fits")
+            specfile_name = os.path.join(outdir,str(obj['label'])+"_spec1d.fits")
             hdulist.writeto(specfile_name, overwrite=True)
 
             # Append spectrum to list
-            speclist[idx] = spec.data
-            varspeclist[idx] = varspec.data
+            speclist[obj['label']-1] = spec.data
+            varspeclist[obj['label']-1] = varspec.data
 
         if marzfile:
             marzfile = os.path.join(outdir, marzfile)
