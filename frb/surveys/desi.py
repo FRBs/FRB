@@ -1,12 +1,10 @@
 """DESI"""
 
 import numpy as np
-from astropy import units, io, utils
 from astropy.table import Table
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
-from frb.surveys import defs
 
 # Define the spectrometric data model for DESI
 spectrom = {}
