@@ -13,6 +13,7 @@ from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
 from frb.surveys.cluster_search import TullyGroupCat
+from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
@@ -25,7 +26,7 @@ from requests import ReadTimeout, HTTPError
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS']
 group_catalogs = ['TullyGroupCat']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys+group_catalogs
@@ -34,7 +35,7 @@ allowed_surveys = optical_surveys+radio_surveys+group_catalogs
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
-    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
+    allowed_surveys = ['SDSS', 'DES', 'DESI', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
     'PSRCAT', 'WISE', 'Pan-STARRS', 'NEDLVS']
 
     Args:
@@ -82,6 +83,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = NEDLVS(coord, radius, **kwargs)
     elif name == 'TullyGroupCat':
         survey = TullyGroupCat(coord, radius, **kwargs)
+    elif name == 'DESI':
+        survey = DESI_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
