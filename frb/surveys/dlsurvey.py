@@ -63,7 +63,7 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         return table_cols, col_vals, band
 
-    def _gen_cat_query(self,query_fields=None, qtype='main'):
+    def _gen_cat_query(self,query_fields=None, qtype='main', ra_col=None, dec_col=None):
         """
         Generate SQL Query for catalog search
 
@@ -71,7 +71,9 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         Args:
             query_fields (list):  Override the default list for the SQL query
-
+            qtype (str):  Type of query to generate.  Currently only 'main' is supported
+            ra_col (str):  Name of the RA column in the database
+            dec_col (str):  Name of the Dec column in the database
         """
         if self.default_query_fields is None:
             raise IOError("DLSurvey child incorrectly instantiated.  Missing default_query_fields")
@@ -90,7 +92,9 @@ class DL_Survey(surveycoord.SurveyCoord):
             else:
                 raise IOError("Bad qtype")
 
-        self.query = _default_query_str(query_fields, database,self.coord,self.radius)
+        self.query = _default_query_str(query_fields, database,self.coord,self.radius,
+                                        ra_col=ra_col,
+                                        dec_col=dec_col)
         # Return
         return self.query
     
@@ -140,7 +144,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         result = qc.query(self.token, sql=query,timeout=timeout)
         self.catalog = convert(result,outfmt="table")
 
-        if photomdict:
+        if photomdict!=None:
             self.catalog = catalog_utils.clean_cat(self.catalog, photomdict)
         
         self.catalog.meta['radius'] = self.radius
@@ -232,7 +236,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         return self.cutout, self.cutout_hdr
 
 
-def _default_query_str(query_fields, database, coord, radius):
+def _default_query_str(query_fields, database, coord, radius, ra_col=None, dec_col=None):
     """
     Generates default query string for a catalog search.
     
@@ -242,6 +246,8 @@ def _default_query_str(query_fields, database, coord, radius):
         database (str): Name of the database
         coord (astropy.coordinates.SkyCoord): Central coordinate of the search
         radius (astropy.units.Quantity or Angle): Search radius
+        ra_col, dec_col (str, optional): Name of the RA and Dec columns in the database
+            If None, defaults to 'ra' and 'dec'
         
     Returns:
         str: A query to be fed to datalab's SQL client
@@ -251,10 +257,20 @@ def _default_query_str(query_fields, database, coord, radius):
     for field in query_fields:
         query_field_str += " {:s},".format(field)
     # Remove last comma
+
+    if ra_col == None:
+        ra_col = 'ra'
+    if dec_col == None:
+        dec_col = 'dec'
     query_field_str = query_field_str[:-1]
     default_query = """SELECT{:s}
     FROM {:s}
-    WHERE q3c_radial_query(ra,dec,{:f},{:f},{:f})
-    """.format(query_field_str,database,coord.ra.value,
-                            coord.dec.value,radius.to(units.deg).value)
+    WHERE q3c_radial_query({:s},{:s},{:f},{:f},{:f})
+    """.format(query_field_str,
+               database,
+               ra_col,
+               dec_col,
+               coord.ra.value,
+               coord.dec.value,
+               radius.to(units.deg).value)
     return default_query
