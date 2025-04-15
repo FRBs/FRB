@@ -80,7 +80,19 @@ def test_des():
     # Image
     data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (39,39)
-    
+
+@remote_data
+def test_desi():
+    # Catalog
+    coord = SkyCoord(0, 0, unit="deg")
+    search_r = 0.3 * units.arcmin # Can't go below this with Noirlab for some reason. No error.
+                                  #Just a constant number of entries returned. 0 arcmin does give 0 entries though.
+
+    desi_srvy = survey_utils.load_survey_by_name('DESI', coord, search_r)
+    desi_tbl = desi_srvy.get_catalog(print_query=True, exclude_stars=True, zcat_primary_only=True)
+    assert isinstance(desi_tbl, Table)
+    assert len(desi_tbl) == 3230
+
 
 @remote_data
 def test_nsc():
