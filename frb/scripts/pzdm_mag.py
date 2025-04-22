@@ -24,6 +24,7 @@ def parser(options=None):
     parser.add_argument("--telescope", type=str, default='perfect', help="telescope model for the DM-z grid: CHIME, DSA, Parkes, FAST, CRAFT, \
                         CRAFT_ICS_892/1300/1632, perfect. Default = perfect")
     parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
+    parser.add_argument("--fig_name", type=str, default='fig_r_vs_z.png', help="name of the output figure")
 
     if options is None:
         pargs = parser.parse_args()
@@ -139,7 +140,8 @@ def main(pargs):
 
     # make the magnitude vs redshift plot with z-range if requested
     if pargs.magdm_plot:
-        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
+        fig_name = pargs.fig_name
+        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile=fig_name,
                flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
 

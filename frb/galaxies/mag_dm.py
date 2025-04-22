@@ -1,6 +1,7 @@
 """ Estimate magnitude range for a host FRB given DM and plot it """
 
 import numpy as np
+import os
 
 #import healpy as hp
 
@@ -81,7 +82,19 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
     # L curves
 
 
-    zvals = np.linspace(0.021, z_max+0.5, 200)
+    #zn = np.linspace(0.01, 0.25, 10000)
+    #PzDM=np.interp(zn, z, PzDM, left=0, right=0)
+    #ax.plot(zn, PzDM, '-k', label='P(z|DM)')
+    #ax.set_xlabel(r'Redshift ($z$)')
+    #ax.set_ylabel(r'P(z|DM)')
+    #ax.set_xlim(0.0, 0.25)
+    #plt.tight_layout(pad=0.2, h_pad=0., w_pad=0.1)
+    
+    #plt.show()
+    #adksa
+
+
+    zvals = np.linspace(0.021, min(z_max+0.5,4.), 200)
     m_Lstar = f_mL(zvals)
     ax.plot(zvals, m_Lstar, '-r', label='L*')
 
@@ -135,7 +148,10 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
 
     # End
     plt.tight_layout(pad=0.2, h_pad=0., w_pad=0.1)
-    
+
+
+    # Save the figure
+    outfile = os.path.abspath(outfile)
     print('Writing {:s}'.format(outfile))
     kwargs = {}
     if 'png' in outfile:
