@@ -443,7 +443,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
                     keys=['ra','dec'], join_type='outer', table_names=table_names)
-        merged = vstack([inner_join, outer_join]).filled(-999.)
+        merged = vstack([inner_join, outer_join]).filled(999.)
     # Only table 1 has unmatched entries?
     elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
         merged = vstack([inner_join, not_matched_tab1])
@@ -458,7 +458,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if np.any(weird_cols):
         merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
     # Fill and return.
-    return merged.filled(-999.)
+    return merged.filled(999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
