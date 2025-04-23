@@ -77,10 +77,6 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         ret = Catalogs.query_region(self.coord, radius=self.radius, 
                                        catalog="GALEX")
-        print(ret)
-
-        # ret = Table(ret[np.argmin(ret['distance_arcmin'])])
-        # .to_pandas().sort_values(by='distance_arcmin')[query_fields]
 
         pdict = photom['GALEX'].copy()
         
