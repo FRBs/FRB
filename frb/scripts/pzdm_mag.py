@@ -19,12 +19,16 @@ def parser(options=None):
     parser.add_argument("--dm_mwhalo", type=float, default=50., help="Assumed DM contribution from the MW halo. Default = 50")
     parser.add_argument("--cl", type=str, default="2.5,97.5", 
                         help="Confidence limits for the z estimate [default is a 95 percent c.l., (2.5,97.5)]")
-    parser.add_argument("--magdm_plot", default=False, action='store_true', 
-                        help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
     parser.add_argument("--telescope", type=str, default='perfect', help="telescope model for the DM-z grid: CHIME, DSA, Parkes, FAST, CRAFT, \
                         CRAFT_ICS_892/1300/1632, perfect. Default = perfect")
+    parser.add_argument("--magdm_plot", default=False, action='store_true', 
+                        help="Plot the host redshift range given DM on the magnitude vs redshift evolution")
     parser.add_argument("--fig_title", type=str,  help="title for the figure; e.g., FRBXXXXX")
     parser.add_argument("--fig_name", type=str, default='fig_r_vs_z.png', help="name of the output figure")
+    parser.add_argument("--zmin", type=float, required=False,  help="Minimum redshift for the plot")
+    parser.add_argument("--zmax", type=float, required=False, help="Maximum redshift for the plot")
+
+    
 
     if options is None:
         pargs = parser.parse_args()
@@ -53,8 +57,8 @@ def main(pargs):
     icoord = ltu.radec_to_coord(coord_arg_to_coord(pargs.coord))
 
     # EBV
-    EBV = nebular.get_ebv(icoord)['meanValue']  #
-    print(f"EBV = {EBV}")
+    EBV = nebular.get_ebv(icoord)['meanValue']  
+    print("EBV = ", EBV)
    
     # NE 2001
     DM_ISM = mw.ismDM(icoord)
@@ -139,9 +143,17 @@ def main(pargs):
     print(f"For z_({limits[1]} %)={z_max:.2f}, the limiting magnitude corresponds to L={frac_Lstar_max:.5f}L*")
 
     # make the magnitude vs redshift plot with z-range if requested
+    # Default values
+    z_min_plot = z_min
+    z_max_plot = z_max
+    # If user provides values
+    if pargs.zmin:
+        z_min_plot = pargs.zmin
+    if pargs.zmax:
+        z_max_plot = pargs.zmax
     if pargs.magdm_plot:
         fig_name = pargs.fig_name
-        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile=fig_name,
+        mag_dm.r_vs_dm_figure(z_min_plot, z_max_plot, z, PzDM, outfile=fig_name,
                flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
 

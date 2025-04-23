@@ -78,7 +78,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
         ax.plot(good_hosts.z, good_hosts.m_r, 'ok',
                 label='Secure hosts')
 
-    zvals = np.linspace(0.021, min(z_max+0.5,4.), 200)
+    zvals = np.linspace(z_min, min(z_max,4.), 200)
     m_Lstar = f_mL(zvals)
     ax.plot(zvals, m_Lstar, '-r', label='L*')
 
@@ -90,8 +90,8 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
 
 
     # Add P(z|DM)
-    xmnx = (0., z_max+0.5)
-    ymnx = (14, max(15, m_001Lstar[-1]+0.5))
+    xmnx = (z_min, z_max)
+    ymnx = (min(m_Lstar)-0.5, max(max(m_Lstar)+0.5, m_001Lstar[-1]+0.5))
     if flipy:
         ymnx = (ymnx[1], ymnx[0])
     
@@ -119,7 +119,7 @@ def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
 
     if logz_scale == True:
         ax.set_xscale('log')
-        ax.set_xlim(1e-2,z_max+0.5)
+        ax.set_xlim(z_min,z_max+0.5)
         ax.xaxis.set_major_locator(plt.LogLocator(base=10, numticks=12))
     else:
         ax.xaxis.set_major_locator(plt.MultipleLocator(0.5))
