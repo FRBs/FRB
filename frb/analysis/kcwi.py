@@ -175,6 +175,25 @@ def find_sources(imgfile, nsig = 1.5,
         
         return objects, segmap
 
+def splice_spectra(blue_spec, red_spec, blue_wave, red_wave):
+    """
+    Splice together spectra of the same objects from the blue
+    and red channels.
+    """
+
+    # Clean up the spectra so that the region of overlap is
+    # set to NaN.
+    delta_lambda_blue = np.median(np.diff(blue_wave))
+    min_red_wav = red_wave[0]
+    max_blue_wav = blue_wave[-1]
+    # Create a wave grid for the overlap region
+    overlap_wave = np.arange(max_blue_wav, min_red_wav, delta_lambda_blue)
+
+    # Concatentate the wavelengths and fluxes
+    spliced_wave = np.concatenate((blue_wave, overlap_wave, red_wave))
+    splice_spec = np.concatenate((blue_spec, np.full(overlap_wave.shape, np.nan), red_spec))
+    return spliced_wave, splice_spec
+
 class KCWIDatacube():
     """
     A class to handle KCWI datacubes from PypeIt reductions.
@@ -329,8 +348,7 @@ class KCWIDatacube():
         # if kind is max:
         # if kind is something_else:
         masked_var = self.varcube.subcube_from_mask(mask_arr)
-        # TODO: Find out how to estimate the variance of a sample median.
-        varspec = masked_var.mean(axis = (1,2), how = how)
+        varspec = masked_var.mean(axis = (1,2), how = how)/np.sum(mask_arr) # Var of the mean = Sum of var/npix^2 = Mean of var/npix assuming each pix is uncorelated (not true, really).
         return spec, varspec
 
     def spec_from_ellipse(self,
@@ -359,7 +377,7 @@ class KCWIDatacube():
         return self.spec_from_spatial_mask(aper_mask)
 
 
-    def _make_marz(self, speclist, varspeclist, objects,marzfile="marzfile.fits", tovac = True):
+    def _make_marz(self, speclist, varspeclist, objects,  wave=None, marzfile="marzfile.fits", tovac = True):
         """
         Helper function to create a MARZ input file
         Args:
@@ -372,6 +390,9 @@ class KCWIDatacube():
                 shape as speclist elements)
             objects (astropy Table): Table of
                 objects detected using SourceCatalog.
+            wave (ndarray, optional): Wavelength array.
+                If None, the cube.spectral_axis
+                is used.
             marzfile (str, optional): Name of
                 output MARZ fits file.
             tovac (bool, optional): Convert wavelengths
@@ -384,7 +405,8 @@ class KCWIDatacube():
         sky = np.zeros_like(speclist)
 
         # Convert wavelengths from air to vacuum
-        wave = self.cube.spectral_axis.value
+        if wave is None:
+            wave = self.cube.spectral_axis.value
         if tovac:
             wave = _air_to_vac(wave)
         wavelist = np.tile(wave, (nobjs,1))
@@ -409,8 +431,8 @@ class KCWIDatacube():
         x = objects['xcentroid'].data
         y = objects['ycentroid'].data
         coords = wcsutils.pixel_to_skycoord(x,y,wcsinfo)
-        ra = coords.ra.value
-        dec = coords.dec.value
+        ra = coords.ra.to('rad').value
+        dec = coords.dec.to('rad').value
         types = ('P_'*nobjs).split('_')[:-1]
 
         cols = []
@@ -426,7 +448,7 @@ class KCWIDatacube():
 
         marz_hdu.writeto(marzfile, overwrite = True)
         return marz_hdu
-    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, tovac = True):
+    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, tovac = True, wvlims= None):
         """
         Extract spectra of sources found using SExtractor
         from datacube.
@@ -440,6 +462,9 @@ class KCWIDatacube():
                 all spectra into. File creation is skipped if
                 a name is not supplied.
             tovac (bool, optional): Covert wavelengths to vacuum.
+            wvlims (tuple, optional): Wavelength limits to
+                extract spectra between. If None, the full
+                wavelength range is used. Expects floats in angstroms.
         Returns:
             speclist (ndarray): A 2D array of with an extracted
                 spectrum in each row.
@@ -451,16 +476,28 @@ class KCWIDatacube():
         # Preliminaries
         nobjs = len(objects)
 
-        wave = self.cube.spectral_axis.value
+        wave = self.cube.spectral_axis.to('AA').value
 
         # Convert to vacuum wavelengths?
         if tovac:
             wave = _air_to_vac(wave)
-        # Prepare an HDU in advance
+        # Mask out wavelengths outside the limits
+        if wvlims!=None:
+            assert len(wvlims) == 2, "wavelength limits should be a tuple of length 2"
+            # Check if the spectrum is within the limits
+            wvmask = (wave >= wvlims[0]) & (wave <= wvlims[1])
+            if np.all(~wvmask):
+                raise ValueError("No pixels in the spectrum are within the wavelength limits.")
+            else:
+                wave = wave[wvmask]
+                
+        else:
+            wvmask = np.ones_like(wave, dtype=bool)
         wavehdu = fits.ImageHDU(wave)
         wavehdu.header.set('extname', 'WAVELENGTH')
 
-        # Initialize output lists 
+
+        # Initialize output lists
         speclist = np.zeros([nobjs, len(wave)])
         varspeclist = np.zeros_like(speclist)
 
@@ -468,27 +505,34 @@ class KCWIDatacube():
         if not os.path.isdir(outdir):
             os.mkdir(outdir)
         for obj in objects:
-            spec, varspec = self.spec_from_ellipse(obj['xcentroid'], obj['ycentroid'],
+            # Instead of relying on the x,y coordinates,
+            # Use the sky centroid coordinates to define the ellipse.
+            # This way, forced extraction works even if the object
+            # detection is from a different KCWI image.
+            x, y = wcsutils.skycoord_to_pixel(obj['sky_centroid'], self.cube.wcs.celestial)
+            spec, varspec = self.spec_from_ellipse(x, y,
                                             2*obj['semimajor_sigma'].value, 2*obj['semiminor_sigma'].value,
                                             obj['orientation'])
+                    
 
             # Produce spectrum fits file
-            spechdu = fits.PrimaryHDU(spec.data, header=spec.header)
+            spechdu = fits.PrimaryHDU(spec.value[wvmask], header=spec.header)
             spechdu.header.set('extname', 'SPEC')
-            varhdu = fits.ImageHDU(varspec.data, header=varspec.header)
+            varhdu = fits.ImageHDU(spec.value[wvmask], header=varspec.header)
             varhdu.header.set('extname', 'VAR')
             hdulist = fits.HDUList([spechdu, varhdu, wavehdu])
             specfile_name = os.path.join(outdir,str(obj['label'])+"_spec1d.fits")
             hdulist.writeto(specfile_name, overwrite=True)
 
             # Append spectrum to list
-            speclist[obj['label']-1] = spec.data
-            varspeclist[obj['label']-1] = varspec.data
+            speclist[obj['label']-1] = spec.value[wvmask]
+            varspeclist[obj['label']-1] = varspec.value[wvmask]
 
         if marzfile:
             marzfile = os.path.join(outdir, marzfile)
             self._make_marz(speclist=speclist,
                             varspeclist=varspeclist,
                             objects=objects,
+                            wave=wave,
                             marzfile=marzfile, tovac=tovac)
         return speclist, varspeclist, wave
