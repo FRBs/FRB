@@ -208,3 +208,49 @@ class UPClusterSZCat(VizierCatalogSearch):
         self.catalog = result
         return self.catalog
     
+# Xu+2022 (ROSAT X ray cluster)
+
+class ROSATXClusterCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Xu+2022
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(ROSATXClusterCat, self).__init__(self, coord, radius,
+                                            survey="ROSATXCluster",
+                                            viziercatalog="J/A+A/658/A59/table3",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+
+        catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+        
+        # Add a distance estimate in Mpc using the given cosmology
+        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(ROSATXClusterCat, self)._get_catalog(query_fields=query_fields)
+
+        result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(ROSATXClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
