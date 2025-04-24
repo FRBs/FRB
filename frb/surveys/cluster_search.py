@@ -22,11 +22,11 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
     """
 
 
-    def __init__(self, coord, radius = 90*u.deg, catalog = None, cosmo=None, **kwargs):
+    def __init__(self, coord, radius = 90*u.deg, survey=None, viziercatalog = None, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
-        self.survey = None # Name
-        self.catalog = catalog # Name of the Vizier table to draw from.
+        self.survey = survey # Name
+        self.viziercatalog = viziercatalog # Name of the Vizier table to draw from.
         self.coord = coord # Location around which to perform the search
         self.radius = radius.to('deg').value # Radius of cone search
         if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
@@ -34,33 +34,20 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
         else:
             self.cosmo = cosmo
     
-
-    def get_catalog(self, query_fields=None, transverse_distance_cut = 5*u.Mpc, **kwargs):
+    def clean_catalog(self, catalog):
+        """
+        This will be survey specific.
+        """
         pass
 
-        
+    def _transverse_distance_cut(self, catalog, transverse_distance_cut, distance_column='Dist'):
+        # Apply a transverse distance cut
+        angular_dist = self.coord.separation(SkyCoord(catalog['ra'], catalog['dec'], unit='deg')).to('rad').value
+        transverse_dist = catalog[distance_column]*np.sin(angular_dist)
+        catalog = catalog[transverse_dist<transverse_distance_cut]
+        return catalog
 
-class TullyGroupCat(surveycoord.SurveyCoord):
-    """
-    A class to query sources within the Tully 2015
-    group/cluster catalog.
-    """
-
-
-    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
-        # Initialize a SurveyCoord object
-        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
-        self.survey = 'Tully_2015' # Name
-        self.catalog = "J/AJ/149/171/table5" # Name of the Vizier table to draw from.
-        self.coord = coord # Location around which to perform the search
-        self.radius = radius.to('deg').value # Radius of cone search
-        if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
-            self.cosmo = frb_cosmo
-        else:
-            self.cosmo = cosmo
-    
-
-    def get_catalog(self, query_fields=None, transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
+    def _get_catalog(self, query_fields=None, **kwargs):
         """
         Get the catalog of objects
         Args:
@@ -73,19 +60,151 @@ class TullyGroupCat(surveycoord.SurveyCoord):
         """
         if query_fields is None:
             query_fields = ['**'] # Get all.
+
         # Query Vizier
-        v = Vizier(catalog = self.catalog, columns=query_fields, row_limit= -1) # No row limit
+        v = Vizier(catalog = self.viziercatalog, columns=query_fields, row_limit= -1, **kwargs) # No row limit
         result = v.query_region(self.coord, radius=self.radius*u.deg)[0] # Just get the first (and only table here)
-        result.rename_columns(['_RA.icrs', '_DE.icrs'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+        return result
+
+# Tully 2015
+class TullyGroupCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Tully 2015
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(TullyGroupCat, self).__init__(self, coord, radius,
+                                            survey="Tully+2015",
+                                            viziercatalog="J/AJ/149/171/table5",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+
+        catalog.rename_columns(['_RA.icrs', '_DE.icrs', 'Nmb'], ['ra', 'dec', 'Ngal']) # Rename the columns to match the SurveyCoord class
         
         # Convert distances from h^-1 Mpc to Mpc based on the cosmology being used.
-        result['Dist'] /=self.cosmo.h
+        catalog['Dist'] /=self.cosmo.h
+
+        return catalog
+    
+
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(TullyGroupCat, self)._get_catalog(query_fields=query_fields)
+
+        result = self.clean_catalog(result)
 
         # Apply a transverse distance cut
-        angular_dist = self.coord.separation(SkyCoord(result['ra'], result['dec'], unit='deg')).to('rad').value
-        transverse_dist = result['Dist']*np.sin(angular_dist)
-        result = result[transverse_dist<transverse_distance_cut]
-        result = result[result['Nmb']>=richness_cut]
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        result = result[result['Ngal']>=richness_cut]
         self.catalog = result
 
         return self.catalog
+    
+# Wen+2024
+class WenGroupCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Wen+2024
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(WenGroupCat, self).__init__(self, coord, radius,
+                                            survey="Wen+2024",
+                                            viziercatalog="J/ApJS/272/39/table2",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+
+        catalog.rename_columns(['RAJ2000', 'DEJ2000', 'zcl'], ['ra', 'dec', 'z']) # Rename the columns to match the SurveyCoord class
+        
+        # Add a distance estimate in Mpc using the given cosmology
+        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(WenGroupCat, self)._get_catalog(query_fields=query_fields)
+
+        result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        result = result[result['Ngal']>=richness_cut]
+        self.catalog = result
+        return self.catalog
+    
+# Bahk and Hwang 2024 (Updated Planck+2015)
+class UPClusterSZCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Bahk and Hwang 2024
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(UPClusterSZCat, self).__init__(self, coord, radius,
+                                            survey="UPClusterSZ",
+                                            viziercatalog="J/ApJS/272/7/table2",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+
+        catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+        
+        # Add a distance estimate in Mpc using the given cosmology
+        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+
+        return catalog
+
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(UPClusterSZCat, self)._get_catalog(query_fields=query_fields)
+
+        result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(UPClusterSZCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
+    
