@@ -538,7 +538,64 @@ def halomass_from_stellarmass_kravtsov(log_mstar):
         return fsolve(f, guess)[0]
 
 
-class ModifiedNFW(object):
+class Halo:
+    """
+    Base class for all NFW-like spherical halo density models
+
+    Parameters
+    ----------
+
+    M_vir: Quantity
+        Virial mass
+    z: float
+        Redshift
+    dist_comov: Quantity
+        Comoving distance
+        Optional if z is provided
+    r_max: Quantity, optional
+        Maximum radius
+        Defaults to double the virial radius
+    f_hot: float, optional
+        Fraction of universal baryon fraction that are in the intrahalo medium
+        Defaults to 1
+    cosmo: astropy.cosmology.Cosmology
+        Choice of cosmology to use. Defaults to frb.defs.frb_cosmo (Planck18)
+    del_c: int, optional
+        Overdensity parameter defining Mv (ρ_v = del_c * ρ_c(z), for critical density ρ_c)
+        If unset, defaults to eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+    """
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None):
+        self.m_vir = m_vir
+        self.cosmo = cosmo
+        self.f_hot = f_hot
+        self.redshift = z
+
+        if dist_comov is None:
+            dist_comov = self.cosmo.comoving_distance(z)
+        self.dist_comov = dist_comov
+
+        rhoc = self.cosmo.critical_density(z)
+        if del_c is None:
+            # eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+            q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+z)**3)
+            del_c = (18*np.pi**2-82*q-39*q**2)
+        self.del_c = del_c
+        self.rho_vir = del_c * rhoc
+        self.r_vir = ((self.m_vir / (4/3 * np.pi * self.rho_vir))**(1/3)).to("kpc")
+
+        if r_max is None:
+            r_max = 2 * self.r_vir
+        self.r_max = r_max
+
+
+#
+#    conc: float
+#        Concentration parameter
+#        Defaults to 7.677
+#        See also Mass / concentration relations defined in this module
+
+
+class ModifiedNFW:
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
     for the hot, virialized gas.
 
@@ -556,6 +613,9 @@ class ModifiedNFW(object):
           Parameter to modify NFW profile position.
         z: float, optional
           Redshift of the halo
+        d_c: int
+          Overdensity factor for virialized halo (e.g., 200, 500)
+          Defaults to ~ 180
         cosmo: astropy cosmology, optional
           Cosmology of the universe. 
 
@@ -573,7 +633,7 @@ class ModifiedNFW(object):
 
     """
     def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
-                 y0=1., z=0., cosmo=cosmo, **kwargs):
+                 y0=1., z=0., d_c=None, cosmo=cosmo):
         # Init
         # Param
         self.log_Mhalo = log_Mhalo
@@ -583,13 +643,14 @@ class ModifiedNFW(object):
         self.y0 = y0
         self.z = z
         self.f_hot = f_hot
+        self.d_c = d_c
         self.zero_inner_ne = 0. # kpc
         self.cosmo = cosmo
 
         # Init more
         self.setup_param(cosmo=self.cosmo)
 
-    def setup_param(self,cosmo):
+    def setup_param(self, cosmo):
         """ Setup key parameters of the model
         """
         # Cosmology
@@ -602,11 +663,14 @@ class ModifiedNFW(object):
             self.fb = cosmo.Ob0/cosmo.Om0
             self.H0 = cosmo.H0
         # Dark Matter
-        self.q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
-        #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
-        self.rhovir = (18*np.pi**2-82*self.q-39*self.q**2)*self.rhoc
-        self.r200 = (((3*self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
+        if self.d_c is None:
+            q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
+            self.d_c = (18*np.pi**2-82*q-39*q**2)
+        self.rhovir = self.d_c * self.rhoc
+        self.r200 = (((3 * self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
         self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density
+#        self.r200 = (((3*self.M_halo) / (4*np.pi*200*self.rhoc))**(1/3)).to('kpc')
+#        self.rho0 = 200*self.rhoc/3 * self.c**3 / self.fy_dm(self.c)   # Central density
         # Baryons
         self.M_b = self.M_halo * self.fb
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs

@@ -14,7 +14,7 @@ except ImportError:
 else:
     flg_aemHMF = True
 
-from astropy import units as u
+from astropy import units as un
 from astropy.coordinates import SkyCoord
 
 from frb.halos import models as halos
@@ -22,11 +22,8 @@ from frb.halos import hmf
 
 dummy_xyz = np.reshape(np.array([10., 10., 10.]), (3,1))
 
+@pytest.mark.skipif(flg_aemHMF, reason="hmf emulator not installed")
 def test_frac_in_halos():
-    # Imported (unlikely)?
-    if not flg_aemHMF:
-        assert True
-        return
     # Init (this is a test, i.e. it is not used)
     hmf.init_hmf()
     # Run an example
@@ -37,11 +34,8 @@ def test_frac_in_halos():
         ratios, 
         np.array([0.463629, 0.444242, 0.368071, 0.282909]),rtol=1e-4)
 
+@pytest.mark.skipif(flg_aemHMF, reason="hmf emulator not installed")
 def test_halo_incidence():
-    # Imported (unlikely)?
-    if not flg_aemHMF:
-        assert True
-        return
     # Run
     Navg = hmf.halo_incidence(1e12, 1., Mhigh=3e12)
     assert np.isclose(Navg, 1.1120959929493153)
@@ -55,6 +49,19 @@ def test_YF17():
     ne = yf17.ne((0.,0.,20.))
     assert np.isclose(ne, 0.000881,atol=1e-6)
 
+# New tests
+
+# TODO -- parametrize over different Mh definitions
+#         Test different cosmologies (ensure the setting sticks)
+def test_base_halo():
+    hal = halos.Halo(
+        1e13 * un.Msun,
+        1.3
+    )
+
+
+
+#####
 def test_MB04():
     mb04 = halos.MB04()
     ne = mb04.ne((0.,0.,20.))
@@ -67,7 +74,6 @@ def test_MB15():
     # Test
     assert np.isclose(ne, 0.00016150865297256291)
 
-
 def test_modified_NFW():
     # Init
     mNFW = halos.ModifiedNFW()
@@ -76,7 +82,7 @@ def test_modified_NFW():
     # rho
     rho = mNFW.rho_b(xyz)
     assert rho.size == 100
-    assert rho.unit == u.g/u.cm**3
+    assert rho.unit == g/un.cm**3
     # nH
     nH = mNFW.nH(xyz)
     assert rho.size == 100
@@ -95,9 +101,9 @@ def test_m31():
     M31 = halos.M31()
     assert np.isclose(M31.coord.distance.to('kpc').value, 752.)
     # DM through the halo
-    coord = SkyCoord('J004244.3+413009', unit=(u.hourangle, u.deg))
+    coord = SkyCoord('J004244.3+413009', unit=(hourangle, un.deg))
     DM = M31.DM_from_Galactic(coord)
-    assert DM.unit == u.pc/u.cm**3
+    assert DM.unit == pc/un.cm**3
     assert np.isclose(DM.value, 80.606, rtol=1e-3)
 
 def test_satellites():
