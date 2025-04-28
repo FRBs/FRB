@@ -537,15 +537,36 @@ def halomass_from_stellarmass_kravtsov(log_mstar):
     else:
         return fsolve(f, guess)[0]
 
+def _convinv(f):
+    # fitting function from Hu&Kravtsov
+    a2 = 0.5116
+    a3 = -1.285 / 3.
+    a4 = -3.13e-3
+    a5 = -3.52e-5
+    p = a3+a4*np.log(f)+a5*(np.log(f))**2
+    convinv = a2*f**(2*p)+(3./4.)**2
+    return 1./np.sqrt(convinv) + 2*f
+
+def _conv_input(func):
+    # decorator to convert cartesian xyz input to radius, with warning
+    def newfunc(self, xyz, **kwargs):
+        # Interpret as old input format if the zeroth axis has length 3
+        if (not np.isscalar(xyz)) and xyz.shape[0] == 3 and xyz.ndim > 1:
+            warnings.warn(f"Passing xyz cartesian coordinates to {func.__name__} "
+                          "is deprecated. Please pass array of radii instead.")
+            xyz = np.linalg.norm(xyz, axis=0)
+        return func(self, xyz, **kwargs)
+
+    return newfunc
+
 
 class Halo:
     """
-    Base class for all NFW-like spherical halo density models
+    Base class for all spherical halo density models.
 
     Parameters
     ----------
-
-    M_vir: Quantity
+    m_vir: Quantity
         Virial mass
     z: float
         Redshift
@@ -569,6 +590,7 @@ class Halo:
         self.cosmo = cosmo
         self.f_hot = f_hot
         self.redshift = z
+        self.fb = cosmo.Ob0/cosmo.Om0
 
         if dist_comov is None:
             dist_comov = self.cosmo.comoving_distance(z)
@@ -587,12 +609,227 @@ class Halo:
             r_max = 2 * self.r_vir
         self.r_max = r_max
 
+        # Baryons
+        self.M_b = self.m_vir * self.fb
+        self.mu = 1.33   # Reduced mass correction for Helium
 
-#
-#    conc: float
-#        Concentration parameter
-#        Defaults to 7.677
-#        See also Mass / concentration relations defined in this module
+    @property
+    def z(self):
+        """
+        Redshift
+        """
+        warnings.warn("Attribute `z` has been renamed \"redshift\"")
+        return self.redshift
+
+
+class NFWHalo(Halo):
+    """
+    NFW dark matter halo
+    """
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None,
+                 conc=None):
+        if conc is None:
+            conc=7.677
+            warnings.warn(f"NFW concentration parameter unspecified. Defaulting to {conc}")
+            raise ValueError("Need to define concentration parameter for NFW profile")
+        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c)
+        self.conc = conc
+        self.rho0 = self.rho_vir/3 * self.conc**3 / self.fy_dm(self.conc)
+
+    def fy_dm(self, y):
+        """ Enclosed mass function for the Dark Matter NFW profilee
+
+        Parameters
+        ----------
+        y : float or ndarray
+            Radius in units of the scale radius
+            y = c(r/r_vir)
+
+        Returns
+        -------
+        f_y : float or ndarray
+        """
+        return np.log(1+y) - y/(1+y)
+
+    @property
+    def r200(self):
+        """
+        Virial radius for overdensity parameter 200
+        """
+        m200 = self.m_vir
+        if not self.del_c == 200:
+            warnings.warn(f"Overdensity factor is {self.del_c:.2f}. Converting to 200.")
+            m200 = self.mc_convert(200)[0]
+        return ((m200 / (4/3 * np.pi * 200 *  self.rho_vir / self.del_c))**(1/3)).to("kpc")
+
+    @property
+    def c(self):
+        """
+        Concentration parameter
+        """
+        warnings.warn("Attribute `c` has been renamed \"conc\"")
+        return self.conc
+
+    def mc_convert(self, delta_new):
+        """
+        Hu & Kravtsov function for converting between virial mass definitions
+
+        Parameters
+        ----------
+        delta_new:
+            Overdensity factor for new mass and concentration (e.g., 500)
+
+        Returns
+        -------
+        mass, concentration
+        """
+        ratio = self.del_c/delta_new
+        fval = np.log(1 + self.conc) - self.conc/(1+self.conc)
+        fval = fval/ratio/self.conc**3
+        return (
+            self.m_vir * (self.conc*_convinv(fval))**(-3)/ratio,
+            _convinv(fval)**(-1)
+        )
+
+class NewModifiedNFW(NFWHalo):
+    """
+    Generate a modified NFW model, e.g. Mathews & Prochaska 2017
+    for the hot, virialized gas.
+
+    Parameters
+    ----------
+    m_vir: Quantity
+        Virial mass
+    z: float
+        Redshift
+    dist_comov: Quantity
+        Comoving distance
+        Optional if z is provided
+    r_max: Quantity, optional
+        Maximum radius
+        Defaults to double the virial radius
+    f_hot: float, optional
+        Fraction of universal baryon fraction that are in the intrahalo medium
+        Defaults to 1
+    cosmo: astropy.cosmology.Cosmology
+        Choice of cosmology to use. Defaults to frb.defs.frb_cosmo (Planck18)
+    del_c: int, optional
+        Overdensity parameter defining Mv (ρ_v = del_c * ρ_c(z), for critical density ρ_c)
+        If unset, defaults to eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+    conc: float
+        Concentration parameter
+        Corresponds with scale radius r_s via r_vir = conc * r_s
+        Defaults to 7.677
+        See also Mass / concentration relations defined in this module
+    y0: float
+        Offset parameter in mnfw model (default=2)
+    alpha: float
+        Exponent in mnfw model (default=2)
+    """
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None,
+                 conc=7.677, y0=2, alpha=2):
+        self.y0 = y0
+        self.alpha = alpha
+        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c, conc=conc)
+
+        # Central densities of DM and baryons
+        self.rho0_b = (self.M_b / (4*np.pi) * (self.conc/self.r_vir)**3 / self.fy_b(self.conc)).cgs
+
+    def fy_b(self, y):
+        """ Enclosed mass function for baryons
+
+        Parameters
+        ----------
+        y : float or ndarray
+            Radius in units of the scale radius
+            y = c(r/r_vir)
+
+        Returns
+        -------
+        f_y: float or ndarray
+            Enclosed mass
+        """
+        f_y = (y/(self.y0 + y))**(1+self.alpha) * (
+                self.y0**(-self.alpha) * (self.y0 + y)**(1+self.alpha) * hyp2f1(
+            1+self.alpha, 1+self.alpha, 2+self.alpha, -1*y/self.y0)
+                - self.y0) / (1+self.alpha) / self.y0
+        return f_y
+
+    @_conv_input
+    def ne(self, radius, zero_inner_ne=None):
+        """ Calculate n_e from n_H with a correction for Helium
+        Assume 25% mass is Helium and both electrons have been stripped
+
+        Parameters
+        ----------
+        radius : ndarray or Quantity
+            Halocentric radius
+            If float, assumed to be in kpc
+        zero_inner_ne: float or Quantity
+            Inner radius to set to zero
+            If float, assumed to be in kpc
+            Optional
+
+        Returns
+        -------
+        n_e : Quantity
+          electron density in cm**-3
+
+        """
+        # Backwards compatibility
+        if hasattr(self, "zero_inner_ne") and zero_inner_ne is None:
+            zero_inner_ne = self.zero_inner_ne
+            warnings.warn("Attribute zero_inner_ne is deprecated. "
+                          "Please pass as keyword argument to ne function instead")
+
+        ne = self.nH(radius) * 1.1667
+        if zero_inner_ne is not None:
+            if not isinstance(zero_inner_ne, units.Quantity):
+                zero_inner_ne *= units.kpc
+            if np.isscalar(ne):
+                return 0
+            ne[radius < zero_inner_ne] *= 0.0
+        return ne
+
+    @_conv_input
+    def nH(self, radius):
+        """ Calculate the Hydrogen number density
+        Includes a correction for Helium
+
+        Parameters
+        ----------
+        radius : ndarray or Quantity
+          Halocentric radius
+          If float, assumed to be in kpc
+
+        Returns
+        -------
+        nH : Quantity
+          Density in cm**-3
+        """
+        nH = (self.rho_b(radius) / self.mu / m_p).to('g/cm3')
+        return nH
+
+    @_conv_input
+    def rho_b(self, radius):
+        """ Mass density in baryons in the halo; modified
+
+        Parameters
+        ----------
+        radius : ndarray or Quantity
+          Halocentric radius
+          If float, assumed to be in kpc
+
+        Returns
+        -------
+        rho : Quantity
+          Baryon density in g / cm**-3
+        """
+        if isinstance(radius, units.Quantity):
+            radius = radius.to_value("kpc")
+        y = self.conc * (radius/self.r_vir.to('kpc')).value
+        rho = self.rho0_b * self.f_hot / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
+        return rho
 
 
 class ModifiedNFW:
@@ -602,7 +839,7 @@ class ModifiedNFW:
     Parameters:
         log_Mhalo: float, optional
           log10 of the Halo mass (solar masses)
-        c: float, optional
+        conc: float, optional
           concentration of the halo
         f_hot: float, optional
           Fraction of the baryons in this hot phase
@@ -666,6 +903,7 @@ class ModifiedNFW:
         if self.d_c is None:
             q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
             self.d_c = (18*np.pi**2-82*q-39*q**2)
+            print(self.d_c)
         self.rhovir = self.d_c * self.rhoc
         self.r200 = (((3 * self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
         self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density

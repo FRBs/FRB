@@ -16,6 +16,7 @@ else:
 
 from astropy import units as un
 from astropy.coordinates import SkyCoord
+from astropy import cosmology as acosmo
 
 from frb.halos import models as halos
 from frb.halos import hmf
@@ -51,15 +52,57 @@ def test_YF17():
 
 # New tests
 
-# TODO -- parametrize over different Mh definitions
-#         Test different cosmologies (ensure the setting sticks)
-def test_base_halo():
+@pytest.mark.parametrize("cosmo_name", acosmo.available)
+def test_base_halo(cosmo_name):
+    cosmo = getattr(acosmo, cosmo_name)
+    Mv = 1e13 * un.Msun
     hal = halos.Halo(
-        1e13 * un.Msun,
-        1.3
+        Mv,  # Mass
+        1.3, # z
+        cosmo=cosmo
     )
+    assert np.isclose(hal.M_b, Mv * cosmo.Ob0 / cosmo.Om0)
+    assert hal.dist_comov == cosmo.comoving_distance(1.3)
+
+def test_nfw_virial_conventions():
+    Mvir = 1e12 * un.Msun
+    hal0 = halos.NFWHalo(Mvir, 0, conc=3.5)
+    assert hal0.conc == 3.5
+    assert np.isclose(hal0.r_vir, ((Mvir / (4/3 * np.pi * hal0.rho_vir))**(1/3)).to('kpc'))
+    M200, c200 = hal0.mc_convert(200)
+    hal1 = halos.NFWHalo(M200, hal0.redshift, conc=c200, del_c=200)
+    with pytest.warns(UserWarning, match="Overdensity factor is"):
+        assert np.isclose(hal0.r200, hal1.r200)
+    assert np.isclose(hal1.r200, hal1.r_vir)
 
 
+def test_mnfw():
+    Mvir = 1e12 * un.Msun
+    z = 1.3
+    hal = halos.NewModifiedNFW(Mvir, z, conc=7.3, y0=2, alpha=2)
+    print(hal.y0, hal.alpha, hal.r_vir)
+    assert hal.conc == 7.3
+    assert hal.y0 == 2
+
+
+def test_mnfw_deprecated_calls():
+    # Check that deprecated function calls yield warning
+    Mvir = 1e12 * un.Msun
+    z = 1.3
+    hal = halos.NewModifiedNFW(Mvir, z, conc=7.3, y0=2, alpha=2)
+    xyz = np.zeros((3, 10))
+    xyz[0, :] = np.arange(1, 11)
+    xyz_q = xyz * un.kpc
+    with pytest.warns(UserWarning, match="Passing xyz cartesian coordinates to ne is deprecated"):
+        hal.ne(xyz)
+    hal.zero_inner_ne = 5.
+    with pytest.warns(UserWarning, match="Passing xyz cartesian coordinates to ne is deprecat"):
+        with pytest.warns(UserWarning, match="Attribute zero_inner_ne is deprecated"):
+            hal.ne(xyz_q)
+    with pytest.warns(UserWarning, match="Attribute `c` has been renamed"):
+        hal.c == 7.3
+    with pytest.warns(UserWarning, match="Attribute `z` has been renamed"):
+        hal.z == z
 
 #####
 def test_MB04():
