@@ -15,7 +15,7 @@ from frb.surveys.vista import VISTA_Survey
 from frb.surveys.cluster_search import TullyGroupCat
 from frb.surveys.galex import GALEX_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
-from frb.surveys.catalog_utils import xmatch_and_merge_cats
+from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -235,7 +235,12 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                         survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
 
                     # Now merge
-                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog)
+
+                    if surveyname in ['GALEX', 'WISE', 'VISTA']:
+                        tol = 3*u.arcsec # Just worse PSFs
+                    else:
+                        tol = 1*u.arcsec
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog, tol=tol)
             # No objects found?
             elif len(survey.catalog)==0:
                 print("Empty table in "+surveyname)
