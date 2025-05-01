@@ -8,14 +8,16 @@ import pandas
 
 from astropy.coordinates import SkyCoord
 
-from astropath.priors import load_std_priors
+try:
+    from astropath.priors import load_std_priors
+except ModuleNotFoundError:
+    print("astropath not installed; install it to builld PATH")
+else:
+    from frb.associate import frbassociate
+    from frb.associate import frbs
 
 from frb.frb import FRB
-
-from frb.associate import frbassociate
-from frb.associate import frbs
 from frb.galaxies import hosts
-
 from frb import utils
 
 from IPython import embed
