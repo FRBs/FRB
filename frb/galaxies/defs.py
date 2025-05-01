@@ -139,7 +139,7 @@ Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
 
-GALEX_bands = ['fuv', 'nuv']
+GALEX_bands = ['FUV', 'NUV']
 for band in GALEX_bands:
     valid_filters.append('GALEX_{:s}'.format(band))
 
