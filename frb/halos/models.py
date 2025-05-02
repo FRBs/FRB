@@ -5,15 +5,18 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import pdb
 import warnings
+import functools
 
 import importlib_resources
 
-from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+from scipy.interpolate import InterpolatedUnivariateSpline as IUS   # NOTE -- This class is deprecated
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
+from scipy.integrate import quad_vec, cumulative_trapezoid
 from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord,Angle
+from astropy.utils.decorators import format_doc
 from astropy import units
 from astropy import constants
 from astropy.table import Table
@@ -547,29 +550,54 @@ def _convinv(f):
     convinv = a2*f**(2*p)+(3./4.)**2
     return 1./np.sqrt(convinv) + 2*f
 
-def _conv_input(func):
+def _deprc_xyz_input(func):
     # decorator to convert cartesian xyz input to radius, with warning
+    @functools.wraps(func)
     def newfunc(self, xyz, **kwargs):
         # Interpret as old input format if the zeroth axis has length 3
+        if isinstance(xyz, list):
+            xyz = np.asarray(xyz)
         if (not np.isscalar(xyz)) and xyz.shape[0] == 3 and xyz.ndim > 1:
             warnings.warn(f"Passing xyz cartesian coordinates to {func.__name__} "
                           "is deprecated. Please pass array of radii instead.")
             xyz = np.linalg.norm(xyz, axis=0)
         return func(self, xyz, **kwargs)
+    return newfunc
 
+def _handle_depr_init(init_func):
+    @functools.wraps(init_func)
+    def newfunc(self, *args, **kwargs):
+        already_warned = False
+        if len(args) == len(kwargs) == 0:
+            warnings.warn("No arguments given -- assuming old init signature and default options"
+                          ". This is deprecated. Please provide m_vir and z as first two arguments.")
+            already_warned=True
+            kwargs = {"log_Mhalo": 12.2, "conc": 7.67, "f_hot": 0.75, "alpha": 0.,
+                      "y0": 1., "z": 0., "cosmo":cosmo}
+        logmass = None
+        if len(args) > 0 and isinstance(args[0], float) and args[0] < 50.0:
+            warnings.warn("Interpreting first argument as log_Mhalo.")
+            logmass = list(args).pop(0)
+        logmass = kwargs.pop('log_Mhalo', logmass)
+        if logmass is not None:
+            if not already_warned:
+                warnings.warn("Since log_Mhalo is defined, assuming old init signature."
+                           " Please provide m_vir and redshift z as first two arguments")
+            m_vir = 10**logmass * units.Msun
+            z = kwargs.pop('z', 0)
+            return init_func(self, m_vir, z, *args, **kwargs)
+        return init_func(self, *args, **kwargs)
     return newfunc
 
 
-class Halo:
-    """
-    Base class for all spherical halo density models.
-
+base_halo_doc = """{__doc__}
     Parameters
     ----------
     m_vir: Quantity
         Virial mass
     z: float
         Redshift
+    {subclass_kwds}
     dist_comov: Quantity
         Comoving distance
         Optional if z is provided
@@ -584,7 +612,15 @@ class Halo:
     del_c: int, optional
         Overdensity parameter defining Mv (ρ_v = del_c * ρ_c(z), for critical density ρ_c)
         If unset, defaults to eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+"""
+
+
+@format_doc(base_halo_doc, subclass_kwds=None)
+class Halo:
     """
+    Base class for all spherical halo density models.
+    """
+    @_handle_depr_init
     def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None):
         self.m_vir = m_vir
         self.cosmo = cosmo
@@ -613,6 +649,35 @@ class Halo:
         self.M_b = self.m_vir * self.fb
         self.mu = 1.33   # Reduced mass correction for Helium
 
+        self._dm_vs_x = None
+        self._b = None
+
+        # TODO Add characteristic velocity and temperature corresponding with virial mass
+        self.v_vir = None
+        self.kT_vir = None
+
+    def _convert_to_virial_units(self, val, unit=None):#, quant_type=None):
+        # If a float is passed into a function
+        # E.g., val = 10, unit = 'kpc', and self.r_vir = 50 kpc, return float 0.2
+        # Internally, floats are interpreted as being in virial units.
+        if val is None:
+            return val      # Ignore unset values
+        if not isinstance(val, units.Quantity):
+            if unit is None:
+                raise ValueError("Need to specify unit for float input")
+            if unit.lower().startswith('virial'):
+                return val
+            val = units.Quantity(val, unit=unit)
+
+        for virquant, unit in [
+            (self.r_vir, 'kpc'),
+            (self.m_vir, 'Msun'),
+            (self.v_vir, 'km/s'),
+            (self.kT_vir, 'keV'),
+        ]:
+            if val.unit.is_equivalent(virquant.unit):
+                return val.to_value(unit) / virquant.to_value(unit)
+
     @property
     def z(self):
         """
@@ -621,7 +686,96 @@ class Halo:
         warnings.warn("Attribute `z` has been renamed \"redshift\"")
         return self.redshift
 
+    def ne(self, *args, **kwargs):
+        raise NotImplementedError("ne function is not defined. Use a subclass of Halo.")
 
+    def dm(self, impact, smax=None, smin=None, length_unit='kpc'):
+        """
+        Line-of-sight dispersion measure integral.
+
+        Parameters
+        ----------
+        impact: ndarray of float, Quantity
+            Impact parameter (Rperp)
+
+        smax, smin : ndarray of float, Quantity
+            Integration limits of line of sight path through halo
+                s = 0 at the point of closest approach
+            Default: sqrt(r_max**2 - impact**2)
+
+        length_unit: str
+            How to interpret float-valued inputs
+            If given the special value "virial", then float values will be interpreted
+            as being units of r_vir.
+            Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+            Default: kpc
+
+        Note: The function `ne` must be defined in a subclass
+        """
+        _b = self._convert_to_virial_units(impact, unit=length_unit)
+        smax = self._convert_to_virial_units(smax, unit=length_unit)
+        smin = self._convert_to_virial_units(smin, unit=length_unit)
+        if smax is None:
+            rv = self.r_vir.to_value('kpc')
+            smax = np.sqrt((self.r_max.to_value('kpc') / rv)**2 - _b**2)
+        if smin is None:
+            smin = -smax
+
+        def _func(x):
+            y = np.sqrt(x**2 + _b**2)
+            return self.ne(y, length_unit='virial').to_value("1/cm3")
+        return (self.r_vir * (quad_vec(_func, smin, smax)[0] / units.cm**3)).to('pc/cm3')
+
+    def dm_interp(self, xvals, impact, step=1*units.kpc, length_unit='kpc', clear_old=False, xmax=None, max_grid_size=1e6):
+        """
+        Compute DM at position x along line of sight.
+        Computes and caches an interpolator on the first run, or if the impact factor changes.
+
+        Parameters
+        ----------
+        xvals: np.ndarray of float or Quantity
+            Line-of-sight position, relative to closest approach.
+            If array of float, interpreted in units of 1/r_vir
+            For physical units, pass in as Quantity equivalent to kpc
+        impact: ndarray of float, Quantity
+            Impact parameter (Rperp)
+        length_unit: str
+            How to interpret float-valued inputs
+            If given the special value "virial", then float values will be interpreted
+            as being units of r_vir.
+            Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+            Default: kpc
+        """
+        _b = self._convert_to_virial_units(impact, unit=length_unit)
+        xvals = self._convert_to_virial_units(xvals, unit=length_unit)
+        xmax = self._convert_to_virial_units(xmax, unit=length_unit)
+
+        if xmax is None:
+            xmax = np.sqrt((self.r_max / self.r_vir).decompose().value**2 - _b**2)
+
+        # Handle interpolator caching
+        if clear_old or _b != self._b:
+            self._dm_vs_x = None
+            self._b = _b
+        if self._dm_vs_x is None:
+            dx = self._convert_to_virial_units(step, unit=length_unit)
+            xgrid = np.arange(-xmax, xmax, dx)
+            ygrid = np.sqrt(xgrid**2 + self._b**2)
+            if len(xgrid) > max_grid_size:
+                raise ValueError(f"Interpolation grid size exceeds limit max_grid_size={max_grid_size}")
+            ne_vals = self.ne(ygrid, length_unit='virial').to_value("1/cm3")
+            dm_grid = cumulative_trapezoid(ne_vals, xgrid, initial=0) * self.r_vir / units.cm**3
+            self._dm_vs_x = IUS(xgrid, dm_grid.to_value('pc/cm3'))
+        return self._dm_vs_x(xvals) * units.pc / units.cm**3
+
+
+_conc_desc = """conc: float
+        NFW concentration parameter
+        Corresponds with scale radius r_s via r_vir = conc * r_s
+        Defaults to 7.677
+        See also Mass / concentration relations defined in this module
+""".rstrip()
+@format_doc(base_halo_doc, subclass_kwds=_conc_desc)
 class NFWHalo(Halo):
     """
     NFW dark matter halo
@@ -691,41 +845,38 @@ class NFWHalo(Halo):
             _convinv(fval)**(-1)
         )
 
-class NewModifiedNFW(NFWHalo):
-    """
-    Generate a modified NFW model, e.g. Mathews & Prochaska 2017
-    for the hot, virialized gas.
-
-    Parameters
-    ----------
-    m_vir: Quantity
-        Virial mass
-    z: float
-        Redshift
-    dist_comov: Quantity
-        Comoving distance
-        Optional if z is provided
-    r_max: Quantity, optional
-        Maximum radius
-        Defaults to double the virial radius
-    f_hot: float, optional
-        Fraction of universal baryon fraction that are in the intrahalo medium
-        Defaults to 1
-    cosmo: astropy.cosmology.Cosmology
-        Choice of cosmology to use. Defaults to frb.defs.frb_cosmo (Planck18)
-    del_c: int, optional
-        Overdensity parameter defining Mv (ρ_v = del_c * ρ_c(z), for critical density ρ_c)
-        If unset, defaults to eq 5 of https://arxiv.org/pdf/1312.4629.pdf
-    conc: float
-        Concentration parameter
-        Corresponds with scale radius r_s via r_vir = conc * r_s
-        Defaults to 7.677
-        See also Mass / concentration relations defined in this module
+_mnfw_pars_desc = """
     y0: float
         Offset parameter in mnfw model (default=2)
     alpha: float
         Exponent in mnfw model (default=2)
+""".rstrip()
+_radial_funcs_templ = """{__doc__}
+        Parameters
+        ----------
+        radius : ndarray[float] or Quantity
+          Halocentric radius
+          If float, specify units with length_unit
+        length_unit: str
+            How to interpret float-valued inputs
+            If given the special value "virial", then float values will be interpreted
+            as being units of r_vir.
+            Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+            Default: kpc
+        {extra}
+
+        Returns
+        -------
+        {var}: Quantity
+            {desc}
+"""
+@format_doc(base_halo_doc, subclass_kwds=_conc_desc + _mnfw_pars_desc)
+class NewModifiedNFW(NFWHalo):
     """
+    Generate a modified NFW model, e.g. Mathews & Prochaska 2017
+    for the hot, virialized gas.
+    """
+    @_handle_depr_init
     def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None,
                  conc=7.677, y0=2, alpha=2):
         self.y0 = y0
@@ -755,81 +906,89 @@ class NewModifiedNFW(NFWHalo):
                 - self.y0) / (1+self.alpha) / self.y0
         return f_y
 
-    @_conv_input
-    def ne(self, radius, zero_inner_ne=None):
-        """ Calculate n_e from n_H with a correction for Helium
-        Assume 25% mass is Helium and both electrons have been stripped
-
-        Parameters
-        ----------
-        radius : ndarray or Quantity
-            Halocentric radius
-            If float, assumed to be in kpc
-        zero_inner_ne: float or Quantity
+    _extra = """zero_inner_ne: float or Quantity
             Inner radius to set to zero
             If float, assumed to be in kpc
             Optional
-
-        Returns
-        -------
-        n_e : Quantity
-          electron density in cm**-3
-
+    """
+    @_deprc_xyz_input
+    @format_doc(_radial_funcs_templ, extra=_extra, var="n_e", desc="electron density in cm^-3")
+    def ne(self, radius, zero_inner_ne=None, length_unit='kpc'):
+        """ Calculate n_e from n_H with a correction for Helium
+        Assume 25% mass is Helium and both electrons have been stripped
         """
+        radius = self._convert_to_virial_units(radius, unit=length_unit)
         # Backwards compatibility
         if hasattr(self, "zero_inner_ne") and zero_inner_ne is None:
             zero_inner_ne = self.zero_inner_ne
             warnings.warn("Attribute zero_inner_ne is deprecated. "
                           "Please pass as keyword argument to ne function instead")
 
-        ne = self.nH(radius) * 1.1667
+        zero_inner_ne = self._convert_to_virial_units(zero_inner_ne, unit=length_unit)
+        ne = self.nH(radius, length_unit='virial') * 1.1667
         if zero_inner_ne is not None:
-            if not isinstance(zero_inner_ne, units.Quantity):
-                zero_inner_ne *= units.kpc
             if np.isscalar(ne):
                 return 0
             ne[radius < zero_inner_ne] *= 0.0
         return ne
 
-    @_conv_input
-    def nH(self, radius):
+    @_deprc_xyz_input
+    @format_doc(_radial_funcs_templ, extra=None, var="nH", desc="Hydrogen number density in cm^-3")
+    def nH(self, radius, length_unit='kpc'):
         """ Calculate the Hydrogen number density
         Includes a correction for Helium
-
-        Parameters
-        ----------
-        radius : ndarray or Quantity
-          Halocentric radius
-          If float, assumed to be in kpc
-
-        Returns
-        -------
-        nH : Quantity
-          Density in cm**-3
         """
-        nH = (self.rho_b(radius) / self.mu / m_p).to('g/cm3')
+        nH = (self.rho_b(radius, length_unit=length_unit) / self.mu / constants.m_p).to('1/cm3')
         return nH
 
-    @_conv_input
-    def rho_b(self, radius):
+    @_deprc_xyz_input
+    @format_doc(_radial_funcs_templ, extra=None, var="rho_b", desc="Baryon density in g/cm^3")
+    def rho_b(self, radius, length_unit='kpc'):
         """ Mass density in baryons in the halo; modified
+        """
+        y = self.conc * self._convert_to_virial_units(radius, unit=length_unit)
+        with np.errstate(divide='ignore'):
+            rho = self.rho0_b * self.f_hot / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
+            rho[y==0] *= 0.0
+        return rho
+
+    def mass_r(self, radius, step_size=0.1*units.kpc, length_unit='kpc'):
+        """ Calculate baryonic halo mass (not total) to a given radius
+        Just a simple sum in steps of step_size
 
         Parameters
         ----------
-        radius : ndarray or Quantity
+        radius : float, Quantity
           Halocentric radius
-          If float, assumed to be in kpc
+          Must be a scalar value
+          If float, specify units wiht length_unit
+        length_unit: str
+            How to interpret float-valued inputs
+            If given the special value "virial", then float values will be interpreted
+            as being units of r_vir.
+            Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+            Default: kpc
+        step_size: Quantity, float
+            Step size used for numerical integration (sum)
+            Default: 0.1 kpc
 
         Returns
         -------
-        rho : Quantity
-          Baryon density in g / cm**-3
+        Mb(r): Quantity
+            Enclosed baryonic mass in Msun
         """
-        if isinstance(radius, units.Quantity):
-            radius = radius.to_value("kpc")
-        y = self.conc * (radius/self.r_vir.to('kpc')).value
-        rho = self.rho0_b * self.f_hot / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
-        return rho
+        radius = self._convert_to_virial_units(radius, unit=length_unit)
+        dr = self._convert_to_virial_units(step_size, unit=length_unit)
+
+        # Generate a sightline to rvir
+        rval = np.arange(0., radius+dr, dr)  # kpc
+
+        # Integrate
+        Mr = 4 * np.pi * self.r_vir**3 * np.sum(rval**2 * self.rho_b(rval, length_unit='virial') * dr)
+
+        # Return
+        return Mr.to("Msun")
+
 
 
 class ModifiedNFW:
@@ -852,7 +1011,7 @@ class ModifiedNFW:
           Redshift of the halo
         d_c: int
           Overdensity factor for virialized halo (e.g., 200, 500)
-          Defaults to ~ 180
+          Defaults to ~ 103
         cosmo: astropy cosmology, optional
           Cosmology of the universe. 
 
@@ -903,7 +1062,6 @@ class ModifiedNFW:
         if self.d_c is None:
             q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
             self.d_c = (18*np.pi**2-82*q-39*q**2)
-            print(self.d_c)
         self.rhovir = self.d_c * self.rhoc
         self.r200 = (((3 * self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
         self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density
