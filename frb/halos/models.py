@@ -698,12 +698,10 @@ class Halo:
         ----------
         impact: ndarray of float, Quantity
             Impact parameter (Rperp)
-
         smax, smin : ndarray of float, Quantity
             Integration limits of line of sight path through halo
                 s = 0 at the point of closest approach
             Default: sqrt(r_max**2 - impact**2)
-
         length_unit: str
             How to interpret float-valued inputs
             If given the special value "virial", then float values will be interpreted
@@ -752,8 +750,7 @@ class Halo:
         Note: The function `ne` must be defined in a subclass
         """
         # Using Akahori & Ryu 2011
-        const = (8.12e5 * units.rad / units.microgauss)
-        warnings.warn("This doesn't seem to give correct results yet.")
+        const = (8.12e5 * units.rad / units.microgauss *  units.cm**3 / units.m**2 / units.Mpc)
         return (const * Bparallel * self.dm(impact, smax=smax, smin=smin, length_unit=length_unit)).to('rad/m2')
 
     def dm_interp(self, xvals, impact, step=1*units.kpc, length_unit='kpc', clear_old=False, xmax=None, max_grid_size=1e6):

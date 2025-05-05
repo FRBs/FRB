@@ -149,12 +149,12 @@ def test_dm_interp():
 def test_mnfw_mb_of_r():
     # Function computing baryon mass vs radius
     hal = halos.NewModifiedNFW(1e14 * un.Msun, 0.4)
-    print(hal.mass_r(1, length_unit='virial'), hal.M_b)
     assert np.isclose(hal.mass_r(1, length_unit='virial'), hal.M_b, rtol=1e-3)
 
 
 def test_against_old_mnfw():
     # Compare ne, dm, and RM values in NewModifiedNFW to original ModifiedNFW
+    # TODO -- also call deprecated functions in NewModifiedNFW
     z = 0
     hal1 = halos.NewModifiedNFW(1e14 * un.Msun, z=0, r_max=1)
     hal0 = halos.ModifiedNFW(np.log10(hal1.m_vir.value), alpha=2, y0=2, c=hal1.conc, f_hot=1.0, z=z)
@@ -169,6 +169,11 @@ def test_against_old_mnfw():
     dm0 = hal0.Ne_Rperp(impact, rmax=1)
     dm1 = hal1.dm(impact)
     assert np.isclose(dm0, dm1, atol=0.01 * un.pc/un.cm**3)
+
+    Bpar = 0.5 * un.microgauss
+    rm0 = hal0.RM_Rperp(impact, Bpar, rmax=1)
+    rm1 = hal1.rm(impact, Bpar)
+    assert np.isclose(rm0, rm1, atol = 0.01 * un.rad/un.m**2)
 
 
 #####
