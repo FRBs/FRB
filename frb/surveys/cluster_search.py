@@ -9,6 +9,8 @@ from frb.defs import frb_cosmo
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 
+from astropy.table import Table
+
 try:
     from astroquery.vizier import Vizier
 except ImportError:
@@ -64,7 +66,11 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
         # Query Vizier
         v = Vizier(catalog = self.viziercatalog, columns=query_fields, row_limit= -1, **kwargs) # No row limit
         result = v.query_region(self.coord, radius=self.radius*u.deg)
-        import pdb; pdb.set_trace() # Just get the first (and only table here)
+        if len(result) == 0:
+            print("No objects found within the given radius.")
+            return Table()
+        else:
+            result = result[0]
         return result
 
 # Tully 2015
