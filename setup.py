@@ -30,7 +30,7 @@ setup_keywords['url'] = 'https://github.com/FRBs/FRB'
 #
 # END OF SETTINGS THAT NEED TO BE CHANGED.
 #
-setup_keywords['version'] = '0.1.dev0' #get_version(setup_keywords['name'])
+setup_keywords['version'] = '0.2.0' #get_version(setup_keywords['name'])
 #
 # Use README.rst as long_description.
 #

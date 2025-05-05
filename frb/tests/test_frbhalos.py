@@ -156,7 +156,7 @@ def test_mnfw_mb_of_r():
 def test_against_old_mnfw():
     # Compare ne, dm, and RM values in NewModifiedNFW to original ModifiedNFW
     z = 0
-    hal1 = halos.NewModifiedNFW(1e14 * un.Msun, z=0)
+    hal1 = halos.NewModifiedNFW(1e14 * un.Msun, z=0, r_max=1)
     hal0 = halos.ModifiedNFW(np.log10(hal1.m_vir.value), alpha=2, y0=2, c=hal1.conc, f_hot=1.0, z=z)
     radii = np.linspace(0.1, 2.3, 5) * hal1.r_vir
     xyz = np.zeros((3, 5)) * un.kpc
@@ -166,9 +166,10 @@ def test_against_old_mnfw():
     assert_quantity_allclose(ne0, ne1)
 
     impact = 0.5 * hal1.r_vir
-    dm0 = hal0.Ne_Rperp(impact, rmax=2)
+    dm0 = hal0.Ne_Rperp(impact, rmax=1)
     dm1 = hal1.dm(impact)
     assert np.isclose(dm0, dm1, atol=0.01 * un.pc/un.cm**3)
+
 
 #####
 def test_MB04():

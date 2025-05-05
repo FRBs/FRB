@@ -16,7 +16,7 @@ from scipy.integrate import quad_vec, cumulative_trapezoid
 from scipy.optimize import fsolve
 
 from astropy.coordinates import SkyCoord,Angle
-from astropy.utils.decorators import format_doc
+from astropy.utils.decorators import format_doc, deprecated
 from astropy import units
 from astropy import constants
 from astropy.table import Table
@@ -621,7 +621,7 @@ class Halo:
     Base class for all spherical halo density models.
     """
     @_handle_depr_init
-    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None):
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None, length_unit='kpc'):
         self.m_vir = m_vir
         self.cosmo = cosmo
         self.f_hot = f_hot
@@ -640,10 +640,14 @@ class Halo:
         self.del_c = del_c
         self.rho_vir = del_c * rhoc
         self.r_vir = ((self.m_vir / (4/3 * np.pi * self.rho_vir))**(1/3)).to("kpc")
+        # TODO Add characteristic velocity and temperature corresponding with virial mass
+        self.v_vir = None
+        self.kT_vir = None
 
-        if r_max is None:
-            r_max = 2 * self.r_vir
-        self.r_max = r_max
+        r_max = self._convert_to_virial_units(r_max, unit=length_unit)
+        if r_max is not None:
+            r_max = 1
+        self.r_max = r_max * self.r_vir
 
         # Baryons
         self.M_b = self.m_vir * self.fb
@@ -652,11 +656,8 @@ class Halo:
         self._dm_vs_x = None
         self._b = None
 
-        # TODO Add characteristic velocity and temperature corresponding with virial mass
-        self.v_vir = None
-        self.kT_vir = None
 
-    def _convert_to_virial_units(self, val, unit=None):#, quant_type=None):
+    def _convert_to_virial_units(self, val, unit=None):
         # If a float is passed into a function
         # E.g., val = 10, unit = 'kpc', and self.r_vir = 50 kpc, return float 0.2
         # Internally, floats are interpreted as being in virial units.
@@ -726,6 +727,35 @@ class Halo:
             return self.ne(y, length_unit='virial').to_value("1/cm3")
         return (self.r_vir * (quad_vec(_func, smin, smax)[0] / units.cm**3)).to('pc/cm3')
 
+    def rm(self, impact, Bparallel, smax=None, smin=None, length_unit='kpc'):
+        """
+        Line-of-sight rotation measure integral
+        Using Akahori & Ryu 2011 formula
+
+        Parameters
+        ----------
+        impact: ndarray of float, Quantity
+            Impact parameter (Rperp)
+        Bparallel: Quantity
+            Magnetic field component along line of sight
+        smax, smin : ndarray of float, Quantity
+            Integration limits of line of sight path through halo
+                s = 0 at the point of closest approach
+            Default: sqrt(r_max**2 - impact**2)
+        length_unit: str
+            How to interpret float-valued inputs
+            If given the special value "virial", then float values will be interpreted
+            as being units of r_vir.
+            Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+            Default: kpc
+
+        Note: The function `ne` must be defined in a subclass
+        """
+        # Using Akahori & Ryu 2011
+        const = (8.12e5 * units.rad / units.microgauss)
+        warnings.warn("This doesn't seem to give correct results yet.")
+        return (const * Bparallel * self.dm(impact, smax=smax, smin=smin, length_unit=length_unit)).to('rad/m2')
+
     def dm_interp(self, xvals, impact, step=1*units.kpc, length_unit='kpc', clear_old=False, xmax=None, max_grid_size=1e6):
         """
         Compute DM at position x along line of sight.
@@ -767,6 +797,135 @@ class Halo:
             dm_grid = cumulative_trapezoid(ne_vals, xgrid, initial=0) * self.r_vir / units.cm**3
             self._dm_vs_x = IUS(xgrid, dm_grid.to_value('pc/cm3'))
         return self._dm_vs_x(xvals) * units.pc / units.cm**3
+
+    @deprecated("v0.2.0", alternative="dm or dm_interp", pending=True)
+    def Ne_Rperp(self, Rperp, step_size=0.1*units.kpc, rmax=1., add_units=True, cumul=False):
+        """ Calculate N_e at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+
+        This integrates through the entire halo. 
+        Use half if this is for the host
+
+        Parameters
+        ----------
+        Rperp : Quantity
+          Impact parameter, typically in kpc
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+        add_units : bool, optional
+          Speed up calculations by avoiding units
+        cumul: bool, optional
+
+        Returns
+        -------
+        if cumul:
+          zval: ndarray (kpc)
+             z-values where z=0 is the midplane
+          Ne_cumul: ndarray
+             Cumulative Ne values (pc cm**-3)
+        else:
+          Ne: Quantity
+             Column density of total electrons
+        """
+        dz = step_size.to('kpc').value
+
+        # Cut at rmax*rvir
+        if Rperp > rmax*self.r_vir:
+            if add_units:
+                return 0. / units.cm**2
+            else:
+                return 0.
+        # Generate a sightline to rvir
+        zmax = np.sqrt((rmax*self.r_vir) ** 2 - Rperp ** 2).to('kpc')
+        zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,zval.size))
+        xyz[0, :] = Rperp.to('kpc').value
+        xyz[2, :] = zval
+
+        # Integrate
+        ne = self.ne(xyz).to_value("1/cm3") # cm**-3
+        if cumul:
+            Ne_cumul = np.cumsum(ne) * dz * 1000  # pc cm**-3
+            return zval, Ne_cumul
+        Ne = np.sum(ne) * dz * 1000  # pc cm**-3
+
+        # Return
+        if add_units:
+            return Ne * units.pc / units.cm**3
+        else:
+            return Ne
+
+    @deprecated("v0.2.0", alternative="rm", pending=True)
+    def RM_Rperp(self, Rperp, Bparallel, step_size=0.1*units.kpc, rmax=1.,
+                 add_units=True, cumul=False, zmax=None):
+        """ Calculate RM at an input impact parameter Rperp
+        Just a simple sum in steps of step_size
+        Assumes a constant Magnetic field
+
+        Parameters
+        ----------
+        Rperp : Quantity
+          Impact parameter, typically in kpc
+        Bparallel (Quantity):
+          Magnetic field
+        step_size : Quantity, optional
+          Step size used for numerical integration (sum)
+        rmax : float, optional
+          Maximum radius for integration in units of r200
+        add_units : bool, optional
+          Speed up calculations by avoiding units
+        cumul: bool, optional
+        zmax: float, optional
+          Maximum distance along the sightline to integrate.
+          Default is rmax*rvir
+
+        Returns
+        -------
+        if cumul:
+          zval: ndarray (kpc)
+             z-values where z=0 is the midplane
+          Ne_cumul: ndarray
+             Cumulative Ne values (pc cm**-3)
+        else:
+          RM: Quantity
+             Column density of total electrons
+        """
+        dz = step_size.to('kpc').value
+
+        # Cut at rmax*rvir
+        if Rperp > rmax*self.r_vir:
+            if add_units:
+                return 0. / units.cm**2
+            else:
+                return 0.
+        # Generate a sightline to rvir
+        if zmax is None:
+            zmax = np.sqrt((rmax*self.r_vir) ** 2 - Rperp ** 2).to('kpc')
+        zval = np.arange(-zmax.value, zmax.value+dz, dz)  # kpc
+        # Set xyz
+        xyz = np.zeros((3,zval.size))
+        xyz[0, :] = Rperp.to('kpc').value
+        xyz[2, :] = zval
+
+        # Integrate
+        ne = self.ne(xyz, length_unit='kpc').to_value("1/cm3") # cm**-3
+        # Using Akahori & Ryu 2011
+        RM = 8.12e5 * Bparallel.to('microGauss').value * \
+             np.sum(ne) * dz / 1000  # rad m**-2
+        print("TESTING: ", np.sum(ne) * dz / 1000)
+        if cumul:
+            RM_cumul = 8.12e5 * Bparallel.to('microGauss') * np.cumsum(
+                ne) * dz / 1000  # rad m**-2
+            return zval, RM_cumul
+
+        # Return
+        if add_units:
+            return RM * units.rad / units.m**2
+        else:
+            return RM
 
 
 _conc_desc = """conc: float
@@ -1288,7 +1447,6 @@ class ModifiedNFW:
         # Using Akahori & Ryu 2011
         RM = 8.12e5 * Bparallel.to('microGauss').value * \
              np.sum(ne) * dz / 1000  # rad m**-2
-
         if cumul:
             RM_cumul = 8.12e5 * Bparallel.to('microGauss') * np.cumsum(
                 ne) * dz / 1000  # rad m**-2
