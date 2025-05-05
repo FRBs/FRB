@@ -24,7 +24,7 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
 
     def __init__(self, coord, radius = 90*u.deg, survey=None, viziercatalog = None, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        super(VizierCatalogSearch, self).__init__(coord, radius, **kwargs)
         self.survey = survey # Name
         self.viziercatalog = viziercatalog # Name of the Vizier table to draw from.
         self.coord = coord # Location around which to perform the search
@@ -63,7 +63,8 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
 
         # Query Vizier
         v = Vizier(catalog = self.viziercatalog, columns=query_fields, row_limit= -1, **kwargs) # No row limit
-        result = v.query_region(self.coord, radius=self.radius*u.deg)[0] # Just get the first (and only table here)
+        result = v.query_region(self.coord, radius=self.radius*u.deg)
+        import pdb; pdb.set_trace() # Just get the first (and only table here)
         return result
 
 # Tully 2015
@@ -76,7 +77,7 @@ class TullyGroupCat(VizierCatalogSearch):
 
     def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        super(TullyGroupCat, self).__init__(self, coord, radius,
+        super(TullyGroupCat, self).__init__(coord, radius,
                                             survey="Tully+2015",
                                             viziercatalog="J/AJ/149/171/table5",
                                             cosmo=cosmo,  **kwargs)
@@ -125,7 +126,7 @@ class WenGroupCat(VizierCatalogSearch):
 
     def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        super(WenGroupCat, self).__init__(self, coord, radius,
+        super(WenGroupCat, self).__init__(coord, radius,
                                             survey="Wen+2024",
                                             viziercatalog="J/ApJS/272/39/table2",
                                             cosmo=cosmo,  **kwargs)
@@ -172,7 +173,7 @@ class UPClusterSZCat(VizierCatalogSearch):
 
     def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        super(UPClusterSZCat, self).__init__(self, coord, radius,
+        super(UPClusterSZCat, self).__init__(coord, radius,
                                             survey="UPClusterSZ",
                                             viziercatalog="J/ApJS/272/7/table2",
                                             cosmo=cosmo,  **kwargs)
@@ -219,7 +220,7 @@ class ROSATXClusterCat(VizierCatalogSearch):
 
     def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        super(ROSATXClusterCat, self).__init__(self, coord, radius,
+        super(ROSATXClusterCat, self).__init__(coord, radius,
                                             survey="ROSATXCluster",
                                             viziercatalog="J/A+A/658/A59/table3",
                                             cosmo=cosmo,  **kwargs)
@@ -266,7 +267,7 @@ class TempelClusterCat(VizierCatalogSearch):
 
     def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
-        super(TempelClusterCat, self).__init__(self, coord, radius,
+        super(TempelClusterCat, self).__init__(coord, radius,
                                             survey="TempelCluster",
                                             viziercatalog="J/A+A/618/A81/2mrs_gr",
                                             cosmo=cosmo,  **kwargs)
