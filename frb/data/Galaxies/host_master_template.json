@@ -1,23 +1,37 @@
 {
-    "FRB": "",
+    "FRB": {
+	"name": "",
+	"PA": ,
+	"PA_err": ,
+	"b/a": ,
+	"b/a_err": ,
+	"dec": ,
+	"dec_err": ,
+	"n": ,
+	"n_err": ,
+	"ra": , 
+	"ra_err": ,
+	"DM": ,
+	"DM_loerr": ,
+	"DM_uperr":
+    },
+
     "cosmo": "Planck18",
     "GalID": "",
-    "P_host:" ,
+    "P_host": ,
     "ref_P_host": "",
     "dec": ,
-    "ref_coord:" "",
-    "dec_FRB": ,
+    "ref_coord": "",
     "offsets": {
         "ang_avg": ,
         "ang_avg_err": ,
         "ang_best": ,
         "ang_best_err": ,
         "physical": ,
-        "physical_err": ,
+        "physical_err":
     },
 
-
-	"morphology": {
+    "morphology": {
         "PA": ,
         "PA_err": ,
         "b/a": ,
@@ -32,7 +46,7 @@
         "reff_ang_err": ,
         "reff_kpc": ,
         "reff_kpc_err": , 
-        "ref_morph:" ""
+        "ref_morph": ""
     },
 
     "photom": {
@@ -105,6 +119,12 @@
         "Pan-STARRS_z_err": ,
         "Pan-STARRS_z_flux": ,
         "Pan-STARRS_z_flux_err": ,
+        "TMASS_J": ,
+        "TMASS_J_err": ,
+        "TMASS_H": ,
+        "TMASS_H_err": ,
+        "TMASS_K": ,
+        "TMASS_K_err": ,
         "WISE_W1": ,
         "WISE_W1_err": ,
         "WISE_W1_flux": ,
@@ -142,9 +162,9 @@
         "[OIII] 5007": ,
         "[OIII] 5007_err": ,
         "[OIII] 5007_ref": "",
-        "[OIII] 4959:" ,
-        "[OIII] 4959_err:" ,
-        "[OIII] 4959_ref:" "",
+        "[OIII] 4959": ,
+        "[OIII] 4959_err": ,
+        "[OIII] 4959_ref": "",
         "[OII] 3726": ,
         "[OII] 3726_err": ,
         "[OII] 3726_ref": ,
@@ -156,7 +176,7 @@
         "[SII] 6717_ref": , 
         "[SII] 6731": ,
         "[SII] 6731_err":,
-        "[SII] 6731_ref": , 
+        "[SII] 6731_ref":
     },
 
     "positional_error": {
@@ -180,7 +200,7 @@
         "Mstar_ref": "",
         "Mstar_uperr": ,
         "Mtotal": ,
-        "Mtotal_loerr": 
+        "Mtotal_loerr": ,
         "Mtotal_ref": "",
         "Mtotal_uperr": ,
         "SFR_SED": ,
@@ -218,17 +238,11 @@
     },
 
     "ra": ,
-    "ra_FRB": ,
     "redshift": {
         "z": ,
         "z_FRB":,
         "z_spec": ,
         "z_spec_err": , 
-        "ref_z_spec":""
+        "ref_z_spec": ""
     }
 }
-
-
-
-
-
