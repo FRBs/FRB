@@ -540,6 +540,27 @@ def halomass_from_stellarmass_kravtsov(log_mstar):
     else:
         return fsolve(f, guess)[0]
 
+
+def virial_overdensity_factor(z, cosmo):
+    """
+    Density contrast Δ of virialized halos
+
+    Eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+
+    rho_vir = Δ * rho_c(z)
+
+    Parameters
+    ----------
+    z: float
+        Redshift
+
+    cosmo: astropy.cosmology.Cosmology
+        Cosmology instance
+    """
+    q = cosmo.Ode0/(cosmo.Ode0+cosmo.Om0*(1+z)**3)
+    return 18*np.pi**2-82*q-39*q**2
+
+
 def _convinv(f):
     # fitting function from Hu&Kravtsov
     a2 = 0.5116
@@ -612,6 +633,12 @@ base_halo_doc = """{__doc__}
     del_c: int, optional
         Overdensity parameter defining Mv (ρ_v = del_c * ρ_c(z), for critical density ρ_c)
         If unset, defaults to eq 5 of https://arxiv.org/pdf/1312.4629.pdf
+    length_unit: str
+        How to interpret float-valued inputs
+        If given the special value "virial", then float values will be interpreted
+        as being units of r_vir.
+        Otherwise, must be parsable by astropy.units.Quantity as a valid unit.
+        Default: kpc
 """
 
 
@@ -634,18 +661,18 @@ class Halo:
 
         rhoc = self.cosmo.critical_density(z)
         if del_c is None:
-            # eq 5 of https://arxiv.org/pdf/1312.4629.pdf
-            q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+z)**3)
-            del_c = (18*np.pi**2-82*q-39*q**2)
+            del_c = virial_overdensity_factor(self.redshift, self.cosmo)
         self.del_c = del_c
         self.rho_vir = del_c * rhoc
+
+        # Characteristic radius, velocity, temperature
         self.r_vir = ((self.m_vir / (4/3 * np.pi * self.rho_vir))**(1/3)).to("kpc")
-        # TODO Add characteristic velocity and temperature corresponding with virial mass
-        self.v_vir = None
-        self.kT_vir = None
+        self.v_vir = np.sqrt(constants.G * self.m_vir / self.r_vir).to('km/s')
+        mu = 0.59       # Primordial mean molecular weight, assuming 76% helium
+        self.kT_vir = (mu * con.m_p * con.G * M500 / (2 * R500)).to("erg")
 
         r_max = self._convert_to_virial_units(r_max, unit=length_unit)
-        if r_max is not None:
+        if r_max is None:
             r_max = 1
         self.r_max = r_max * self.r_vir
 
@@ -655,7 +682,6 @@ class Halo:
 
         self._dm_vs_x = None
         self._b = None
-
 
     def _convert_to_virial_units(self, val, unit=None):
         # If a float is passed into a function
@@ -912,7 +938,6 @@ class Halo:
         # Using Akahori & Ryu 2011
         RM = 8.12e5 * Bparallel.to('microGauss').value * \
              np.sum(ne) * dz / 1000  # rad m**-2
-        print("TESTING: ", np.sum(ne) * dz / 1000)
         if cumul:
             RM_cumul = 8.12e5 * Bparallel.to('microGauss') * np.cumsum(
                 ne) * dz / 1000  # rad m**-2
@@ -923,6 +948,17 @@ class Halo:
             return RM * units.rad / units.m**2
         else:
             return RM
+
+    def __repr__(self, partial=False):
+        txt = ", ".join([
+            f"f_hot={self.f_hot:0.2f}",
+            f"M_{self.del_c:.0f}={self.m_vir:.2e}",
+            f"R_{self.del_c:.0f}={self.r_vir:.2e}",
+            f"Δ_c={self.del_c:.0f}",
+        ])
+        if partial:
+            return txt
+        return f"<{self.__class__.__name__}: {txt} >"
 
 
 _conc_desc = """conc: float
@@ -936,13 +972,12 @@ class NFWHalo(Halo):
     """
     NFW dark matter halo
     """
-    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None,
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None, length_unit='kpc',
                  conc=None):
         if conc is None:
             conc=7.677
             warnings.warn(f"NFW concentration parameter unspecified. Defaulting to {conc}")
-            raise ValueError("Need to define concentration parameter for NFW profile")
-        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c)
+        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c, length_unit=length_unit)
         self.conc = conc
         self.rho0 = self.rho_vir/3 * self.conc**3 / self.fy_dm(self.conc)
 
@@ -1001,6 +1036,14 @@ class NFWHalo(Halo):
             _convinv(fval)**(-1)
         )
 
+    def __repr__(self, partial=False):
+        sup_txt = super().__repr__(partial=True)
+        txt = f"{sup_txt}, conc={self.conc:0.2f}"
+        if partial:
+            return txt
+        return f"<{self.__class__.__name__}: {txt} >"
+
+
 _mnfw_pars_desc = """
     y0: float
         Offset parameter in mnfw model (default=2)
@@ -1033,11 +1076,11 @@ class NewModifiedNFW(NFWHalo):
     for the hot, virialized gas.
     """
     @_handle_depr_init
-    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None,
-                 conc=7.677, y0=2, alpha=2):
+    def __init__(self, m_vir, z, dist_comov=None, r_max=None, f_hot=1.0, cosmo=cosmo, del_c=None, length_unit='kpc',
+                 conc=None, y0=2, alpha=2):
         self.y0 = y0
         self.alpha = alpha
-        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c, conc=conc)
+        super().__init__(m_vir, z, dist_comov=dist_comov, r_max=r_max, f_hot=f_hot, cosmo=cosmo, del_c=del_c, conc=conc, length_unit=length_unit)
 
         # Central densities of DM and baryons
         self.rho0_b = (self.M_b / (4*np.pi) * (self.conc/self.r_vir)**3 / self.fy_b(self.conc)).cgs
@@ -1144,6 +1187,17 @@ class NewModifiedNFW(NFWHalo):
 
         # Return
         return Mr.to("Msun")
+
+    def __repr__(self, partial=False):
+        sup_txt = super().__repr__(partial=True)
+        txt = ", ".join([
+            f"{sup_txt}",
+            f"alpha={self.alpha:0.2f}",
+            f"y0={self.y0:0.2f}",
+        ])
+        if partial:
+            return txt
+        return f"<{self.__class__.__name__}: {txt} >"
 
 
 

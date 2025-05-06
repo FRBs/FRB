@@ -156,7 +156,7 @@ def test_against_old_mnfw():
     # Compare ne, dm, and RM values in NewModifiedNFW to original ModifiedNFW
     # TODO -- also call deprecated functions in NewModifiedNFW
     z = 0
-    hal1 = halos.NewModifiedNFW(1e14 * un.Msun, z=0, r_max=1)
+    hal1 = halos.NewModifiedNFW(1e14 * un.Msun, z=0, r_max=1, length_unit='virial')
     hal0 = halos.ModifiedNFW(np.log10(hal1.m_vir.value), alpha=2, y0=2, c=hal1.conc, f_hot=1.0, z=z)
     radii = np.linspace(0.1, 2.3, 5) * hal1.r_vir
     xyz = np.zeros((3, 5)) * un.kpc
