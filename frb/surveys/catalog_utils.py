@@ -7,7 +7,6 @@ from astropy.cosmology import Planck18 as cosmo
 from astropy.table import Table, hstack, vstack, setdiff, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
-import warnings
 
 from IPython import embed
 
@@ -164,9 +163,10 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     return summary_list
 
 
-def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arcsec,
+def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec,
                      RACol1:str = "ra", DecCol1:str = "dec",
                      RACol2:str = "ra", DecCol2:str = "dec",
+                     distcol1:str = None, distcol2:str = None,
                      return_match_idx:bool=False)->tuple:
     """
     Cross matches two astronomical catalogs and returns
@@ -175,15 +175,21 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
         cat1, cat2: astropy Tables
             Two tables with sky coordinates to be
             matched.
-        skydist: astropy Quantity, optional
+        dist: astropy Quantity, optional
             Maximum separation for a valid match.
-            5 arcsec by default.
+            5 arcsec by default. Can be length units
+            if distcol1 and distcol2 are provided.
         RACol1, RACol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain RA in degrees.
         DecCol1, DecCol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain Dec in degrees.
+        distcol1, distcol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain the radial distance
+            as floats in Mpc. If None, 2D cross-matches
+            are returned.
         return_match_idx: bool, optional
             Return the indices of the matched entries with
             with the distance instead?
@@ -197,19 +203,31 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
     assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
     assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
     assert (RACol2 in cat2.colnames)&(DecCol2 in cat2.colnames), " Could not find either {:s} or {:s} in cat2".format(RACol2, DecCol2)
+    do_3d = (distcol1 is not None)&(distcol2 is not None)
+    if do_3d:
+        assert (distcol1 in cat1.colnames)&(distcol2 in cat2.colnames), "Could not find either {:s} or {:s} in cat1".format(distcol1, distcol2)
+        dist1 = cat1[distcol1]*units.Mpc
+        dist2 = cat2[distcol2]*units.Mpc
+    else:
+        dist1 = None
+        dist2 = None
     # Get corodinates
-    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit = "deg")
-    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit = "deg")
+    cat1_coord = SkyCoord(cat1[RACol1]*units.deg, cat1[DecCol1]*units.deg, distance=dist1)
+    cat2_coord = SkyCoord(cat2[RACol2]*units.deg, cat2[DecCol2]*units.deg, distance=dist2)
 
     # Match 2D
-    idx, d2d, _ = cat1_coord.match_to_catalog_sky(cat2_coord)
+    idx, d2d, d3d = cat1_coord.match_to_catalog_sky(cat2_coord)
 
     # Get matched tables
-    match1 = cat1[d2d < skydist]
-    match2 = cat2[idx[d2d < skydist]]
+    if do_3d:
+        separation = d3d
+    else:
+        separation = d2d
+    match1 = cat1[separation < dist]
+    match2 = cat2[idx[separation < dist]]
 
     if return_match_idx:
-        return idx, d2d
+        return idx, d2d, d3d
     else:
         return match1, match2
 
