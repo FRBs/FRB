@@ -1,7 +1,5 @@
 """ Module for DM Halo calculations
 """
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 import numpy as np
 import pdb
 import warnings
@@ -544,7 +542,7 @@ class ModifiedNFW(object):
 
     Parameters:
         log_Mhalo: float, optional
-          log10 of the Halo mass (solar masses)
+          log10 of the Halo mass [dark matter + baryons] (solar masses)
         c: float, optional
           concentration of the halo
         f_hot: float, optional
@@ -572,9 +570,20 @@ class ModifiedNFW(object):
 
 
     """
-    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
-                 y0=1., z=0., cosmo=cosmo, **kwargs):
+    def __init__(self, 
+                 log_Mhalo=12.2, 
+                 c=7.67, 
+                 f_hot:float=None, #0.75, 
+                 log_MCGM:float=None, #1e12,
+                 alpha=0., y0=1., z=0., cosmo=cosmo, **kwargs):
         # Init
+        if f_hot is None: 
+            if log_MCGM is None:
+                f_hot = 0.75
+                log_MCGM = np.log10(f_hot * 10**log_Mhalo)
+            else:
+                f_hot = 10**log_MCGM / (10**log_Mhalo*cosmo.Ob0/cosmo.Om0)
+
         # Param
         self.log_Mhalo = log_Mhalo
         self.M_halo = 10.**self.log_Mhalo * constants.M_sun.cgs
@@ -591,16 +600,16 @@ class ModifiedNFW(object):
 
     def setup_param(self,cosmo):
         """ Setup key parameters of the model
+
+        Args:
+            cosmo: astropy cosmology
+              Cosmology of the universe
         """
         # Cosmology
-        if cosmo is None:
-            self.rhoc = 9.2e-30 * units.g / units.cm**3
-            self.fb = 0.16       # Baryon fraction
-            self.H0 = 70. *units.km/units.s/ units.Mpc
-        else:
-            self.rhoc = self.cosmo.critical_density(self.z)
-            self.fb = cosmo.Ob0/cosmo.Om0
-            self.H0 = cosmo.H0
+        self.rhoc = self.cosmo.critical_density(self.z)
+        self.fb = cosmo.Ob0/cosmo.Om0
+        self.H0 = cosmo.H0
+
         # Dark Matter
         self.q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
         #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
@@ -1088,7 +1097,9 @@ class M31(ModifiedNFW):
     Taking mass from van der Marel 2012
 
     """
-    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, alpha=2, y0=2, **kwargs):
+    def __init__(self, 
+                 log_Mhalo=12.18, c=7.67, 
+                 alpha=2, y0=2, **kwargs):
 
         # Init ModifiedNFW
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
