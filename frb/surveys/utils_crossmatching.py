@@ -3,25 +3,7 @@
 last edited: May 13, 2025 """
 
 import numpy as np
-import pandas as pd
-import json
-import time
-import requests
-import os
-import sys
-from collections import OrderedDict
-
-from astropy.coordinates import SkyCoord
-import ligo.skymap.plot # KEEP: needed for projections in matplotlib
-from astropy import units as u
-
 from scipy.stats import chi2
-from astropy.io import ascii
-
-from matplotlib.patches import Ellipse
-import matplotlib.pyplot as plt
-import matplotlib
-
 
 
 
