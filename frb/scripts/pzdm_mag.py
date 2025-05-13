@@ -95,53 +95,53 @@ def main(pargs):
     z_50 = z[np.argmin(np.abs(cum_sum-50./100.))]
     z_mode = z[np.argmax(PzDM)]
 
+    return z, PzDM, z_min, z_max, DM_ISM, DM_extragalactic
 
     # Setup Luminosity
 
     # Extinction correct
-    dust_correct = photom.extinction_correction(pargs.filter, EBV)
-    mag_dust = 2.5 * np.log10(1. / dust_correct)
-    mag_corr = pargs.mag_limit + mag_dust
+    #dust_correct = photom.extinction_correction(pargs.filter, EBV)
+    #mag_dust = 2.5 * np.log10(1. / dust_correct)
+    #mag_corr = pargs.mag_limit + mag_dust
 
     # ##########################3
     # Convert to L
 
     # Load f_mL
-    f_mL = frb_gal_u.load_f_mL()
+    #f_mL = frb_gal_u.load_f_mL()
     # m_r(L*)
-    m_r_Lstar_min = float(f_mL(z_min))
-    m_r_Lstar_max = float(f_mL(z_max))
+    #m_r_Lstar_min = float(f_mL(z_min))
+    #m_r_Lstar_max = float(f_mL(z_max))
 
-    frac_Lstar_min = 10**(-0.4*(mag_corr-m_r_Lstar_min))
-    frac_Lstar_max = 10**(-0.4*(mag_corr-m_r_Lstar_max))
+    #frac_Lstar_min = 10**(-0.4*(mag_corr-m_r_Lstar_min))
+    #frac_Lstar_max = 10**(-0.4*(mag_corr-m_r_Lstar_max))
 
 
     # Finish
-    print("")
-    print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo)} pc/cm^3")
-    print(f"Allowing for the Host, DM_host = {int(pargs.dm_host)} pc/cm^3")
-    print("")
-    print("")
-    print(f"The mean redshift value is: {z_50:.3f}")
-    print(f"The mode redshift value is: {z_mode:.3f}")
-    print("")
-    print(f"The redshift range for your confidence interval [{pargs.cl}] is:")
-    print(f"z = [{z_min:.3f}, {z_max:.3f}]")
-    print("")
-    if not pargs.telescope or pargs.telescope == 'perfect':
-        print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
-    else:
-        print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
-    print("-----------------------------------------------------")
+    #print("")
+    #print(f"Allowing for the MW halo, DM_MW_halo = {int(pargs.dm_mwhalo)} pc/cm^3")
+    #print(f"Allowing for the Host, DM_host = {int(pargs.dm_host)} pc/cm^3")
+    #print("")
+    #print("")
+    #print(f"The mean redshift value is: {z_50:.3f}")
+    #print(f"The mode redshift value is: {z_mode:.3f}")
+    #print("")
+    #print(f"The redshift range for your confidence interval [{pargs.cl}] is:")
+    #print(f"z = [{z_min:.3f}, {z_max:.3f}]")
+    #print("")
+    #if not pargs.telescope or pargs.telescope == 'perfect':
+    #    print("WARNING: This all assumes a perfect telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
+    #else:
+    #    print("This assumes the "+(str(pargs.telescope))+" telescope and a model of the scatter in DM_cosmic (Macquart+2020)")
+    #print("-----------------------------------------------------")
 
-    print(f"For z_({limits[0]} %)={z_min:.2f}, the limiting magnitude corresponds to L={frac_Lstar_min:.5f}L*")
-    print(f"For z_({limits[1]} %)={z_max:.2f}, the limiting magnitude corresponds to L={frac_Lstar_max:.5f}L*")
+    #print(f"For z_({limits[0]} %)={z_min:.2f}, the limiting magnitude corresponds to L={frac_Lstar_min:.5f}L*")
+    #print(f"For z_({limits[1]} %)={z_max:.2f}, the limiting magnitude corresponds to L={frac_Lstar_max:.5f}L*")
 
     # make the magnitude vs redshift plot with z-range if requested
-    if pargs.magdm_plot:
-        mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
-               flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
+    #if pargs.magdm_plot:
+    #    mag_dm.r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',
+    #           flipy=True, known_hosts=False, title=pargs.fig_title, logz_scale=False)
 
-
-    return z_min, z_max, z_50, z_mode, frac_Lstar_min, frac_Lstar_max
+    #z_min, z_max, z_50, z_mode, frac_Lstar_min, frac_Lstar_max
 
