@@ -183,7 +183,7 @@ def splice_spectra(blue_spec, red_spec, blue_wave, red_wave):
 
     # Clean up the spectra so that the region of overlap is
     # set to NaN.
-    delta_lambda_blue = np.median(np.diff(blue_wave))
+    delta_lambda_blue = np.nanmedian(np.diff(blue_wave))
     min_red_wav = red_wave[0]
     max_blue_wav = blue_wave[-1]
     # Create a wave grid for the overlap region
