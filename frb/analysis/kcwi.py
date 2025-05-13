@@ -226,7 +226,7 @@ class KCWIDatacube():
         Returns:
             tiled_array (ndarray): an array with the 1D array tiled
                 in the spatial dimension. This has the same shape
-                as the cube.
+                as the cube (nwave, nx, ny).
         """
         tiled_array = np.tile(array, (self.cube.shape[2],self.cube.shape[1],1)).T
         return tiled_array
