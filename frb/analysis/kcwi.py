@@ -359,8 +359,8 @@ class KCWIDatacube():
         Get the spectrum within an elliptical region
         Args:
             cube (Spectral Cube): A datacube object
-            x0, y0 (float, optional): Centroid of ellipse
-            a, b (float, optional): semi-major and semi-minor axes
+            x0, y0 (float, optional): Centroid of ellipse in pixels.
+            a, b (float, optional): semi-major and semi-minor axes in pixels.
             theta (float, optional): rotation angle of the semi-major
                 axis from the positive x axis.
         Returns:
