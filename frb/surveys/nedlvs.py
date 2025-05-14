@@ -43,7 +43,9 @@ class NEDLVS(surveycoord.SurveyCoord):
         return self.datatab.colnames
 
     def get_catalog(self, z_lim=np.inf,
-                    impact_par_lim=np.inf*u.Mpc, query_fields=None):
+                    impact_par_lim=np.inf*u.Mpc,
+                    query_fields=None,
+                    print_query=False):
         """
         Get the catalog of objects within the given limits of redshift, impact parameter, and angular separation.
         Args:
@@ -59,6 +61,9 @@ class NEDLVS(surveycoord.SurveyCoord):
         else:
             assert np.isin(query_fields, self.datatab.colnames).all(), "One or more of the requested fields is not in the NEDLVS table. Check the column names with get_column_names()."
         # ...
+        if print_query:
+            print(f"Querying NEDLVS for objects within {self.radius} of {self.coord} with z < {z_lim} and impact parameter < {impact_par_lim}.")
+            print(f"Query fields: {query_fields}")
         distance_cut = self.datatab['DistMpc']<self.cosmo.luminosity_distance(z_lim).to('Mpc').value #Only need foreground objects
         valid_distances = self.datatab['DistMpc']>0 # Exclude weird sources with negative distances
         phys_sep_cut = self.datatab['phys_sep']<impact_par_lim # Impact param within limit
