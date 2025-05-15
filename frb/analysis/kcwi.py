@@ -183,7 +183,7 @@ def splice_spectra(blue_spec, red_spec, blue_wave, red_wave):
 
     # Clean up the spectra so that the region of overlap is
     # set to NaN.
-    delta_lambda_blue = np.median(np.diff(blue_wave))
+    delta_lambda_blue = np.nanmedian(np.diff(blue_wave))
     min_red_wav = red_wave[0]
     max_blue_wav = blue_wave[-1]
     # Create a wave grid for the overlap region
@@ -226,7 +226,7 @@ class KCWIDatacube():
         Returns:
             tiled_array (ndarray): an array with the 1D array tiled
                 in the spatial dimension. This has the same shape
-                as the cube.
+                as the cube (nwave, nx, ny).
         """
         tiled_array = np.tile(array, (self.cube.shape[2],self.cube.shape[1],1)).T
         return tiled_array
@@ -359,8 +359,8 @@ class KCWIDatacube():
         Get the spectrum within an elliptical region
         Args:
             cube (Spectral Cube): A datacube object
-            x0, y0 (float, optional): Centroid of ellipse
-            a, b (float, optional): semi-major and semi-minor axes
+            x0, y0 (float, optional): Centroid of ellipse in pixels.
+            a, b (float, optional): semi-major and semi-minor axes in pixels.
             theta (float, optional): rotation angle of the semi-major
                 axis from the positive x axis.
         Returns:
