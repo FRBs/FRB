@@ -377,7 +377,7 @@ class KCWIDatacube():
         return self.spec_from_spatial_mask(aper_mask)
 
 
-    def _make_marz(self, speclist, varspeclist, objects,  wave=None, marzfile="marzfile.fits", tovac = True):
+    def _make_marz(self, speclist, varspeclist, objects,  wave=None, marzfile="marzfile.fits", vac_wave = True):
         """
         Helper function to create a MARZ input file
         Args:
@@ -395,8 +395,8 @@ class KCWIDatacube():
                 is used.
             marzfile (str, optional): Name of
                 output MARZ fits file.
-            tovac (bool, optional): Convert wavelengths
-                to vacuum?
+            vac_wave (bool, optional): Is the wavelength
+                in vaccum? True by default for KCWI.
         """
         # TODO: Actually compute sky background
         nobjs = len(objects)
@@ -407,9 +407,8 @@ class KCWIDatacube():
         # Convert wavelengths from air to vacuum
         if wave is None:
             wave = self.cube.spectral_axis.value
-        if tovac:
-            wave = _air_to_vac(wave)
         wavelist = np.tile(wave, (nobjs,1))
+
 
         # Set infs to nan
         speclist[np.isinf(speclist)] = np.nan
@@ -424,6 +423,11 @@ class KCWIDatacube():
             hdu = fits.ImageHDU(data)
             hdu.header.set('extname', ext)
             marz_hdu.append(hdu)
+        
+        if vac_wave:
+            hdu[0].header.set('VACUUM', 'True', "Wavelength is in vacuum?")
+        else:
+            hdu[0].header.set('VACUUM', 'False', "Wavelength is in vacuum?")
 
         # Create object table
 
@@ -448,7 +452,7 @@ class KCWIDatacube():
 
         marz_hdu.writeto(marzfile, overwrite = True)
         return marz_hdu
-    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, tovac = True, wvlims= None):
+    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, wvlims= None):
         """
         Extract spectra of sources found using SExtractor
         from datacube.
@@ -476,11 +480,8 @@ class KCWIDatacube():
         # Preliminaries
         nobjs = len(objects)
 
-        wave = self.cube.spectral_axis.to('AA').value
+        wave = self.cube.sp_air_to_vacectral_axis.to('AA').value
 
-        # Convert to vacuum wavelengths?
-        if tovac:
-            wave = _air_to_vac(wave)
         # Mask out wavelengths outside the limits
         if wvlims!=None:
             assert len(wvlims) == 2, "wavelength limits should be a tuple of length 2"
