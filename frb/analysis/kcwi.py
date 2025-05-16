@@ -452,7 +452,7 @@ class KCWIDatacube():
 
         marz_hdu.writeto(marzfile, overwrite = True)
         return marz_hdu
-    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, wvlims= None):
+    def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, vac_wave=True, wvlims= None):
         """
         Extract spectra of sources found using SExtractor
         from datacube.
@@ -465,7 +465,7 @@ class KCWIDatacube():
             marzfile (str, optional): name of MARZ file to dump
                 all spectra into. File creation is skipped if
                 a name is not supplied.
-            tovac (bool, optional): Covert wavelengths to vacuum.
+            vac_wave (bool, optional): Wavelengths are in vacuum.
             wvlims (tuple, optional): Wavelength limits to
                 extract spectra between. If None, the full
                 wavelength range is used. Expects floats in angstroms.
@@ -480,7 +480,7 @@ class KCWIDatacube():
         # Preliminaries
         nobjs = len(objects)
 
-        wave = self.cube.sp_air_to_vacectral_axis.to('AA').value
+        wave = self.cube.spectral_axis.to('AA').value
 
         # Mask out wavelengths outside the limits
         if wvlims!=None:
@@ -535,5 +535,5 @@ class KCWIDatacube():
                             varspeclist=varspeclist,
                             objects=objects,
                             wave=wave,
-                            marzfile=marzfile, tovac=tovac)
+                            marzfile=marzfile, vac_wave=vac_wave)
         return speclist, varspeclist, wave
