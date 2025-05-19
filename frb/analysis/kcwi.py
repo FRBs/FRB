@@ -425,9 +425,9 @@ class KCWIDatacube():
             marz_hdu.append(hdu)
         
         if vac_wave:
-            hdu.header.set('VACUUM', 'True', "Wavelength is in vacuum?")
+            marz_hdu['INTENSITY'].header.set('VACUUM', 'True', "Wavelength is in vacuum?")
         else:
-            hdu.header.set('VACUUM', 'False', "Wavelength is in vacuum?")
+            marz_hdu['INTENSITY'].header.set('VACUUM', 'False', "Wavelength is in vacuum?")
 
         # Create object table
 
