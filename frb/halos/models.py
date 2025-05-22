@@ -583,7 +583,7 @@ class ModifiedNFW(object):
         if f_hot is None: 
             if log_MCGM is None:
                 f_hot = 0.75
-                log_MCGM = np.log10(f_hot * 10**log_Mhalo)
+                log_MCGM = np.log10(f_hot * 10**log_Mhalo*cosmo.Ob0/cosmo.Om0)
             else:
                 f_hot = 10**log_MCGM / (10**log_Mhalo*cosmo.Ob0/cosmo.Om0)
 
