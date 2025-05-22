@@ -578,14 +578,15 @@ class ModifiedNFW(object):
                  c=7.67, 
                  f_hot:float=None, #0.75, 
                  log_MCGM:float=None, #1e12,
-                 alpha=0., y0=1., z=0., cosmo=cosmo, **kwargs):
+                 alpha=0., y0=1., z=0., cosmo=cosmo,fb = cosmo.Ob0/cosmo.Om0,
+                 **kwargs):
         # Init
         if f_hot is None: 
             if log_MCGM is None:
                 f_hot = 0.75
-                log_MCGM = np.log10(f_hot * 10**log_Mhalo*cosmo.Ob0/cosmo.Om0)
+                log_MCGM = np.log10(f_hot * 10**log_Mhalo*fb)
             else:
-                f_hot = 10**log_MCGM / (10**log_Mhalo*cosmo.Ob0/cosmo.Om0)
+                f_hot = 10**log_MCGM / (10**log_Mhalo*fb)
 
         # Param
         self.log_Mhalo = log_Mhalo
@@ -597,11 +598,12 @@ class ModifiedNFW(object):
         self.f_hot = f_hot
         self.zero_inner_ne = 0. # kpc
         self.cosmo = cosmo
+        self.fb = fb
 
         # Init more
-        self.setup_param(cosmo=self.cosmo)
+        self.setup_param(cosmo=self.cosmo,)
 
-    def setup_param(self,cosmo):
+    def setup_param(self,cosmo,):
         """ Setup key parameters of the model
 
         Args:
@@ -610,7 +612,6 @@ class ModifiedNFW(object):
         """
         # Cosmology
         self.rhoc = self.cosmo.critical_density(self.z)
-        self.fb = cosmo.Ob0/cosmo.Om0
         self.H0 = cosmo.H0
 
         # Dark Matter
