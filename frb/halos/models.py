@@ -548,7 +548,7 @@ class ModifiedNFW(object):
         f_hot: float, optional
           Fraction of the baryons in this hot phase
           Will likely use this for all diffuse gas
-          This is exactly the mass of the CGM divided by the 
+          This is exactly the mass of the CGM within r200 divided by the 
             total baryonic mass of the system expected if the
             halo retained all of its baryons
         alpha: float, optional
