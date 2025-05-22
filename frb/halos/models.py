@@ -1102,7 +1102,7 @@ class M31(ModifiedNFW):
     """
     def __init__(self, 
                  log_Mhalo=12.18, c=7.67, 
-                 alpha=2, y0=2, **kwargs):
+                 alpha=2, y0=2,f_hot=0.75, **kwargs):
 
         # Init ModifiedNFW
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
