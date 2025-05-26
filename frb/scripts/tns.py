@@ -261,7 +261,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
     """ 
 
     # Validate that filename is parseable and exists
-    if not filename or os.path.exists(filename):
+    if not filename or not os.path.exists(filename):
         raise ValueError(f'Could not parse filename into a known file: {filename}')
      
     trans_results = {}
