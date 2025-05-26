@@ -34,13 +34,13 @@ def parser():
 
     parser.add_argument("--single", action='store_true', help="Indicate if the query is for a single FRB object.")
 
-    parser.add_argument("--filename", type=str, help="a list of FRBs for a batch query.")
-    parser.add_argument("--name", type=str, help="FRB TNS name of the single FRB object.")
-    parser.add_argument("--ra", type=float, help="Right Ascension of the single FRB object.")
-    parser.add_argument("--dec", type=float, help="Declination of the single FRB object.")
-    parser.add_argument("--theta", type=float, help="Theta value (make sure you add a negative sign) of the single FRB object.")
-    parser.add_argument("--a", type=float, help="Semi-major axis for the single FRB object.")
-    parser.add_argument("--b", type=float, help="Semi-minor axis for the single FRB object.")
+    parser.add_argument("--filename", type=str, help="a list of FRBs for a batch query.", default=None)
+    parser.add_argument("--name", type=str, help="FRB TNS name of the single FRB object.", default=None)
+    parser.add_argument("--ra", type=float, help="Right Ascension of the single FRB object.", default=None)
+    parser.add_argument("--dec", type=float, help="Declination of the single FRB object.", default=None)
+    parser.add_argument("--theta", type=float, help="Theta value (make sure you add a negative sign) of the single FRB object.", default=None)
+    parser.add_argument("--a", type=float, help="Semi-major axis for the single FRB object.", default=None)
+    parser.add_argument("--b", type=float, help="Semi-minor axis for the single FRB object.", default=None)
 
     parser.add_argument("--radius", type=float, default=3.0, help="Radius for the query (default is 3.0) in arcmin.")
 
@@ -259,6 +259,10 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
     trans_metadata: dictionary
     2D Gaussian map: png
     """ 
+
+    # Validate that filename is parseable and exists
+    if not filename or os.path.exists(filename):
+        raise ValueError(f'Could not parse filename into a known file: {filename}')
      
     trans_results = {}
     if not single_obj:
