@@ -26,7 +26,9 @@ if __name__ == '__main__':
                                       dec=args.dec,
                                       theta=args.theta, 
                                       a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
+        tns.save_matches(matched_transient_data, args.outfile)
     else:
         frb_file = args.filename
         matched_transient_data = tns.main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
                                       radius=args.radius, single_obj=False)
+        tns.save_matches(matched_transient_data, args.outfile)

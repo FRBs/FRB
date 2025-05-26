@@ -35,6 +35,7 @@ def parser():
     parser.add_argument("--single", action='store_true', help="Indicate if the query is for a single FRB object.")
 
     parser.add_argument("--filename", type=str, help="a list of FRBs for a batch query.", default=None)
+    parser.add_argument("--outfile", type=str, help="output summary of results.", default='out.json')
     parser.add_argument("--name", type=str, help="FRB TNS name of the single FRB object.", default=None)
     parser.add_argument("--ra", type=float, help="Right Ascension of the single FRB object.", default=None)
     parser.add_argument("--dec", type=float, help="Declination of the single FRB object.", default=None)
@@ -238,6 +239,9 @@ def read_final_catalog(filename):
   
     return name, ra, dec, theta, a, b
 
+def save_matches(outdata, outfile):
+    with open(outfile, 'w') as f:
+        json.dump(outdata, f)
 
 def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
@@ -323,6 +327,8 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
                     plt.savefig(f'{n}_{data["objname"]}_gaussian_map.png')
                     plt.clf()
 
+    return(trans_metadata)
+
 if __name__ == "__main__":
     # Verify that you've added these to your env var 
     args = parser()
@@ -337,7 +343,9 @@ if __name__ == "__main__":
                                       dec=args.dec,
                                       theta=args.theta, 
                                       a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
+        save_matches(matched_transient_data, args.outfile)
     else:
         frb_file = args.filename #sys.argv[1]
         matched_transient_data = main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
                                       radius=args.radius, single_obj=False)
+        save_matches(matched_transient_data, args.outfile)
