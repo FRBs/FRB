@@ -1,6 +1,6 @@
 """ A script to crossmatch TNS transients with KKO FRBs and plot the 2D Gaussian elliptical distribution
 @author: Yuxin Dong
-last edited: March 3, 2025 """
+last edited: June 3, 2025 """
 import numpy as np
 import pandas as pd
 import json
