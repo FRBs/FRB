@@ -108,14 +108,8 @@ def search(json_list, url_tns_api):
         json_file = OrderedDict(json_list)
         search_data = {'api_key': api_key, 'data': json.dumps(json_file)}
 
-        #print("Sending request to:", search_url)
-        #print("Headers:", headers)
-        #print("Request JSON:", search_data)
-
         response = requests.post(search_url, headers=headers, data=search_data)
 
-        #print("Status Code:", response.status_code)
-        #print("Response Text:", response.text)
         return response  # Ensure this always returns a Response object
     
     except Exception as e:
@@ -195,13 +189,7 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
             else: 
                 print(f"No Results found for {frb_name}")
             break
-            # if you want to write them into a file
-            #if result:
-            #    with open(outfile, 'a') as f:
-            #        for item in result:
-            #            f.write(f"FRB Name: {frb_name}, Object Name: {item['objname']}, Prefix: {item['prefix']}, Object ID: {item['objid']}\n")
-            #    print(f"Reply content for {frb_name} has been written to {outfile}")
-            #    return outfile
+
     return results_dict
 
 
@@ -224,10 +212,6 @@ def get(objname, url_tns_api):
 
 def read_final_catalog(filename):
     f = ascii.read(filename)
-
-    #filtered_f = f[f['a_err'] > 0.00056] 
-    #filtered_f = f[(f['a_err'] > 0.00055556) & (f['b_err'] > 0.00055556)] # larger than 2 arcseconds
-
     
     name = np.array(f['name'].data)
     ra = np.array(f['ra_frb'].data)
@@ -235,7 +219,6 @@ def read_final_catalog(filename):
     theta = -np.array(f['theta'].data) #need to flip that sign
     b = np.array(f['b_err'].data)
     a = np.array(f['a_err'].data)
-    #DM = filtered_f['DM'].data
   
     return name, ra, dec, theta, a, b
 
