@@ -4,7 +4,9 @@ last edited: May 13, 2025 """
 
 import numpy as np
 from scipy.stats import chi2
-
+from astropy import units as u
+import matplotlib.pyplot as plt
+import matplotlib
 
 
 def cov_matrix(a, b, theta):
@@ -65,7 +67,8 @@ def percentile(mahalanobis_distance, df=2):
 
 
 def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
-                  transient_position=None, levels=[0.68, 0.95, 0.99]):
+                  transient_position=None, levels=[0.68, 0.95, 0.99],
+                  save_fig=False):
     
     """
     Plot Gaussian contours around a given FRB center based on its covariance matrix.
@@ -82,6 +85,7 @@ def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
     transient_name (str): The name of the transient source.
     transient_position (Astropy SkyCoord): Transient position.
     levels: List of confidence levels for the contours (default: [0.68, 0.95, 0.99]).
+    save_fig (optional; bool): set flag to true to save the figure.
     """
     
     eigvals, eigvecs = np.linalg.eigh(cov_matrix)
@@ -116,7 +120,7 @@ def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
     for i, level in enumerate(levels):
         chi_square_val = chi2.ppf(level, 2)
         color = cmap(i / len(levels))
-        ellipse = Ellipse(
+        ellipse = matplotlib.patches.Ellipse(
             xy=(frbcenter.ra.deg, frbcenter.dec.deg),
             width=width * np.sqrt(chi_square_val),
             height=height * np.sqrt(chi_square_val),
@@ -146,4 +150,5 @@ def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
     ax.legend(fontsize=10)
     ax.grid(False)
     plt.tight_layout()
-    #plt.savefig(f'{transient_name}_gaussian_map.png')
+    if save_fig:
+        plt.savefig(f'{transient_name}_gaussian_map.png')
