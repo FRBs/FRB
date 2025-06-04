@@ -21,6 +21,7 @@ from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
 from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
+from frb.dm import host as dm_host
 
 from scipy.integrate import simpson
 
@@ -347,7 +348,7 @@ class FRBGalaxy(object):
             self.photom['EBV'] = EBV
     
     def run_cigale(self, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
+        wait_for_input=False, save_sed=True, plot=True, outdir='out',**kwargs):
         """
         Generates the input data file for CIGALE
         given the photometric points and redshift
@@ -363,6 +364,8 @@ class FRBGalaxy(object):
             wait_for_input (bool, optional):
                 If true, waits for the user to finish editing the auto-generated config file
                 before running.
+            save_sed (bool, optional):
+                Saves the best fit SED if true
             plot (bool, optional):
                 Plots the best fit SED if true
             cores (int, optional):
@@ -371,9 +374,6 @@ class FRBGalaxy(object):
             outdir (str, optional):
                 Path to the many outputs of CIGALE
                 If not supplied, the outputs will appear in a folder named out/
-            compare_obs_model (bool, optional):
-                If True compare the input observed fluxes with the model fluxes
-                This writes a Table to outdir named 'photo_observed_model.dat'
 
         kwargs:  These are passed into gen_cigale_in() and _initialise()
             sed_modules (list of 'str', optional):
@@ -400,8 +400,15 @@ class FRBGalaxy(object):
             new_photom['ID'] = 'FRBGalaxy'
 
 
-        run(new_photom, 'redshift', data_file, config_file,
-        wait_for_input, plot, outdir, compare_obs_model, **kwargs)
+        run(photometry_table = new_photom,
+            zcol = 'redshift',
+            data_file = data_file,
+            config_file = config_file,
+            wait_for_input = wait_for_input,
+            save_sed = save_sed,
+            plot = plot,
+            outdir = outdir,
+            **kwargs)
         return
 
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
@@ -797,6 +804,8 @@ class FRBGalaxy(object):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
             self.__class__.__name__, self.coord.icrs.ra.to_string(unit=units.hour,sep=':', pad=True),
             self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb.frb_name)
+        if self.z is not None:
+            txt += ' z={}'.format(self.z)
         # Finish
         txt = txt + '>'
         return (txt)
@@ -866,6 +875,30 @@ class FRBHost(FRBGalaxy):
         #
         outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
+
+    def calc_dm_halo(self, **kwargs):
+        """ Calculate the Halo contribution to the host DM
+        given the host stellar mass in its derived properties
+        dict and the FRB coordinates.
+
+        Args:
+            **kwargs: Passed to dm_host.dm_host_halo
+        
+        Returns:
+            DM_halo (float): Halo contribution to the DM in pc/cm^3
+        """
+
+        # Setup
+        R = self.offsets['physical'] * units.kpc
+        Mstar = self.derived['Mstar']
+        log10_Mstar = np.log10(Mstar)
+
+        # Calculate
+        self.DM_halo = dm_host.dm_host_halo(
+            R, log10_Mstar, self.z, **kwargs)
+
+        return self.DM_halo
+
 
     def make_outfile(self):
         """

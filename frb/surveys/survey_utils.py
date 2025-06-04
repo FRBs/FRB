@@ -1,6 +1,7 @@
 """ utils related to SurveyCoord objects"""
 
 from urllib.error import HTTPError
+from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
 from frb.surveys.wise import WISE_Survey
@@ -11,28 +12,30 @@ from frb.surveys.panstarrs import Pan_STARRS_Survey
 from frb.surveys.nsc import NSC_Survey
 from frb.surveys.delve import DELVE_Survey
 from frb.surveys.vista import VISTA_Survey
+from frb.surveys.cluster_search import TullyGroupCat
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astropy.table import Table
+from astropy.table import Table, join
 from pyvo.dal import DALServiceError
-from requests import ReadTimeout
+from requests import ReadTimeout, HTTPError
 
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS']
+group_catalogs = ['TullyGroupCat']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
-allowed_surveys = optical_surveys+radio_surveys
+allowed_surveys = optical_surveys+radio_surveys+group_catalogs
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
     allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
-    'PSRCAT', 'WISE', 'Pan-STARRS']
+    'PSRCAT', 'WISE', 'Pan-STARRS', 'NEDLVS']
 
     Args:
         name (str): Name of the survey 
@@ -75,6 +78,10 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = VISTA_Survey(coord, radius, **kwargs)
     elif name == 'HSC':
         survey = HSC_Survey(coord, radius, **kwargs)
+    elif name == 'NEDLVS':
+        survey = NEDLVS(coord, radius, **kwargs)
+    elif name == 'TullyGroupCat':
+        survey = TullyGroupCat(coord, radius, **kwargs)
 
     # Return
     return survey
@@ -90,7 +97,11 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     """
 
     # Instantiate survey and run a cone search with 1 arcmin radius
-    survey = load_survey_by_name(surveyname, coord, 1*u.arcmin)
+    if surveyname == "NEDLVS":
+        radius = 1*u.deg # Not as deep as the rest and hence a larger radius.
+    else:
+        radius = 1*u.arcmin
+    survey = load_survey_by_name(surveyname, coord, radius)
     try:
         cat = survey.get_catalog()
     except DALServiceError:
@@ -102,7 +113,9 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except QueryError:
         warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
         cat = None
-
+    except HTTPError:
+        warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
+        cat = None
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
         return False
@@ -144,7 +157,7 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
     if optical_only:
         all_surveys = optical_surveys
     else:
-        all_surveys = allowed_surveys
+        all_surveys = optical_surveys+radio_surveys
     for surveyname in all_surveys:
         # Skip PSRCAT
         if surveyname == "PSRCAT":
@@ -181,7 +194,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         combined_cat = Table()
     # Select surveys
     if include_radio: # Careful! NOT TESTED!
-        surveys = allowed_surveys 
+        surveys = optical_surveys+radio_surveys
     else:
         surveys = optical_surveys
     # Loop over them
@@ -205,13 +218,83 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                     combined_cat = survey.catalog
                 else:
                     # Combine otherwise
-                    # TODO: Need to deal with duplicate column names more elegantly.
-                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog,)
+                    # Deal with duplicate columns first
+                    # remove separations
+                    if 'separation' in survey.catalog.colnames:
+                        survey.catalog.remove_column('separation')
+                    # Now other duplicates
+                    duplicate_colnames = np.array(survey.catalog.colnames)[np.isin(survey.catalog.colnames, combined_cat.colnames)]
+                    # Ignore ra, dec
+                    duplicate_colnames = duplicate_colnames[~np.isin(duplicate_colnames, ['ra', 'dec'])]
+                    # Rename them
+                    if len(duplicate_colnames)>0:
+                        renamed_duplicates = [colname+"_"+surveyname for colname in duplicate_colnames]
+                        survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
+
+                    # Now merge
+                    combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog)
             # No objects found?
             elif len(survey.catalog)==0:
                 print("Empty table in "+surveyname)
-        
+    if len(combined_cat)>0:
+        # Fill in any empty separations and sort them.
+        combined_cat['separation'] = coord.separation(SkyCoord(combined_cat['ra'], combined_cat['dec'], unit='deg')).to(u.arcmin)
+        combined_cat.sort('separation')
+
+        # Make the ra, dec, separation the first columns
+        colnames = combined_cat.colnames
+        other_cols = np.setdiff1d(colnames, ['ra', 'dec', 'separation'])
+        combined_cat = combined_cat[['ra', 'dec', 'separation']+other_cols.tolist()]
     
     return combined_cat
+           
+def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
+    """
+    Tile multiple 20' cone searches of 
+    the Pan-STARRS catalog to cover a larger
+    roughly square region in the sky. Doing
+    this manually because MAST doesn't
+    allow cone searches of radius greater than
+    30'.
+    Args:
+        coord (SkyCoord): Center of search region.
+        side (astropy Quantity): Angular size
+            of the square region to be searched.
+        kwargs: Additional keyword arguments
+            to be passed onto the Pan-STARRS_Survey
+            get_catalog method.
+    Returns:
+        combined_tab (Table): A PS1 catalog.
+    """
+    assert side>=30*u.arcmin, "Use a regular Pan-STARRS search for this radius."
+    RA0, DEC0 = coord.ra, coord.dec
 
-            
+    radius = 20*u.arcmin
+
+    # Make a grid of RA, Dec to search
+    n = 2*int((side/2)//(radius*np.sqrt(2)))+1
+    ra_vals = RA0 + radius*np.sqrt(2)*np.linspace(-1,1,n)
+    dec_vals = DEC0 + radius*np.sqrt(2)*np.linspace(-1,1,n)
+
+    # Loop over grid points, search and collate catalogs
+    print("Looping through {:d} pointings.".format(n*n))
+    combined_table = Table()
+    for i, ra in enumerate(ra_vals):
+        for j, dec in enumerate(dec_vals):
+            print("Getting pointing #",i*len(ra_vals)+j+1)
+            coord = SkyCoord(ra,dec)
+            survey = load_survey_by_name("Pan-STARRS", coord, radius=radius)
+            cat = survey.get_catalog(**kwargs)
+            # Remove columns so that
+            # the join function further down the 
+            # line has no trouble merging duplicates.
+            cat.remove_column('separation')
+            if len(cat)>0:
+                if len(combined_table)>0:
+                    combined_table = join(combined_table, cat, join_type='outer')
+                else:
+                    combined_table = cat
+            else:
+                continue
+    combined_table = remove_duplicates(combined_table, 'Pan-STARRS_ID')
+    return combined_table
