@@ -24,7 +24,6 @@ from frb.surveys import utils_crossmatching as utils
 
 import argparse
 
-api_key = os.environ['TNS_API_KEY']
 tns = "sandbox.wis-tns.org" # sandbox
 url_tns_api = "https://" + tns + "/api"
 
@@ -62,7 +61,7 @@ def check_tns_api_keywords():
         If any required TNS API key is missing from the environment variables.
     """
     for key in ['TNS_BOT_ID','TNS_BOT_NAME','TNS_API_KEY']:
-        if key not in os.environ.keys():
+        if key not in os.environ.keys() or os.getenv(key) is None:
             raise Exception(f'Add {key} to your environmental variables.')
 
 
@@ -78,10 +77,9 @@ def set_bot_tns_marker():
     tns_marker (str):
         A formatted string containing the bot ID and name, used as the user-agent in TNS API requests.
     """
-    # your TNS BOT ID
-    bot_id = os.environ['TNS_BOT_ID']
-    # your TNS BOT name
-    bot_name = os.environ['TNS_BOT_NAME']
+    # your TNS BOT ID and BOT NAME
+    bot_id = os.getenv('TNS_BOT_ID')
+    bot_name = os.getenv('TNS_BOT_NAME')
     tns_marker = 'tns_marker{"tns_id": "' + bot_id + '", "type": "bot", "name": "' + bot_name + '"}'
     return tns_marker
     
@@ -106,6 +104,9 @@ def search(json_list, url_tns_api):
         tns_marker = set_bot_tns_marker()
         headers = {'User-Agent': tns_marker}
         json_file = OrderedDict(json_list)
+
+        api_key = os.getenv('TNS_API_KEY')
+
         search_data = {'api_key': api_key, 'data': json.dumps(json_file)}
 
         response = requests.post(search_url, headers=headers, data=search_data)
