@@ -12,9 +12,9 @@ try:
 except ImportError:
     warnings.warn("extinction package not loaded.  Extinction corrections will fail")
 
-
 from frb.galaxies import nebular
 from frb import em
+from frb.halos import models
 
 def dm_host_from_Halpha(z:float, Halpha:Quantity, reff_ang:Quantity,
                              AV:float=None):
@@ -77,3 +77,49 @@ def dm_host_from_ssfr(z:float, ssfr:Quantity):
 
     # Return
     return dm_host_ssfr
+
+
+def dm_host_halo(R: units.Quantity,
+                 log10_Mstar: float, z: float,
+                 HMR: str = 'Moster', mNFW: models.ModifiedNFW = None):
+    """Calculate the DM contribution from the host galaxy's halo
+
+    Args:
+        R (Quantity): Projected radial distance from the center of the halo
+        log10_Mstar (float): Logarithm (base 10) of the stellar mass of the host galaxy
+        z (float): Redshift of the host galaxy
+        HMR (str, optional): Halo mass relation to use ('Moster' or 'Kravstov'). Default is 'Moster'
+        mNFW (models.ModifiedNFW, optional): Instance of the ModifiedNFW model. 
+            If None, a default model will be created. Default is None
+
+    Returns:
+        Quantity: DM contribution from the host galaxy's halo
+
+    Raises:
+        IOError: If the specified halo mass relation (HMR) is not supported
+    """
+    
+    # Halo mass
+    if HMR == 'Moster':
+        log10_Mhalo = models.halomass_from_stellarmass(log10_Mstar, z=z)
+    elif HMR == 'Kravstov':
+        if z > 0.:
+            warnings.warn("The Kravtsov relation is not valid in its current form at z > 0")
+        log10_Mhalo = models.halomass_from_stellarmass_kravtsov(log10_Mstar)
+    else:
+        raise IOError(f"Not ready for this HMR: {HMR}")
+
+    # Halo
+    if mNFW is None:
+        mNFW = models.ModifiedNFW(log_Mhalo=log10_Mhalo, 
+                                  z=z, 
+                                  alpha=2., y0=2., 
+                                  f_hot=0.55)
+        print(f'Assuming this modified NFW: {mNFW}')
+
+
+    # Find the DM
+    DM_host_halo = mNFW.Ne_Rperp(R) / 2
+
+    # Return
+    return DM_host_halo

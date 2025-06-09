@@ -2,6 +2,8 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+from calendar import c
+import re
 import astropy
 import pytest
 import os, warnings
@@ -18,6 +20,8 @@ from numpy import setdiff1d
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
+
+nedlvs = pytest.mark.skipif('NEDLVS' not in os.environ, reason='Test reqires NEDLVS environment variable to be set.')
 
 @remote_data
 def test_sdss():
@@ -185,6 +189,28 @@ def test_panstarrs():
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
 
+@nedlvs
+def test_nedlvs():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcmin
+
+    # Test get_catalog
+    nedlvs_srvy = survey_utils.load_survey_by_name('NEDLVS', coord, search_r)
+    nedlvs_tbl = nedlvs_srvy.get_catalog()
+    assert isinstance(nedlvs_tbl, Table)
+    assert len(nedlvs_tbl) == 2
+
+@remote_data
+def test_tully():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 90 * units.deg
+
+    # Test get_catalog
+    tully_srvy = survey_utils.load_survey_by_name('TullyGroupCat', coord, search_r)
+    tully_tbl = tully_srvy.get_catalog(transverse_distance_cut=5*units.Mpc)
+    assert isinstance(tully_tbl, Table)
+    assert len(tully_tbl) == 6
+
 @remote_data
 def test_in_which_survey():
     """
@@ -194,7 +220,6 @@ def test_in_which_survey():
     
     with warnings.catch_warnings(record=True) as allwarns:
         inside = survey_utils.in_which_survey(coord, optical_only=False)
-
     expected_dict = {'Pan-STARRS': True,
                     'WISE': True,
                     'SDSS': True,
@@ -206,7 +231,8 @@ def test_in_which_survey():
                     'HSC': False,
                     'NVSS': False,
                     'FIRST': False,
-                    'WENSS': False}
+                    'WENSS': False,
+                    'NEDLVS': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -233,6 +259,8 @@ def test_search_all():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
     assert len(combined_cat)==2
+
+    # Nothing from NEDLVS and so not in the combined catalog
     colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag',
                 'rKronRad', 'gPSFmag', 'rPSFmag', 'iPSFmag', 'zPSFmag', 'yPSFmag', 'gPSFmagErr', 'rPSFmagErr', 'iPSFmagErr', 'zPSFmagErr', 'yPSFmagErr', 'Pan-STARRS_g', 'Pan-STARRS_r', 'Pan-STARRS_i', 'Pan-STARRS_z', 'Pan-STARRS_y', 'Pan-STARRS_g_err', 'Pan-STARRS_r_err', 'Pan-STARRS_i_err', 'Pan-STARRS_z_err', 'Pan-STARRS_y_err', 'separation_1',
                 'source_id', 'tmass_key', 'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
