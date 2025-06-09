@@ -151,7 +151,8 @@ class FRBGalaxy(object):
         self.offsets = {}
         self.positional_error = {}
         self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
-                          'kinematics', 'derived', 'offsets', 'positional_error')
+                          'kinematics', 'derived', 'offsets', 'positional_error',
+                          'path')
 
         # Angular offset
         self.offsets['ang_avg'], self.offsets['ang_avg_err'], \
@@ -716,6 +717,8 @@ class FRBGalaxy(object):
             defs_list = defs.valid_offsets
         elif attr == 'positional_error':
             defs_list = defs.valid_positional_error
+        elif attr == 'path':
+            defs_list = defs.valid_path
         else:
             return True
         # Vet
