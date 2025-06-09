@@ -41,7 +41,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
     Child of DL_Survey which uses datalab to access NOAO
     
     Args:
-        coord (SkyCoord): Coordiante for surveying around
+        coord (SkyCoord): Coordinate for surveying around
         radius (Angle): Search radius around the coordinate
         
     """
