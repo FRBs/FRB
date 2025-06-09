@@ -150,6 +150,7 @@ class FRBGalaxy(object):
         self.derived = {}
         self.offsets = {}
         self.positional_error = {}
+        self.path = {}
         self.main_attr = ('photom', 'redshift', 'morphology', 'neb_lines',
                           'kinematics', 'derived', 'offsets', 'positional_error',
                           'path')

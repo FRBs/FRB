@@ -491,10 +491,14 @@ def run(host_input:pandas.core.series.Series,
     # Add PATH
     hosts_file = importlib_resources.files('frb.data.Galaxies')/'public_hosts.csv'
     hosts_df = pandas.read_csv(hosts_file, index_col=False)
-    embed(header='Check 493')
-    indx = host_tbl[host_tbl.Host == 'HG'+host_row.FRB].index[0]
-    # Set PATH values
-    host_tbl.loc[indx,'P_Ox'] = host_row.P_Ox
+
+    indx = file_root == 'HG'+hosts_df.FRB.values
+    if np.any(indx):
+        # Get the row
+        host_row = hosts_df.loc[indx].iloc[0]
+        # Set P_Ox
+        Host.path['P_Ox'] = host_row.P_Ox
+        # Reference would go here
 
     # Vet all
     assert Host.vet_all()
