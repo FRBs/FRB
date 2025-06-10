@@ -234,6 +234,13 @@ valid_positional_error = [
 ]
 
 ##############################################################
+# P_Ox
+valid_path = [
+    'P_Ox',   # Posterior for PATH
+    'PATH_Ref',   # Reference for PATH
+]
+
+##############################################################
 # Derived quantities
 
 valid_derived_photom = [

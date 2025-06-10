@@ -17,4 +17,4 @@ and others
 For Setup and installations please see the documentation in [/docs](https://github.com/FRBs/FRB/tree/chime/docs)
 
 
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.8125230.svg)](https://doi.org/10.5281/zenodo.8125230)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14804392.svg)](https://doi.org/10.5281/zenodo.14804392)
