@@ -1,6 +1,7 @@
 """ A script to crossmatch TNS transients with KKO FRBs and plot the 2D Gaussian elliptical distribution
 @author: Yuxin Dong
-last edited: March 3, 2025 """
+@citation: https://ui.adsabs.harvard.edu/abs/2025arXiv250606420D/abstract
+last edited: June 10, 2025 """
 import numpy as np
 import pandas as pd
 import json
@@ -24,6 +25,7 @@ from frb.surveys import utils_crossmatching as utils
 
 import argparse
 
+api_key = os.environ['TNS_API_KEY']
 tns = "sandbox.wis-tns.org" # sandbox
 url_tns_api = "https://" + tns + "/api"
 
@@ -33,14 +35,13 @@ def parser():
 
     parser.add_argument("--single", action='store_true', help="Indicate if the query is for a single FRB object.")
 
-    parser.add_argument("--filename", type=str, help="a list of FRBs for a batch query.", default=None)
-    parser.add_argument("--outfile", type=str, help="output summary of results.", default='out.json')
-    parser.add_argument("--name", type=str, help="FRB TNS name of the single FRB object.", default=None)
-    parser.add_argument("--ra", type=float, help="Right Ascension of the single FRB object.", default=None)
-    parser.add_argument("--dec", type=float, help="Declination of the single FRB object.", default=None)
-    parser.add_argument("--theta", type=float, help="Theta value (make sure you add a negative sign) of the single FRB object.", default=None)
-    parser.add_argument("--a", type=float, help="Semi-major axis for the single FRB object.", default=None)
-    parser.add_argument("--b", type=float, help="Semi-minor axis for the single FRB object.", default=None)
+    parser.add_argument("--filename", type=str, help="a list of FRBs for a batch query.")
+    parser.add_argument("--name", type=str, help="FRB TNS name of the single FRB object.")
+    parser.add_argument("--ra", type=float, help="Right Ascension of the single FRB object.")
+    parser.add_argument("--dec", type=float, help="Declination of the single FRB object.")
+    parser.add_argument("--theta", type=float, help="Theta value (make sure you add a negative sign) of the single FRB object.")
+    parser.add_argument("--a", type=float, help="Semi-major axis for the single FRB object.")
+    parser.add_argument("--b", type=float, help="Semi-minor axis for the single FRB object.")
 
     parser.add_argument("--radius", type=float, default=3.0, help="Radius for the query (default is 3.0) in arcmin.")
 
@@ -61,7 +62,7 @@ def check_tns_api_keywords():
         If any required TNS API key is missing from the environment variables.
     """
     for key in ['TNS_BOT_ID','TNS_BOT_NAME','TNS_API_KEY']:
-        if key not in os.environ.keys() or os.getenv(key) is None:
+        if key not in os.environ.keys():
             raise Exception(f'Add {key} to your environmental variables.')
 
 
@@ -77,9 +78,10 @@ def set_bot_tns_marker():
     tns_marker (str):
         A formatted string containing the bot ID and name, used as the user-agent in TNS API requests.
     """
-    # your TNS BOT ID and BOT NAME
-    bot_id = os.getenv('TNS_BOT_ID')
-    bot_name = os.getenv('TNS_BOT_NAME')
+    # your TNS BOT ID
+    bot_id = os.environ['TNS_BOT_ID']
+    # your TNS BOT name
+    bot_name = os.environ['TNS_BOT_NAME']
     tns_marker = 'tns_marker{"tns_id": "' + bot_id + '", "type": "bot", "name": "' + bot_name + '"}'
     return tns_marker
     
@@ -104,13 +106,16 @@ def search(json_list, url_tns_api):
         tns_marker = set_bot_tns_marker()
         headers = {'User-Agent': tns_marker}
         json_file = OrderedDict(json_list)
-
-        api_key = os.getenv('TNS_API_KEY')
-
         search_data = {'api_key': api_key, 'data': json.dumps(json_file)}
+
+        #print("Sending request to:", search_url)
+        #print("Headers:", headers)
+        #print("Request JSON:", search_data)
 
         response = requests.post(search_url, headers=headers, data=search_data)
 
+        #print("Status Code:", response.status_code)
+        #print("Response Text:", response.text)
         return response  # Ensure this always returns a Response object
     
     except Exception as e:
@@ -190,7 +195,13 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
             else: 
                 print(f"No Results found for {frb_name}")
             break
-
+            # if you want to write them into a file
+            #if result:
+            #    with open(outfile, 'a') as f:
+            #        for item in result:
+            #            f.write(f"FRB Name: {frb_name}, Object Name: {item['objname']}, Prefix: {item['prefix']}, Object ID: {item['objid']}\n")
+            #    print(f"Reply content for {frb_name} has been written to {outfile}")
+            #    return outfile
     return results_dict
 
 
@@ -213,6 +224,10 @@ def get(objname, url_tns_api):
 
 def read_final_catalog(filename):
     f = ascii.read(filename)
+
+    #filtered_f = f[f['a_err'] > 0.00056] 
+    #filtered_f = f[(f['a_err'] > 0.00055556) & (f['b_err'] > 0.00055556)] # larger than 2 arcseconds
+
     
     name = np.array(f['name'].data)
     ra = np.array(f['ra_frb'].data)
@@ -220,12 +235,10 @@ def read_final_catalog(filename):
     theta = -np.array(f['theta'].data) #need to flip that sign
     b = np.array(f['b_err'].data)
     a = np.array(f['a_err'].data)
+    #DM = filtered_f['DM'].data
   
     return name, ra, dec, theta, a, b
 
-def save_matches(outdata, outfile):
-    with open(outfile, 'w') as f:
-        json.dump(outdata, f)
 
 def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
@@ -247,11 +260,6 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
     trans_metadata: dictionary
     2D Gaussian map: png
     """ 
-
-    # Validate that filename is parseable and exists
-    if not single_obj:
-        if not filename or not os.path.exists(filename):
-            raise ValueError(f'Could not parse filename into a known file: {filename}')
      
     trans_results = {}
     if not single_obj:
@@ -312,8 +320,6 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
                     plt.savefig(f'{n}_{data["objname"]}_gaussian_map.png')
                     plt.clf()
 
-    return(trans_metadata)
-
 if __name__ == "__main__":
     # Verify that you've added these to your env var 
     args = parser()
@@ -328,9 +334,7 @@ if __name__ == "__main__":
                                       dec=args.dec,
                                       theta=args.theta, 
                                       a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
-        save_matches(matched_transient_data, args.outfile)
     else:
         frb_file = args.filename #sys.argv[1]
         matched_transient_data = main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
                                       radius=args.radius, single_obj=False)
-        save_matches(matched_transient_data, args.outfile)

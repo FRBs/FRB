@@ -9,7 +9,6 @@ import pytest
 
 from frb.scripts import frb_summary
 from frb.scripts import pzdm_mag
-from frb.scripts import tns
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
@@ -28,16 +27,3 @@ def test_frb_pzdm_mag():
     assert np.isclose(z_50, 0.10050251256281408)
     assert np.isclose(z_mode, 0.12060301507537688)
     assert np.isclose(Lmax, 0.023809, atol=1e-4)
-
-@remote_data
-def test_tns():
-    tns.parser.units = 'deg'
-    tns.parser.radius = 0.5
-    tns.parser.dec = 19.17
-    tns.parser.ra = 4.49
-    tns.parser.skip = None
-    tns.parser.outfile = 'outfile.txt'
-    
-    df = tns.main(tns.parser)
-
-    assert df['prefix'][0] == 'FRB'

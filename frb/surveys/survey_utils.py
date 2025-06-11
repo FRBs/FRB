@@ -15,6 +15,7 @@ from frb.surveys.vista import VISTA_Survey
 from frb.surveys.cluster_search import TullyGroupCat
 from frb.surveys.galex import GALEX_Survey
 from frb.surveys.twomass import TwoMASS_Survey
+from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 
@@ -27,7 +28,7 @@ from requests import ReadTimeout, HTTPError
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', '2MASS','GALEX','SDSS', 'DES', 'DELVE',  'DECaL', 'VISTA', 'HSC', 'NEDLVS', 'WISE'] # 'NSC',
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS', '2MASS', 'GALEX']
 group_catalogs = ['TullyGroupCat']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys+group_catalogs
@@ -36,7 +37,7 @@ allowed_surveys = optical_surveys+radio_surveys+group_catalogs
 def load_survey_by_name(name, coord, radius, **kwargs):
     """
     Load up a Survey class object for the named survey
-    allowed_surveys = ['SDSS', 'DES', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
+    allowed_surveys = ['SDSS', 'DES', 'DESI', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
     'PSRCAT', 'WISE', 'Pan-STARRS', 'NEDLVS']
 
     Args:
@@ -88,6 +89,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = GALEX_Survey(coord, radius, **kwargs)
     elif name == '2MASS':
         survey = TwoMASS_Survey(coord, radius, **kwargs)
+    elif name == 'DESI':
+        survey = DESI_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
