@@ -1,52 +1,54 @@
 {
-    "FRB": {"label": "FRB", "desc": "FRB TNS Name", "type": "string", "unit": "", "ucd": ""}
+    "FRB": {"label": "FRB", "desc": "FRB TNS Name", "type": "string", "unit": "", "ucd": "meta.id;meta.main"},
+    "ra": {"label": "ra", "desc": "Host right ascension", "type": "float", "unit": "deg", "ucd": "pos.eq.ra;meta.main"},
+    "dec": {"label": "dec", "desc": "Host declination", "type": "float", "unit": "deg", "ucd": "pos.eq.dec;meta.main"},
 
-    "dec": {"label": "dec", "desc": "Host declination", "type": "float", "unit": "deg", "ucd": ""},
-    "dec_frb": {"label": "dec_frb", "desc": "FRB declination", "type": "float", "unit": "deg", "ucd": ""},
-    "ra": {"label": "ra", "desc": "Host right ascension", "type": "float", "unit": "deg", "ucd": ""},
-    "ra_frb": {"label": "ra_frb", "desc": "FRB right ascension", "type": "float", "unit": "deg", "ucd": ""},,
+    "ra_frb": {"label": "ra_frb", "desc": "FRB right ascension", "type": "float", "unit": "deg", "ucd": "pos.eq.ra"},
+    "dec_frb": {"label": "dec_frb", "desc": "FRB declination", "type": "float", "unit": "deg", "ucd": "pos.eq.dec"},
     
     "eellipse": {
-        "a": {"label": "a", "desc": "FRB localization semi-major axis", "type": "float", "unit": "arcsec", "ucd": ""},
-        "b": {"label": "b", "desc": "FRB localization semi-minor axis", "type": "float", "unit": "arcsec", "ucd": ""},
-        "theta": {"label": "theta", "desc": "FRB localization position angle", "type": "float", "unit": "deg", "ucd": ""}
+        "a": {"label": "a", "desc": "FRB localization semi-major axis", "type": "float", "unit": "arcsec", "ucd": "phys.angSize"},
+        "b": {"label": "b", "desc": "FRB localization semi-minor axis", "type": "float", "unit": "arcsec", "ucd": "phys.angSize"},
+        "theta": {"label": "theta", "desc": "FRB localization position angle", "type": "float", "unit": "deg", "ucd": "pos.posAng"}
     },
 
-    "DM": {"label": "dm", "desc": "Observed FRB dispersion measure", "type": "float", "unit": "pc/cm3", "ucd": ""},
+    "DM": {"label": "DM", "desc": "Observed FRB dispersion measure", "type": "float", "unit": "pc/cm3", "ucd": "phys.dispMeasure"},
+    "DM_ref": {"label": "DM_ref", "desc": "Reference for FRB dispersion measure", "type": "string", "unit": "", "ucd": "meta.ref"},
 
     "offsets": {
-        "ang_avg": {"label": "ang_avg", "desc": "FRB angularoffset from host galaxy", "type": "float", "unit": "arcsec", "ucd": ""},
-        "ang_avg_err": {"label": "ang_avg_err", "desc": "Error on FRB angular offset from host galaxy", "type": "float", "unit": "arcsec", "ucd": ""},
-        "physical": {"label": "physical", "desc": "FRB physical offset from host galaxy", "type": "float", "unit": "kpc", "ucd": ""},
-        "physical_err": {"label": "physical_err", "desc": "Error on FRB physical offset from host galaxy", "type": "float", "unit": "kpc", "ucd": ""},
-        "offset_ref": {"label": "offset_ref", "desc": "Reference for FRB offset", "type": "string", "unit": "", "ucd": ""}
+        "ang_avg": {"label": "ang_avg", "desc": "FRB angularoffset from host galaxy", "type": "float", "unit": "arcsec", "ucd": "phys.angSize;stat.mean"},
+        "ang_avg_err": {"label": "ang_avg_err", "desc": "Error on FRB angular offset from host galaxy", "type": "float", "unit": "arcsec", "ucd": "stat.error;phys.angSize"},
+        "physical": {"label": "physical", "desc": "FRB physical offset from host galaxy", "type": "float", "unit": "kpc", "ucd": "pos.distance;stat.mean"},
+        "physical_err": {"label": "physical_err", "desc": "Error on FRB physical offset from host galaxy", "type": "float", "unit": "kpc", "ucd": "stat.error;pos.distance"},
+        "offset_ref": {"label": "offset_ref", "desc": "Reference for FRB offset", "type": "string", "unit": "", "ucd": "meta.ref"}
     },
 
     "path": {
-        "P_Ox": {"label": "P_Ox", "desc": "PATH association probability for host galaxy", "type": "float", "unit": "", "ucd": ""},
-        "P_cc" : {"label": "P_cc", "desc": "Chance coincidence probability for host galaxy", "type": "float", "unit": "", "ucd": ""}
-        "P_ref": {"label": "P_ref", "desc": "Reference for FRB host association probability", "type": "string", "unit": "", "ucd": ""}
+        "P_Ox": {"label": "P_Ox", "desc": "PATH association probability for host galaxy", "type": "float", "unit": "", "ucd": "stat.probability"},
+        "P_cc" : {"label": "P_cc", "desc": "Chance coincidence probability for host galaxy", "type": "float", "unit": "", "ucd": "stat.probability"},
+        "P_ref": {"label": "P_ref", "desc": "Reference for FRB host association probability", "type": "string", "unit": "", "ucd": "meta.ref"}
     },
 
 
-    "repeater": {"label": "repeater", "desc": "True/False if FRB is a repeater or not", "type": "bool", "unit": "", "ucd": ""},
-    "z": {"label": "z", "desc": "FRB host galaxy redshift", "type": "float", "unit": "", "ucd": ""},
+    "repeater": {"label": "repeater", "desc": "True/False if FRB is a repeater or not", "type": "bool", "unit": "", "ucd": "meta.code.status"},
+    "z": {"label": "z", "desc": "FRB host galaxy redshift", "type": "float", "unit": "", "ucd": "src.redshift"},
+    "z_err": {"label": "z_err", "desc": "Error on FRB host galaxy redshift", "type": "float", "unit": "", "ucd": "stat.error;src.redshift"},
+    "offset_ref": {"label": "z_ref", "desc": "Reference for FRB host galaxy redshift", "type": "string", "unit": "", "ucd": "meta.ref"},
 
     "photom": {
-        "r_band": {"label": "r_band", "desc": "Apparent r-band magnitude of host galaxy", "type": "float", "unit": "AB", "ucd": ""}, 
-        "r_band_ref": {"label": "r_band_ref", "desc": "Reference for r-band magnitude", "type": "string", "unit": "", "ucd": ""}, 
-    }
-
-    "derived": {
-        "Mstar": {"label": "Mstar", "desc": "Host galaxy stellar mass", "type": "float", "unit": "M_sun", "ucd": ""}, 
-        "Mstar_err": {"label": "Mstar_err", "desc": "Error on host galaxy stellar mass", "type": "float", "unit": "M_sun", "ucd": ""}, 
-        "Mstar_ref": {"label": "Mstar_ref", "desc": "Reference for host galaxy stellar mass", "type": "string", "unit": "", "ucd": ""}, 
-        "SFR_nebular":  {"label": "SFR_nebular", "desc": "Host galaxy SFR from Halpha", "type": "float", "unit": "M_sun/yr", "ucd": ""}, 
-        "SFR_nebular_err": {"label": "SFR_nebular_err", "desc": "Error on host galaxy SFR from Halpha", "type": "float", "unit": "M_sun/yr", "ucd": ""}, 
-        "SFR_nebular_ref": {"label": "SFR_nebular_ref", "desc": "Reference for host galaxy SFR from Halpha", "type": "string", "unit": "", "ucd": ""}, 
-        "SFR_SED": {"label": "SFR_SED", "desc": "Host galaxy SFR from SED", "type": "float", "unit": "M_sun/yr", "ucd": ""}, 
-        "SFR_SED_err": {"label": "SFR_SED_err", "desc": "Error on host galaxy SFR from SED", "type": "float", "unit": "M_sun/yr", "ucd": ""}, 
-        "SFR_SED_ref": {"label": "SFR_SED_ref", "desc": "Reference for host galaxy SFR from SED", "type": "string", "unit": "", "ucd": ""}, 
+        "r_band": {"label": "r_band", "desc": "Apparent r-band magnitude of host galaxy", "type": "float", "unit": "AB", "ucd": "phot.mag;em.opt.R"}, 
+        "r_band_ref": {"label": "r_band_ref", "desc": "Reference for r-band magnitude", "type": "string", "unit": "", "ucd": "stat.error;phot.mag;em.opt.R"}
     },
 
+    "derived": {
+        "Mstar": {"label": "Mstar", "desc": "Host galaxy stellar mass", "type": "float", "unit": "M_sun", "ucd": "phys.mass"},
+        "Mstar_err": {"label": "Mstar_err", "desc": "Error on host galaxy stellar mass", "type": "float", "unit": "M_sun", "ucd": "stat.error;phys.mass"},
+        "Mstar_ref": {"label": "Mstar_ref", "desc": "Reference for host galaxy stellar mass", "type": "string", "unit": "", "ucd": "meta.ref"},
+        "SFR_nebular":  {"label": "SFR_nebular", "desc": "Host galaxy SFR from Halpha", "type": "float", "unit": "M_sun/yr", "ucd": "phys.SFR"},
+        "SFR_nebular_err": {"label": "SFR_nebular_err", "desc": "Error on host galaxy SFR from Halpha", "type": "float", "unit": "M_sun/yr", "ucd": "stat.error;phys.SFR"}, 
+        "SFR_nebular_ref": {"label": "SFR_nebular_ref", "desc": "Reference for host galaxy SFR from Halpha", "type": "string", "unit": "", "ucd": "meta.ref"},
+        "SFR_SED": {"label": "SFR_SED", "desc": "Host galaxy SFR from SED", "type": "float", "unit": "M_sun/yr", "ucd": "phys.SFR"},
+        "SFR_SED_err": {"label": "SFR_SED_err", "desc": "Error on host galaxy SFR from SED", "type": "float", "unit": "M_sun/yr", "ucd": "stat.error;phys.SFR"},
+        "SFR_SED_ref": {"label": "SFR_SED_ref", "desc": "Reference for host galaxy SFR from SED", "type": "string", "unit": "", "ucd": "meta.ref"}
+    }
 }
