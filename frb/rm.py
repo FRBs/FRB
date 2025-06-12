@@ -41,14 +41,14 @@ def load_hutschenreuter2020():
         healpy map, healpy map: RM and RM_err with units of rad/m^2
 
     """
-    print("Loading RM information map from Hutschenreuter et al. 2022")
+    print("Loading RM information map from Hutschenreuter et al. 2022, aka faraday2020v2.fits")
     galactic_rm_file = importlib_resources.files('frb.data.RM')/'faraday2020v2.fits'
 
     # Has it been downloaded?
     if not os.path.isfile(galactic_rm_file):
         readme_file = importlib_resources.files('frb.data.RM')/'README'
         print(f"See the README here: {readme_file}")
-        raise IOError("You need to download the Hutschenreuter 2020 map to proceed")
+        raise IOError("You need to download the Hutschenreuter 2022 map to proceed, aka faraday2020v2.fits")
 
     # Load
     rm_sky = hp.read_map(galactic_rm_file)
