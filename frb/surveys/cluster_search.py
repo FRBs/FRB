@@ -59,6 +59,7 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
         Returns:
             A table of objects within the given limits.
+            If no objects found, returns an empty table with fields ['ra','dec', and 'z'].
         """
         if query_fields is None:
             query_fields = ['**'] # Get all.
@@ -68,7 +69,7 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
         result = v.query_region(self.coord, radius=self.radius*u.deg)
         if len(result) == 0:
             print("No objects found within the given radius.")
-            return Table()
+            return Table(names = ('ra','dec','z'))
         else:
             result = result[0]
         return result
@@ -111,13 +112,13 @@ class TullyGroupCat(VizierCatalogSearch):
             A table of objects within the given limits.
         """
         result = super(TullyGroupCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
 
-        result = self.clean_catalog(result)
-
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
-        result = result[result['Ngal']>=richness_cut]
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            result = result[result['Ngal']>=richness_cut]
         self.catalog = result
 
         return self.catalog
@@ -130,7 +131,7 @@ class WenGroupCat(VizierCatalogSearch):
     """
 
 
-    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+    def __init__(self, coord, radius = 0.2*u.deg, cosmo=None, **kwargs):
         # Initialize a SurveyCoord object
         super(WenGroupCat, self).__init__(coord, radius,
                                             survey="Wen+2024",
@@ -138,8 +139,19 @@ class WenGroupCat(VizierCatalogSearch):
                                             cosmo=cosmo,  **kwargs)
         
     def clean_catalog(self, catalog):
+        try:
+            catalog.rename_columns(['RAJ2000'],['ra'])
+        except KeyError:
+            assert 'ra' in catalog.keys()
+        try:
+            catalog.rename_columns(['DEJ2000'],['dec'])
+        except KeyError:
+            assert 'dec' in catalog.keys()
+        try:
+            catalog.rename_columns(['zCl'],['z'])
+        except KeyError:
+            assert 'z' in catalog.keys()
 
-        catalog.rename_columns(['RAJ2000', 'DEJ2000', 'zcl'], ['ra', 'dec', 'z']) # Rename the columns to match the SurveyCoord class
         
         # Add a distance estimate in Mpc using the given cosmology
         catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
@@ -159,13 +171,13 @@ class WenGroupCat(VizierCatalogSearch):
             A table of objects within the given limits.
         """
         result = super(WenGroupCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
 
-        result = self.clean_catalog(result)
-
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
-        result = result[result['Ngal']>=richness_cut]
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            result = result[result['Ngal']>=richness_cut]
         self.catalog = result
         return self.catalog
     
@@ -185,11 +197,16 @@ class UPClusterSZCat(VizierCatalogSearch):
                                             cosmo=cosmo,  **kwargs)
         
     def clean_catalog(self, catalog):
+        if len(catalog) > 0:
+            try:
+                catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+            except KeyError:
+                print(catalog.keys())
 
-        catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
-        
-        # Add a distance estimate in Mpc using the given cosmology
-        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+                assert 'ra' in catalog.keys() and 'dec' in catalog.keys()
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
 
         return catalog
 
@@ -206,8 +223,8 @@ class UPClusterSZCat(VizierCatalogSearch):
             A table of objects within the given limits.
         """
         result = super(UPClusterSZCat, self)._get_catalog(query_fields=query_fields)
-
-        result = self.clean_catalog(result)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
 
         # Apply a transverse distance cut
         if transverse_distance_cut<np.inf*u.Mpc:
@@ -232,11 +249,11 @@ class ROSATXClusterCat(VizierCatalogSearch):
                                             cosmo=cosmo,  **kwargs)
         
     def clean_catalog(self, catalog):
-
-        catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
-        
-        # Add a distance estimate in Mpc using the given cosmology
-        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
 
         return catalog
     
@@ -253,8 +270,8 @@ class ROSATXClusterCat(VizierCatalogSearch):
             A table of objects within the given limits.
         """
         result = super(ROSATXClusterCat, self)._get_catalog(query_fields=query_fields)
-
-        result = self.clean_catalog(result)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
 
         # Apply a transverse distance cut
         if transverse_distance_cut<np.inf*u.Mpc:
@@ -279,11 +296,11 @@ class TempelClusterCat(VizierCatalogSearch):
                                             cosmo=cosmo,  **kwargs)
         
     def clean_catalog(self, catalog):
-
-        catalog.rename_columns(['RAJ2000', 'DEJ2000', 'zcmb'], ['ra', 'dec', 'z']) # Rename the columns to match the SurveyCoord class
-        
-        # Add a distance estimate in Mpc using the given cosmology
-        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000', 'zcmb'], ['ra', 'dec', 'z']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
 
         return catalog
     
@@ -300,8 +317,8 @@ class TempelClusterCat(VizierCatalogSearch):
             A table of objects within the given limits.
         """
         result = super(TempelClusterCat, self)._get_catalog(query_fields=query_fields)
-
-        result = self.clean_catalog(result)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
 
         # Apply a transverse distance cut
         if transverse_distance_cut<np.inf*u.Mpc:
