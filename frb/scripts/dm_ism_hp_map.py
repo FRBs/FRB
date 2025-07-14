@@ -1,8 +1,18 @@
 import argparse
+import numpy as np
+import pandas as pd
 from frb.dm.dm_ism_models import dm_ism_healpix_map
 import healpy as hp
 
 DEFAULT_MAPFILE = dm_ism_healpix_map.get_current_mapfile()
+
+
+def make_grabdmism_out(l,b,dmism):
+    if isinstance(dmism, (list, np.ndarray)):
+        df = pd.DataFrame({'l': l, 'b': b, 'DM_ISM': dmism})
+        print(df.head())
+    else:
+        print(f"DM ISM value at (l={l}, b={b}): {dmism:.2f} pc cm^-3")
 
 
 def add_create_map_options(parser=None, usage=None):
@@ -15,8 +25,6 @@ def add_create_map_options(parser=None, usage=None):
     parser.add_argument('--save_path', type=str, default=DEFAULT_MAPFILE,
                         help=f'Path to save the HEALPix map file. Default is "{DEFAULT_MAPFILE}".')
     return parser
-
-
 
 def add_get_map_options(parser=None, usage=None):
     if parser == None:
@@ -83,7 +91,7 @@ def main():
     elif args.command == 'grab':
         dm_map = dm_ism_healpix_map.get_dm_map(mapfile=args.mapfile)
         dm_ism = dm_ism_healpix_map.grab_dm_ism_from_healpix_map(args.l, args.b, dm_map)
-        print(f"DM ISM value at (l={args.l}, b={args.b}): {dm_ism:.2f} pc cm^-3")
+        make_grabdmism_out(args.l, args.b, dm_ism)
 
     elif args.command == 'plot':
         dm_ism_healpix_map.plot_mollwiede_view_dm_ism(mapfile=args.mapfile, title=args.title, min=args.min, max=args.max)

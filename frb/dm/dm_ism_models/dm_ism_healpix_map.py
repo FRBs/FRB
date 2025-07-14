@@ -32,6 +32,22 @@ def get_current_mapfile():
 
 
 def calc_ismDM_item(item,ne=None):
+    """
+    Calculate the dispersion measure (DM) for a given item using the NE2001 model.
+    Parameters
+    ----------
+    item : list
+        A list containing the galactic longitude (l) and latitude (b) in degrees.
+    ne : density.ElectronDensity, optional
+        An instance of the ElectronDensity class from the NE2001 model.
+
+    Returns
+    -------
+    float
+        The calculated DM value for the given galactic coordinates.
+    """
+    if ne is None:
+        ne = density.ElectronDensity()
     l, b = item
     ismDM = ne.DM(l, b, 100.)
     return ismDM.value
@@ -63,9 +79,8 @@ def create_ne2001_dm_healpix_map(nside=64, n_cores=15):
         b = 90 - np.degrees(theta)  # Galactic latitude
         items.append([l,b])
 
-    # Run
-    ne = density.ElectronDensity()
-    map_fn = partial(calc_ismDM_item, ne=ne)
+    # Run the calculation in parallel
+    map_fn = partial(calc_ismDM_item)
 
     # Multi-process time
     with ProcessPoolExecutor(max_workers=n_cores) as executor:
@@ -109,9 +124,9 @@ def grab_dm_ism_from_healpix_map(l,b, dm_map):
 
     Parameters
     ----------
-    l : float
+    l : float or int
         Galactic longitude in degrees.
-    b : float
+    b : float or int
         Galactic latitude in degrees.
     dm_map : array
         The HEALPix map of DM values
@@ -121,7 +136,6 @@ def grab_dm_ism_from_healpix_map(l,b, dm_map):
     dm_ism : float
         The DM value at the given coordinates.
     """
-
     # Get the pixel corresponding to the given coordinates
     theta = np.radians(90 - b)  # Galactic latitude
     phi = np.radians(l)  # Galactic longitude
@@ -163,6 +177,3 @@ def plot_mollwiede_view_dm_ism(mapfile=None,
     plt.show()
 
     return None
-
-if __name__ == '__main__':
-    plot_mollwiede_view_dm_ism()
