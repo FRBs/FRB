@@ -1,5 +1,5 @@
 import argparse
-from frb.dm_ism_models import dm_ism_healpix_map
+from frb.dm.dm_ism_models import dm_ism_healpix_map
 import healpy as hp
 
 DEFAULT_MAPFILE = dm_ism_healpix_map.get_current_mapfile()
