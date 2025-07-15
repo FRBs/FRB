@@ -6,7 +6,7 @@
 
 
 """
-This script builds the galaxy files
+This script runs the DM ISM script
 """
 
 from frb.scripts import dm_ism_hp_map
