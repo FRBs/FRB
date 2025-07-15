@@ -27,7 +27,7 @@ def get_current_mapfile():
     """
     print("Using the default NE2001 DM HEALPix map file.")
     return os.path.join(
-        resources.files('frb'), 'data','DM','ne2001_dm_healpix_map.fits'
+        resources.files('frb'), 'data','DM','ne2001_dm_healpix_map_128.fits'
     )
 
 
@@ -118,15 +118,15 @@ def get_dm_map(mapfile=None):
 
     return dm_map
 
-def grab_dm_ism_from_healpix_map(l,b, dm_map):
+def dm_ism_from_healpix_map(l,b, dm_map):
     """
     Get the dispersion measure (DM) value from a HEALPix map of DM values.
 
     Parameters
     ----------
-    l : float or int
+    l : float or int or np.ndarray
         Galactic longitude in degrees.
-    b : float or int
+    b : float or int or np.ndarray
         Galactic latitude in degrees.
     dm_map : array
         The HEALPix map of DM values
@@ -136,10 +136,11 @@ def grab_dm_ism_from_healpix_map(l,b, dm_map):
     dm_ism : float
         The DM value at the given coordinates.
     """
+    nside = hp.get_nside(dm_map)
     # Get the pixel corresponding to the given coordinates
     theta = np.radians(90 - b)  # Galactic latitude
     phi = np.radians(l)  # Galactic longitude
-    pix = hp.ang2pix(nside=64, theta=theta, phi=phi)
+    pix = hp.ang2pix(nside=nside, theta=theta, phi=phi)
 
     # Get the DM value at the given coordinates
     dm_ism = dm_map[pix]
