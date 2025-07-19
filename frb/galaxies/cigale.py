@@ -42,18 +42,19 @@ def _sed_default_params(module, photo_z=False):
         and their initial parameters.
     """
     params = {}
-    if module == "sfhdelayed":
-        params['tau_main'] = (10**np.linspace(1,3,10)).tolist() #e-folding time of main population (Myr)
-        params['age_main'] = (10**np.linspace(3,4,10)).tolist() #age (Myr)
-        params['tau_burst'] = 50.0 #burst e-folding time (Myr)
-        params['age_burst'] = 20.0
-        params['f_burst'] = 0.0 #burst fraction by mass
-        params['sfr_A'] = 0.1 #SFR at t = 0 (Msun/yr)
+    if module == "sfhdelayed": # **consider sfhdelayedbq**
+        params['tau_main'] = (10**np.linspace(1,3,10)).tolist() # e-folding time of main population (Myr)
+        params['age_main'] = (10**np.linspace(3,4,10)).tolist() # age of main population (Myr)
+        params['tau_burst'] = 50.0 # e-folding time of the late starburst population model in Myr.
+        params['age_burst'] = 20.0 # Age of the late burst in Myr. The precision is 1 Myr.
+        params['f_burst'] = 0.0 # burst fraction by mass
+        params['sfr_A'] = 0.1 # SFR at t = 0 (Msun/yr)
         params['normalise'] = False # Normalise SFH to produce one solar mass
     elif module == "bc03":
-        params['imf'] = 1 #0: Salpeter 1: Chabrier
-        params['metallicity'] = [0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05] 
-        params['separation_age'] = 10 # Separation between yound and old stellar population (Myr)
+        params['imf'] = 1 # 0: Salpeter 1: Chabrier
+        params['metallicity'] = [0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05] # Possible values are: 0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05.
+        params['separation_age'] = 10 # Separation between young and old stellar population (Myr). The default value in 10^7 years (10 Myr). 
+                                      # Set to 0 not to differentiate ages (only an old population).
     elif module == 'nebular':
         params['logU'] = -2.0 # Ionization parameter
         params['f_esc'] = 0.0 # Escape fraction of Ly continuum photons
@@ -64,7 +65,7 @@ def _sed_default_params(module, photo_z=False):
     # 0.014, 0.016, 0.019, 0.020, 0.022, 0.025, 0.03, 0.033, 0.037, 0.041,
     # 0.046, 0.051.
         params['lines_width'] = 300.0 # Line width in km/s
-        params['emission'] = True
+        params['emission'] = True # **should always be true**
     elif module == 'dustatt_calzleit':
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
         params['E_BVs_old_factor'] = 1.0 # Reduction of E(B-V) for the old population w.r.t. young
@@ -205,11 +206,16 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'SOAR_stromgren_b':'SOAR_stromgren_b',
         'SOAR_stromgren_v':'SOAR_stromgren_v',
         'SOAR_stromgren_y':'SOAR_stromgren_y',
-        'HSC_g': 'subaru.subprime.g',
-        'HSC_r': 'subaru.subprime.r',
-        'HSC_i': 'subaru.subprime.i',
-        'HSC_z': 'subaru.subprime.z',
-        'HSC_Y': 'subaru.subprime.Y'
+        'HSC_g': 'subaru.suprime.g',
+        'HSC_r': 'subaru.suprime.r',
+        'HSC_i': 'subaru.suprime.i',
+        'HSC_z': 'subaru.suprime.z',
+        'HSC_Y': 'subaru.suprime.Y',
+        'GALEX_FUV': 'galex.FUV',
+        'GALEX_NUV': 'galex.NUV',
+        '2MASS_J': '2mass.J',
+        '2MASS_H': '2mass.H',
+        '2MASS_Ks': '2mass.Ks'
     }
     for key in new_names:
         if key in photom_cols:
