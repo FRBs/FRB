@@ -224,6 +224,28 @@ def test_tully():
     assert len(tully_tbl) == 6
 
 @remote_data
+def test_galex(): # sunil help idk what I'm doing here
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    galex_srvy = survey_utils.load_survey_by_name('GALEX', coord, search_r)
+    galex_tbl = galex_srvy.get_catalog()
+    assert isinstance(galex_tbl, Table)
+    assert len(galex_tbl) == 2
+
+@remote_data
+def test_2mass():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    mass_srvy = survey_utils.load_survey_by_name('2MASS', coord, search_r)
+    mass_tbl = mass_srvy.get_catalog()
+    assert isinstance(mass_tbl, Table)
+    assert len(mass_tbl) == 2
+
+@remote_data
 def test_in_which_survey():
     """
     To test if `survey_utils.in_which_survey` works.
