@@ -4,8 +4,10 @@ last edited: May 13, 2025 """
 
 import numpy as np
 from scipy.stats import chi2
-
-
+from astropy import units as u
+import matplotlib
+import matplotlib.pyplot as plt
+from matplotlib.patches import Ellipse
 
 def cov_matrix(a, b, theta):
 

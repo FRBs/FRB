@@ -114,8 +114,10 @@ def main(pargs):
     # Load f_mL
     f_mL = frb_gal_u.load_f_mL()
     # m_r(L*)
-    m_r_Lstar_min = float(f_mL(z_min))
-    m_r_Lstar_max = float(f_mL(z_max))
+    z_min_capped = max([z_min,0.02])  # Capped at 0.02
+    z_max_capped = max([z_max,0.02])  # Capped at 0.02
+    m_r_Lstar_min = float(f_mL(z_min_capped))
+    m_r_Lstar_max = float(f_mL(z_max_capped))
 
     frac_Lstar_min = 10**(-0.4*(mag_corr-m_r_Lstar_min))
     frac_Lstar_max = 10**(-0.4*(mag_corr-m_r_Lstar_max))
