@@ -19,6 +19,7 @@ Getting Started
    :maxdepth: 2
 
    installing
+   quickstart
 
 Data
 ----
@@ -46,6 +47,16 @@ Galaxies
    galaxies
    eazy
 
+Halos
+-----
+
+.. toctree::
+   :maxdepth: 2
+
+   halos/index
+   halos/hmf
+   halos/models
+   halos/photoz
 
 Rotation Measure
 ----------------
@@ -80,5 +91,14 @@ FRB Scripts
    :maxdepth: 2
 
    scripts
+
+API Reference 
+-------------
+
+.. toctree::
+   :maxdepth: 2
+
+   api/index
+   api/dm
 
 
