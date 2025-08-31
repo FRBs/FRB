@@ -1,5 +1,5 @@
-frb.halos.hmf
-=============
+Halo Mass Function
+==================
 
 .. automodule:: frb.halos.hmf
 

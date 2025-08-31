@@ -1,7 +1,11 @@
 frb.halos Package Documentation
 ===============================
 
-The ``frb.halos`` package provides tools for modeling galaxy halos and calculating their contributions to Fast Radio Burst (FRB) dispersion measures. This package includes halo models, stellar-halo mass relations, photometric redshift analysis, and statistical tools for halo populations.
+Modules in the ``frb.halos`` folder provide tools 
+for modeling galaxy halos and calculating 
+their contributions to Fast Radio Burst (FRB) dispersion measures. 
+This package includes halo models, stellar-halo mass relations, 
+photometric redshift analysis, and statistical tools for halo populations.
 
 Overview
 --------

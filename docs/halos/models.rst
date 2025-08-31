@@ -1,5 +1,5 @@
-frb.halos.models
-================
+Halo Modeling
+=============
 
 .. automodule:: frb.halos.models
 

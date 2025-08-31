@@ -13,6 +13,7 @@ release = '2.3.0'
 # -- General configuration ---------------------------------------------------
 extensions = [
     'sphinx.ext.autodoc',
+    'sphinx.ext.autosummary', 
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
     'sphinx.ext.mathjax',
@@ -56,6 +57,7 @@ intersphinx_mapping = {
 # -- Options for autodoc ----------------------------------------------------
 autodoc_default_options = {
     'members': True,
+    'show-inheritance': True,
     'member-order': 'bysource',
     'special-members': '__init__',
     'undoc-members': True,

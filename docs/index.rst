@@ -44,19 +44,15 @@ Galaxies
 .. toctree::
    :maxdepth: 2
 
-   galaxies
-   eazy
+   galaxies/index
 
-Halos
------
+Halo Calculations
+-----------------
 
 .. toctree::
    :maxdepth: 2
 
    halos/index
-   halos/hmf
-   halos/models
-   halos/photoz
 
 Rotation Measure
 ----------------
@@ -100,5 +96,6 @@ API Reference
 
    api/index
    api/dm
+   api/galaxies
 
 

@@ -1,5 +1,5 @@
-frb.halos.photoz
-================
+Photometric Redshifts
+=====================
 
 .. automodule:: frb.halos.photoz
 
