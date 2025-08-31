@@ -3,7 +3,9 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, str(Path('..', 'frb').resolve()))
+sys.path.insert(0, os.path.abspath('../..'))
+#sys.path.insert(0, str(Path('..', 'frb').resolve()))
+#sys.path.insert(0, str(Path('..', '..', 'frb').resolve()))
 
 # -- Project information -----------------------------------------------------
 project = 'FRB Repository'
