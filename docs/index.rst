@@ -44,7 +44,7 @@ Galaxies
 .. toctree::
    :maxdepth: 2
 
-   galaxies/index
+   api/galaxies
 
 Halo Calculations
 -----------------
