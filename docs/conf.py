@@ -2,10 +2,17 @@ import os
 import sys
 from pathlib import Path
 
-sys.path.insert(0, os.path.abspath('..'))
-sys.path.insert(0, os.path.abspath('../..'))
-#sys.path.insert(0, str(Path('..', 'frb').resolve()))
-#sys.path.insert(0, str(Path('..', '..', 'frb').resolve()))
+# Check if we're building on ReadTheDocs
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+
+if on_rtd:
+    # On ReadTheDocs, the package is installed in the environment
+    # No need to modify sys.path
+    pass
+else:
+    # Local development - add path to package
+    sys.path.insert(0, os.path.abspath('..'))
+    sys.path.insert(0, os.path.abspath('../../'))
 
 # -- Project information -----------------------------------------------------
 project = 'FRB Repository'
