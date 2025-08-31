@@ -27,7 +27,7 @@ Core Models
 .. toctree::
    :maxdepth: 2
 
-   frb_halos_models
+   models
 
 Main module containing halo density profiles, stellar-halo mass relations, and galaxy-specific models.
 
@@ -43,7 +43,7 @@ Photometric Analysis
 .. toctree::
    :maxdepth: 2
 
-   frb_halos_photoz
+   photoz
 
 Tools for photometric redshift-based halo analysis of FRB fields.
 
@@ -59,7 +59,7 @@ Statistical Tools
 .. toctree::
    :maxdepth: 2
 
-   frb_halos_hmf
+   hmf
 
 Halo mass function calculations and statistical analysis.
 
