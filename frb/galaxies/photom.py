@@ -23,7 +23,10 @@ from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
 
-import dust_extinction
+try:
+    import dust_extinction
+except ImportError:
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
