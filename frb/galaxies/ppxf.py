@@ -1,7 +1,7 @@
 """ Module for running pPXF analyses"""
 
 import importlib_resources 
-import warnings``
+import warnings
 
 import numpy as np
 

@@ -11,6 +11,5 @@ scipy>=1.15.0
 IPython>=9.0.0 
 dust_extinction>=1.5.0
 numba>=0.55.0
-linetools>=0.3.0
 photutils>=2.1.0
 ne2001>=0.0.1
