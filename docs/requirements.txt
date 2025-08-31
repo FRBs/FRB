@@ -10,6 +10,7 @@ astropy>=5.0.0
 scipy>=1.15.0 
 IPython>=9.0.0 
 dust_extinction>=1.5.0
+linetools>=0.3.2
 numba>=0.55.0
 photutils>=2.1.0
-ne2001>=0.0.1
+git+https://github.com/FRBs/ne2001
