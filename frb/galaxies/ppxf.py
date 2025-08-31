@@ -13,8 +13,14 @@ from astropy.table import Table
 
 c = constants.c.to(units.km / units.s).value
 
-from linetools.spectra.xspectrum1d import XSpectrum1D
-from linetools.spectra.io import readspec
+# linetools will be DEPRECATED
+try:
+    import linetools
+except ImportError:
+    warnings.warn("linetools not found.  Install it if you want to use it")
+else:
+    from linetools.spectra.xspectrum1d import XSpectrum1D
+    from linetools.spectra.io import readspec
 
 try:
     from ppxf import ppxf
