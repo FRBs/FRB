@@ -1,6 +1,7 @@
 """ Module for running pPXF analyses"""
 
 import importlib_resources 
+import warnings``
 
 import numpy as np
 
@@ -15,9 +16,13 @@ c = constants.c.to(units.km / units.s).value
 from linetools.spectra.xspectrum1d import XSpectrum1D
 from linetools.spectra.io import readspec
 
-from ppxf import ppxf
-from ppxf import ppxf_util as util
-from ppxf import miles_util as lib
+try:
+    from ppxf import ppxf
+except ImportError:
+    warnings.warn("ppxf not found.  Install it if you want to use it")
+else:
+    from ppxf import ppxf_util as util
+    from ppxf import miles_util as lib
 import time
 
 from frb.defs import frb_cosmo as cosmo 
