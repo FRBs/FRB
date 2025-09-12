@@ -80,7 +80,9 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         pdict = photom['GALEX'].copy()
         
-        photom_catalog = catalog_utils.clean_cat(ret,pdict)
+        photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
+
+        photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
 
         # Remove duplicate entries.
         photom_catalog = catalog_utils.remove_duplicates(photom_catalog, "GALEX_ID")
