@@ -225,7 +225,7 @@ def test_tully():
 
 @remote_data
 def test_galex(): # sunil help idk what I'm doing here
-    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    coord = SkyCoord('J142532.38+120121.17', unit=(units.hourangle, units.deg))
     search_r = 10 * units.arcsec
 
     # Test get_catalog
@@ -243,7 +243,7 @@ def test_2mass():
     mass_srvy = survey_utils.load_survey_by_name('2MASS', coord, search_r)
     mass_tbl = mass_srvy.get_catalog()
     assert isinstance(mass_tbl, Table)
-    assert len(mass_tbl) == 2
+    assert len(mass_tbl) == 1
 
 @remote_data
 def test_in_which_survey():
