@@ -113,7 +113,7 @@ for band in MMIRS_bands:
     valid_filters.append('MMIRS_{:s}'.format(band))
 
 #2MASS
-MASS_bands = ['J','H','K']
+MASS_bands = ['j','h','k']
 for band in MASS_bands:
     valid_filters.append('2MASS_{:s}'.format(band))
     valid_filters.append('WIRC_{:s}'.format(band))
@@ -138,6 +138,11 @@ for band in WISE_bands:
 Spitzer_bands = ['3.6', '4.5']
 for band in Spitzer_bands:
     valid_filters.append('Spitzer_{:s}'.format(band))
+
+# GALEX
+GALEX_bands = ['FUV', 'NUV']
+for band in GALEX_bands:
+    valid_filters.append('GALEX_{:s}'.format(band))
 
 # DECam-based surveys
 
