@@ -48,7 +48,7 @@ def load_hutschenreuter2020():
     if not os.path.isfile(galactic_rm_file):
         readme_file = importlib_resources.files('frb.data.RM')/'README'
         print(f"See the README here: {readme_file}")
-        raise IOError("You need to download the Hutschenreuter 2022 map to proceed, aka faraday2020v2.fits")
+        raise IOError("You need to download the Hutschenreuter 2022 map to proceed, aka faraday2020v2.fits. https://wwwmpa.mpa-garching.mpg.de/ift/data/faraday2020/faraday2020v2.fits")
 
     # Load
     rm_sky = hp.read_map(galactic_rm_file)
