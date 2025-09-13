@@ -20,3 +20,4 @@ setuptools>=75.0.0
 tox>=4.15.0
 pyvo>=1.5.3
 importlib-resources>=6.4.0
+astroquery>=0.4.6
