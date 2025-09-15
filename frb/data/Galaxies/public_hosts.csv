@@ -1,6 +1,6 @@
 FRB,Coord,P_Ox,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_filter,Bad_EM_lines,Reviewer,Comments
 20121102A,05h31m58.686s +33d08m52.433s,1.00E+00,0.19273,"Repeater,F4,F4","Bassa2017,mannings2021,gordon2023",,GMOS-N,,WFC3_F160W,,SS,
-20171020,22h15m24.48s -19d35m09.6s,0,0.00867,CRAFT,Mahony2018,,,,,,X,
+20171020A,22h15m24.48s -19d35m09.6s,0,0.00867,CRAFT,Mahony2018,,,,,,X,
 20180301A,06h12m54.4392s +04d40m13.717s,0.9999999977,0.3305,"Realfast,F4","Bhandari2021,gordon2023",,DEIMOS,"3000., 5000.;6675., 6725.;7150., 7300.;7580, 7750.",,,CRM,
 20180916B,01h58m00.28s +65d42m53.0s,1.00E+00,0.0337,"CHIME,F4,F4","Marcote2020,mannings2021,gordon2023",,LRIS,,WFC3_F110W,,NT,
 20180924B,21h44m25.256s -40d54m00.81s,1.00000,0.32120,"CRAFT,CRAFT,F4,F4,F4,CRAFT","Bannister2019,Heintz2020,mannings2021,simha2021a,gordon2023,shannon2024",,MUSE,,WFC3_F160W,,AM,"dispersion measure is different in almost every paper (by ~1 or 2), rotation measure 14 in bhandari 2020 & bannister, metallicity slightly off Bhandari20, DES photom off by tenths of mag, WISE photom off by a few magnitudes"
@@ -92,3 +92,5 @@ FRB,Coord,P_Ox,z,Projects,References,CIGALE_photom,Spectrum,ppxf_cuts,Galfit_fil
 20231223C,17h18m10.66s +29d29m45.05s,0.95342,0.1059,CHIME,leung2025,,,,,,,
 20231229A,01h45m52.26s +35d06m28.19s,0.998038,0.019,CHIME,leung2025,,,,,,,
 20231230A,04h51m09.39s +02d22m05.02s,0.917597,0.0298,CHIME,leung2025,,,,,,,
+20231230D,07h55m02.57s +08d30m50.57s,0.999361,0.506,CRAFT,muller2025,,X-shooter,,,,,
+20240117B,03h35m30.601s -15d51m08.36s,0.9999,0.644,CRAFT,muller2025,,X-shooter,,,,,

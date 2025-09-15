@@ -14,9 +14,13 @@ from astropy.coordinates import match_coordinates_sky
 from astropy import units
 from astropy.table import Table, vstack
 
-from specdb import defs
-from specdb.build import privatedb as pbuild
-from specdb.build import utils as spbu
+try:
+    from specdb import defs
+except (ImportError, ModuleNotFoundError):
+    print("No specdb module found, please install specdb if you wish to build specdb")
+else:
+    from specdb.build import privatedb as pbuild
+    from specdb.build import utils as spbu
 
 from frb.surveys import sdss
 

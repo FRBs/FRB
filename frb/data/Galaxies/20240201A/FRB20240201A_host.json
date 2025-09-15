@@ -11,6 +11,19 @@
         "physical": 5.451000611052975,
         "physical_err": 0.4374430757566024
     },
+    "photom": {
+        "EBV": 0.0255,
+        "VLT_FORS2_R": 16.907961839004518,
+        "VLT_FORS2_R_err": 0.0113862908463653,
+        "VLT_FORS2_R_flux": 0.6263473707343641,
+        "VLT_FORS2_R_flux_err": 0.006568605986227027,
+        "VLT_FORS2_R_ref": "Shannon2024",
+        "VLT_HAWKI_Ks": 15.404048910513804,
+        "VLT_HAWKI_Ks_err": 0.0469003932735304,
+        "VLT_HAWKI_Ks_flux": 2.5025365554247525,
+        "VLT_HAWKI_Ks_flux_err": 0.10810171763310926,
+        "VLT_HAWKI_Ks_ref": "Shannon2024"
+    },
     "ra": 149.9071820833333,
     "ra_FRB": 149.905578613,
     "redshift": {

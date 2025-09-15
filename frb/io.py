@@ -1,7 +1,5 @@
 """ Module for I/O activities in the FRB repo
 """
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 import importlib_resources
 import gzip
 import json
