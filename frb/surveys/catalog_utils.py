@@ -3,12 +3,9 @@ from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck18 as cosmo
 from astropy.table import Table, hstack, vstack, setdiff, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
-
-from IPython import embed
 
 
 def clean_heasarc(catalog):
@@ -436,6 +433,12 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     assert np.all(np.isin(['ra','dec'],tab1.colnames)), "Table 1 doesn't have column 'ra' and/or 'dec'."
     assert np.all(np.isin(['ra','dec'],tab2.colnames)), "Table 2 doesn't have column 'ra' and/or 'dec'."
 
+    # Edge cases: zero length tables
+    if len(tab1) == 0:
+        return tab2.copy()
+    elif len(tab2) == 0:
+        return tab1.copy()
+
     # Cross-match tables for tab1 INTERSECTION tab2.
     matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol, **kwargs)
 
@@ -452,8 +455,12 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
     # Now get all objects that weren't matched.
-    not_matched_tab1 = setdiff(tab1, matched_tab1)
-    not_matched_tab2 = setdiff(tab2, matched_tab2)
+    if len(matched_tab1) == 0:
+        not_matched_tab1 = tab1
+        not_matched_tab2 = tab2
+    else:
+        not_matched_tab1 = tab1[~np.isin(tab1, matched_tab1)]
+        not_matched_tab2 = tab2[~np.isin(tab2, matched_tab2)]
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
 
@@ -461,7 +468,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
                     keys=['ra','dec'], join_type='outer', table_names=table_names)
-        merged = vstack([inner_join, outer_join]).filled(-999.)
+        merged = vstack([inner_join, outer_join]).filled(999.)
     # Only table 1 has unmatched entries?
     elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
         merged = vstack([inner_join, not_matched_tab1])
@@ -476,7 +483,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if np.any(weird_cols):
         merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
     # Fill and return.
-    return merged.filled(-999.)
+    return merged.filled(999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 

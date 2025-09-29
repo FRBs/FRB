@@ -80,7 +80,19 @@ def test_des():
     # Image
     data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (39,39)
-    
+
+@remote_data
+def test_desi():
+    # Catalog
+    coord = SkyCoord(0, 0, unit="deg")
+    search_r = 0.3 * units.arcmin # Can't go below this with Noirlab for some reason. No error.
+                                  #Just a constant number of entries returned. 0 arcmin does give 0 entries though.
+
+    desi_srvy = survey_utils.load_survey_by_name('DESI', coord, search_r)
+    desi_tbl = desi_srvy.get_catalog(print_query=True, exclude_stars=True, zcat_primary_only=True)
+    assert isinstance(desi_tbl, Table)
+    assert len(desi_tbl) == 3230
+
 
 @remote_data
 def test_nsc():
@@ -212,6 +224,28 @@ def test_tully():
     assert len(tully_tbl) == 6
 
 @remote_data
+def test_galex():
+    coord = SkyCoord('J142532.38+120121.17', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    galex_srvy = survey_utils.load_survey_by_name('GALEX', coord, search_r)
+    galex_tbl = galex_srvy.get_catalog()
+    assert isinstance(galex_tbl, Table)
+    assert len(galex_tbl) == 2
+
+@remote_data
+def test_2mass():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    mass_srvy = survey_utils.load_survey_by_name('2MASS', coord, search_r)
+    mass_tbl = mass_srvy.get_catalog()
+    assert isinstance(mass_tbl, Table)
+    assert len(mass_tbl) == 1
+
+@remote_data
 def test_in_which_survey():
     """
     To test if `survey_utils.in_which_survey` works.
@@ -232,7 +266,9 @@ def test_in_which_survey():
                     'NVSS': False,
                     'FIRST': False,
                     'WENSS': False,
-                    'NEDLVS': True}
+                    'NEDLVS': True,
+                    'GALEX': False,
+                    '2MASS': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -267,6 +303,8 @@ def test_search_all():
                 'SDSS_ID', 'run', 'rerun', 'camcol', 'SDSS_field', 'type', 'SDSS_u', 'SDSS_g', 'SDSS_r', 'SDSS_i', 'SDSS_z', 'SDSS_u_err', 'SDSS_g_err', 'SDSS_r_err', 'SDSS_i_err', 'SDSS_z_err', 'extinction_u', 'extinction_g', 'extinction_r', 'extinction_i', 'extinction_z', 'photo_z', 'photo_zerr', 'z_spec', 'separation_2',
                 'DELVE_ID', 'ebv', 'DELVE_g', 'DELVE_g_err', 'class_star_g', 'DELVE_r', 'DELVE_r_err', 'class_star_r', 'DELVE_i', 'DELVE_i_err', 'class_star_i', 'DELVE_z', 'DELVE_z_err', 'class_star_z',
                 'DECaL_ID', 'DECaL_brick', 'DECaL_type', 'DECaL_g', 'DECaL_r', 'DECaL_z', 'DECaL_g_err', 'DECaL_r_err', 'DECaL_z_err', 'survey', 'z_phot_l68', 'z_phot_median', 'z_phot_u68', 'z_phot_l95', 'z_phot_u95', 'z_spec_1','z_spec_2',
-                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err']
+                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err',
+                'GALEX_ID', 'GALEX_FUV', 'GALEX_FUV_err', 'GALEX_NUV', 'GALEX_NUV_err', 'separation',
+                '2MASS_ID', '2MASS_j', '2MASS_j_err', '2MASS_h', '2MASS_h_err', '2MASS_k', '2MASS_k_err']
     assert len(setdiff1d(combined_cat.colnames, colnames))==0
     assert combined_cat['Pan-STARRS_ID'][1] == -999.

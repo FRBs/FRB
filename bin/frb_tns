@@ -14,4 +14,21 @@ from frb.scripts import tns
 
 if __name__ == '__main__':
     args = tns.parser()
-    tns.main(args)
+
+    tns.check_tns_api_keywords()
+    if args.single:
+        if args.ra is None or args.dec is None or args.theta is None or args.a is None or args.b is None:
+            print("Error: Missing parameters for single object query.")
+            exit(1)
+        matched_transient_data = tns.main(filename=None,
+                                      name=args.name, 
+                                      ra=args.ra, 
+                                      dec=args.dec,
+                                      theta=args.theta, 
+                                      a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
+        tns.save_matches(matched_transient_data, args.outfile)
+    else:
+        frb_file = args.filename
+        matched_transient_data = tns.main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
+                                      radius=args.radius, single_obj=False)
+        tns.save_matches(matched_transient_data, args.outfile)
