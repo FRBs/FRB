@@ -295,6 +295,7 @@ def run(host_input:pandas.core.series.Series,
             continue
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
+        #embed(header='Check the table 298')
         if sub_tbl is not None:
             # Add References, unless the value is masked
             for key in sub_tbl.keys():
