@@ -344,11 +344,11 @@ class KCWIDatacube():
         masked_cube = self.cube.subcube_from_mask(mask_arr)
 
         #TODO: add more methods of obtaining the central estimate
-        spec = masked_cube.mean(axis=(1,2), how = how)
+        spec = masked_cube.sum(axis=(1,2), how = how)
         # if kind is max:
         # if kind is something_else:
         masked_var = self.varcube.subcube_from_mask(mask_arr)
-        varspec = masked_var.mean(axis = (1,2), how = how)/np.sum(mask_arr) # Var of the mean = Sum of var/npix^2 = Mean of var/npix assuming each pix is uncorelated (not true, really).
+        varspec = masked_var.sum(axis = (1,2), how = how) # Var of the sum = Sum of var assuming each pix is uncorrelated (not true, really).
         return spec, varspec
 
     def spec_from_ellipse(self,
