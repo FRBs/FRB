@@ -543,14 +543,14 @@ class ModifiedNFW(object):
     Parameters:
         log_Mhalo: float, optional
           log10 of the Halo mass [dark matter + baryons] (solar masses)
+        log_MCGM: float, optional
+            log10 of the CGM mass (solar masses)
+            If provided, this sets f_hot [this is its only use]
         c: float, optional
           concentration of the halo
         f_hot: float, optional
-          Fraction of the baryons in this hot phase
+          Fraction of the total "expected" baryons in this hot (aka CGM) phase
           Will likely use this for all diffuse gas
-          This is exactly the mass of the CGM within r200 divided by the 
-            total baryonic mass of the system expected if the
-            halo retained all of its baryons
         alpha: float, optional
           Parameter to modify NFW profile power-law
         y0: float, optional
