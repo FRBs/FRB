@@ -83,6 +83,12 @@ class FRBGalaxy(object):
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
 
+        # Redshift
+        if 'z' in idict.keys():
+            slf.set_z(idict['z'], idict['z_origin'])
+            if 'z_err' in idict.keys():
+                slf.set_z(idict['z'], idict['z_origin'], err=idict['z_err'])
+
         # Physical Offset -- remove this when these get into JSON files
         if 'z_spec' in slf.redshift.keys() and 'physical' not in slf.offsets.keys():
             slf.offsets['physical'] = (slf.offsets['ang_best']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value

@@ -13,6 +13,16 @@ from frb.halos.models import ModifiedNFW
 from ne2001 import density
 
 def ismDM(coord):
+    """
+    Calculate the dispersion measure (DM) contribution from the interstellar medium (ISM)
+    along a given line of sight in galactic coordinates.
+    Parameters:
+        coord (astropy.coordinates.SkyCoord): The input sky coordinate to transform 
+            into galactic coordinates.
+    Returns:
+        float: The dispersion measure (DM) value calculated for the ISM along the 
+        specified line of sight up to a distance of 100 parsecs.
+    """
     gcoord = coord.transform_to('galactic')
     l, b = gcoord.l.value, gcoord.b.value
     
