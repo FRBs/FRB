@@ -65,7 +65,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     
     def get_catalog(self,query_fields=None,release="dr2",
                     table="stack",print_query=False,
-                    use_psf=False, photoz=True):
+                    use_psf=False, photoz=False):
         """
         Query a catalog in the MAST Pan-STARRS database for
         photometry.
