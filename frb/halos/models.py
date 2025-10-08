@@ -578,7 +578,8 @@ class ModifiedNFW(object):
                  c=7.67, 
                  f_hot:float=None, #0.75, 
                  log_MCGM:float=None, #1e12,
-                 alpha=0., y0=1., z=0., cosmo=cosmo,fb = cosmo.Ob0/cosmo.Om0,
+                 alpha=0., y0=1., z=0., cosmo=cosmo,
+                 fb = cosmo.Ob0/cosmo.Om0,
                  **kwargs):
         # Init
         if f_hot is None: 
@@ -693,7 +694,7 @@ class ModifiedNFW(object):
 
         Parameters
         ----------
-        xyz : ndarray
+        xyz : ndarray (3, npoints)
           Coordinate(s) in kpc
 
         Returns
@@ -723,6 +724,14 @@ class ModifiedNFW(object):
         radius = np.sqrt(rad3d2(xyz))
         y = self.c * (radius/self.r200.to('kpc').value)
         rho = self.rho0_b * self.f_hot / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
+        # Return
+        return rho
+
+    def rho_m(self, xyz):
+
+        radius = np.sqrt(rad3d2(xyz))
+        y = self.c * (radius/self.r200.to('kpc').value)
+        rho = self.rho0 / y / (1+y)**2
         # Return
         return rho
 
