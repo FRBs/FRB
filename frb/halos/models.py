@@ -620,16 +620,22 @@ class ModifiedNFW(object):
         #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
         self.rhovir = (18*np.pi**2-82*self.q-39*self.q**2)*self.rhoc
         self.r200 = (((3*self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
-        self.rho0 = self.rhovir/3 * self.c**3 / self.fy_dm(self.c)   # Central density
+        #self.rho0 = self.rhovir/3 * self.c**3 / self.fy_m(self.c)   # Central density
+
+
         # Baryons
         self.M_b = self.M_halo * self.fb
         self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
+
+        # Dark mattr again
+        self.M_dm = self.M_halo-self.M_b 
+        self.rho0 = (self.M_dm / (4*np.pi*(self.r200/self.c)**3) / self.fy_dm(self.c)).cgs   
+
         # Misc
         self.mu = 1.33   # Reduced mass correction for Helium
 
     def fy_dm(self, y):
-        """ Enclosed mass function for the Dark Matter NFW
-        Assumes the NFW profile
+        """ Enclosed mass function for the Dark Matter NFW profile
 
         Parameters
         ----------
@@ -727,7 +733,7 @@ class ModifiedNFW(object):
         # Return
         return rho
 
-    def rho_m(self, xyz):
+    def rho_dm(self, xyz):
 
         radius = np.sqrt(rad3d2(xyz))
         y = self.c * (radius/self.r200.to('kpc').value)
