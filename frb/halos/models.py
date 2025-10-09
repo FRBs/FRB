@@ -579,6 +579,7 @@ class ModifiedNFW(object):
                  f_hot:float=None, #0.75, 
                  log_MCGM:float=None, #1e12,
                  alpha=0., y0=1., z=0., cosmo=cosmo,
+                 norm_by_asymptote:bool=False,
                  fb = cosmo.Ob0/cosmo.Om0,
                  **kwargs):
         # Init
@@ -600,6 +601,7 @@ class ModifiedNFW(object):
         self.zero_inner_ne = 0. # kpc
         self.cosmo = cosmo
         self.fb = fb
+        self.norm_by_asymptote = norm_by_asymptote
 
         # Init more
         self.setup_param(cosmo=self.cosmo,)
@@ -622,14 +624,25 @@ class ModifiedNFW(object):
         self.r200 = (((3*self.M_halo) / (4*np.pi*self.rhovir))**(1/3)).to('kpc')
         #self.rho0 = self.rhovir/3 * self.c**3 / self.fy_m(self.c)   # Central density
 
+        # Normalizations
+        if self.norm_by_asymptote:
+            self.rho0 = self.M_halo / (4*np.pi*(self.r200/self.c)**3) / (
+                self.fy_dm(self.c) + self.cosmo.Ob0*self.fy_b(self.c)/self.cosmo.Odm0)
+            self.rho0_b = self.rho0 * self.cosmo.Ob0/self.cosmo.Odm0
+            self.M_b = 4*np.pi*self.rho0_b*(self.r200/self.c)**3 * self.fy_b(self.c)
+            self.M_dm = 4*np.pi*self.rho0*(self.r200/self.c)**3 * self.fy_dm(self.c)
 
-        # Baryons
-        self.M_b = self.M_halo * self.fb
-        self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
+            # Check
+            assert np.isclose(self.M_b+self.M_dm, self.M_halo)
 
-        # Dark mattr again
-        self.M_dm = self.M_halo-self.M_b 
-        self.rho0 = (self.M_dm / (4*np.pi*(self.r200/self.c)**3) / self.fy_dm(self.c)).cgs   
+        else:  # Original
+            # Baryons
+            self.M_b = self.M_halo * self.fb
+            self.rho0_b = (self.M_b / (4*np.pi) * (self.c/self.r200)**3 / self.fy_b(self.c)).cgs
+
+            # Dark mattr again
+            self.M_dm = self.M_halo-self.M_b 
+            self.rho0 = (self.M_dm / (4*np.pi*(self.r200/self.c)**3) / self.fy_dm(self.c)).cgs   
 
         # Misc
         self.mu = 1.33   # Reduced mass correction for Helium

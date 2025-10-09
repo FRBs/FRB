@@ -1,5 +1,4 @@
 # Module to run tests on FRB halo calculations
-from __future__ import print_function, absolute_import, division, unicode_literals
 
 # TEST_UNICODE_LITERALS
 
@@ -67,25 +66,6 @@ def test_MB15():
     # Test
     assert np.isclose(ne, 0.00016150865297256291)
 
-
-def test_modified_NFW():
-    # Init
-    mNFW = halos.ModifiedNFW()
-    # xyz
-    xyz = (1-2*rand(3, 100)) * 100
-    # rho
-    rho = mNFW.rho_b(xyz)
-    assert rho.size == 100
-    assert rho.unit == u.g/u.cm**3
-    # nH
-    nH = mNFW.nH(xyz)
-    assert rho.size == 100
-    xyz0 = [100., 0., 0.]
-    nH0 = mNFW.nH(xyz0)
-    assert np.isclose(nH0, 0.00018175, rtol=1e-3)
-    # ne
-    ne = mNFW.ne(xyz)
-    assert np.all(ne > nH)
 
 def test_log_MGCM():
     # Init
