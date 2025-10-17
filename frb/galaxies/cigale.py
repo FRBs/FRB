@@ -18,6 +18,12 @@ else:
     from pcigale.analysis_modules import get_module
     from pcigale.utils.console import INFO, WARNING, ERROR, console
 
+try:
+    from pcigale_plots.plot_types.sed import SED
+except ImportError:
+    console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+    pass
+
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
 # Default list of SED modules for CIGALE
@@ -370,11 +376,11 @@ def run(photometry_table, zcol,
             if len(sorted(best_model_files)) == 0:
                 console.print(f"{WARNING} No best model files found for making plots. Please rerun with save_sed=True")
         else:        
-            try:
-                from pcigale_plots.plot_types.sed import SED
-            except ImportError:
-                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
-                pass
+            # try:
+            #     from pcigale_plots.plot_types.sed import SED
+            # except ImportError:
+            #     console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+            #     pass
 
             # TODO: Let the user customize the plot.
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
@@ -444,4 +450,59 @@ def host_run(host, cut_photom=None, cigale_file=None):
         # SFH
         sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
         os.system('mv {:s}/{:s}_SFH.fits {:s}'.format(host.name, host.name, sfh_file))
+    return
+
+def add_text_SED(host, cigale_results, out_name=None):
+    """
+    Add a text file with the SED results
+    to the host object.
+    Args
+    ----
+    host (FRBGalaxy): A host galaxy.
+    """
+    config_file = 'pcigale.ini'
+    cigconf = Configuration(Path(config_file))
+
+    # TODO: Let the user customize the plot.
+    series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
+    SED(config = cigconf, sed_type = "mJy", nologo = True,
+        xrange = (False, False), yrange =  (False, False),
+        series = series, format =  "png", outdir =  Path(f"{host.name}")) ### something wrong with input data file (cigconf)
+
+    # Get unique surveys to put on plot
+    surveys = set()
+    for key in host.photom.keys():
+        survey = key.split("_")[0]  # take everything before the first underscore
+        if survey == "Pan-STARRS":
+            survey = "PS1"
+        surveys.add(survey)
+    surveys = sorted(list(surveys))
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    # Open the image
+    img = Image.open(f"{host.name}/{host.name}_best_model.png")
+
+    # Create a drawing object
+    draw = ImageDraw.Draw(img)
+
+    # Define font (use a system font or specify a .ttf file)
+    font = ImageFont.load_default(size=22)
+
+    plot_text = f"{host.name}\n"
+    plot_text += f"Mstar = {cigale_results['Mstar']:.2e} Msun \n"
+    plot_text += f"SFR = {cigale_results['SFR_photom']:.2f} Msun/yr\n"
+    plot_text += "Photometry: \n  + " + "\n  + ".join(surveys)
+
+    # Add text (x, y coordinates, text, color, font)
+    draw.text((20, 15), plot_text, fill="black", font=font)
+
+    # Save result
+    if out_name is not None:
+        img.save(f"{host.name}/{out_name}")
+        print(f"Saved {host.name}/{out_name}")
+    else:
+        img.save(f"{host.name}/{host.name}_best_model_text.png")
+        print(f"Saved {host.name}/{host.name}_best_model_text.png")
+
     return
