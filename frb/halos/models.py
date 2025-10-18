@@ -8,6 +8,7 @@ import importlib_resources
 
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
+from scipy.special import expi
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 
@@ -927,6 +928,65 @@ class ModifiedNFW(object):
         return (txt)
 
 
+class mModifiedNFW(ModifiedNFW):
+    def __init__(self, 
+                log_Mhalo=12.2, 
+                c=7.67, 
+                f_hot:float=None, #0.75, 
+                log_MCGM:float=None, #1e12,
+                alpha=0., y0=1., z=0., cosmo=cosmo,
+                norm_by_asymptote:bool=False,
+                fb = cosmo.Ob0/cosmo.Om0,
+                **kwargs):
+
+        # 
+        self.rhob_A = 1.
+
+        # Init ModifiedNFW
+        ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, alpha=alpha,
+                             y0=y0, cosmo=cosmo,
+                             f_hot=f_hot, **kwargs)
+
+
+    def rho_b(self, xyz):
+        """ Mass density in baryons in the halo; modified
+
+        Parameters
+        ----------
+        xyz : ndarray
+          Position (assumes kpc)
+
+        Returns
+        -------
+        rho : Quantity
+          Density in g / cm**-3
+
+        """
+        radius = np.sqrt(rad3d2(xyz))
+        y = self.c * (radius/self.r200.to('kpc').value)
+        rho = self.rho0*(cosmo.Ob0/cosmo.Odm0) * (
+            1 + self.rhob_A*np.exp(-y/self.y0)) / y**(1-self.alpha) / (self.y0+y)**(2+self.alpha)
+
+        # Return
+        return rho
+
+    def fy_b(self, y):
+        # THIS IS ONLY VALID FOR ALPHA=2
+
+        # First term
+        first = 34*np.exp(1) * self.rhob_A * expi(-(y+self.y0)/self.y0) + (
+            self.rhob_A * self.y0 * np.exp(-y/self.y0) * (28 * y**2 + 46 * y * self.y0 +
+                                                          20 * self.y0**2)/(y+self.y0)**3 + 
+            (self.y0*(18*y**2 + 27 * y*self.y0 + 11*self.y0**2))/(y+self.y0)**3 + 
+            6*np.log(y+self.y0)
+        )
+
+        second = 34*np.exp(1) * self.rhob_A * expi(-1) + (
+            self.rhob_A * self.y0 * (20 * self.y0**2)/(self.y0)**3 + 
+            (self.y0*(11*self.y0**2))/(self.y0)**3 + 6*np.log(self.y0)
+        )
+
+        return first - second
 
 class MB04(ModifiedNFW):
     """
