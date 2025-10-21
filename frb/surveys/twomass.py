@@ -16,6 +16,8 @@ from frb.surveys import surveycoord,catalog_utils,images
 
 import os
 
+from IPython import embed
+
 # Define the data model for 2MASS data
 photom = {}
 photom['2MASS'] = {}
@@ -89,7 +91,10 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
         
         photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
 
-        photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
+        try:
+            photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
+        except:
+            embed(headers="Photom catalog columns 95")
 
         # Remove duplicate entries.
         photom_catalog = catalog_utils.remove_duplicates(photom_catalog, "2MASS_ID")
