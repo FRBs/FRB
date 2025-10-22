@@ -91,10 +91,7 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
         
         photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
 
-        try:
-            photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
-        except:
-            embed(headers="Photom catalog columns 95")
+        photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
 
         # Remove duplicate entries.
         photom_catalog = catalog_utils.remove_duplicates(photom_catalog, "2MASS_ID")
