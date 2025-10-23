@@ -18,12 +18,6 @@ else:
     from pcigale.analysis_modules import get_module
     from pcigale.utils.console import INFO, WARNING, ERROR, console
 
-try:
-    from pcigale_plots.plot_types.sed import SED
-except ImportError:
-    console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
-    pass
-
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
 # Default list of SED modules for CIGALE
@@ -376,11 +370,11 @@ def run(photometry_table, zcol,
             if len(sorted(best_model_files)) == 0:
                 console.print(f"{WARNING} No best model files found for making plots. Please rerun with save_sed=True")
         else:        
-            # try:
-            #     from pcigale_plots.plot_types.sed import SED
-            # except ImportError:
-            #     console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
-            #     pass
+            try:
+                from pcigale_plots.plot_types.sed import SED
+            except ImportError:
+                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+                pass
 
             # TODO: Let the user customize the plot.
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
@@ -460,16 +454,11 @@ def add_text_SED(host, cigale_results, out_name=None):
     ----
     host (FRBGalaxy): A host galaxy.
     """
-    # config_file = 'pcigale.ini'
-    # cigconf = Configuration(Path(config_file))
-    # analysis_module = get_module(cigconf.configuration['analysis_method'])
-    # analysis_module.process(cigconf.configuration)
-
-    # # TODO: Let the user customize the plot.
-    # series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
-    # SED(config = cigconf, sed_type = "mJy", nologo = True,
-    #     xrange = (False, False), yrange =  (False, False),
-    #     series = series, format =  "png", outdir =  Path(f"{host.name}"))
+    try:
+        from pcigale_plots.plot_types.sed import SED
+    except ImportError:
+        console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+        pass
 
     # Get unique surveys to put on plot
     surveys = set()
