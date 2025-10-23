@@ -386,7 +386,7 @@ def run(photometry_table, zcol,
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
             SED(config = cigconf, sed_type = "mJy", nologo = True,
                 xrange = (False, False), yrange =  (False, False),
-                series = series, format =  "pdf", outdir =  Path("out"))
+                series = series, format =  "png", outdir =  Path("out"))
             # Set back to a GUI
             import matplotlib
             matplotlib.use('TkAgg')
@@ -460,14 +460,16 @@ def add_text_SED(host, cigale_results, out_name=None):
     ----
     host (FRBGalaxy): A host galaxy.
     """
-    config_file = 'pcigale.ini'
-    cigconf = Configuration(Path(config_file))
+    # config_file = 'pcigale.ini'
+    # cigconf = Configuration(Path(config_file))
+    # analysis_module = get_module(cigconf.configuration['analysis_method'])
+    # analysis_module.process(cigconf.configuration)
 
-    # TODO: Let the user customize the plot.
-    series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
-    SED(config = cigconf, sed_type = "mJy", nologo = True,
-        xrange = (False, False), yrange =  (False, False),
-        series = series, format =  "png", outdir =  Path(f"{host.name}")) ### something wrong with input data file (cigconf)
+    # # TODO: Let the user customize the plot.
+    # series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
+    # SED(config = cigconf, sed_type = "mJy", nologo = True,
+    #     xrange = (False, False), yrange =  (False, False),
+    #     series = series, format =  "png", outdir =  Path(f"{host.name}"))
 
     # Get unique surveys to put on plot
     surveys = set()
@@ -489,8 +491,7 @@ def add_text_SED(host, cigale_results, out_name=None):
     # Define font (use a system font or specify a .ttf file)
     font = ImageFont.load_default(size=22)
 
-    plot_text = f"{host.name}\n"
-    plot_text += f"Mstar = {cigale_results['Mstar']:.2e} Msun \n"
+    plot_text = f"Mstar = {cigale_results['Mstar']:.2e} Msun \n"
     plot_text += f"SFR = {cigale_results['SFR_photom']:.2f} Msun/yr\n"
     plot_text += "Photometry: \n  + " + "\n  + ".join(surveys)
 
