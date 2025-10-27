@@ -85,6 +85,12 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
                 photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band.lower())
                 photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msigcom'.format(band.lower())
 
+        else: # if XSC is not empty, rename columns for mags for XSC
+            # Instead of _m and _msig, it's _m_fe and _msig_fe for fiducial elliptical Kron
+            for band in MASS_bands:
+                photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m_fe'.format(band.lower())
+                photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig_fe'.format(band.lower())
+
         pdict = photom['2MASS'].copy()
         
         photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
