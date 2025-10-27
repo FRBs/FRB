@@ -489,6 +489,10 @@ def run(host_input:pandas.core.series.Series,
 
     # Vet all
     assert Host.vet_all()
+    #try:
+    #    assert Host.vet_all()
+    #except AssertionError as e:
+    #    embed(header='Host galaxy failed vetting! 494')
 
     # Write
     if out_path is None:
