@@ -76,9 +76,12 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
         data['columns'] = query_fields
         data['format'] = 'csv'
 
+        # First query the extended source catalog
+        # Fields described here: http://tdc-www.harvard.edu/catalogs/tmx.format.html
         ret = Irsa.query_region(self.coord, radius=self.radius, spatial='Cone',
                                 catalog="fp_xsc")
         isempty = len(ret) == 0
+
         if isempty:
             # If fp_xsc is empty, query the psc catalog
             ret = Irsa.query_region(self.coord, radius=self.radius, spatial='Cone',
@@ -86,6 +89,11 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
             for band in MASS_bands: # Rename columns for mags for PSC
                 photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band.lower())
                 photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msigcom'.format(band.lower())
+        else: # if XSC is not empty, rename columns for mags for XSC
+            # Instead of _m and _msig, it's _m_fe and _msig_fe for fiducial elliptical Kron
+            for band in MASS_bands:
+                photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m_fe'.format(band.lower())
+                photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig_fe'.format(band.lower())
 
         pdict = photom['2MASS'].copy()
         
