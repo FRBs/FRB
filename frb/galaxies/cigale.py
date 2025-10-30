@@ -382,8 +382,15 @@ def run(photometry_table, zcol,
                 xrange = (False, False), yrange =  (False, False),
                 series = series, format =  "png", outdir =  Path("out"))
             # Set back to a GUI
+            # import matplotlib
+            # matplotlib.use('TkAgg')
             import matplotlib
-            matplotlib.use('TkAgg')
+            if matplotlib.get_backend().lower() != 'tkagg':
+                try:
+                    matplotlib.use('TkAgg')
+                except ImportError:
+                    pass
+
 
     # Rename the default output directory?
     if outdir != 'out':
