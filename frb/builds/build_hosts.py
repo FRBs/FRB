@@ -164,6 +164,7 @@ def read_lit_table(lit_entry, coord=None):
             idx = int(np.where(match)[0])
             return lit_tbl[idx:idx+1]
         else:
+            embed(header="Multiple matches in literature table!")
             raise ValueError("More than one match in the table!!!")
     else:
         # Return
