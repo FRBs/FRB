@@ -262,7 +262,7 @@ def run(host_input:pandas.core.series.Series,
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
-        srvy_tbl = survey.get_catalog(print_query=True)
+        srvy_tbl = survey.get_catalog()#print_query=True)
 
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
