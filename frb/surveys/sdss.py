@@ -1,5 +1,6 @@
 """ Methods related to SDSS/BOSS queries """
 
+import warnings
 import numpy as np
 from IPython import embed
 
@@ -89,6 +90,8 @@ class SDSS_Survey(surveycoord.SurveyCoord):
             # Validate
             self.validate_catalog()
             return
+        elif '<html>' in photom_catalog.colnames[0]:
+            raise RuntimeError("SDSS photometry query appears to have failed. Error message: {}".format(photom_catalog.colnames[0]+photom_catalog[0][0]))
 
         # Now query for photo-z
         query = "SELECT GN.distance, "
@@ -109,9 +112,15 @@ class SDSS_Survey(surveycoord.SurveyCoord):
 
         # Match em up
         if photz_cat is not None:
-            matches = catalog_utils.match_ids(photz_cat['objid'], photom_catalog['objid'], require_in_match=False)
+            # Was there an error in the photo-z query?
+            if (len(photz_cat.colnames) == 1) &('<html>' in photz_cat.colnames[0]):
+                warnings.warn("Photo-z query appears to have failed; no photo-z will be included",category=RuntimeWarning)
+                photz_cat = None
+                matches = np.full(len(photom_catalog), fill_value=-1, dtype=int)
+            else:
+                matches = catalog_utils.match_ids(photz_cat['objid'], photom_catalog['objid'], require_in_match=False)
         else:
-            matches = -1 * np.ones(len(photom_catalog), dtype=int)
+            matches = np.full(len(photom_catalog), fill_value=-1, dtype=int)
         gdz = matches > 0
         # Init
         photom_catalog['photo_z'] = -9999.
