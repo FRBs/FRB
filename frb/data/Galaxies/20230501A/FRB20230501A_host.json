@@ -3,6 +3,20 @@
     "cosmo": "Planck18",
     "dec": 70.92226600000001,
     "dec_FRB": 70.922139,
+    "derived": {
+        "AV_old": 3.4266,
+        "AV_old_loerr": -0.0224,
+        "AV_old_ref": "Sharma2024",
+        "AV_old_uperr": 0.02,
+        "Mtotal": 19498445997.580414,
+        "Mtotal_loerr": -951868912.3181764,
+        "Mtotal_ref": "Sharma2024",
+        "Mtotal_uperr": 94511663.34377287,
+        "SFR_SED": 4.0955,
+        "SFR_SED_loerr": -0.4467,
+        "SFR_SED_ref": "Sharma2024",
+        "SFR_SED_uperr": 0.604
+    },
     "offsets": {
         "ang_avg": 1.3823431416753347,
         "ang_avg_err": 0.6898467061819342,
@@ -27,12 +41,7 @@
         "WASP_z_err": 0.03,
         "WASP_z_flux": 0.033922157877538675,
         "WASP_z_flux_err": 0.0009373038606121331,
-        "WASP_z_ref": "Sharma2024",
-        "WIRC_J": 20.004430374874456,
-        "WIRC_J_err": 0.08,
-        "WIRC_J_flux": 0.03615995191995538,
-        "WIRC_J_flux_err": 0.002664363720136662,
-        "WIRC_J_ref": "Sharma2024"
+        "WASP_z_ref": "Sharma2024"
     },
     "ra": 340.027808,
     "ra_FRB": 340.027083,

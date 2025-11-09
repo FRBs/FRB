@@ -3,6 +3,20 @@
     "cosmo": "Planck18",
     "dec": 72.65321111111112,
     "dec_FRB": 72.65375,
+    "derived": {
+        "AV_old": 2.2635,
+        "AV_old_loerr": -0.0883,
+        "AV_old_ref": "Sharma2024",
+        "AV_old_uperr": 0.0748,
+        "Mtotal": 103466557584.24356,
+        "Mtotal_loerr": -5251078327.330627,
+        "Mtotal_ref": "Sharma2024",
+        "Mtotal_uperr": 6105546153.945877,
+        "SFR_SED": 22.5773,
+        "SFR_SED_loerr": -6.0582,
+        "SFR_SED_ref": "Sharma2024",
+        "SFR_SED_uperr": 6.233
+    },
     "offsets": {
         "ang_avg": 4.830649359504563,
         "ang_avg_err": 0.9881348924557425,
