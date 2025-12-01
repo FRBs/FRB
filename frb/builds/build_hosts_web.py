@@ -379,6 +379,19 @@ def build_single(
         if r_mag_ref is not None:
             data["r_mag_ref"] = r_mag_ref
 
+    # ------------------------------------------------------------------
+    # DM_ref, RM_ref, z_ref:
+    # All three share the SAME reference list from FRB JSON: frb_data["refs"]
+    # ------------------------------------------------------------------
+    frb_refs = frb_data.get("refs", None)
+
+    if isinstance(frb_refs, list):
+        # Use the same list for all three
+        data["DM_ref"] = frb_refs
+        data["RM_ref"] = frb_refs
+        data["z_ref"]  = frb_refs
+
+
 
     out_path = host_path.parent / f"{frb_name}_host_web.json"
 
