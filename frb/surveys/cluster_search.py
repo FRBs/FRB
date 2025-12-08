@@ -8,7 +8,7 @@ from . import surveycoord
 from frb.defs import frb_cosmo
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-
+from astropy.cosmology import z_at_value
 from astropy.table import Table
 
 try:
@@ -95,7 +95,8 @@ class TullyGroupCat(VizierCatalogSearch):
         
         # Convert distances from h^-1 Mpc to Mpc based on the cosmology being used.
         catalog['Dist'] /=self.cosmo.h
-
+        redshift = z_at_value(self.cosmo.luminosity_distance, catalog['Dist']*u.Mpc)
+        catalog['Dist'] = self.cosmo.angular_diameter_distance(redshift).value
         return catalog
     
 
@@ -154,7 +155,7 @@ class WenGroupCat(VizierCatalogSearch):
 
         
         # Add a distance estimate in Mpc using the given cosmology
-        catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+        catalog['Dist'] = self.cosmo.angular_diameter_distance(catalog['z']).value
 
         return catalog
     
@@ -206,7 +207,7 @@ class UPClusterSZCat(VizierCatalogSearch):
                 assert 'ra' in catalog.keys() and 'dec' in catalog.keys()
             
             # Add a distance estimate in Mpc using the given cosmology
-            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(catalog['z']).value
 
         return catalog
 
@@ -253,7 +254,7 @@ class ROSATXClusterCat(VizierCatalogSearch):
             catalog.rename_columns(['RAJ2000', 'DEJ2000'], ['ra', 'dec']) # Rename the columns to match the SurveyCoord class
             
             # Add a distance estimate in Mpc using the given cosmology
-            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(catalog['z']).value
 
         return catalog
     
@@ -300,7 +301,7 @@ class TempelClusterCat(VizierCatalogSearch):
             catalog.rename_columns(['RAJ2000', 'DEJ2000', 'zcmb'], ['ra', 'dec', 'z']) # Rename the columns to match the SurveyCoord class
             
             # Add a distance estimate in Mpc using the given cosmology
-            catalog['Dist'] = self.cosmo.lookback_distance(catalog['z']).to('Mpc').value
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(catalog['z']).to('Mpc').value
 
         return catalog
     
@@ -323,5 +324,201 @@ class TempelClusterCat(VizierCatalogSearch):
         # Apply a transverse distance cut
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(TempelClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
+
+
+# Klein+ 2023 RASS-MCMF (Rosat All Sky Survey Multi Component Matched Filter)
+
+class RASSClusterCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Klein+ 2023
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(RASSClusterCat, self).__init__(coord, radius,
+                                            survey="RASSCluster",
+                                            viziercatalog="J/MNRAS/526/3757/catalog",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000','zsp1'], ['ra', 'dec','z']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(catalog['z']).value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(RASSClusterCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(RASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
+
+    
+# Rykoff+ 2014 Clusters identified in SDSS8 using red mapper algorithm
+
+class RedMapperClusterCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Rykoff+ 2014
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(RedMapperClusterCat, self).__init__(coord, radius,
+                                            survey="RedMapperCluster",
+                                            viziercatalog="J/ApJ/785/104/table1",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000','zspec'], ['ra', 'dec','z']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            redshift = catalog['z']
+            redshift[redshift<0] = catalog['zlambda'][redshift<0]
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(redshift).value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(RedMapperClusterCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(RedMapperClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
+
+    
+# Klein+ 2024 Clusters identified in ACT data release 5
+
+class ACTDR5ClusterCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Klein+ 2024
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(ACTDR5ClusterCat, self).__init__(coord, radius,
+                                            survey="ACTDR5Cluster",
+                                            viziercatalog="J/A+A/690/A322/catalog",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000', 'z1C'], ['ra', 'dec','z']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            redshift = catalog['z']
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(redshift).value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(ACTDR5ClusterCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(ACTDR5ClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+        self.catalog = result
+        return self.catalog
+
+    
+# Kluge+ 2024 Clusters identified in eRosita x-ray all sky survey
+
+class ERASSClusterCat(VizierCatalogSearch):
+    """
+    A class to query sources within the Kluge+ 2024
+    group/cluster catalog.
+    """
+
+
+    def __init__(self, coord, radius = 90*u.deg, cosmo=None, **kwargs):
+        # Initialize a SurveyCoord object
+        super(ERASSClusterCat, self).__init__(coord, radius,
+                                            survey="ERASSCluster",
+                                            viziercatalog="J/A+A/688/A210/tablee1",
+                                            cosmo=cosmo,  **kwargs)
+        
+    def clean_catalog(self, catalog):
+        if len(catalog) > 0:
+            catalog.rename_columns(['RAJ2000', 'DEJ2000', 'Bestz'], ['ra', 'dec','z']) # Rename the columns to match the SurveyCoord class
+            
+            # Add a distance estimate in Mpc using the given cosmology
+            redshift = catalog['z']
+            catalog['Dist'] = self.cosmo.angular_diameter_distance(redshift).value
+
+        return catalog
+    
+    def get_catalog(self, query_fields=None,
+                    transverse_distance_cut = np.inf*u.Mpc):
+        """
+        Get the catalog of objects
+        Args:
+            z_lim (float): The maximum redshift of the objects to include in the catalog.
+            transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
+            richness_cut (int): The minimum number of members in any group/cluster returned.
+            query_fields (list): The fields to include in the catalog. If None, all fields are used.
+        Returns:
+            A table of objects within the given limits.
+        """
+        result = super(ERASSClusterCat, self)._get_catalog(query_fields=query_fields)
+        if len(result) > 0:
+            result = self.clean_catalog(result)
+
+        # Apply a transverse distance cut
+        if transverse_distance_cut<np.inf*u.Mpc:
+            result = super(ERASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         return self.catalog
