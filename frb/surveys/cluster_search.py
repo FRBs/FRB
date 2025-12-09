@@ -8,7 +8,6 @@ from . import surveycoord
 from frb.defs import frb_cosmo
 from astropy.coordinates import SkyCoord
 from astropy import units as u
-from astropy.cosmology import z_at_value
 from astropy.table import Table
 
 try:
@@ -95,7 +94,9 @@ class TullyGroupCat(VizierCatalogSearch):
         
         # Convert distances from h^-1 Mpc to Mpc based on the cosmology being used.
         catalog['Dist'] /=self.cosmo.h
-        redshift = z_at_value(self.cosmo.luminosity_distance, catalog['Dist']*u.Mpc)
+        rec_velocity = catalog['Dist']*self.cosmo.H0.value
+        c_kms = 299792.458
+        redshift = ((1+rec_velocity/c_kms)/(1-rec_velocity/c_kms))**0.5-1
         catalog['Dist'] = self.cosmo.angular_diameter_distance(redshift).value
         return catalog
     
