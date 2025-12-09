@@ -240,12 +240,13 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
                 continue
         except:
             embed(header='187 in photom')
-        # SDSS
-        if 'SDSS' in filt:
-            if 'extinction_{}'.format(filt[-1]) in photom.keys():
-                print("Appying SDSS-provided extinction correction")
-                cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
-                continue
+        print('Correcting filter {} for Galactic extinction'.format(filt))
+        # SDSS ### removing this because SDSS correction is sometimes different for very dusty sightlines, but TBD
+        # if 'SDSS' in filt:
+        #     if 'extinction_{}'.format(filt[-1]) in photom.keys():
+        #         print("Appying SDSS-provided extinction correction")
+        #         cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
+        #         continue
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
@@ -257,7 +258,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, 
                                              required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
-        cut_photom[key] += mag_dust
+
     # Add it back in
     photom[idx] = cut_photom
 
