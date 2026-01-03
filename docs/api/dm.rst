@@ -24,14 +24,13 @@ This module decomposes the total DM into contributions from:
 Submodules
 ----------
 
-.. toctree::
-   :maxdepth: 1
+The DM package contains the following submodules:
 
-   dm_igm
-   dm_cosmic
-   dm_host
-   dm_mcmc
-   dm_prob_dmz
+* ``frb.dm.igm`` - Intergalactic Medium calculations
+* ``frb.dm.cosmic`` - Cosmic dispersion measure modeling
+* ``frb.dm.host`` - Host galaxy DM contributions
+* ``frb.dm.mcmc`` - MCMC analysis methods
+* ``frb.dm.prob_dmz`` - DM-redshift probability calculations
 
 frb.dm.igm - Intergalactic Medium
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -404,10 +403,9 @@ Performance Notes
 See Also
 --------
 
-- :doc:`../tutorials` - Detailed usage examples
-- :doc:`turb_scattering` - Scattering analysis
-- :doc:`frbcat` - Catalogue operations
-- :doc:`../examples` - Real-world applications
+- :doc:`../quickstart` - Quick start guide
+- :doc:`../halos/index` - Halo modeling and DM contributions
+- :doc:`galaxies` - Galaxy analysis tools
 
 .. note::
    The DM module assumes a standard cosmological model by default.

@@ -280,10 +280,10 @@ Next Steps
 
 Now that you're familiar with the basics:
 
-1. **Explore Advanced Features**: Check out the :doc:`tutorials` for in-depth examples
-2. **Read the API Documentation**: Browse :doc:`api/index` for complete function references  
-3. **Study Real Examples**: Look at :doc:`examples` for practical applications
-4. **Contribute**: See :doc:`contributing` if you want to help improve the package
+1. **Read the API Documentation**: Browse :doc:`api/index` for complete function references
+2. **Explore Jupyter Notebooks**: Check out the ``docs/nb/`` directory for in-depth examples and tutorials
+3. **Learn about Dispersion Measures**: See :doc:`dm` for DM calculation details
+4. **Explore Halo Calculations**: See :doc:`halos/index` for halo modeling tools
 
 Common Gotchas
 --------------

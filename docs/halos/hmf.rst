@@ -6,8 +6,8 @@ Halo Mass Function
 Module for halo mass function calculations and related statistical analysis.
 
 .. warning::
-   This module is deprecated. The functionality has been moved to frb.halos.models. 
-   Hope you are not intending to use the hmf.py module.
+   This module is deprecated. The functionality has been moved to :mod:`frb.halos.models`.
+   Please use that module instead for new code.
 
 Functions
 ---------

@@ -12,10 +12,7 @@ The FRB package is organized into several key modules:
    :maxdepth: 2
 
    dm
-   frbcat
-   turb_scattering
-   frb_class
-   utilities
+   galaxies
 
 Module Overview
 ---------------
@@ -26,32 +23,23 @@ frb.dm - Dispersion Measure Calculations
 The dispersion measure module provides comprehensive tools for calculating and modeling DM contributions from various sources:
 
 - :doc:`dm` - Main DM calculation module
-  
+
   - ``frb.dm.igm`` - Intergalactic Medium calculations
   - ``frb.dm.cosmic`` - Cosmic dispersion measure modeling
   - ``frb.dm.host`` - Host galaxy contributions
   - ``frb.dm.mcmc`` - MCMC analysis methods
   - ``frb.dm.prob_dmz`` - DM-redshift probability calculations
 
-frb.frbcat - Catalogue Interface
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+frb.galaxies - Galaxy Analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-- :doc:`frbcat` - FRB catalogue management and access
+- :doc:`galaxies` - Galaxy and host analysis tools
 
-frb.turb_scattering - Scattering Analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- :doc:`turb_scattering` - Turbulent scattering models and calculations
-
-Core Classes
-~~~~~~~~~~~~
-
-- :doc:`frb_class` - Main FRB object class and methods
-
-Utilities  
-~~~~~~~~~
-
-- :doc:`utilities` - Helper functions and utilities
+  - ``frb.galaxies.frbgalaxy`` - FRBGalaxy and FRBHost classes
+  - ``frb.galaxies.photom`` - Photometry handling
+  - ``frb.galaxies.nebular`` - Nebular emission analysis
+  - ``frb.galaxies.eazy`` - EAZY SED fitting interface
+  - ``frb.galaxies.cigale`` - CIGALE SED fitting interface
 
 Quick Reference
 ---------------
@@ -250,10 +238,8 @@ If you're contributing new functions or classes:
 4. Include examples in docstrings
 5. Update this API documentation
 
-See :doc:`../contributing` for detailed guidelines.
-
 .. seealso::
 
    - :doc:`../quickstart` - Get started with basic usage
-   - :doc:`../tutorials` - Detailed examples and workflows
-   - :doc:`../examples` - Real-world applications
+   - :doc:`../dm` - Dispersion measure calculations
+   - :doc:`../halos/index` - Halo modeling tools

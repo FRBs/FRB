@@ -238,6 +238,6 @@ Field-wide statistical analysis::
 See Also
 --------
 
-* :doc:`../frb_frb` - Core FRB functionality
-* :doc:`../frb_galaxies_frbgalaxy` - FRB host galaxy analysis
-* :doc:`../frb_dm_host` - Host galaxy DM calculations
+* :doc:`../api/galaxies` - Galaxy analysis tools
+* :doc:`../api/dm` - DM calculation modules
+* :doc:`../quickstart` - Quick start guide
