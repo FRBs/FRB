@@ -280,10 +280,12 @@ Next Steps
 
 Now that you're familiar with the basics:
 
-1. **Read the API Documentation**: Browse :doc:`api/index` for complete function references
-2. **Explore Jupyter Notebooks**: Check out the ``docs/nb/`` directory for in-depth examples and tutorials
-3. **Learn about Dispersion Measures**: See :doc:`dm` for DM calculation details
-4. **Explore Halo Calculations**: See :doc:`halos/index` for halo modeling tools
+1. **FRB Class Details**: See :doc:`frb_class` for complete FRB object documentation
+2. **Host Galaxy Analysis**: See :doc:`frbhost_class` for working with host galaxies
+3. **Read the API Documentation**: Browse :doc:`api/index` for complete function references
+4. **Explore Jupyter Notebooks**: Check out the ``docs/nb/`` directory for in-depth examples and tutorials
+5. **Learn about Dispersion Measures**: See :doc:`dm` for DM calculation details
+6. **Explore Halo Calculations**: See :doc:`halos/index` for halo modeling tools
 
 Common Gotchas
 --------------

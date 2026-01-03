@@ -15,6 +15,15 @@ Getting Started
    installing
    quickstart
 
+Core Classes
+------------
+
+.. toctree::
+   :maxdepth: 2
+
+   frb_class
+   frbhost_class
+
 Data
 ----
 
