@@ -4,6 +4,8 @@ import importlib_resources
 import warnings
 
 import numpy as np
+if not hasattr(np, "string_"):
+    np.string_ = np.bytes_  # NumPy 2.0 compatibility for old code
 
 from matplotlib import pyplot as plt
 #from goodies import closest
@@ -248,9 +250,9 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     #miles_dir = importlib_resources.files('ppxf.emiles_padova_chabrier')
     if miles_dir is None:
         miles_dir = importlib_resources.files('ppxf.miles_padova_chabrier')
-    #path4libcall = miles_dir + 'Mun1.30*.fits'
-    #path4libcall = miles_dir + 'Ech1.30*.fits'
-    path4libcall = miles_dir + 'Mch1.30*.fits'
+    #path4libcall = str(miles_dir / 'Mun1.30*.fits')
+    #path4libcall = str(miles_dir / 'Ech1.30*.fits')
+    path4libcall = str(miles_dir / 'Mch1.30*.fits')
     miles = lib.miles(path4libcall, velscale, FWHM_gal, wave_gal=wave)
 
     ### Stuff for regularization dimensions
@@ -323,12 +325,27 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     if degree_add is None:
         degree_add = -1
     t = time.time()
-    ppfit = ppxf.ppxf(templates, galaxy, noise, velscale, start,
-                      plot=False, moments=moments, degree=degree_add, vsyst=dv,
-                      lam=np.exp(logLam), clean=False, regul=1. / regul_err,
-                      reg_dim=reg_dim,component=component, gas_component=gas_component,
-                      gas_names=gas_names, gas_reddening=gas_reddening, mdegree=degree_mult,
-                      **kwargs)
+    # Build explicit bounds matching `start`/`moments`
+    # One [lo, hi] per parameter, per component, in the order [V, sigma, (h3,h4...)]
+    bounds = []
+    for mo in moments:
+        b = []
+        b.append([vel - 2000.0, vel + 2000.0])        # V bounds (km/s)
+        b.append([max(velscale/100.0, 5.0), 1000.0])  # sigma bounds (km/s)
+        for _ in range(max(0, mo - 2)):               # any GH moments
+            b.append([-0.3, 0.3])
+        bounds.append(b)
+
+    ppfit = ppxf.ppxf(
+        templates, galaxy, noise, velscale, start,
+        plot=False, moments=moments, degree=degree_add, vsyst=dv,
+        lam=np.exp(logLam), clean=False, regul=1./regul_err, reg_dim=reg_dim,
+        component=component, gas_component=gas_component,
+        gas_names=gas_names, gas_reddening=gas_reddening, mdegree=degree_mult,
+        bounds=bounds,                                  # <-- add this
+        **kwargs
+    )
+
 
     print('Desired Delta Chi^2: %.4g' % np.sqrt(2 * galaxy.size))
     print('Current Delta Chi^2: %.4g' % ((ppfit.chi2 - 1) * galaxy.size))

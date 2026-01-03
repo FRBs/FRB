@@ -87,6 +87,11 @@ def test_modified_NFW():
     ne = mNFW.ne(xyz)
     assert np.all(ne > nH)
 
+def test_log_MGCM():
+    # Init
+    mNFW = halos.ModifiedNFW(log_MCGM=11.0)
+    assert np.isclose(mNFW.f_hot, 0.3989835640019133)
+
 def test_milky_way():
     Galaxy = halos.MilkyWay()
     assert np.isclose(Galaxy.M_halo.to('M_sun').value, 1.51356125e+12)

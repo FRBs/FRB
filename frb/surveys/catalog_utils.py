@@ -3,13 +3,9 @@ from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.cosmology import Planck18 as cosmo
 from astropy.table import Table, hstack, vstack, setdiff, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
-import warnings
-
-from IPython import embed
 
 
 def clean_heasarc(catalog):
@@ -164,9 +160,10 @@ def summarize_catalog(frbc, catalog, summary_radius, photom_column, magnitude):
     return summary_list
 
 
-def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arcsec,
+def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec,
                      RACol1:str = "ra", DecCol1:str = "dec",
                      RACol2:str = "ra", DecCol2:str = "dec",
+                     distcol1:str = None, distcol2:str = None,
                      return_match_idx:bool=False)->tuple:
     """
     Cross matches two astronomical catalogs and returns
@@ -175,15 +172,21 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
         cat1, cat2: astropy Tables
             Two tables with sky coordinates to be
             matched.
-        skydist: astropy Quantity, optional
+        dist: astropy Quantity, optional
             Maximum separation for a valid match.
-            5 arcsec by default.
+            5 arcsec by default. Can be length units
+            if distcol1 and distcol2 are provided.
         RACol1, RACol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain RA in degrees.
         DecCol1, DecCol2: str, optional
             Names of columns in cat1 and cat2
             respectively that contain Dec in degrees.
+        distcol1, distcol2: str, optional
+            Names of columns in cat1 and cat2
+            respectively that contain the radial distance
+            as floats in Mpc. If None, 2D cross-matches
+            are returned.
         return_match_idx: bool, optional
             Return the indices of the matched entries with
             with the distance instead?
@@ -197,19 +200,31 @@ def xmatch_catalogs(cat1:Table, cat2:Table, skydist:units.Quantity = 5*units.arc
     assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
     assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
     assert (RACol2 in cat2.colnames)&(DecCol2 in cat2.colnames), " Could not find either {:s} or {:s} in cat2".format(RACol2, DecCol2)
+    do_3d = (distcol1 is not None)&(distcol2 is not None)
+    if do_3d:
+        assert (distcol1 in cat1.colnames)&(distcol2 in cat2.colnames), "Could not find either {:s} or {:s} in cat1".format(distcol1, distcol2)
+        dist1 = cat1[distcol1]*units.Mpc
+        dist2 = cat2[distcol2]*units.Mpc
+    else:
+        dist1 = None
+        dist2 = None
     # Get corodinates
-    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit = "deg")
-    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit = "deg")
+    cat1_coord = SkyCoord(cat1[RACol1]*units.deg, cat1[DecCol1]*units.deg, distance=dist1)
+    cat2_coord = SkyCoord(cat2[RACol2]*units.deg, cat2[DecCol2]*units.deg, distance=dist2)
 
     # Match 2D
-    idx, d2d, _ = cat1_coord.match_to_catalog_sky(cat2_coord)
+    idx, d2d, d3d = cat1_coord.match_to_catalog_sky(cat2_coord)
 
     # Get matched tables
-    match1 = cat1[d2d < skydist]
-    match2 = cat2[idx[d2d < skydist]]
+    if do_3d:
+        separation = d3d
+    else:
+        separation = d2d
+    match1 = cat1[separation < dist]
+    match2 = cat2[idx[separation < dist]]
 
     if return_match_idx:
-        return idx, d2d
+        return idx, d2d, d3d
     else:
         return match1, match2
 
@@ -418,6 +433,12 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     assert np.all(np.isin(['ra','dec'],tab1.colnames)), "Table 1 doesn't have column 'ra' and/or 'dec'."
     assert np.all(np.isin(['ra','dec'],tab2.colnames)), "Table 2 doesn't have column 'ra' and/or 'dec'."
 
+    # Edge cases: zero length tables
+    if len(tab1) == 0:
+        return tab2.copy()
+    elif len(tab2) == 0:
+        return tab1.copy()
+
     # Cross-match tables for tab1 INTERSECTION tab2.
     matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol, **kwargs)
 
@@ -434,8 +455,12 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
     # Now get all objects that weren't matched.
-    not_matched_tab1 = setdiff(tab1, matched_tab1)
-    not_matched_tab2 = setdiff(tab2, matched_tab2)
+    if len(matched_tab1) == 0:
+        not_matched_tab1 = tab1
+        not_matched_tab2 = tab2
+    else:
+        not_matched_tab1 = tab1[~np.isin(tab1, matched_tab1)]
+        not_matched_tab2 = tab2[~np.isin(tab2, matched_tab2)]
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
 
@@ -443,7 +468,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
                     keys=['ra','dec'], join_type='outer', table_names=table_names)
-        merged = vstack([inner_join, outer_join]).filled(-999.)
+        merged = vstack([inner_join, outer_join]).filled(999.)
     # Only table 1 has unmatched entries?
     elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
         merged = vstack([inner_join, not_matched_tab1])
@@ -458,7 +483,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if np.any(weird_cols):
         merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
     # Fill and return.
-    return merged.filled(-999.)
+    return merged.filled(999.)
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 

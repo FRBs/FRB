@@ -204,6 +204,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
 
     Args:
         photom (astropy.table.Table):
+            Required keys: 'Name', filters
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
         name (str):\
