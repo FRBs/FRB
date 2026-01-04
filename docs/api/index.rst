@@ -62,12 +62,12 @@ Most Common Functions
    DM_cosmic = igm.DM_cosmic(z=0.5)
    z_est = igm.z_from_DM(DM_obs)
 
-**Catalogue Access:**
+**Building FRB Tables:**
 
 .. code-block:: python
 
-   from frb.frbcat import FRBCat
-   cat = FRBCat()
+   from frb.frb import build_table_of_frbs
+   frb_tbl, tbl_units = build_table_of_frbs()
 
 **Scattering Analysis:**
 
@@ -103,13 +103,13 @@ Core Functions by Category
    frb.turb_scattering.tau_mist
    frb.turb_scattering.ne_from_tau_mist
 
-**Catalogue Operations:**
+**FRB Tables:**
 
 .. autosummary::
    :nosignatures:
 
-   frb.frbcat.FRBCat
-   frb.frbcat.FRBCat.load_cat
+   frb.frb.build_table_of_frbs
+   frb.frb.list_of_frbs
 
 **FRB Objects:**
 
@@ -127,18 +127,14 @@ Class Hierarchy
 
    FRB
    ├── FRB.by_name()
-   ├── FRB.grab_host() 
+   ├── FRB.grab_host()
    └── FRB.calc_DM_galaxy()
 
-   FRBCat
-   ├── FRBCat.__init__()
-   ├── FRBCat.load_cat()
-   └── FRBCat.filter_by_property()
-
-   HostGalaxy
-   ├── HostGalaxy.derived
-   ├── HostGalaxy.get_metaspec()
-   └── HostGalaxy.properties
+   FRBHost
+   ├── FRBHost.by_frb()
+   ├── FRBHost.derived
+   ├── FRBHost.photom
+   └── FRBHost.get_metaspec()
 
 Constants and Defaults
 ----------------------

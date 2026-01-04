@@ -23,25 +23,29 @@ The most common starting point is loading a known FRB by name:
    print(f"Dispersion Measure: {frb121102.DM}")
    print(f"Error ellipse: {frb121102.eellipse}")
 
-Working with Catalogues
+Working with FRB Tables
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-Load and explore FRB catalogues:
+Build and explore tables of FRB data from the repository:
 
 .. code-block:: python
 
-   from frb.frbcat import FRBCat
-   
-   # Load the FRB catalogue
-   cat = FRBCat()
-   
-   # Basic catalogue information
-   print(f"Number of FRBs: {len(cat.frbcat)}")
-   print(f"DM range: {cat.frbcat['DM'].min():.1f} - {cat.frbcat['DM'].max():.1f} pc/cm³")
-   
+   from frb.frb import build_table_of_frbs, list_of_frbs
+
+   # Build a pandas DataFrame of all FRBs
+   frb_tbl, tbl_units = build_table_of_frbs()
+
+   # Basic information
+   print(f"Number of FRBs: {len(frb_tbl)}")
+   print(f"DM range: {frb_tbl['DM'].min():.1f} - {frb_tbl['DM'].max():.1f} pc/cm³")
+
    # Filter high-DM FRBs
-   high_dm_frbs = cat.frbcat[cat.frbcat['DM'] > 1000]
+   high_dm_frbs = frb_tbl[frb_tbl['DM'] > 1000]
    print(f"High-DM FRBs (>1000): {len(high_dm_frbs)}")
+
+   # Get FRBs with known redshifts
+   frbs_with_z = frb_tbl[frb_tbl['z'].notna()]
+   print(f"FRBs with redshifts: {len(frbs_with_z)}")
 
 Dispersion Measure Calculations
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,21 +155,21 @@ Analyze properties of the FRB population:
 
    import numpy as np
    import matplotlib.pyplot as plt
-   from frb.frbcat import FRBCat
-   
-   # Load catalogue
-   cat = FRBCat()
-   
+   from frb.frb import build_table_of_frbs
+
+   # Build table of all FRBs
+   frb_tbl, tbl_units = build_table_of_frbs()
+
    # Get DM values (remove invalid entries)
-   dms = cat.frbcat['DM']
+   dms = frb_tbl['DM']
    valid_dms = dms[dms > 0]
-   
+
    # Basic statistics
    print(f"DM Statistics:")
    print(f"  Mean: {np.mean(valid_dms):.1f} pc/cm³")
-   print(f"  Median: {np.median(valid_dms):.1f} pc/cm³") 
+   print(f"  Median: {np.median(valid_dms):.1f} pc/cm³")
    print(f"  Range: {np.min(valid_dms):.1f} - {np.max(valid_dms):.1f} pc/cm³")
-   
+
    # Plot DM distribution
    plt.figure(figsize=(10, 6))
    plt.hist(valid_dms, bins=20, alpha=0.7, edgecolor='black')
@@ -261,19 +265,6 @@ You can work with your own FRB data by creating FRB objects:
    # Use the analysis tools on your data
    z_est = igm.z_from_DM(DM_value, coord=coord)
    print(f"Estimated redshift: {z_est:.2f}")
-
-Importing External Catalogues
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. code-block:: python
-
-   from frb.frbcat import FRBCat
-   
-   # Load custom catalogue file
-   custom_cat = FRBCat(frbcat_file='path/to/your/catalogue.csv')
-   
-   # Process the data
-   print(f"Loaded {len(custom_cat.frbcat)} FRBs from custom catalogue")
 
 Next Steps
 ----------
