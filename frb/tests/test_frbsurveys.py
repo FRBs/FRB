@@ -3,7 +3,7 @@
 # TEST_UNICODE_LITERALS
 
 from calendar import c
-import re
+import numpy as np
 import astropy
 import pytest
 import os, warnings
@@ -14,6 +14,7 @@ from astropy import units
 from astropy.io.fits.hdu.image import PrimaryHDU
 
 from frb.surveys import survey_utils
+from frb.surveys.panstarrs import _ps1metadata
 from PIL import Image
 
 from numpy import setdiff1d
@@ -200,6 +201,13 @@ def test_panstarrs():
     imghdu = ps_survey.get_image()
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
+
+    # Test getting metadata repeatedly to check caching
+    for index in range(10):
+        metadata = _ps1metadata()
+        assert isinstance(metadata,Table)
+        assert len(metadata) > 0
+        assert np.all(np.isin(metadata.colnames, ['name', 'type', 'description']))
 
 @nedlvs
 def test_nedlvs():

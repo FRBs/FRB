@@ -9,6 +9,7 @@ __pycache__/
 # Data
 Spectra/
 Galaxy_DB/
+frb/data/Public/Pan-STARRS/ps1_*_metadata.csv
 *.fits
 *.fits.gz
 *.fit.gz
