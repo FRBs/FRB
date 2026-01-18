@@ -48,18 +48,23 @@ class GeneralizedHaloProfile:
     Parameters
     ----------
     log_Mhalo : float
-        Log10 of halo mass in solar masses
+        Log10 of halo mass in solar masses. Default: 12.2
     c : float
-        NFW concentration parameter
+        NFW concentration parameter. Default: 7.67
     z : float
-        Redshift
+        Redshift. Default: 0.
     cosmo : astropy.cosmology
-        Cosmology object
-    y_out : float
-        Scale parameter for g(y), controls where baryon fraction 
-        approaches cosmic mean. In units of y = c × r/r_vir
+        Cosmology object. Default: frb_cosmo
+    k : float
+        Scale parameter that sets where baryon fraction approaches cosmic 
+        mean. The internal y_out is computed as c × k / arctanh(1 - tol).
+        Larger k pushes the transition to larger radii. Default: 2.0
     g_form : str
-        Functional form for g(y): 'tanh', 'exp', or 'custom'
+        Functional form for g(y): 'tanh' or 'exp'. Default: 'tanh'
+    zero_inner_ne : float
+        If > 0, zero out electron density within this radius (in kpc).
+    tol : float
+        Tolerance for computing y_out from k. Default: 1e-6
     
     Attributes
     ----------
@@ -69,6 +74,14 @@ class GeneralizedHaloProfile:
         NFW scale density
     cosmo_frac : float
         Ω_B / (Ω_M - Ω_B)
+    y_out : float
+        Computed scale parameter for g(y), derived from k and tol
+    r_s : Quantity
+        NFW scale radius (r_vir / c)
+    Delta_vir : float
+        Virial overdensity from Bryan & Norman 1998
+    fb : float
+        Standard cosmic baryon fraction Ω_B / Ω_M
     """
     
     def __init__(self,
@@ -88,7 +101,7 @@ class GeneralizedHaloProfile:
         self.z = z
         self.cosmo = cosmo
         self.k = k
-        self.y_out = self.c * self.k /jnp.arctanh(1-tol)
+        self.y_out = self.c * self.k /jnp.arctanh(1-tol) 
         self.g_form = g_form
         self.zero_inner_ne = zero_inner_ne
         
@@ -153,7 +166,9 @@ class GeneralizedHaloProfile:
         """
         Modulation function g(y) that controls the baryon fraction profile.
         
-        Constraint: g(y) → 1 as y → ∞
+        Constraints:
+        - g(y) → 1 as y → ∞ (cosmic baryon fraction at large radii)
+        - g(0) = 0 for both 'tanh' and 'exp' forms
         
         Parameters
         ----------
@@ -173,9 +188,7 @@ class GeneralizedHaloProfile:
             g_y = jnp.tanh(y / self.y_out)
             
         elif self.g_form == 'exp':
-            # g(y) = 1 - exp(-y / y_out)
-            # Approaches 1 as y → ∞, equals 0 at y = 0
-            g_y = 1 - jnp.exp(-y / self.y_out)
+            raise ValueError("The 'exp' form is not implemented in this version.")
             
         else:
             raise ValueError(f"Unknown g_form: {self.g_form}")
@@ -301,7 +314,7 @@ class GeneralizedHaloProfile:
         Returns
         -------
         M : Quantity
-            Enclosed dark matter mass
+            Enclosed dark matter mass in solar masses
         """
         return (self.const * self.rho0 * self.f_DM(y)).to('Msun')
     
@@ -323,7 +336,7 @@ class GeneralizedHaloProfile:
         Returns
         -------
         M : Quantity
-            Enclosed baryonic mass
+            Enclosed baryonic mass in solar masses
         """
         return self.cosmo_frac * self.g(y) * self.M_DM(y)
     
@@ -415,7 +428,7 @@ class GeneralizedHaloProfile:
         Parameters
         ----------
         xyz : ndarray
-            Position in kpc
+            Position in kpc, shape (3,) or (3, npoints)
         
         Returns
         -------
@@ -437,12 +450,17 @@ class GeneralizedHaloProfile:
         Parameters
         ----------
         xyz : ndarray
-            Position in kpc
+            Position in kpc, shape (3,) or (3, npoints)
         
         Returns
         -------
         ne : float or ndarray
             Electron density in cm⁻³
+        
+        Notes
+        -----
+        If zero_inner_ne > 0, electron density is set to zero within
+        that radius to model feedback-evacuated cores.
         """
         ne = self.nH(xyz) * 1.1667
         
@@ -462,16 +480,19 @@ class GeneralizedHaloProfile:
         """
         Calculate DM (electron column density) at impact parameter Rperp.
         
+        Integrates electron density along a sightline at perpendicular 
+        distance Rperp from the halo center.
+        
         Parameters
         ----------
         Rperp : Quantity
             Impact parameter in kpc
         step_size : Quantity
-            Integration step size
+            Integration step size. Default: 0.1 kpc
         rmax : float
-            Maximum radius in units of r_vir
+            Maximum radius in units of r_vir. Default: 1.0
         add_units : bool
-            Whether to return with units
+            Whether to return with units. Default: True
         
         Returns
         -------
@@ -513,7 +534,7 @@ class GeneralizedHaloProfile:
         Returns
         -------
         M_b : Quantity
-            Enclosed baryonic mass
+            Enclosed baryonic mass in solar masses
         """
         y = self.c * r / self.rvir
         return self.M_B(y.value)
@@ -530,7 +551,7 @@ class GeneralizedHaloProfile:
         Returns
         -------
         M_dm : Quantity
-            Enclosed dark matter mass
+            Enclosed dark matter mass in solar masses
         """
         y = self.c * r / self.rvir
         return self.M_DM(y.value)
@@ -543,6 +564,7 @@ class GeneralizedHaloProfile:
         return (f"<{self.__class__.__name__}: "
                 f"log_Mhalo={self.log_Mhalo:.2f}, "
                 f"c={self.c:.2f}, "
+                f"k={self.k:.2f}, "
                 f"y_out={self.y_out:.2f}, "
                 f"g_form='{self.g_form}', "
                 f"r_vir={self.rvir:.1f}>")
@@ -557,9 +579,12 @@ class TanhHaloProfile(GeneralizedHaloProfile):
     Halo profile with g(y) = tanh(y / y_out).
     
     This form ensures:
-    - g(0) = 0 (no baryons at center relative to DM)
+    - g(0) = 0 (baryon-to-DM mass ratio starts at zero)
     - g(y) → 1 as y → ∞ (cosmic baryon fraction at large r)
-    - g(y) < 1 for all finite y (baryon fraction always below cosmic mean)
+    - g(y) < 1 for all finite y (enclosed baryon fraction always below cosmic mean)
+    
+    The tanh form provides a smooth, monotonic transition from baryon-depleted
+    inner regions to cosmic baryon fraction at large radii.
     """
     
     def __init__(self, **kwargs):
@@ -571,7 +596,12 @@ class ExpHaloProfile(GeneralizedHaloProfile):
     """
     Halo profile with g(y) = 1 - exp(-y / y_out).
     
-    Similar properties to tanh but with different approach rate to unity.
+    Similar properties to tanh:
+    - g(0) = 0 (baryon-to-DM mass ratio starts at zero)
+    - g(y) → 1 as y → ∞ (cosmic baryon fraction at large r)
+    
+    The exponential form approaches unity more slowly than tanh,
+    which may better match certain simulation results.
     """
     
     def __init__(self, **kwargs):
@@ -584,5 +614,5 @@ class ExpHaloProfile(GeneralizedHaloProfile):
 # =============================================================================
 
 class Updated_mNFW_model(GeneralizedHaloProfile):
-    """Alias for backward compatibility."""
+    """Alias for backward compatibility with earlier code versions."""
     pass
