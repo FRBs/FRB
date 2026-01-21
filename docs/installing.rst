@@ -32,7 +32,7 @@ to install and/or update these packages.
 * `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.15 or later
 * `pandas <https://pandas.pydata.org/>`_ version 1.5 or later
 * `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
-* `extinction <https://extinction.readthedocs.io/en/latest/>`_ version 0.4.6 or greater
+* `dust_extinction <https://dust-extinction.readthedocs.io/en/latest/>`_ 
 * `matplotlib <https://matplotlib.org/>`_ version 3.7 or greater
 * `linetools <https://github.com/linetools/linetools>`_  version 0.3 or later
 * `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
@@ -77,15 +77,15 @@ The following are required to run some of the halo codes:
 The following are required to build host galaxy objects:
 
 * `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
-* `pcigale <https://cigale.lam.fr/>`_ version 2018.0.1 to 2020.0 (cannot yet accommodate 2022.0 or greater)
+* `pcigale <https://cigale.lam.fr/>`_ version 2025.0
 
 The following is required to run the code in dm_kde:
 
-* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>` no versioning
+* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>`_ no versioning
 
 The following is required to run the MCMC DM code in dm.mcmc.py:
 
-* `numba <https://github.com/https://github.com/numba/numba>` version >= 0.50
+* `numba <https://github.com/numba/numba>`_ version >= 0.50
 
 For pPXF, you will also likely need to modify the standard install
 to use the Chabrier libraries.  See the InstallNotes in this
@@ -93,7 +93,7 @@ to use the Chabrier libraries.  See the InstallNotes in this
 
 The following are required for using functions in halos.photoz.py:
 
-* `threedhst <https://github.com/gbrammer/threedhst>` version >= 0.1.dev0
+* `threedhst <https://github.com/gbrammer/threedhst>`_ version >= 0.1.dev0
 * progressbar2 :: Use pip
 * pathos :: Use pip
 
@@ -106,7 +106,7 @@ Installing frb
 
 Presently, you must download the code from github::
 
-	#go to the directory where you would like to install specdb.
+	#go to the directory where you would like to install frb.
 	git clone https://github.com/FRBs/FRB.git
 
 From there, you can build and install with::

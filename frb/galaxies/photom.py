@@ -2,9 +2,10 @@
 
 import os
 import warnings
+import dust_extinction.parameter_averages
 import numpy as np
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from IPython import embed
 
@@ -23,9 +24,9 @@ from photutils.aperture import aperture_photometry, SkyCircularAperture
 from frb.galaxies import defs
 
 try:
-    import extinction
+    import dust_extinction
 except ImportError:
-    print("extinction package not loaded.  Extinction corrections will fail")
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -118,7 +119,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     """
     calculate MW extinction correction for given filter
 
-    Uses the Fitzpatrick & Massa (2007) extinction law
+    Uses the Gordon 2024 extinction model 
 
     Args:
         filt (str):
@@ -139,8 +140,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
 
     """
     # Read in filter in Table
-    path_to_filters = os.path.join(resource_filename('frb', 'data'), 
-                                   'analysis', 'CIGALE')
+    path_to_filters = importlib_resources.files('frb.data.analysis.CIGALE')
     # Hack for LRIS which does not differentiate between cameras
     if 'LRIS' in filt:
         _filter = 'LRIS_{}'.format(filt[-1])
@@ -148,7 +148,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
         _filter = filt.replace("NSC_","DECam_")
     else:
         _filter = filt
-    filter_file = os.path.join(path_to_filters, _filter+'.dat')
+    filter_file = path_to_filters/f'{_filter}.dat'
     if not os.path.isfile(filter_file):
         msg = "Filter {} is not in the Repo.  Add it!!".format(filter_file)
         if required:
@@ -173,7 +173,14 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     #get MW extinction correction
     AV = EBV * RV
     #AlAV = nebular.load_extinction('MW')
-    Alambda = extinction.fm07(wave, AV)
+    #Alambda = extinction.fm07(wave, AV)
+
+    # Gordon 2024
+    extmod = dust_extinction.parameter_averages.G23(Rv=RV)
+    AlAV = extmod(wave*units.AA)
+    Alambda = AlAV * AV
+
+    
     source_flux = 1.
     #calculate linear correction
     delta = np.trapz(throughput * source_flux * 
@@ -197,6 +204,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
 
     Args:
         photom (astropy.table.Table):
+            Required keys: 'Name', filters
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
         name (str):\

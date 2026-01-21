@@ -14,7 +14,7 @@ from astropy.visualization import LogStretch
 from astropy import wcs as astropy_wcs
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
-from pkg_resources import resource_filename
+import importlib_resources
 
 import pandas 
 
@@ -134,7 +134,7 @@ class FRBAssociate(path.PATH):
         ax.set_ylim(0, cutout.data.shape[0])
 
         # Write
-        output_file = resource_filename('frb', f'data/Galaxies/{self.frb.frb_name[3:]}/{self.frb.frb_name}_cutout.png')
+        output_file = importlib_resources.files(f'frb.data.Galaxies.{self.frb.frb_name[3:]}')/f'{self.frb.frb_name}_cutout.png'
         plt.subplots_adjust(left=0.2, bottom=0.15, right=0.95, top=0.95)
         fig.savefig(output_file, dpi=300)
 
@@ -512,7 +512,10 @@ def run_individual(config, prior:dict=None, show=False,
 
         if config['cut_size'] is not None:
             size = units.Quantity((config['cut_size'], config['cut_size']), units.arcsec)
-            cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            try:
+                cutout = Cutout2D(hdu_full.data, FRB.coord, size, wcs=WCS(hdu_full.header))
+            except:
+                embed(header='518 frbassociate')
             frbA.wcs = cutout.wcs
             frbA.hdu = cutout  # not really an HDU
         else:
@@ -594,7 +597,6 @@ def run_individual(config, prior:dict=None, show=False,
     frbA.calc_priors()                            
 
     # Calculate p(O_i|x)
-    debug = True
     frbA.calc_posteriors(posterior_method, 
                          box_hwidth=frbA.max_radius,
                          max_radius=frbA.max_radius, # For unseen prior

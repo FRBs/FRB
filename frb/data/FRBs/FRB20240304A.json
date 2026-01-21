@@ -32,5 +32,6 @@
     "refs": [
         "Shannon2024"
     ],
-    "repeater": false
+    "repeater": false,
+    "z": 0.2423
 }

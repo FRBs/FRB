@@ -5,8 +5,8 @@ script. Requires pcigale already installed on the system.
 """
 
 import numpy as np
-import sys, os, glob, multiprocessing, warnings
-from collections import OrderedDict
+import os
+from pathlib import Path
 
 from astropy.table import Table
 
@@ -16,15 +16,13 @@ except ImportError:
     print("You will need to install pcigale to use the cigale.py module")
 else:
     from pcigale.analysis_modules import get_module
-    from pcigale.data import Database
+    from pcigale.utils.console import INFO, WARNING, ERROR, console
 
 from frb.surveys.catalog_utils import _detect_mag_cols, convert_mags_to_flux
 
-
-from IPython import embed
-
 # Default list of SED modules for CIGALE
-_DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular", "dustatt_calzleit", "dale2014",
+_DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular",
+                        "dustatt_calzleit", "dale2014",
                         "restframe_parameters", "redshifting")
 
 #TODO Create a function to check the input filters
@@ -44,24 +42,30 @@ def _sed_default_params(module, photo_z=False):
         and their initial parameters.
     """
     params = {}
-    if module == "sfhdelayed":
-        params['tau_main'] = (10**np.linspace(1,3,10)).tolist() #e-folding time of main population (Myr)
-        params['age_main'] = (10**np.linspace(3,4,10)).tolist() #age (Myr)
-        params['tau_burst'] = 50.0 #burst e-folding time (Myr)
-        params['age_burst'] = 20.0
-        params['f_burst'] = 0.0 #burst fraction by mass
-        params['sfr_A'] = 0.1 #SFR at t = 0 (Msun/yr)
+    if module == "sfhdelayed": # **consider sfhdelayedbq**
+        params['tau_main'] = (10**np.linspace(1,3,10)).tolist() # e-folding time of main population (Myr)
+        params['age_main'] = (10**np.linspace(3,4,10)).tolist() # age of main population (Myr)
+        params['tau_burst'] = 50.0 # e-folding time of the late starburst population model in Myr.
+        params['age_burst'] = 20.0 # Age of the late burst in Myr. The precision is 1 Myr.
+        params['f_burst'] = 0.0 # burst fraction by mass
+        params['sfr_A'] = 0.1 # SFR at t = 0 (Msun/yr)
         params['normalise'] = False # Normalise SFH to produce one solar mass
     elif module == "bc03":
-        params['imf'] = 1 #0: Salpeter 1: Chabrier
-        params['metallicity'] = [0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05] 
-        params['separation_age'] = 10 # Separation between yound and old stellar population (Myr)
+        params['imf'] = 1 # 0: Salpeter 1: Chabrier
+        params['metallicity'] = [0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05] # Possible values are: 0.0001, 0.0004, 0.004, 0.008, 0.02, 0.05.
+        params['separation_age'] = 10 # Separation between young and old stellar population (Myr). The default value in 10^7 years (10 Myr). 
+                                      # Set to 0 not to differentiate ages (only an old population).
     elif module == 'nebular':
         params['logU'] = -2.0 # Ionization parameter
         params['f_esc'] = 0.0 # Escape fraction of Ly continuum photons
         params['f_dust'] = 0.0 # Fraction of Ly continuum photons absorbed
-        params['lines_width'] = 300.0
-        params['emission'] = True
+        params['ne'] = 100 # Electron density. Possible values are: 10, 100, 1000.
+        params['zgas'] = 0.02 # # Gas metallicity. Possible values are: 0.0001, 0.0004, 0.001, 0.002,
+    # 0.0025, 0.003, 0.004, 0.005, 0.006, 0.007, 0.008, 0.009, 0.011, 0.012,
+    # 0.014, 0.016, 0.019, 0.020, 0.022, 0.025, 0.03, 0.033, 0.037, 0.041,
+    # 0.046, 0.051.
+        params['lines_width'] = 300.0 # Line width in km/s
+        params['emission'] = True # **should always be true**
     elif module == 'dustatt_calzleit':
         params['E_BVs_young'] = [0.12, 0.25, 0.37, 0.5, 0.62, 0.74, 0.86] #Stellar color excess for young continuum
         params['E_BVs_old_factor'] = 1.0 # Reduction of E(B-V) for the old population w.r.t. young
@@ -72,20 +76,20 @@ def _sed_default_params(module, photo_z=False):
         #  We use the recommendation in Lo Faro+2017
         params['powerlaw_slope'] = -0.13  # Slope delta of the power law modifying the attenuation curve.
         # These filters have no effect
-        params['filters'] = 'B_B90 & V_B90 & FUV'
+        params['filters'] = 'galex.FUV & galex.NUV & sloan.sdss.u'
     elif module == 'dale2014':
         params['fracAGN'] = [0.0,0.05,0.1,0.2]
         params['alpha'] = 2.0
     elif module == 'restframe_parameters':
         params['beta_calz94'] = False
-        params['D4000'] = False
+        params['Dn4000'] = False
         params['IRX'] = False
-        params['EW_lines'] = '500.7/1.0 & 656.3/1.0'
-        params['luminosity_filters'] = 'u_prime & r_prime'
-        params['colours_filters'] = 'u_prime-r_prime'
+        params['EW'] = 'HdeltaA/404.160/407.975/408.350/412.225/412.850/416.100 & Halpha/650.0/652.5/653.5/660.0/661.0/663.5'
+        params['luminosity_filters'] = 'galex.FUV & generic.bessell.V'
+        params['colours_filters'] = 'galex.FUV-galex.NUV & galex.NUV-sloan.sdss.r'
     elif module == 'redshifting':
         if photo_z:
-            params['redshift'] = np.linspace(0.1,2,20).tolist()
+            params['redshift'] = np.linspace(0.01,1.5,20).tolist()
         else:
             params['redshift'] = '' #Use input redshifts
     return params
@@ -147,29 +151,34 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
 
     # Rename our filters to CIGALE names, as needed
     new_names = {
-        'SDSS_u': 'sdss.up',
-        'SDSS_g': 'sdss.gp',
-        'SDSS_r': 'sdss.rp',
-        'SDSS_i': 'sdss.ip',
-        'SDSS_z': 'sdss.zp',
+        'SDSS_u': 'sloan.sdss.u',
+        'SDSS_g': 'sloan.sdss.g',
+        'SDSS_r': 'sloan.sdss.r',
+        'SDSS_i': 'sloan.sdss.i',
+        'SDSS_z': 'sloan.sdss.z',
         'VLT_u': 'VLT_FORS2_u',
         'VLT_g': 'VLT_FORS2_g',
         'VLT_I': 'VLT_FORS2_I',
         'VLT_z': 'VLT_FORS2_z',
-        'WISE_W1': 'WISE1',
-        'WISE_W2': 'WISE2',
-        'WISE_W3': 'WISE3',
-        'WISE_W4': 'WISE4',
-        'VISTA_Y': 'vista.vircam.Y',
-        'VISTA_J': 'vista.vircam.J',
-        'VISTA_H': 'vista.vircam.H',
-        'VISTA_Ks': 'vista.vircam.Ks',
+        'WISE_W1': 'wise.W1',
+        'WISE_W2': 'wise.W2',
+        'WISE_W3': 'wise.W3',
+        'WISE_W4': 'wise.W4',
+        'VISTA_Y': 'paranal.vircam.Y',
+        'VISTA_J': 'paranal.vircam.J',
+        'VISTA_H': 'paranal.vircam.H',
+        'VISTA_Ks': 'paranal.vircam.Ks',
+        'Pan-STARRS_g': 'panstarrs.ps1.g',
+        'Pan-STARRS_r': 'panstarrs.ps1.r',
+        'Pan-STARRS_i': 'panstarrs.ps1.i',
+        'Pan-STARRS_z': 'panstarrs.ps1.z',
+        'Pan-STARRS_y': 'panstarrs.ps1.y',
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
-        'WFC3_F160W': 'hst.wfc3.F160W',
-        'WFC3_F300X': 'WFC3_F300X',
-        'Spitzer_3.6': 'spitzer.irac.ch1',
-        'Spitzer_4.5': 'spitzer.irac.ch2',
+        'WFC3_F160W': 'hst.wfc3.ir.F160W',
+        'WFC3_F300X': 'WFC3_F300X', 
+        'Spitzer_3.6': 'spitzer.irac.l1',
+        'Spitzer_4.5': 'spitzer.irac.l2',
         'NSC_u': 'DECam_u',
         'NSC_g': 'DES_g',
         'NSC_r': 'DES_r',
@@ -188,20 +197,25 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'DELVE_z': 'DECam_z',
         '6dF_Bj': '6dF_Bj',
         '6dF_Rf': '6dF_Rf',
-        '6dF_H': '2MASS_H',
-        '6dF_J': '2MASS_J',
-        '6dF_K': '2MASS_K',
+        '6dF_H': '2mass.H',
+        '6dF_J': '2mass.J',
+        '6dF_K': '2mass.Ks',
         'SOAR_cousins_R':'SOAR_cousins_R',
         'SOAR_bessell_B':'SOAR_bessell_B',
         'SOAR_bessell_V':'SOAR_bessell_V',
         'SOAR_stromgren_b':'SOAR_stromgren_b',
         'SOAR_stromgren_v':'SOAR_stromgren_v',
         'SOAR_stromgren_y':'SOAR_stromgren_y',
-        'HSC_g': 'HSC_g',
-        'HSC_r': 'HSC_r',
-        'HSC_i': 'HSC_i',
-        'HSC_z': 'HSC_z',
-        'HSC_Y': 'HSC_Y'
+        'HSC_g': 'subaru.suprime.g',
+        'HSC_r': 'subaru.suprime.r',
+        'HSC_i': 'subaru.suprime.i',
+        'HSC_z': 'subaru.suprime.z',
+        'HSC_Y': 'subaru.suprime.Y',
+        'GALEX_FUV': 'galex.FUV',
+        'GALEX_NUV': 'galex.NUV',
+        '2MASS_J': '2mass.J',
+        '2MASS_H': '2mass.H',
+        '2MASS_Ks': '2mass.Ks'
     }
     for key in new_names:
         if key in photom_cols:
@@ -256,7 +270,7 @@ def _initialise(data_file, config_file="pcigale.ini",
         assert sed_modules_params is not None,\
              "If you're not using the default modules, you'll have to input SED parameters"
     # Init
-    cigconf = Configuration(config_file) #a set of dicts, mostly
+    cigconf = Configuration(Path(config_file)) #a set of dicts, mostly
     cigconf.create_blank_conf() #Initialises a pcigale.ini file
 
     # fill in initial values
@@ -266,12 +280,12 @@ def _initialise(data_file, config_file="pcigale.ini",
     cigconf.config['sed_modules'] = sed_modules
     cigconf.config['analysis_method'] = 'pdf_analysis'
     if cores is None:
-        cores = multiprocessing.cpu_count() #Use all cores
+        cores = os.cpu_count() #Use all cores
     cigconf.config['cores'] = cores
     cigconf.generate_conf() #Writes defaults to config_file
     cigconf.config['analysis_params']['variables'] = variables
     cigconf.config['analysis_params']['save_best_sed'] = save_sed
-    cigconf.config['analysis_params']['lim_flag'] = True
+    cigconf.config['analysis_params']['lim_flag'] = 'noscaling'
 
     # Change the default values to new defaults:
     if sed_modules_params is None:
@@ -287,8 +301,10 @@ def _initialise(data_file, config_file="pcigale.ini",
     return cigconf
 
 
-def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
+def run(photometry_table, zcol,
+        data_file="cigale_in.fits", config_file="pcigale.ini",
+        wait_for_input=False, save_sed=True,
+        plot=True, outdir='out', **kwargs):
     """
     Input parameters and then run CIGALE.
 
@@ -314,13 +330,10 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         outdir (str, optional):
             Path to the many outputs of CIGALE
             If not supplied, the outputs will appear in a folder named out/
-        compare_obs_model (bool, optional):
-            If True compare the input observed fluxes with the model fluxes
-            This writes a Table to outdir named 'photo_observed_model.dat'
-
-    kwargs:  These are passed into gen_cigale_in() and _initialise()
         save_sed (bool, optional):
             Save the best fit SEDs to disk for each galaxy.
+
+    kwargs:  These are passed into gen_cigale_in() and _initialise()
         variables (str or list, optional):
             A single galaxy property name to save to results
             or a list of variable names. Names must belong
@@ -343,31 +356,34 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
         photo_z = True
     else:
         photo_z = False
-    _initialise(data_file, config_file=config_file, photo_z=photo_z,**kwargs)
+    _initialise(data_file, config_file=config_file, photo_z=photo_z, save_sed = save_sed, **kwargs)
     if wait_for_input:
         input("Edit the generated config file {:s} and press any key to run.".format(config_file))
-    cigconf = Configuration(config_file)
+    cigconf = Configuration(Path(config_file))
     analysis_module = get_module(cigconf.configuration['analysis_method'])
     analysis_module.process(cigconf.configuration)
     if plot:
-        try:
-            from pcigale_plots import sed  # This modifies the backend to Agg so I hide it here
-            old_version = True
-        except ImportError:
-            from pcigale_plots.plot_types.sed import sed
-            old_version = False
-        
-        if old_version:
-            import pcigale
-            #warnings.warn("You are using CIGALE version {:s}, for which support is deprecated. Please update to 2020.0 or higher.".format(pcigale.__version__))
-            sed(cigconf,"mJy",True)
-        else:
+        # Saving the best model is critical to this step
+        if not save_sed:
+            # Check for best model files anyway
+            best_model_files = Path('out').glob('*_best_model.fits')
+            if len(sorted(best_model_files)) == 0:
+                console.print(f"{WARNING} No best model files found for making plots. Please rerun with save_sed=True")
+        else:        
+            try:
+                from pcigale_plots.plot_types.sed import SED
+            except ImportError:
+                console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+                pass
+
             # TODO: Let the user customize the plot.
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
-            sed(cigconf,"mJy",True, (False, False), (False, False), series, "pdf", "out")
-        # Set back to a GUI
-        import matplotlib
-        matplotlib.use('TkAgg')
+            SED(config = cigconf, sed_type = "mJy", nologo = True,
+                xrange = (False, False), yrange =  (False, False),
+                series = series, format =  "pdf", outdir =  Path("out"))
+            # Set back to a GUI
+            import matplotlib
+            matplotlib.use('TkAgg')
 
     # Rename the default output directory?
     if outdir != 'out':
@@ -375,38 +391,13 @@ def run(photometry_table, zcol, data_file="cigale_in.fits", config_file="pcigale
             os.system("rm -rf {}".format(outdir))
             os.system("mv out {:s}".format(outdir))
         except:
-            print("Invalid output directory path. Output stored in out/")
+            console.print(f"{WARNING} Invalid output directory path. Output stored in out/")
 
     # Move input files into outdir too
     os.system("mv {:s} {:s}".format(data_file, outdir))
     data_file = os.path.join(outdir, data_file.split("/")[-1])
     os.system("mv {:s} {:s}".format(config_file, outdir))
     os.system("mv {:s}.spec {:s}".format(config_file, outdir))
-
-    # Compare?
-    if compare_obs_model:
-        #Generate an observation/model flux comparison table.
-        with Database() as base:
-            filters = OrderedDict([(name, base.get_filter(name))
-                                for name in cigconf.configuration['bands']
-                                if not (name.endswith('_err') or name.startswith('line')) ])
-            filters_wl = np.array([filt.pivot_wavelength
-                                    for filt in filters.values()])
-            mods = Table.read(outdir+'/results.fits')
-
-            try:
-                obs = Table.read(data_file)
-            except:
-                print("Something went wrong here. Astropy was unable to read the observations table. Please ensure it is in the fits format.")
-                return
-            for model, obj in zip(mods, obs):
-                photo_obs_model = Table()
-                photo_obs_model['lambda_filter'] = [wl/1000 for wl in filters_wl]
-                photo_obs_model['model_flux'] = np.array([model["best."+filt] for filt in filters.keys()])
-                photo_obs_model['observed_flux'] = np.array([obj[filt] for filt in filters.keys()])
-                photo_obs_model['observed_flux_err'] = np.array([obj[filt+'_err'] for filt in filters.keys()])
-                photo_obs_model.write(os.path.join(outdir,"photo_observed_model_"+str(model['id'])+".dat"),format="ascii",overwrite=True)
-            #import pdb; pdb.set_trace()
             
     return
 

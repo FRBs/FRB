@@ -2,6 +2,8 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
+from calendar import c
+import re
 import astropy
 import pytest
 import os, warnings
@@ -18,6 +20,8 @@ from numpy import setdiff1d
 
 remote_data = pytest.mark.skipif(os.getenv('FRB_GDB') is None,
                                  reason='test requires dev suite')
+
+nedlvs = pytest.mark.skipif('NEDLVS' not in os.environ, reason='Test reqires NEDLVS environment variable to be set.')
 
 @remote_data
 def test_sdss():
@@ -76,7 +80,19 @@ def test_des():
     # Image
     data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (39,39)
-    
+
+@remote_data
+def test_desi():
+    # Catalog
+    coord = SkyCoord(0, 0, unit="deg")
+    search_r = 0.3 * units.arcmin # Can't go below this with Noirlab for some reason. No error.
+                                  #Just a constant number of entries returned. 0 arcmin does give 0 entries though.
+
+    desi_srvy = survey_utils.load_survey_by_name('DESI', coord, search_r)
+    desi_tbl = desi_srvy.get_catalog(print_query=True, exclude_stars=True, zcat_primary_only=True)
+    assert isinstance(desi_tbl, Table)
+    assert len(desi_tbl) == 3230
+
 
 @remote_data
 def test_nsc():
@@ -164,13 +180,16 @@ def test_first():
 @remote_data
 def test_panstarrs():
     #Test get_catalog
-    coord = SkyCoord(0, 0,unit="deg")
+    coord = SkyCoord(0., 0.,unit="deg")
     search_r = 30*units.arcsec
     ps_survey = survey_utils.load_survey_by_name('Pan-STARRS',coord,search_r)
-    ps_table = ps_survey.get_catalog()
+    ps_table = ps_survey.get_catalog(photoz=True)
 
     assert isinstance(ps_table, Table)
     assert len(ps_table) == 7
+
+    assert 'z_phot' in ps_table.colnames
+    assert 'z_photErr' in ps_table.colnames
 
     #Test get_cutout
     cutout, = ps_survey.get_cutout()
@@ -182,6 +201,50 @@ def test_panstarrs():
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
 
+@nedlvs
+def test_nedlvs():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcmin
+
+    # Test get_catalog
+    nedlvs_srvy = survey_utils.load_survey_by_name('NEDLVS', coord, search_r)
+    nedlvs_tbl = nedlvs_srvy.get_catalog()
+    assert isinstance(nedlvs_tbl, Table)
+    assert len(nedlvs_tbl) == 2
+
+@remote_data
+def test_tully():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 90 * units.deg
+
+    # Test get_catalog
+    tully_srvy = survey_utils.load_survey_by_name('TullyGroupCat', coord, search_r)
+    tully_tbl = tully_srvy.get_catalog(transverse_distance_cut=5*units.Mpc)
+    assert isinstance(tully_tbl, Table)
+    assert len(tully_tbl) == 6
+
+@remote_data
+def test_galex():
+    coord = SkyCoord('J142532.38+120121.17', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    galex_srvy = survey_utils.load_survey_by_name('GALEX', coord, search_r)
+    galex_tbl = galex_srvy.get_catalog()
+    assert isinstance(galex_tbl, Table)
+    assert len(galex_tbl) == 2
+
+@remote_data
+def test_2mass():
+    coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
+    search_r = 10 * units.arcsec
+
+    # Test get_catalog
+    mass_srvy = survey_utils.load_survey_by_name('2MASS', coord, search_r)
+    mass_tbl = mass_srvy.get_catalog()
+    assert isinstance(mass_tbl, Table)
+    assert len(mass_tbl) == 1
+
 @remote_data
 def test_in_which_survey():
     """
@@ -191,7 +254,6 @@ def test_in_which_survey():
     
     with warnings.catch_warnings(record=True) as allwarns:
         inside = survey_utils.in_which_survey(coord, optical_only=False)
-
     expected_dict = {'Pan-STARRS': True,
                     'WISE': True,
                     'SDSS': True,
@@ -203,7 +265,10 @@ def test_in_which_survey():
                     'HSC': False,
                     'NVSS': False,
                     'FIRST': False,
-                    'WENSS': False}
+                    'WENSS': False,
+                    'NEDLVS': True,
+                    'GALEX': False,
+                    '2MASS': True}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -230,12 +295,16 @@ def test_search_all():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
     assert len(combined_cat)==2
+
+    # Nothing from NEDLVS and so not in the combined catalog
     colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag',
                 'rKronRad', 'gPSFmag', 'rPSFmag', 'iPSFmag', 'zPSFmag', 'yPSFmag', 'gPSFmagErr', 'rPSFmagErr', 'iPSFmagErr', 'zPSFmagErr', 'yPSFmagErr', 'Pan-STARRS_g', 'Pan-STARRS_r', 'Pan-STARRS_i', 'Pan-STARRS_z', 'Pan-STARRS_y', 'Pan-STARRS_g_err', 'Pan-STARRS_r_err', 'Pan-STARRS_i_err', 'Pan-STARRS_z_err', 'Pan-STARRS_y_err', 'separation_1',
                 'source_id', 'tmass_key', 'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
                 'SDSS_ID', 'run', 'rerun', 'camcol', 'SDSS_field', 'type', 'SDSS_u', 'SDSS_g', 'SDSS_r', 'SDSS_i', 'SDSS_z', 'SDSS_u_err', 'SDSS_g_err', 'SDSS_r_err', 'SDSS_i_err', 'SDSS_z_err', 'extinction_u', 'extinction_g', 'extinction_r', 'extinction_i', 'extinction_z', 'photo_z', 'photo_zerr', 'z_spec', 'separation_2',
                 'DELVE_ID', 'ebv', 'DELVE_g', 'DELVE_g_err', 'class_star_g', 'DELVE_r', 'DELVE_r_err', 'class_star_r', 'DELVE_i', 'DELVE_i_err', 'class_star_i', 'DELVE_z', 'DELVE_z_err', 'class_star_z',
                 'DECaL_ID', 'DECaL_brick', 'DECaL_type', 'DECaL_g', 'DECaL_r', 'DECaL_z', 'DECaL_g_err', 'DECaL_r_err', 'DECaL_z_err', 'survey', 'z_phot_l68', 'z_phot_median', 'z_phot_u68', 'z_phot_l95', 'z_phot_u95', 'z_spec_1','z_spec_2',
-                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err']
+                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err',
+                'GALEX_ID', 'GALEX_FUV', 'GALEX_FUV_err', 'GALEX_NUV', 'GALEX_NUV_err', 'separation',
+                '2MASS_ID', '2MASS_j', '2MASS_j_err', '2MASS_h', '2MASS_h_err', '2MASS_k', '2MASS_k_err']
     assert len(setdiff1d(combined_cat.colnames, colnames))==0
     assert combined_cat['Pan-STARRS_ID'][1] == -999.

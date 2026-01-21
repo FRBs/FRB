@@ -6,7 +6,7 @@ import numpy as np
 import os
 from IPython import embed
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
@@ -87,7 +87,7 @@ def average_He_nume(z, z_HIreion=7.):
     """
     z, flg_z = z_to_array(z)
     # Load Kulkarni Table
-    He_file = resource_filename('frb', os.path.join('data','IGM','qheIII.txt'))
+    He_file = importlib_resources.files('frb.data.IGM')/'qheIII.txt'
     qHeIII = Table.read(He_file, format='ascii')
     # Fully re-ionized
     first_ionized = np.where(qHeIII['Q_HeIII_18'] >= 1.)[0][0]
@@ -467,7 +467,7 @@ def avg_rhoMstar(z, remnants=True):
     # Init
     z, flg_z = z_to_array(z)
     # Load
-    stellar_mass_file = resource_filename('frb', os.path.join('data','IGM','stellarmass.dat'))
+    stellar_mass_file = importlib_resources.files('frb.data.IGM')/'stellarmass.dat'
     rho_mstar_tbl = Table.read(stellar_mass_file, format='ascii')
     # Output
     rho_Mstar_unitless = np.zeros_like(z)

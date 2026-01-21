@@ -4,20 +4,20 @@ FRB host galaxies"""
 from importlib.resources import files
 import os
 
-
-
 import pandas
 
 from astropy.coordinates import SkyCoord
 
-from astropath.priors import load_std_priors
+try:
+    from astropath.priors import load_std_priors
+except ModuleNotFoundError:
+    print("astropath not installed; install it to build PATH")
+else:
+    from frb.associate import frbassociate
+    from frb.associate import frbs
 
 from frb.frb import FRB
-
-from frb.associate import frbassociate
-from frb.associate import frbs
 from frb.galaxies import hosts
-
 from frb import utils
 
 from IPython import embed
@@ -31,6 +31,7 @@ def run(frb_list:list,
         prior:dict, 
         write:bool=False,
         show:bool=False,
+        add_skipped:bool=False,
         override:bool=False):
     """Main method for running PATH analysis for a list of FRBs
 
@@ -39,7 +40,9 @@ def run(frb_list:list,
         prior (dict):
             Prior for PATH
         write (bool, optional): Write the results to a CSV file. Defaults to False.
+            Uses the --options write_indiv   option in the call
         show (bool, optional): Show the segmentation image. Defaults to False.
+        add_skipped (bool, optional): Add skipped FRBs to the table. Defaults to False.
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
 
@@ -56,6 +59,7 @@ def run(frb_list:list,
     #for frb, host_coord in zip(frb_list, host_coords):
     for frb in frb_list:
         frb_name = utils.parse_frb_name(frb, prefix='frb')
+
         # Config
         if not hasattr(frbs, frb_name.upper()):
             print(f"PATH analysis not possible for {frb_name}")
@@ -90,8 +94,7 @@ def run(frb_list:list,
         ang_sizes.append(frbA.candidates.ang_size.values[0])
         separations.append(frbA.candidates.separation.values[0])
 
-        # Write the full candidate table?
-        #embed(header="build_path.py: 92")
+        # Write the full candidate table for each FRB?
         if write:
             # Add P_U
             frbA.candidates['P_U'] = prior['U']
@@ -102,6 +105,23 @@ def run(frb_list:list,
             #embed(header="build_path.py: 99")
             frbA.candidates.to_csv(outfile)
             print(f"PATH analysis written to {outfile}")
+
+    # Add in the skipped??
+    if add_skipped:
+        good_idx = 0
+        for ss, frb in enumerate(frb_list):
+            frb_name = utils.parse_frb_name(frb, prefix='frb').upper()
+            if frb_name not in good_frb:
+                # Insert the values in order of the frb_list
+                good_frb.insert(good_idx, frb_name)
+                PATH_O.insert(good_idx, 0.)
+                PATH_Ox.insert(good_idx, 0.)
+                RAs.insert(good_idx, 0.)
+                Decs.insert(good_idx, 0.)
+                ang_sizes.insert(good_idx, 0.)
+                separations.insert(good_idx, 0.)
+            else:
+                good_idx = good_frb.index(frb_name) + 1
 
     # Build the table
     df = pandas.DataFrame()
@@ -129,8 +149,7 @@ def main(options:str=None, frb:str=None):
     # Read public host table
     if frb is None:
         host_tbl = hosts.load_host_tbl()
-
-        host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
+        #host_coords = [SkyCoord(host_coord, frame='icrs') for host_coord in host_tbl.Coord.values]
 
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
@@ -149,6 +168,7 @@ def main(options:str=None, frb:str=None):
     # Parse optionsd
     write_indiv = False
     show = False
+    add_skipped = False
     if options is not None:
         if 'new_prior' in options:
             theta_new = dict(method='exp', 
@@ -160,6 +180,8 @@ def main(options:str=None, frb:str=None):
             write_indiv = True
         if 'show' in options:
             show = True
+        if 'add_skipped' in options:
+            add_skipped = True
         if 'PU=' in options:
             for sopt in options.split(','):
                 if 'PU=' in sopt:
@@ -167,10 +189,10 @@ def main(options:str=None, frb:str=None):
         #embed(header="build_path.py: 155")
         
 
-    results = run(frb_list, prior, write=write_indiv, show=show)
+    results = run(frb_list, prior, write=write_indiv, show=show,
+                  add_skipped=add_skipped)
     # Write
-    outfile = os.path.join(files('frb'), 'data', 'Galaxies', 
-                           'PATH', 'tmp.csv')
+    outfile = os.path.join(files('frb'),'data','Galaxies','PATH','tmp.csv')
     results.to_csv(outfile)
     print(f"PATH analysis written to {outfile}")
     print("Rename it, push to Repo, and edit the PATH/README file accordingly")

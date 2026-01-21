@@ -8,6 +8,29 @@ This document describes
 calculations related to the
 Dispersion Measure (DM) of FRBs.
 
+Galactic ISM
+============
+
+The repository contains a HEALPix map of the
+Galactic ISM DM values based on the NE2001 model.
+This map is used to calculate the DM contribution
+from the Milky Way ISM.  The map is in the
+`frb/data/DM/ne2001_dm_healpix_map_128.fits` file.
+
+Here is an example usage:
+
+.. code-block:: python
+
+   from frb.dm import dm_ism_healpix_map
+
+   b, l = 5., 50.  # Galactic coordinates in degrees
+
+   dm_map = dm_ism_healpix_map.get_dm_map()
+   dm_ism = dm_ism_healpix_map.dm_ism_from_healpix_map(l, b, dm_map)
+
+One can also input arrays of b,l coordinates.
+
+
 Intervening Galaxies
 ====================
 
@@ -26,11 +49,11 @@ frb.dlas.approx_avgDM() method::
 
     DM = approx_avgDM(1.)
 
-This may be calucated a single or array of redshifts.
+This may be calculated for a single or an array of redshifts.
 The return value is an astropy Quantity with default
-unites of pc/cm^3.
+units of pc/cm^3.
 
-.. _PN17: http://coming.soon
+.. _PN17: https://ui.adsabs.harvard.edu/abs/2017ApJ...837...16P
 
 MonteCarlo
 ----------

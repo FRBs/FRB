@@ -15,16 +15,17 @@ from frb import defs
 
 from IPython import embed
 
-# Telescope specific grids
+# Dict to resolve telescope/survey into the appropriate grid filename
 telescope_dict = {
+    'CHIME_repeaters': 'CHIME_pzdm_repeaters.npz',
     'CHIME': 'CHIME_pzdm.npz',
-    'DSA': 'DSA_pzdm.npy',
-    'Parkes': 'parkes_mb_class_I_and_II_pzdm.npy',
-    'CRAFT': 'CRAFT_class_I_and_II_pzdm.npy',
-    'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npy',
-    'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npy',
-    'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npy',
-    'FAST': 'FAST_pzdm.npy',
+    'DSA': 'DSA_pzdm.npz',
+    'Parkes': 'parkes_mb_class_I_and_II_pzdm.npz',
+    'CRAFT': 'CRAFT_class_I_and_II_pzdm.npz',
+    'CRAFT_ICS_1300': 'CRAFT_ICS_1300_pzdm.npz',
+    'CRAFT_ICS_892': 'CRAFT_ICS_892_pzdm.npz',
+    'CRAFT_ICS_1632': 'CRAFT_ICS_1632_pzdm.npz',
+    'FAST': 'FAST_pzdm.npz',
     'perfect': 'PDM_z.npz'
 }
 

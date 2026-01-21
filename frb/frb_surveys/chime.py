@@ -5,6 +5,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from importlib import resources
+import importlib_resources
 #%matplotlib inline
 import json
 import pandas
@@ -87,8 +88,7 @@ def calc_mr_dist(catalog_file:str=None,
 
     # Load up
     if catalog_file is None:
-        catalog_file = os.path.join(resources.files('frb'), 'data', 
-                                    'FRBs', 'CHIME_catalog-2021-1-27.json')
+        catalog_file = importlib_resources.files('frb.data.FRBs')/'CHIME_catalog-2021-1-27.json'
 
     #host galaxy M_r
     xvals, prob1 = hosts.load_Mr_pdf(pdf_file)

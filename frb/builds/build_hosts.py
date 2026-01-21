@@ -1,7 +1,8 @@
 """ Top-level module to build or re-build the JSON files for
 FRB host galaxies"""
 
-from pkg_resources import resource_filename
+import importlib_resources
+from importlib.resources import files
 import os
 import sys
 import warnings
@@ -26,16 +27,12 @@ try:
 except:
     print('WARNING:  ppxf not installed')
 from frb.galaxies import nebular
+from frb.galaxies import utils as galaxy_utils
 from frb.galaxies import hosts
 from frb.galaxies import defs as galaxy_defs
 from frb.surveys import survey_utils
 from frb import utils
 import pandas
-
-try:
-    import extinction
-except ImportError:
-    print("extinction package not loaded.  Extinction corrections will fail")
 
 try:
     from frb.galaxies import cigale
@@ -58,15 +55,14 @@ ebv_method = 'SandF'
 fill_value = -999.
 
 # New astrometry
-mannings2021_astrom = pandas.read_csv(os.path.join(resource_filename('frb','data'),
-                                          'Galaxies','Additional','Mannings2021', 
-                                          'astrometry_v2.csv'))
+mannings2021_astrom = pandas.read_csv(importlib_resources.files('frb.data.Galaxies.Additional.Mannings2021')/'astrometry_v2.csv')
 # Probably will rename this                                        
 mannings2021_astrom = mannings2021_astrom[
     (mannings2021_astrom.Filter == 'F160W') | (
         mannings2021_astrom.Filter == 'F110W')].copy()
 
 def chk_fill(value):
+    # Masked?
     if isinstance(value,str):
         # Allow for -999 as a string
         try:
@@ -75,6 +71,8 @@ def chk_fill(value):
             return False
         else:
             return np.isclose(value, fill_value)
+    elif isinstance(value,np.ma.core.MaskedConstant):
+        return False
     else:
         return np.isclose(value, fill_value)
 
@@ -147,9 +145,8 @@ def read_lit_table(lit_entry, coord=None):
     Returns:
         astropy.table.Table: table of literature data
     """
-    literature_path = os.path.join(resource_filename('frb', 'data'), 
-                                       'Galaxies', 'Literature')
-    lit_file = os.path.join(literature_path, lit_entry.Table)
+    literature_path = importlib_resources.files('frb.data.Galaxies.Literature')
+    lit_file = literature_path/lit_entry.Table
     if lit_entry.Format == 'csv':
         lit_tbl = Table.from_pandas(pandas.read_csv(lit_file))
     else:
@@ -167,6 +164,7 @@ def read_lit_table(lit_entry, coord=None):
             idx = int(np.where(match)[0])
             return lit_tbl[idx:idx+1]
         else:
+            embed(header="Multiple matches in literature table!")
             raise ValueError("More than one match in the table!!!")
     else:
         # Return
@@ -264,7 +262,7 @@ def run(host_input:pandas.core.series.Series,
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
-        srvy_tbl = survey.get_catalog(print_query=True)
+        srvy_tbl = survey.get_catalog()#print_query=True)
 
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
@@ -275,9 +273,10 @@ def run(host_input:pandas.core.series.Series,
                 continue
             else:
                 #print("You found more than 1 galaxy.  Taking the 2nd one")
-                #srvy_tbl = srvy_tbl[1:]
+                srvy_tbl = srvy_tbl[1:]
                 #srvy_tbl = srvy_tbl[:1]
-                raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                #embed(header='277 of build')
+                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
         # Merge
         if merge_tbl is None:
@@ -288,8 +287,7 @@ def run(host_input:pandas.core.series.Series,
 
     # Literature time
     if lit_refs is None:
-        lit_refs = os.path.join(resource_filename('frb', 'data'), 'Galaxies',
-            'Literature', 'all_refs.csv')
+        lit_refs = importlib_resources.files('frb.data.Galaxies.Literature')/'all_refs.csv'
     lit_tbls = pandas.read_csv(lit_refs, comment='#')
 
     for kk in range(len(lit_tbls)):
@@ -298,6 +296,7 @@ def run(host_input:pandas.core.series.Series,
             continue
         # Load table
         sub_tbl = read_lit_table(lit_entry, coord=Host.coord)
+        #embed(header='Check the table 298')
         if sub_tbl is not None:
             # Add References, unless the value is masked
             for key in sub_tbl.keys():
@@ -316,6 +315,7 @@ def run(host_input:pandas.core.series.Series,
                             merge_tbl[key] = sub_tbl[key]
             else:
                 merge_tbl = sub_tbl
+                merge_tbl.remove_column('Name')
                 merge_tbl['Name'] = file_root
 
     # Remove NSC for now
@@ -386,14 +386,9 @@ def run(host_input:pandas.core.series.Series,
         # Correct for Galactic extinction
         ebv = float(nebular.get_ebv(Host.coord)['meanValue'])
         print(f'Correcting the spectrum for Galactic extinction with reddening E(B-V)={ebv}')
-        AV = ebv * 3.1  # RV
-        Al = extinction.ccm89(spectrum.wavelength.value, AV, 3.1)
-        # New spec
-        new_flux = spectrum.flux * 10**(Al/2.5)
-        new_sig = spectrum.sig * 10**(Al/2.5)
-        new_spec = XSpectrum1D.from_tuple((spectrum.wavelength, new_flux, new_sig))
+        new_spec = galaxy_utils.deredden_spec(spectrum, ebv)
 
-        #
+        # Run it
         ppxf.run(new_spec, R, host_input.z, 
                  results_file=ppxf_results_file, 
                  spec_fit=spec_file,
@@ -447,12 +442,15 @@ def run(host_input:pandas.core.series.Series,
         found_galfit, galfit_file = search_for_file(
             project_list, ref_list, '_galfit.fits',
             prefix=file_root+'_'+host_input.Galfit_filter)
-        if found_galfit:
-            print(f"Galfit analysis slurped in via: {galfit_file}")
-            Host.parse_galfit(galfit_file)
-        else:
-            embed(header='435 of build')
-            raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        if not found_galfit:
+            # Look for galight
+            found_galfit, galfit_file = search_for_file(
+                project_list, ref_list, '_galight.json',
+                prefix=file_root+'_'+host_input.Galfit_filter)
+            if not found_galfit:
+                raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
+        print(f"Galfit analysis slurped in via: {galfit_file}")
+        Host.parse_galfit(galfit_file)
     else:
         print("Galfit analysis not enabled")
 
@@ -492,11 +490,14 @@ def run(host_input:pandas.core.series.Series,
 
     # Vet all
     assert Host.vet_all()
+    #try:
+    #    assert Host.vet_all()
+    #except AssertionError as e:
+    #    embed(header='Host galaxy failed vetting! 494')
 
     # Write
     if out_path is None:
-        out_path = os.path.join(resource_filename('frb', 'data'),
-            'Galaxies', f'{frbname[3:]}')
+        out_path = str(files('frb').joinpath('data', 'Galaxies', frbname[3:]))
     if outfile is None:
         outfile = None if is_host else \
             utils.name_from_coord(Host.coord) + '.json'
@@ -543,6 +544,9 @@ def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
         print(f'Working on {frb_name}')
         mt_idx = host_tbl.FRB == frb_name
         idx = np.where(mt_idx)[0].tolist()
+        # Check
+        if len(idx) == 0:
+            print(f"Skipping {frb_name} as it is not in the public host table")
         # Loop on em
         is_host = True
         # Do it!

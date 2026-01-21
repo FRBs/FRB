@@ -6,7 +6,7 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import pytest
 import os
 import numpy as np
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy.table import Table
 from astropy import units 
@@ -20,13 +20,10 @@ from frb.galaxies import photom
 from frb.surveys.catalog_utils import convert_mags_to_flux
 
 
-# TODO -- Turn this test back on when we replace extinction
-extinction = pytest.mark.skipif(True, reason='Extinction module needs to be replaced.')
-@extinction
 def test_dust_correct():
 
     correct = photom.extinction_correction('GMOS_S_r', 0.138)
-    assert np.isclose(correct, 1.3818590723917497)
+    assert np.isclose(correct, 1.3869201954307397)
 
 def test_flux_conversion():
 
@@ -37,13 +34,13 @@ def test_flux_conversion():
 
     fluxunits = 'mJy'
 
-    fluxtab = convert_mags_to_flux(tab, fluxunits)
+    fluxtab = convert_mags_to_flux(tab, fluxunits, exact_mag_err=False)
 
     # Check fluxes
     assert np.isclose(fluxtab['DES_r'], 0.036307805), "Check AB flux conversion."
 
     # Check errors
-    assert np.isclose(fluxtab['DES_r_err'], 0.02123618797770558), "Check AB flux error."
+    assert np.isclose(fluxtab['DES_r_err'], 0.016720362110466937), "Check AB flux error."
 
 
 def test_fractional_flux():
@@ -54,8 +51,7 @@ def test_fractional_flux():
     # frbcoord = frbdat.coord
     hg = frbdat.grab_host()
     # Read cutout
-    cutout_file = os.path.join(resource_filename('frb','tests'), 'files',
-                               'FRB180924_cutout.fits')
+    cutout_file = importlib_resources.files('frb.tests.files')/'FRB180924_cutout.fits'
     hdul = fits.open(cutout_file)
 
     hgcoord = hg.coord

@@ -3,8 +3,6 @@ import os
 import numpy as np
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
-
-from pkg_resources import resource_filename
 from matplotlib import pyplot as plt
 
 from astropy.cosmology import FlatLambdaCDM

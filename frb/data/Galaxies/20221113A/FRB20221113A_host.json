@@ -1,0 +1,58 @@
+{
+    "FRB": "FRB20221113A",
+    "cosmo": "Planck18",
+    "dec": 70.30738833333334,
+    "dec_FRB": 70.307389,
+    "derived": {
+        "AV_old": 0.2864,
+        "AV_old_loerr": -0.1125,
+        "AV_old_ref": "Sharma2024",
+        "AV_old_uperr": 0.0959,
+        "Mtotal": 4643014072.818035,
+        "Mtotal_loerr": -635357994.9977341,
+        "Mtotal_ref": "Sharma2024",
+        "Mtotal_uperr": 692791545.6422977,
+        "SFR_SED": 0.2431,
+        "SFR_SED_loerr": -0.0687,
+        "SFR_SED_ref": "Sharma2024",
+        "SFR_SED_uperr": 0.0827
+    },
+    "offsets": {
+        "ang_avg": 1.6559959480079451,
+        "ang_avg_err": 0.9248956713710444,
+        "ang_best": 0.9098325518191958,
+        "ang_best_err": 1.1883567716527004,
+        "physical": 3.678434989184137,
+        "physical_err": 4.804502894231324
+    },
+    "photom": {
+        "EBV": 0.1595,
+        "Pan-STARRS_g": 20.848684483975877,
+        "Pan-STARRS_g_err": 0.18,
+        "Pan-STARRS_g_flux": 0.01661598917926007,
+        "Pan-STARRS_g_flux_err": 0.002754700487245052,
+        "Pan-STARRS_g_ref": "Sharma2024",
+        "Pan-STARRS_i": 20.843763621115205,
+        "Pan-STARRS_i_err": 0.13,
+        "Pan-STARRS_i_flux": 0.016691468448506105,
+        "Pan-STARRS_i_flux_err": 0.0019985433743449515,
+        "Pan-STARRS_i_ref": "Sharma2024",
+        "Pan-STARRS_r": 20.959443995005884,
+        "Pan-STARRS_r_err": 0.1,
+        "Pan-STARRS_r_flux": 0.015004530003572441,
+        "Pan-STARRS_r_flux_err": 0.001381968284544312,
+        "Pan-STARRS_r_ref": "Sharma2024",
+        "Pan-STARRS_z": 20.73810939780787,
+        "Pan-STARRS_z_err": 0.09,
+        "Pan-STARRS_z_flux": 0.018397390858215706,
+        "Pan-STARRS_z_flux_err": 0.0015250160858440473,
+        "Pan-STARRS_z_ref": "Sharma2024"
+    },
+    "ra": 71.41175,
+    "ra_FRB": 71.411,
+    "redshift": {
+        "z": 0.2505,
+        "z_FRB": 0.2505,
+        "z_spec": 0.2505
+    }
+}

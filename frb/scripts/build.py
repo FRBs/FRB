@@ -2,7 +2,6 @@
 """
 Build FRB bits and pieces
 """
-from __future__ import (print_function, absolute_import, division, unicode_literals)
 
 def parser(options=None):
     import argparse
@@ -40,9 +39,15 @@ def main(pargs):
         if pargs.frb is None:
             print("You must specify --frb")
             return
-        # 
-        frbs = pargs.frb.split(',')
-        frbs = [ifrb.strip() for ifrb in frbs]
+        # Text file?
+        if pargs.frb.endswith('.txt'):
+            frbs = []
+            with open(pargs.frb, 'r') as f:
+                for line in f:
+                    frbs.append(line.strip())
+        else:
+            frbs = pargs.frb.split(',')
+            frbs = [ifrb.strip() for ifrb in frbs]
         if item == 'frbs':
             build_frbs.main(frbs, data_file=pargs.data_file)
         else:

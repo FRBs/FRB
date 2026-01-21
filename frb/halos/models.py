@@ -1,18 +1,17 @@
 """ Module for DM Halo calculations
 """
-from __future__ import print_function, absolute_import, division, unicode_literals
-
 import numpy as np
 import pdb
+import warnings
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 from scipy.special import hyp2f1
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import SkyCoord,Angle
 from astropy import units
 from astropy import constants
 from astropy.table import Table
@@ -496,6 +495,45 @@ def halomass_from_stellarmass(log_mstar,z=0, randomize=False):
         return fsolve(f, guess)
     else:
         return fsolve(f, guess)[0]
+    
+def stellarmass_from_halomass_kravtsov(log_mhalo):
+    """
+    Stellar mass from Halo Mass from Kravtsov+2018.
+    https://ui.adsabs.harvard.edu/abs/2018AstL...44....8K/abstract
+
+    Caution: This relation is valid for low z (z~0). Higher z values
+    may require a scaled relation.
+    Args:
+        log_mhalo (float): log_10 halo mass
+    Returns:
+        log_mstar (float): log_10 galaxy
+    """
+    #with scatter
+    log_m1 = 11.39
+    log_eps = -1.642
+    alpha = -1.779
+    delta = 4.394
+    gamma = 0.547
+
+    f = lambda x: -np.log10(10**(alpha*x)+1) + delta*(np.log10(1+np.exp(x)))**gamma/(1+np.exp(10**-x))
+    f_0  = 0.3117679403623908 #Precomputed f(0) from above.
+
+    return log_eps + log_m1 + f(log_mhalo-log_m1)-f_0
+
+def halomass_from_stellarmass_kravtsov(log_mstar):
+    """
+    Inverts the function `frb.halos.models.stellarmass_from_halomass_kravtsov`.
+    Args:
+        log_mstar (float or numpy.ndarray): log_10 stellar mass
+    Returns:
+        log_mhalo (float): log_10 halo mass
+    """
+    f = lambda x: stellarmass_from_halomass_kravtsov(x)-log_mstar
+    guess = 2+log_mstar
+    if hasattr(log_mstar, "__iter__"):
+        return fsolve(f, guess)
+    else:
+        return fsolve(f, guess)[0]
 
 
 class ModifiedNFW(object):
@@ -504,11 +542,14 @@ class ModifiedNFW(object):
 
     Parameters:
         log_Mhalo: float, optional
-          log10 of the Halo mass (solar masses)
+          log10 of the Halo mass [dark matter + baryons] (solar masses)
+        log_MCGM: float, optional
+            log10 of the CGM mass (solar masses)
+            If provided, this sets f_hot [this is its only use]
         c: float, optional
           concentration of the halo
         f_hot: float, optional
-          Fraction of the baryons in this hot phase
+          Fraction of the total "expected" baryons in this hot (aka CGM) phase
           Will likely use this for all diffuse gas
         alpha: float, optional
           Parameter to modify NFW profile power-law
@@ -532,9 +573,21 @@ class ModifiedNFW(object):
 
 
     """
-    def __init__(self, log_Mhalo=12.2, c=7.67, f_hot=0.75, alpha=0.,
-                 y0=1., z=0., cosmo=cosmo, **kwargs):
+    def __init__(self, 
+                 log_Mhalo=12.2, 
+                 c=7.67, 
+                 f_hot:float=None, #0.75, 
+                 log_MCGM:float=None, #1e12,
+                 alpha=0., y0=1., z=0., cosmo=cosmo,fb = cosmo.Ob0/cosmo.Om0,
+                 **kwargs):
         # Init
+        if f_hot is None: 
+            if log_MCGM is None:
+                f_hot = 0.75
+                log_MCGM = np.log10(f_hot * 10**log_Mhalo*fb)
+            else:
+                f_hot = 10**log_MCGM / (10**log_Mhalo*fb)
+
         # Param
         self.log_Mhalo = log_Mhalo
         self.M_halo = 10.**self.log_Mhalo * constants.M_sun.cgs
@@ -545,22 +598,22 @@ class ModifiedNFW(object):
         self.f_hot = f_hot
         self.zero_inner_ne = 0. # kpc
         self.cosmo = cosmo
+        self.fb = fb
 
         # Init more
-        self.setup_param(cosmo=self.cosmo)
+        self.setup_param(cosmo=self.cosmo,)
 
-    def setup_param(self,cosmo):
+    def setup_param(self,cosmo,):
         """ Setup key parameters of the model
+
+        Args:
+            cosmo: astropy cosmology
+              Cosmology of the universe
         """
         # Cosmology
-        if cosmo is None:
-            self.rhoc = 9.2e-30 * units.g / units.cm**3
-            self.fb = 0.16       # Baryon fraction
-            self.H0 = 70. *units.km/units.s/ units.Mpc
-        else:
-            self.rhoc = self.cosmo.critical_density(self.z)
-            self.fb = cosmo.Ob0/cosmo.Om0
-            self.H0 = cosmo.H0
+        self.rhoc = self.cosmo.critical_density(self.z)
+        self.H0 = cosmo.H0
+
         # Dark Matter
         self.q = self.cosmo.Ode0/(self.cosmo.Ode0+self.cosmo.Om0*(1+self.z)**3) 
         #r200 = (((3*Mlow*constants.M_sun.cgs) / (4*np.pi*200*rhoc))**(1/3)).to('kpc')
@@ -676,6 +729,9 @@ class ModifiedNFW(object):
     def Ne_Rperp(self, Rperp, step_size=0.1*units.kpc, rmax=1., add_units=True, cumul=False):
         """ Calculate N_e at an input impact parameter Rperp
         Just a simple sum in steps of step_size
+
+        This integrates through the entire halo. 
+        Use half if this is for the host
 
         Parameters
         ----------
@@ -832,12 +888,12 @@ class ModifiedNFW(object):
         return Mr.to('M_sun')
 
     def __repr__(self):
-        txt = '<{:s}: {:s} {:s}, logM={:f}, r200={:g}'.format(
+        txt = '<{:s}: alpha={:0.2f} y0={:0.2f} logM={:0.2f}, fhot={:0.2f} r200={:g}'.format(
                 self.__class__.__name__,
-                self.coord.icrs.ra.to_string(unit=units.hour,sep=':',pad=True),
-                self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True),
-                np.log10(self.M_halo.to('Msun').value),
-            self.r200)
+                self.alpha, self.y0,
+                self.f_hot,
+                np.log10(self.M_halo.to('Msun').value), 
+                self.r200)
         # Finish
         txt = txt + '>'
         return (txt)
@@ -928,7 +984,7 @@ class YF17(ModifiedNFW):
 
         # Read
         #faerman_file = resource_filename('pyigm', '/data/CGM/Models/Faerman_2017_ApJ_835_52-density-full.txt')
-        faerman_file = resource_filename('frb', '/data/Halos/Faerman_2017_ApJ_835_52-density-full.txt')
+        faerman_file = importlib_resources.files('frb.data.Halos') / 'Faerman_2017_ApJ_835_52-density-full.txt'
         self.yf17 = Table.read(faerman_file, format='ascii.cds')
         self.yf17['nH'] = self.yf17['nHhot'] + self.yf17['nHwarm']
 
@@ -1045,7 +1101,9 @@ class M31(ModifiedNFW):
     Taking mass from van der Marel 2012
 
     """
-    def __init__(self, log_Mhalo=12.18, c=7.67, f_hot=0.75, alpha=2, y0=2, **kwargs):
+    def __init__(self, 
+                 log_Mhalo=12.18, c=7.67, 
+                 alpha=2, y0=2,f_hot=0.75, **kwargs):
 
         # Init ModifiedNFW
         ModifiedNFW.__init__(self, log_Mhalo=log_Mhalo, c=c, f_hot=f_hot,
@@ -1087,6 +1145,46 @@ class M31(ModifiedNFW):
         # DM
         DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
         return DM
+
+
+    def DM_from_impact_param_b(self, bimpact, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given an impact parameter
+
+        Args:
+            bimpact: Quantity
+                Ratio of the impact parameter to r200
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Calculate r200_rad
+        r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
+
+        # Create an Angle object for sep
+        sep = Angle(bimpact * r200_rad, unit='radian')
+
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
+
+
 
 
 class LMC(ModifiedNFW):

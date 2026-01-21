@@ -8,7 +8,7 @@ import warnings
 import glob
 
 
-from pkg_resources import resource_filename
+import importlib_resources
 
 from astropy.coordinates import SkyCoord
 from astropy import units
@@ -21,6 +21,7 @@ from frb.galaxies import utils as gutils
 from frb.galaxies import offsets
 from frb.surveys.catalog_utils import convert_mags_to_flux
 from frb import utils
+from frb.dm import host as dm_host
 
 from scipy.integrate import simpson
 
@@ -82,6 +83,12 @@ class FRBGalaxy(object):
             if attr in idict.keys():
                 setattr(slf,attr,idict[attr])
 
+        # Redshift
+        if 'z' in idict.keys():
+            slf.set_z(idict['z'], idict['z_origin'])
+            if 'z_err' in idict.keys():
+                slf.set_z(idict['z'], idict['z_origin'], err=idict['z_err'])
+
         # Physical Offset -- remove this when these get into JSON files
         if 'z_spec' in slf.redshift.keys() and 'physical' not in slf.offsets.keys():
             slf.offsets['physical'] = (slf.offsets['ang_best']*units.arcsec / slf.cosmo.arcsec_per_kpc_proper(slf.z)).to('kpc').value
@@ -91,7 +98,7 @@ class FRBGalaxy(object):
         return slf
 
     @classmethod
-    def from_json(cls, frb, json_file, **kwargs):
+    def from_json(cls, frb, json_file, verbose:bool=True, **kwargs):
         """
 
         Args:
@@ -106,7 +113,8 @@ class FRBGalaxy(object):
         try:
             idict = utils.loadjson(json_file)
         except FileNotFoundError:
-            warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
+            if verbose: 
+                warnings.warn("File {} not found.  This galaxy probably does not exist yet.".format(json_file))
             return None
         slf = cls.from_dict(frb, idict, **kwargs)
         return slf
@@ -346,7 +354,7 @@ class FRBGalaxy(object):
             self.photom['EBV'] = EBV
     
     def run_cigale(self, data_file="cigale_in.fits", config_file="pcigale.ini",
-        wait_for_input=False, plot=True, outdir='out', compare_obs_model=False, **kwargs):
+        wait_for_input=False, save_sed=True, plot=True, outdir='out',**kwargs):
         """
         Generates the input data file for CIGALE
         given the photometric points and redshift
@@ -362,6 +370,8 @@ class FRBGalaxy(object):
             wait_for_input (bool, optional):
                 If true, waits for the user to finish editing the auto-generated config file
                 before running.
+            save_sed (bool, optional):
+                Saves the best fit SED if true
             plot (bool, optional):
                 Plots the best fit SED if true
             cores (int, optional):
@@ -370,9 +380,6 @@ class FRBGalaxy(object):
             outdir (str, optional):
                 Path to the many outputs of CIGALE
                 If not supplied, the outputs will appear in a folder named out/
-            compare_obs_model (bool, optional):
-                If True compare the input observed fluxes with the model fluxes
-                This writes a Table to outdir named 'photo_observed_model.dat'
 
         kwargs:  These are passed into gen_cigale_in() and _initialise()
             sed_modules (list of 'str', optional):
@@ -399,8 +406,15 @@ class FRBGalaxy(object):
             new_photom['ID'] = 'FRBGalaxy'
 
 
-        run(new_photom, 'redshift', data_file, config_file,
-        wait_for_input, plot, outdir, compare_obs_model, **kwargs)
+        run(photometry_table = new_photom,
+            zcol = 'redshift',
+            data_file = data_file,
+            config_file = config_file,
+            wait_for_input = wait_for_input,
+            save_sed = save_sed,
+            plot = plot,
+            outdir = outdir,
+            **kwargs)
         return
 
     def get_metaspec(self, instr=None, return_all=False, specdb_file=None):
@@ -508,9 +522,9 @@ class FRBGalaxy(object):
             except:
                 warnings.warn("Invalid SFH file. Skipping mass-weighted age.")
                 return
-            mass = simpson(sfh_tab['SFR'], sfh_tab['time']) # M_sun/yr *Myr
+            mass = simpson(sfh_tab['SFR'], x=sfh_tab['time']) # M_sun/yr *Myr
             # Computed mass weighted age
-            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], sfh_tab['time'])/mass # Myr
+            t_mass = simpson(sfh_tab['SFR']*sfh_tab['time'], x=sfh_tab['time'])/mass # Myr
             # Store
             if ('age_mass' not in self.derived.keys()) or (overwrite):
                 cigale['age_mass'] = t_mass
@@ -521,9 +535,11 @@ class FRBGalaxy(object):
                 self.derived[key] = item
         
 
-    def parse_galfit(self, galfit_file, overwrite=True, twocomponent=False):
+    def parse_galfit(self, galfit_file, overwrite=True, 
+                     twocomponent=False):
         """
         Parse an output GALFIT file
+            or a gallight JSON file
 
         Loaded into self.morphology
 
@@ -531,6 +547,7 @@ class FRBGalaxy(object):
             galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
                 a binary table with fit parameters.
+                Or a JSON file from gallight
             overwrite (bool, optional): Need to overwrite
                 the object's attributes?
             twocomponent (bool, optional): Should the morphology
@@ -539,18 +556,33 @@ class FRBGalaxy(object):
 
         """
         assert os.path.isfile(galfit_file), "Incorrect file path {:s}".format(galfit_file)
-        try:
-            fit_tab = Table.read(galfit_file, hdu=4)
-        except:
-            raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
+        is_json = False
+        if galfit_file.endswith('.json'):
+            is_json = True
+            fit_tab = utils.loadjson(galfit_file)
+        elif galfit_file.endswith('.fits'):
+            try:
+                fit_tab = Table.read(galfit_file, hdu=4)
+            except:
+                raise IndexError("The binary table with fit parameters was not found as the 4th hdu in {:s}. Was GALFIT run using the wrapper?".format(galfit_file))
         for key in fit_tab.keys():
             if 'mag' in key:
                 continue
+            if 'center_' in key:
+                continue
+            if 'flux_' in key:
+                continue
             if (key not in self.morphology.keys()) or (overwrite):
-                if twocomponent:
-                    self.morphology[key] = fit_tab[key].data
+                if is_json:
+                    self.morphology[key] = fit_tab[key]
                 else:
-                    self.morphology[key] = fit_tab[key][0]
+                    if twocomponent:
+                        self.morphology[key] = fit_tab[key].data
+                    else:
+                        self.morphology[key] = fit_tab[key][0]
+        # Hack for galight
+        if 'reff_err_ang' in self.morphology.keys():
+            self.morphology['reff_ang_err'] = self.morphology.pop('reff_err_ang')
         # reff kpc?
         if 'reff_kpc' in self.morphology.keys():
             pass
@@ -778,6 +810,8 @@ class FRBGalaxy(object):
         txt = '<{:s}: {:s} {:s}, FRB={:s}'.format(
             self.__class__.__name__, self.coord.icrs.ra.to_string(unit=units.hour,sep=':', pad=True),
             self.coord.icrs.dec.to_string(sep=':',pad=True,alwayssign=True), self.frb.frb_name)
+        if self.z is not None:
+            txt += ' z={}'.format(self.z)
         # Finish
         txt = txt + '>'
         return (txt)
@@ -811,7 +845,7 @@ class FRBHost(FRBGalaxy):
         else:
             name = frb.frb_name
         #
-        path = os.path.join(resource_filename('frb', 'data/Galaxies/'), name)
+        path = importlib_resources.files('frb.data.Galaxies')/ name
         json_file = os.path.join(path, FRBHost._make_outfile(name))
         slf = cls.from_json(frb, json_file, **kwargs)
         return slf
@@ -847,6 +881,30 @@ class FRBHost(FRBGalaxy):
         #
         outfile = '{}{}_host.json'.format(prefix, frbname)
         return outfile
+
+    def calc_dm_halo(self, **kwargs):
+        """ Calculate the Halo contribution to the host DM
+        given the host stellar mass in its derived properties
+        dict and the FRB coordinates.
+
+        Args:
+            **kwargs: Passed to dm_host.dm_host_halo
+        
+        Returns:
+            DM_halo (float): Halo contribution to the DM in pc/cm^3
+        """
+
+        # Setup
+        R = self.offsets['physical'] * units.kpc
+        Mstar = self.derived['Mstar']
+        log10_Mstar = np.log10(Mstar)
+
+        # Calculate
+        self.DM_halo = dm_host.dm_host_halo(
+            R, log10_Mstar, self.z, **kwargs)
+
+        return self.DM_halo
+
 
     def make_outfile(self):
         """

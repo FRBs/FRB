@@ -1,0 +1,63 @@
+{
+    "FRB": "FRB20220307B",
+    "cosmo": "Planck18",
+    "dec": 72.19188972222223,
+    "dec_FRB": 72.192386,
+    "derived": {
+        "AV_old": 1.874,
+        "AV_old_loerr": -0.0838,
+        "AV_old_ref": "Sharma2024",
+        "AV_old_uperr": 0.0672,
+        "Mtotal": 21562544068.071934,
+        "Mtotal_loerr": -1912153185.334015,
+        "Mtotal_ref": "Sharma2024",
+        "Mtotal_uperr": 1820443566.727192,
+        "SFR_SED": 3.1663,
+        "SFR_SED_loerr": -1.0276,
+        "SFR_SED_ref": "Sharma2024",
+        "SFR_SED_uperr": 1.3512
+    },
+    "offsets": {
+        "ang_avg": 2.540982048954476,
+        "ang_avg_err": 1.1512380152408117,
+        "ang_best": 1.7988900796911518,
+        "ang_best_err": 1.3696895482483313,
+        "physical": 7.2215796359550275,
+        "physical_err": 5.498569512879194
+    },
+    "photom": {
+        "EBV": 0.3785,
+        "Pan-STARRS_g": 19.759148577820852,
+        "Pan-STARRS_g_err": 0.13,
+        "Pan-STARRS_g_flux": 0.045325287045325714,
+        "Pan-STARRS_g_flux_err": 0.005426997174884643,
+        "Pan-STARRS_g_ref": "Sharma2024",
+        "Pan-STARRS_i": 19.390477665646564,
+        "Pan-STARRS_i_err": 0.09,
+        "Pan-STARRS_i_flux": 0.06365154183178318,
+        "Pan-STARRS_i_flux_err": 0.005276271289246232,
+        "Pan-STARRS_i_ref": "Sharma2024",
+        "Pan-STARRS_r": 19.453916437075964,
+        "Pan-STARRS_r_err": 0.05,
+        "Pan-STARRS_r_flux": 0.060038995765830584,
+        "Pan-STARRS_r_flux_err": 0.002764897932974683,
+        "Pan-STARRS_r_ref": "Sharma2024",
+        "Pan-STARRS_y": 18.93596371625961,
+        "Pan-STARRS_y_err": 0.09,
+        "Pan-STARRS_y_flux": 0.09674187664612656,
+        "Pan-STARRS_y_flux_err": 0.008019230509211033,
+        "Pan-STARRS_y_ref": "Sharma2024",
+        "Pan-STARRS_z": 19.222585925793716,
+        "Pan-STARRS_z_err": 0.06,
+        "Pan-STARRS_z_flux": 0.07429603274964809,
+        "Pan-STARRS_z_flux_err": 0.004105750499470491,
+        "Pan-STARRS_z_ref": "Sharma2024"
+    },
+    "ra": 350.87468666666666,
+    "ra_FRB": 350.874496,
+    "redshift": {
+        "z": 0.2481,
+        "z_FRB": 0.2481,
+        "z_spec": 0.2481
+    }
+}

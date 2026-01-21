@@ -1,0 +1,53 @@
+{
+    "FRB": "FRB20230501A",
+    "cosmo": "Planck18",
+    "dec": 70.92226600000001,
+    "dec_FRB": 70.922139,
+    "derived": {
+        "AV_old": 3.4266,
+        "AV_old_loerr": -0.0224,
+        "AV_old_ref": "Sharma2024",
+        "AV_old_uperr": 0.02,
+        "Mtotal": 27899729974.08269,
+        "Mtotal_loerr": -630153641.1245766,
+        "Mtotal_ref": "Sharma2024",
+        "Mtotal_uperr": 453334143.524189,
+        "SFR_SED": 4.0955,
+        "SFR_SED_loerr": -0.4467,
+        "SFR_SED_ref": "Sharma2024",
+        "SFR_SED_uperr": 0.604
+    },
+    "offsets": {
+        "ang_avg": 1.3823431416753347,
+        "ang_avg_err": 0.6898467061819342,
+        "ang_best": 0.9678751670449768,
+        "ang_best_err": 0.8047808273214858,
+        "physical": 4.464810644496031,
+        "physical_err": 3.7124560342649207
+    },
+    "photom": {
+        "EBV": 0.4956,
+        "WASP_i": 20.792857312286717,
+        "WASP_i_err": 0.02,
+        "WASP_i_flux": 0.0174927089148355,
+        "WASP_i_flux_err": 0.00032222760626707427,
+        "WASP_i_ref": "Sharma2024",
+        "WASP_r": 20.575834912218415,
+        "WASP_r_err": 0.01,
+        "WASP_r_flux": 0.021363186378136452,
+        "WASP_r_flux_err": 0.0001967622179726018,
+        "WASP_r_ref": "Sharma2024",
+        "WASP_z": 20.0737913080461,
+        "WASP_z_err": 0.03,
+        "WASP_z_flux": 0.033922157877538675,
+        "WASP_z_flux_err": 0.0009373038606121331,
+        "WASP_z_ref": "Sharma2024"
+    },
+    "ra": 340.027808,
+    "ra_FRB": 340.027083,
+    "redshift": {
+        "z": 0.3015,
+        "z_FRB": 0.3015,
+        "z_spec": 0.3015
+    }
+}
