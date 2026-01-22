@@ -258,6 +258,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, 
                                              required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
+        cut_photom[key] += mag_dust
 
     # Add it back in
     photom[idx] = cut_photom
