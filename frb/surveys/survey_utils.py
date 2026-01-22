@@ -30,7 +30,7 @@ import warnings
 
 optical_surveys = ['Pan-STARRS', 'WISE', '2MASS', 'SDSS', 'DES', 'DESI', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS', 'GALEX'] 
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
-allowed_surveys = optical_surveys+radio_surveys+group_catalogs
+allowed_surveys = optical_surveys+radio_surveys #+group_catalogs
 
 
 def load_survey_by_name(name, coord, radius, **kwargs):
