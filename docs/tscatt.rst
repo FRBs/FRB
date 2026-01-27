@@ -6,7 +6,7 @@ Turbulent Scattering
 
 .. _Macquart&Koay13: http://adsabs.harvard.edu/abs/2013ApJ...776..125M
 
-The formalism developed by `Macquart&Koay13`_has been ingested
+The formalism developed by `Macquart&Koay13`_ has been ingested
 into the *Turbulence* class for calculations of temporal
 smearing and angular broadening.
 

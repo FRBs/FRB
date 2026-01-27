@@ -16,7 +16,7 @@ FRBs
 
 For FRBs included in this repository, currently those that
 are well localized and published, we have archived a set
-of basic measaurements, e.g. coordinates.  These are
+of basic measurements, e.g. coordinates.  These are
 saved as a set of JSON files in the data/FRBs/ folder
 of the repository.
 
@@ -26,9 +26,9 @@ One can load these data into an FRB object as follows::
     # Coordinate
     frb121102.coord
     # Error ellipse
-    frb121101.eelipse
+    frb121102.eellipse
     # DM
-    frb121101.DM
+    frb121102.DM
 
 RM and other measurements are also included
 when available.  See the FRB_Event.ipynb notebook
