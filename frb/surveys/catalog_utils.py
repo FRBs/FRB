@@ -100,7 +100,11 @@ def match_ids(IDs, match_IDs, require_in_match=True):
     """
     rows = -1 * np.ones_like(IDs).astype(int)
     # Find which IDs are in match_IDs
-    in_match = np.in1d(IDs, match_IDs)
+    try:
+        in_match = np.isin(IDs, match_IDs)
+    except AttributeError:
+        # Older NumPy versions
+        in_match = np.in1d(IDs, match_IDs)
     if require_in_match:
         if np.sum(~in_match) > 0:
             raise IOError("qcat.match_ids: One or more input IDs not in match_IDs")
