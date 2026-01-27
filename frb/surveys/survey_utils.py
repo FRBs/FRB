@@ -253,13 +253,64 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         # Fill in any empty separations and sort them.
         combined_cat['separation'] = coord.separation(SkyCoord(combined_cat['ra'], combined_cat['dec'], unit='deg')).to(u.arcmin)
         combined_cat.sort('separation')
-
+        combined_cat = pick_best_row_by_phot(combined_cat)
         # Make the ra, dec, separation the first columns
         colnames = combined_cat.colnames
         other_cols = np.setdiff1d(colnames, ['ra', 'dec', 'separation'])
         combined_cat = combined_cat[['ra', 'dec', 'separation']+other_cols.tolist()]
     
     return combined_cat
+
+def pick_best_row_by_phot(cat, mag_cols=None, max_sep=None):
+    """
+    From a catalog sorted by separation, pick the best row
+    based on having any good photometry in the specified
+    magnitude columns.
+    Args:
+        cat (Table): Astropy table sorted by separation.
+        mag_cols (list, optional): List of magnitude column names
+            to consider for "good photometry". If None,
+            will use all valid filters from frb.galaxies.defs.
+        max_sep (Quantity, optional): Maximum separation
+            to consider. If None, no maximum separation
+            is applied.
+
+    Returns:
+        best_row (Table): A 1-row table with the best row.
+    """
+    if len(cat) == 0:
+        return cat
+
+    if mag_cols is None:
+        from frb.galaxies.defs import valid_filters
+        mag_cols = valid_filters
+
+    # require separation column already computed in arcmin/arcsec/whatever
+    sep = cat['separation']
+    if max_sep is not None:
+        inrad = sep <= max_sep
+    else:
+        inrad = np.ones(len(cat), dtype=bool)
+
+    # “has any good mag”
+    has_good = np.zeros(len(cat), dtype=bool)
+    for c in mag_cols:
+        if c in cat.colnames:
+            m = np.array(cat[c])
+            good = np.isfinite(m) & (m < 900) & (m > -10)
+            has_good |= good
+
+    ok = inrad & has_good
+    if not np.any(ok):
+        # fall back: just nearest, but you’ll know it’s junk
+        i = np.argmin(sep)
+    else:
+        # nearest among rows with any good photometry
+        i = np.argmin(sep[ok])
+        i = np.where(ok)[0][i]
+
+    return cat[i:i+1]  # returns a 1-row table
+
            
 def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
     """
