@@ -26,7 +26,9 @@ from frb.galaxies import photom
 from frb.galaxies import nebular
 from frb.galaxies.galfit import write_cutout
 
-import photutils
+from photutils.background import MedianBackground, Background2D
+from photutils.segmentation import detect_sources, deblend_sources, SourceCatalog
+from photutils.aperture import EllipticalAperture
 
 from IPython import embed
 
@@ -261,7 +263,7 @@ class FRBAssociate(path.PATH):
         if isinstance(ZP, str):
             ZP = self.header[ZP]
 
-        self.cat = photutils.segmentation.SourceCatalog(
+        self.cat = SourceCatalog(
             self.hdu.data - self.bkg.background,
             self.segm,
             background=self.bkg.background)
@@ -273,7 +275,7 @@ class FRBAssociate(path.PATH):
             a = obj.semimajor_sigma.value * radius
             b = obj.semiminor_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
-            apertures.append(photutils.aperture.EllipticalAperture(position, a, b, theta=theta))
+            apertures.append(EllipticalAperture(position, a, b, theta=theta))
         self.apertures = apertures
 
         # Magnitudes
@@ -336,26 +338,26 @@ class FRBAssociate(path.PATH):
 
         # Segment
         try:
-            self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
+            self.segm = detect_sources(self.hdu.data, self.thresh_img,
                                              npixels=npixels, 
                                              kernel=self.kernel)
         except TypeError:
             warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
             convolved_data = convolve(self.hdu.data, self.kernel)
-            self.segm = photutils.segmentation.detect_sources(convolved_data, self.thresh_img,
+            self.segm = detect_sources(convolved_data, self.thresh_img,
                                              npixels=npixels)
 
         # Debelnd?
         if deblend:
             try:
-                segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
+                segm_deblend = deblend_sources(self.hdu.data, self.segm,
                                                      npixels=npixels,
                                                      kernel=self.kernel,
                                                      nlevels=32,
                                                      contrast=0.001)
             except TypeError:
                 warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
-                segm_deblend = photutils.segmentation.deblend_sources(convolved_data, self.segm,
+                segm_deblend = deblend_sources(convolved_data, self.segm,
                                                      npixels=npixels,
                                                      nlevels=32,
                                                      contrast=0.001)
@@ -398,9 +400,9 @@ class FRBAssociate(path.PATH):
             self.load_image()
 
         # Background
-        bkg_estimator = photutils.MedianBackground()
+        bkg_estimator = MedianBackground()
         #embed(header='threshold 402 frbassociate')
-        self.bkg = photutils.Background2D(self.hdu.data, box_size,
+        self.bkg = Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
                                           exclude_percentile=self.exc_per)
