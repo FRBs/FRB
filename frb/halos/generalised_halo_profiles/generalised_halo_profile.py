@@ -32,6 +32,7 @@ from functools import partial
 
 from astropy import units
 from astropy import constants
+from astropy.coordinates import SkyCoord, Angle
 
 from frb.halos.models import rad3d2
 from frb.defs import frb_cosmo as cosmo
@@ -435,7 +436,7 @@ class GeneralizedHaloProfile:
         nH : float or ndarray
             Hydrogen number density in cm⁻³
         """
-        m_p = constants.m_p.cgs.value  # g
+        m_p = constants.m_p.cgs  # g (keep units)
         rho = self.rho_b(xyz)
         nH = (rho / self.mu / m_p).to('cm^-3').value
         return nH
@@ -610,9 +611,108 @@ class ExpHaloProfile(GeneralizedHaloProfile):
 
 
 # =============================================================================
-# For backward compatibility
+# M31 
 # =============================================================================
 
-class Updated_mNFW_model(GeneralizedHaloProfile):
-    """Alias for backward compatibility with earlier code versions."""
-    pass
+class M31_GeneralizedHaloProfile(GeneralizedHaloProfile):
+    """
+    M31-specific generalized halo profile.
+    
+    This subclass sets default parameters appropriate for M31
+    and provides convenience methods for M31 analyses.
+    """
+    
+    def __init__(self,
+                 log_Mhalo=12.2,
+                 c=7.67,
+                 z=0.,
+                 cosmo=cosmo,
+                 k=2.0,
+                 g_form='tanh',
+                 zero_inner_ne=0.,
+                 tol=1e-6,
+                 ):
+        super().__init__(log_Mhalo=log_Mhalo,
+                         c=c,
+                         z=z,
+                         cosmo=cosmo,
+                         k=k,
+                         g_form=g_form,
+                         zero_inner_ne=zero_inner_ne,
+                         tol=tol)
+        
+        self.distance = 752 * units.kpc # (Riess, A.G., Fliri, J., & Valls - Gabaud, D. 2012, ApJ, 745, 156)
+        self.coord = SkyCoord('J004244.3+411609', unit=(units.hourangle, units.deg),
+                              distance=self.distance)
+        
+
+    def DM_from_Galactic(self, scoord, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given a direction
+
+        Args:
+            scoord:  SkyCoord
+            Coordinates of the sightline
+            **kwargs:
+            Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+            Dispersion measure through M31's halo
+        """
+        # Setup the geometry
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Seperation
+        sep = self.coord.separation(scoord)
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a*x0 + b*y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+        # DM
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM
+
+
+    def DM_from_impact_param_b(self, bimpact, **kwargs):
+        """
+        Calculate DM through M31's halo from the Sun
+        given an impact parameter
+
+        Args:
+            bimpact: Quantity
+                Ratio of the impact parameter to r200
+            **kwargs:
+               Passed to Ne_Rperp
+
+        Returns:
+            DM: Quantity
+              Dispersion measure through M31's halo
+        """
+        a=1
+        c=0
+        x0, y0 = self.distance.to('kpc').value, 0. # kpc
+        # Calculate r200_rad
+        r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
+
+        # Create an Angle object for sep
+        sep = Angle(bimpact * r200_rad, unit='radian')
+
+        # More geometry
+        atan = np.arctan(sep.radian)
+        b = -1 * a / atan
+
+        # Restrct to within 90deg (everything beyond is 0 anyhow)
+        if sep > 90.*units.deg:
+            return 0 * units.pc / units.cm**3
+        # Rperp
+        Rperp = np.abs(a * x0 + b * y0 + c) / np.sqrt(a**2 + b**2)  # kpc
+
+        DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
+        return DM

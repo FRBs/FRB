@@ -46,7 +46,7 @@ from typing import Optional, Union, Sequence, Dict, Any
 import numpy as np
 import matplotlib.pyplot as plt
 
-from chimefrbm31.data.NFW_model.mmNFW.sunil_models import generalised_halo_profile
+from frb.halos.generalised_halo_profiles import generalised_halo_profile
 
 
 KCloseLike = Union[float, int, Sequence[Union[float, int]], np.ndarray]
@@ -147,6 +147,7 @@ def make_plots(
     r_over_rvir: Optional[np.ndarray] = None,
     save_prefix: Optional[str] = None,
     show: bool = True,
+    linear_scale: bool = False,
 ) -> PlotOutputs:
     """
     Build one or more generalized halo models and generate diagnostic plots.
@@ -180,6 +181,12 @@ def make_plots(
         If provided, saves figures to "<save_prefix>__<name>.pdf".
     show : bool
         If True, call plt.show() at the end.
+    linear_scale : bool
+        If True, use linear scale for axes instead of logarithmic.
+        Default is False (log scale). Note that for density profiles,
+        log scale is typically more appropriate due to the large dynamic
+        range. When linear_scale=True, the radius grid defaults to
+        linear spacing if r_over_rvir is not provided.
 
     Returns
     -------
@@ -235,7 +242,11 @@ def make_plots(
 
     # Shared radius grid (dimensionless: r / r_vir)
     if r_over_rvir is None:
-        r_over_rvir = np.logspace(-3, np.log10(20.0), 1000)
+        if linear_scale:
+            # Linear spacing starting from small but visible value
+            r_over_rvir = np.linspace(0.01, 20.0, 1000)
+        else:
+            r_over_rvir = np.logspace(-3, np.log10(20.0), 1000)
     r_over_rvir = np.asarray(r_over_rvir, dtype=float)
 
     figures: Dict[str, plt.Figure] = {}
@@ -287,8 +298,13 @@ def make_plots(
                 label=rf"$\rho_b,\ r_{{\rm close}}={m.k:.2f}\,r_{{\rm vir}}$", 
                 color=colors[i])
 
-    ax.set_xscale("log")
-    ax.set_yscale("log")
+    if linear_scale:
+        ax.set_xscale("linear")
+        ax.set_yscale("log")
+        ax.set_xlim(0, 3.)
+    else:
+        ax.set_xscale("log")
+        ax.set_yscale("log")
     ax.set_xlabel(r"$r / r_{\rm vir}$")
     ax.set_ylabel(r"Density (g cm$^{-3}$)")
     ax.legend(fontsize=10, loc="best")
@@ -328,7 +344,9 @@ def make_plots(
         # Vertical line marking closure radius
         ax.axvline(m.k, color=colors[i], ls=":", lw=1, alpha=0.7)
 
-    ax.set_xscale("log")
+    if not linear_scale:
+        ax.set_xscale("log")
+    ax.set_xlim(0, 3.)
     ax.set_xlabel(r"$r / r_{\rm vir}$")
     ax.set_ylabel(r"$(M_b/M_{\rm DM}) / (\Omega_b/(\Omega_m - \Omega_b))$")
     ax.set_ylim(0, 1.2)
@@ -362,5 +380,6 @@ if __name__ == "__main__":
         add_mNFW_model_class=True,
         model_kwargs=dict(log_Mhalo=12.18, c=7.67),
         save_prefix="generalised_halo_profiles",
-        show=False
+        show=False,
+        linear_scale=True,
     )
