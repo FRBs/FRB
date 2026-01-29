@@ -9,7 +9,10 @@ from xml.etree import ElementTree as ET
 from astropy.table import Table
 from astropy import units
 
-import dust_extinction
+try:
+    import dust_extinction
+except ImportError:
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
 from IPython import embed
 

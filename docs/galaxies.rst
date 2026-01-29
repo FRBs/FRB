@@ -7,7 +7,7 @@ from studying galaxies related to these events.
 
 This will include both the galaxy that hosted
 the event and galaxies foreground to the event
-which may imprint signatues in the signal itself.
+which may imprint signatures in the signal itself.
 
 We have thus far generated a class FRBGalaxy to
 hold, manipulate, and derive key observed and
@@ -131,7 +131,7 @@ PATH
 A subset of the FRB Host galaxies have been analyzed using the
 Probabilistic Assignment of Transients to their Hosts (PATH) framework
 as described in `Aggarawal et al. 2021 <https://ui.adsabs.harvard.edu/abs/2021ApJ...911...95A/abstract>`_.
-This relies on the `astropath <>`_ code base.
+This relies on the `astropath <https://github.com/FRBs/astropath>`_ code base.
 
 You can load up the PATH results using::
 

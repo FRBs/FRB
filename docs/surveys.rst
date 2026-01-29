@@ -20,7 +20,7 @@ Catalog
 Here is an example of grabbing a catalog of sources around
 an input coordinate from the :ref:`surveys-des` survey::
 
-    from astropy.coordiantes import SkyCoord
+    from astropy.coordinates import SkyCoord
     from astropy import units
     #
     coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
