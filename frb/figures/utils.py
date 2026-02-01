@@ -25,7 +25,7 @@ def log_me(val, err):
     return np.log10(val), xerr
 
 
-def set_fontsize(ax,fsz):
+def set_fontsize(ax,fsz,legend=None):
     """
     Set the fontsize throughout an Axis
     

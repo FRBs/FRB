@@ -623,7 +623,7 @@ class M31_GeneralizedHaloProfile(GeneralizedHaloProfile):
     """
     
     def __init__(self,
-                 log_Mhalo=12.2,
+                 log_Mhalo=12.18,
                  c=7.67,
                  z=0.,
                  cosmo=cosmo,
