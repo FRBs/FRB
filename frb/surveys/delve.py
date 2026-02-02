@@ -21,14 +21,19 @@ else:
 photom = {}
 photom['DELVE'] = {}
 photom['DELVE']['DELVE_ID'] = 'quick_object_id'
+# photom['DELVE']['DELVE_ID'] = 'coadd_object_id'
 photom['DELVE']['ra'] = 'ra'
 photom['DELVE']['dec'] = 'dec'
 photom['DELVE']['ebv'] = 'ebv' # Schegel, Finkbeiner, Davis (1998)
+# photom['DELVE']['ebv'] = '_sfd98'
 DELVE_bands = ['g', 'r', 'i', 'z']
 for band in DELVE_bands:
     photom['DELVE'][f'DELVE_{band}'] = f'mag_auto_{band}' #mag
     photom['DELVE'][f'DELVE_{band}_err'] = f'magerr_auto_{band}' #magerr
     photom['DELVE'][f'class_star_{band}'] = f'class_star_{band}' #morphology class
+    ## 'bdf_mag_' 'bdf_mag_err_'  'gap_mag_' 'gap_mag_err_'  'mag_detmodel_' 'magerr_detmodel_'
+    # photom['DELVE'][f'DELVE_{band}'] = 'bdf_mag_'+band
+    # photom['DELVE'][f'DELVE_{band}_err'] = 'bdf_mag_err_'+band
 
 
 class DELVE_Survey(dlsurvey.DL_Survey):
@@ -48,8 +53,10 @@ class DELVE_Survey(dlsurvey.DL_Survey):
         self.survey = 'DELVE'
         self.bands = DELVE_bands
         self.svc = sia.SIAService("https://datalab.noao.edu/sia/delve_dr2")
+        # self.svc = sia.SIAService("https://datalab.noao.edu/sia/delve_dr3")
         self.qc_profile = "default"
         self.database = "delve_dr2.objects"
+        # self.database = "delve_dr3.coadd_objects"
         self.default_query_fields = list(photom['DELVE'].values())
 
     def get_catalog(self, query=None, query_fields=None, print_query=False,**kwargs):
