@@ -699,7 +699,7 @@ class M31_GeneralizedHaloProfile(GeneralizedHaloProfile):
         c=0
         x0, y0 = self.distance.to('kpc').value, 0. # kpc
         # Calculate r200_rad
-        r200_rad = (self.r200 / self.distance.to('kpc'))*units.rad
+        r200_rad = (self.rvir / self.distance.to('kpc'))*units.rad
 
         # Create an Angle object for sep
         sep = Angle(bimpact * r200_rad, unit='radian')
@@ -716,3 +716,243 @@ class M31_GeneralizedHaloProfile(GeneralizedHaloProfile):
 
         DM = self.Ne_Rperp(Rperp*units.kpc, **kwargs).to('pc/cm**3')
         return DM
+
+    def DM_from_impact_param_b_vectorized(self, bimpact_array, rmax=1., step_size=0.1*units.kpc, n_jobs=-1):
+        """
+        Calculate DM for an array of impact parameters using parallel processing.
+
+        Parameters
+        ----------
+        bimpact_array : array-like
+            Array of impact parameters as ratio of rvir
+        rmax : float or array-like
+            Maximum integration radius in units of rvir.
+            Can be a single value (applied to all) or an array matching bimpact_array.
+        step_size : Quantity
+            Step size for integration along sightline
+        n_jobs : int
+            Number of parallel jobs. -1 uses all available cores.
+
+        Returns
+        -------
+        DM : ndarray
+            Dispersion measures in pc/cm³
+        """
+        from joblib import Parallel, delayed
+
+        bimpact_array = np.atleast_1d(bimpact_array)
+        rmax_array = np.atleast_1d(rmax)
+
+        # Broadcast rmax to match bimpact_array if single value
+        if rmax_array.size == 1:
+            rmax_array = np.full_like(bimpact_array, rmax_array[0])
+
+        # Vectorized geometry calculation
+        a = 1
+        c = 0
+        x0, y0 = self.distance.to('kpc').value, 0.
+        rvir_rad = (self.rvir / self.distance.to('kpc')).decompose().value
+
+        # Calculate all separations at once
+        sep_rad = bimpact_array * rvir_rad
+        atan = np.arctan(sep_rad)
+        b_geom = -1 * a / atan
+
+        # Calculate all Rperp values at once
+        Rperp_array = np.abs(a * x0 + b_geom * y0 + c) / np.sqrt(a**2 + b_geom**2)
+
+        # Handle cases beyond 90 degrees
+        beyond_90 = sep_rad > np.pi / 2
+
+        # Worker function for parallel integration
+        def compute_dm(Rperp, rmax_val, is_beyond):
+            if is_beyond:
+                return 0.
+            return self.Ne_Rperp(Rperp * units.kpc, rmax=rmax_val, step_size=step_size, add_units=False)
+
+        # Parallel computation
+        results = Parallel(n_jobs=n_jobs)(
+            delayed(compute_dm)(Rperp, rmax_val, is_beyond)
+            for Rperp, rmax_val, is_beyond in zip(Rperp_array, rmax_array, beyond_90)
+        )
+
+        return np.array(results) * units.pc / units.cm**3
+
+    def DM_grid(self, bimpact_array, rmax_array, step_size=0.1*units.kpc, n_jobs=-1):
+        """
+        Calculate DM for a grid of (b_impact, rmax) combinations.
+
+        Computes DM for every combination of b_impact and rmax values,
+        returning a 2D array.
+
+        Parameters
+        ----------
+        bimpact_array : array-like
+            Array of impact parameters as ratio of rvir (n_b values)
+        rmax_array : array-like
+            Array of rmax values in units of rvir (n_r values)
+        step_size : Quantity
+            Step size for integration along sightline
+        n_jobs : int
+            Number of parallel jobs. -1 uses all available cores.
+
+        Returns
+        -------
+        DM : ndarray
+            Dispersion measures in pc/cm³, shape (n_r, n_b)
+            DM[i, j] = DM for rmax_array[i] and bimpact_array[j]
+        """
+        from joblib import Parallel, delayed
+
+        bimpact_array = np.atleast_1d(bimpact_array)
+        rmax_array = np.atleast_1d(rmax_array)
+
+        n_b = len(bimpact_array)
+        n_r = len(rmax_array)
+
+        # Vectorized geometry calculation (same for all rmax)
+        a = 1
+        c = 0
+        x0, y0 = self.distance.to('kpc').value, 0.
+        rvir_rad = (self.rvir / self.distance.to('kpc')).decompose().value
+
+        # Calculate all separations at once
+        sep_rad = bimpact_array * rvir_rad
+        atan = np.arctan(sep_rad)
+        b_geom = -1 * a / atan
+
+        # Calculate all Rperp values at once
+        Rperp_array = np.abs(a * x0 + b_geom * y0 + c) / np.sqrt(a**2 + b_geom**2)
+
+        # Handle cases beyond 90 degrees
+        beyond_90 = sep_rad > np.pi / 2
+
+        # Create all (rmax, bimpact) combinations
+        # Flatten for parallel processing
+        tasks = []
+        for i_r, rmax_val in enumerate(rmax_array):
+            for i_b, (Rperp, is_beyond) in enumerate(zip(Rperp_array, beyond_90)):
+                tasks.append((i_r, i_b, Rperp, rmax_val, is_beyond))
+
+        # Worker function for parallel integration
+        def compute_dm(i_r, i_b, Rperp, rmax_val, is_beyond):
+            if is_beyond:
+                return (i_r, i_b, 0.)
+            dm = self.Ne_Rperp(Rperp * units.kpc, rmax=rmax_val, step_size=step_size, add_units=False)
+            return (i_r, i_b, dm)
+
+        # Parallel computation
+        results = Parallel(n_jobs=n_jobs)(
+            delayed(compute_dm)(*task) for task in tasks
+        )
+
+        # Reshape results into 2D grid
+        dm_grid = np.zeros((n_r, n_b))
+        for i_r, i_b, dm in results:
+            dm_grid[i_r, i_b] = dm
+
+        return dm_grid * units.pc / units.cm**3
+
+
+def generate_kclose_dm_grid_fine(k_close_values, b_impact_values, log_Mhalo=12.18,
+                                  step_size=0.1, n_jobs=-1, progress_file=None):
+    """
+    Generate a fine DM grid where k parameter varies with k_close.
+
+    For each k_close value, creates a new M31_GeneralizedHaloProfile with k=k_close,
+    then computes DM for all b_impact values with rmax=k_close.
+
+    Parameters
+    ----------
+    k_close_values : array-like
+        Array of k_close values (sets both model k parameter and rmax)
+    b_impact_values : array-like
+        Array of impact parameters as ratio of rvir
+    log_Mhalo : float
+        Log10 of halo mass in solar masses. Default: 12.18 (M31)
+    step_size : float
+        Step size for integration in kpc. Default: 0.1
+    n_jobs : int
+        Number of parallel jobs. -1 uses all available cores.
+    progress_file : str, optional
+        File to write progress updates to.
+
+    Returns
+    -------
+    dm_grid : ndarray
+        DM values in pc/cm³, shape (n_kclose, n_bimpact)
+        dm_grid[i, j] = DM for k_close_values[i] and b_impact_values[j]
+    """
+    from joblib import Parallel, delayed
+    import time
+
+    k_close_values = np.atleast_1d(k_close_values)
+    b_impact_values = np.atleast_1d(b_impact_values)
+
+    n_k = len(k_close_values)
+    n_b = len(b_impact_values)
+
+    def log_progress(msg):
+        timestamp = time.strftime('%Y-%m-%d %H:%M:%S')
+        line = f"[{timestamp}] {msg}"
+        print(line)
+        if progress_file:
+            with open(progress_file, 'a') as f:
+                f.write(line + '\n')
+
+    log_progress(f"Starting grid generation: {n_k} k_close x {n_b} b_impact = {n_k * n_b:,} total")
+
+    def compute_row(i_k, k_close):
+        """Compute DM for all b_impact values for a single k_close."""
+        # Create model with k=k_close
+        m31 = M31_GeneralizedHaloProfile(log_Mhalo=log_Mhalo, k=k_close)
+
+        # Geometry calculation (same as in DM_from_impact_param_b)
+        a = 1
+        c = 0
+        x0, y0 = m31.distance.to('kpc').value, 0.
+        rvir_rad = (m31.rvir / m31.distance.to('kpc')).decompose().value
+
+        row = np.zeros(len(b_impact_values))
+
+        for j, b in enumerate(b_impact_values):
+            # Skip if b_impact > k_close (sightline doesn't pass through halo)
+            if b > k_close:
+                row[j] = 0.
+                continue
+
+            sep_rad = b * rvir_rad
+            if sep_rad > np.pi / 2:
+                row[j] = 0.
+                continue
+
+            atan = np.arctan(sep_rad)
+            b_geom = -1 * a / atan
+            Rperp = np.abs(a * x0 + b_geom * y0 + c) / np.sqrt(a**2 + b_geom**2)
+
+            try:
+                dm = m31.Ne_Rperp(Rperp * units.kpc, rmax=k_close,
+                                  step_size=step_size * units.kpc, add_units=False)
+                row[j] = dm
+            except Exception:
+                row[j] = 0.
+
+        return (i_k, row)
+
+    # Parallel computation across k_close values
+    t0 = time.time()
+    results = Parallel(n_jobs=n_jobs, verbose=10)(
+        delayed(compute_row)(i_k, k_close)
+        for i_k, k_close in enumerate(k_close_values)
+    )
+
+    # Assemble grid
+    dm_grid = np.zeros((n_k, n_b))
+    for i_k, row in results:
+        dm_grid[i_k, :] = row
+
+    elapsed = time.time() - t0
+    log_progress(f"Grid generation completed in {elapsed/3600:.2f} hours")
+    log_progress(f"DM range: {dm_grid.min():.2f} to {dm_grid.max():.2f} pc/cm^3")
+
+    return dm_grid * units.pc / units.cm**3
