@@ -323,3 +323,42 @@ def parse_frb_name(name:str, prefix='FRB'):
         return prefix+name
     else:
         raise IOError(f"Not prepared for this type of format: {name}")
+
+
+
+def log10_to_linear_errors(value, log_upper_error, log_lower_error):
+    """
+    Convert log10 errors to linear errors.
+    
+    Parameters:
+    -----------
+    value : float
+        The actual value of the quantity (not log10)
+    log_upper_error : float
+        Upper error in log10 space
+    log_lower_error : float
+        Lower error in log10 space
+    
+    Returns:
+    --------
+    linear_upper_error : float
+        Upper error in linear space
+    linear_lower_error : float
+        Lower error in linear space
+    """
+    # Calculate the log10 of the value
+    log_value = np.log10(value)
+    
+    # Calculate upper and lower bounds in log10 space
+    log_upper_bound = log_value + log_upper_error
+    log_lower_bound = log_value - log_lower_error
+    
+    # Convert back to linear space
+    upper_bound = 10**log_upper_bound
+    lower_bound = 10**log_lower_bound
+    
+    # Calculate linear errors
+    linear_upper_error = upper_bound - value
+    linear_lower_error = value - lower_bound
+    
+    return linear_upper_error, linear_lower_error

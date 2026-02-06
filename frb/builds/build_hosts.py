@@ -164,6 +164,7 @@ def read_lit_table(lit_entry, coord=None):
             idx = int(np.where(match)[0])
             return lit_tbl[idx:idx+1]
         else:
+            embed(header="Multiple matches in literature table!")
             raise ValueError("More than one match in the table!!!")
     else:
         # Return
@@ -261,7 +262,7 @@ def run(host_input:pandas.core.series.Series,
         survey = survey_utils.load_survey_by_name(key, 
                                                     gal_coord, 
                                                     search_r)
-        srvy_tbl = survey.get_catalog(print_query=True)
+        srvy_tbl = survey.get_catalog()#print_query=True)
 
         if srvy_tbl is None or len(srvy_tbl) == 0:
             continue
@@ -489,6 +490,10 @@ def run(host_input:pandas.core.series.Series,
 
     # Vet all
     assert Host.vet_all()
+    #try:
+    #    assert Host.vet_all()
+    #except AssertionError as e:
+    #    embed(header='Host galaxy failed vetting! 494')
 
     # Write
     if out_path is None:

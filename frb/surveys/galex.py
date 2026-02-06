@@ -46,7 +46,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "GALEX"
     
-    def get_catalog(self,query_fields=None):
+    def get_catalog(self,query_fields=None, print_query=False):
         """
         Query a catalog in the MAST GALEX database for
         photometry.
