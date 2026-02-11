@@ -10,7 +10,7 @@ def parser(options=None):
     parser.add_argument("item", type=str, help="Item to build ['FRBs', 'Hosts', 'specDB', 'FG', 'PATH']. Case insensitive")
     parser.add_argument("--flag", type=str, default='all', help="Flag passed to the build")
     parser.add_argument("--options", type=str, help="Options for the build, e.g. fg/host building (cigale,ppxf); PATH (write_indiv)")
-    parser.add_argument("--frb", type=str, help="Full TNS FRB name, e.g. FRB20191001A, 20191001A")
+    parser.add_argument("--frb", type=str, help="Full TNS FRB name, list or CSV file with column TNS, e.g. FRB20191001A,20191001A")
     parser.add_argument("--data_file", type=str, help="Alternate file for data than the default (public)")
     parser.add_argument("--lit_refs", type=str, help="Alternate file for literature sources than all_refs.csv")
     parser.add_argument("--override", default=False, action='store_true',

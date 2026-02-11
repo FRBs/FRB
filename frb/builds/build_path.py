@@ -154,8 +154,13 @@ def main(options:str=None, frb:str=None):
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
     else:
-        # Generate the list
-        frb_list = frb.split(',')
+        # CSV?
+        if frb[-3:] == '.csv':
+            df = pandas.read_csv(frb)
+            frb_list = df.TNS.values.tolist()
+        else:
+            # Generate the list
+            frb_list = frb.split(',')
         #ifrb = [FRB.by_name(ifrb) for ifrb in frbs]
         #host = ifrb.grab_host()
         #frb_list = [ifrb.frb_name]
