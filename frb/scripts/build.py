@@ -27,6 +27,7 @@ def main(pargs):
     """ Run
     """
     import warnings
+    import pandas
     from frb.builds import build_specdb
     from frb.builds import build_frbs
     from frb.builds import build_hosts
@@ -45,6 +46,10 @@ def main(pargs):
             with open(pargs.frb, 'r') as f:
                 for line in f:
                     frbs.append(line.strip())
+        elif pargs.frb.endswith('.csv'):
+            # Read from TNS column
+            df = pandas.read_csv(pargs.frb)
+            frbs = df.TNS.values.tolist()
         else:
             frbs = pargs.frb.split(',')
             frbs = [ifrb.strip() for ifrb in frbs]

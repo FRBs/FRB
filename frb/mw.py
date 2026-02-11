@@ -5,12 +5,13 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import os
 import numpy as np
 
-from astropy import units
 import warnings
 
 from frb.halos.models import ModifiedNFW
 
 from ne2001 import density
+
+from IPython import embed
 
 def ismDM(coord):
     """
@@ -27,6 +28,7 @@ def ismDM(coord):
     l, b = gcoord.l.value, gcoord.b.value
     
     ne = density.ElectronDensity()#**PARAMS)
+
     ismDM = ne.DM(l, b, 100.)
     
     # Return
