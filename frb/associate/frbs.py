@@ -392,6 +392,7 @@ try:
         images = glob.glob(os.path.join(gdb_path, 'CRAFT', 
                                         'Shannon2024', 
                                         f'{tns_name}_VLT-FORS2_*.fits'))
+        images.sort()
         use_this_image = None
         for ifilter in ['FORS2_R','FORS2_I','FORS2_g']:
             for image in images:
@@ -437,7 +438,8 @@ try:
             updates['cut_size'] = 34.
         elif tns_name == 'FRB20190711A': # g-band image
             updates['cand_bright'] = 18.
-            embed(header='440 of frbs')
+            assert 'FORS2_g' in images[1]
+            updates['image_file'] = images[1]
         elif tns_name == 'FRB20211212A': # Large SDSS galaxy
             updates['cut_size'] = 90.
             updates['cand_bright'] = 15.
