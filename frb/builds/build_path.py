@@ -155,7 +155,7 @@ def main(options:str=None, frb:str=None):
         frb_list = host_tbl.FRB.values.tolist()
     else:
         # CSV?
-        if frb[-3:] == '.csv':
+        if frb.endswith('.csv'):
             df = pandas.read_csv(frb)
             frb_list = df.TNS.values.tolist()
         else:
