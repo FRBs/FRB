@@ -379,7 +379,8 @@ FRB20210410D = base_config | updates
 
 try:
     for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B',
-                     'FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                     #'FRB20190711A', # Custom g-band
+                     'FRB20190714A','FRB20191001A','FRB20191228A',
                     'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D',
                     'FRB20210912A',
                     'FRB20211127I','FRB20211203C', 'FRB20211212A','FRB20220105A','FRB20220501C',
@@ -435,6 +436,9 @@ try:
         elif tns_name == 'FRB20190608B':
             updates['cand_bright'] = 15.
             updates['cut_size'] = 34.
+        elif tns_name == 'FRB20190711A': # g-band image
+            updates['cand_bright'] = 18.
+            embed(header='440 of frbs')
         elif tns_name == 'FRB20211212A': # Large SDSS galaxy
             updates['cut_size'] = 90.
             updates['cand_bright'] = 15.
