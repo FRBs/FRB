@@ -169,18 +169,19 @@ def main(options:str=None, frb:str=None):
     # Load prior
     priors = load_std_priors()
     prior = priors['adopted'] # Default
+    # Shannon+2025 revised prior
+    theta_new = dict(method='exp', 
+                        max=priors['adopted']['theta']['max'], 
+                        scale=0.5)
+    prior['theta'] = theta_new
+    prior['U'] = 0.1
+    print("Using new prior with scale=0.5 and P(U) = 0.1")
 
     # Parse optionsd
     write_indiv = False
     show = False
     add_skipped = False
     if options is not None:
-        if 'new_prior' in options:
-            theta_new = dict(method='exp', 
-                             max=priors['adopted']['theta']['max'], 
-                             scale=0.5)
-            prior['theta'] = theta_new
-            print("Using new prior with scale=0.5")
         if 'write_indiv' in options:
             write_indiv = True
         if 'show' in options:
