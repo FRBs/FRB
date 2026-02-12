@@ -379,7 +379,8 @@ FRB20210410D = base_config | updates
 
 try:
     for tns_name in ['FRB20180924B','FRB20181112A','FRB20190102C','FRB20190608B','FRB20190611B',
-                     'FRB20190711A','FRB20190714A','FRB20191001A','FRB20191228A',
+                     #'FRB20190711A',
+                     'FRB20190714A','FRB20191001A','FRB20191228A',
                     'FRB20200430A','FRB20200906A','FRB20210117A','FRB20210320C','FRB20210807D',
                     'FRB20210912A',
                     'FRB20211127I','FRB20211203C', 'FRB20211212A','FRB20220105A','FRB20220501C',
@@ -402,15 +403,6 @@ try:
                     break
             if use_this_image is not None:
                 break
-            #if 'FORS2_R' in image:
-            #    use_this_image = image 
-            #    ifilter = 'VLT_FORS2_R'
-            #if use_this_image is None and 'FORS2_I' in image:
-            #    use_this_image = image 
-            #    ifilter = 'VLT_FORS2_I'
-            #if use_this_image is None and 'FORS2_g' in image:
-            #    use_this_image = image 
-            #    ifilter = 'VLT_FORS2_g'
         if use_this_image is None:
             #embed(header=f'No image found for {tns_name}')
             raise IOError("No image found")
@@ -437,7 +429,7 @@ try:
             updates['cand_bright'] = 15.
             updates['cut_size'] = 34.
         elif tns_name == 'FRB20190711A': # g-band image
-            updates['cand_bright'] = 18.
+            updates['cand_bright'] = 19.2  # remove nearby star
             assert 'FORS2_g' in images[1]
             updates['image_file'] = images[1]
         elif tns_name == 'FRB20211212A': # Large SDSS galaxy
