@@ -301,7 +301,7 @@ def _check_legal(table,release):
         raise ValueError("Bad value for table (for {} must be one of {})".format(release, ", ".join(tablelist)))
 
 def _ps1metadata(table="stack",release="dr2",
-           baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
+                 baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
     """Return metadata for the specified catalog and table
     
     Args:
@@ -313,15 +313,15 @@ def _ps1metadata(table="stack",release="dr2",
     """
     
     _check_legal(table,release)
-    url = "{baseurl}/{release}/{table}/metadata".format(**locals())
+    url = f"{baseurl}/{release}/{table}/metadata"
     r = requests.get(url)
     r.raise_for_status()
     v = r.json()
     # convert to astropy table
     local_metadata_path = importlib_resources.files('frb').joinpath('data','Public', 'Pan-STARRS','ps1_{}_{}_metadata.csv'.format(release,table))
     try:
-        tab = Table(rows=[(x['name'],x['type'],x['description']) for x in v],
-               names=('name','type','description'))
+        tab = Table(rows=[(x['name'],x['datatype'],x['description']) for x in v],
+                    names=('name','datatype','description'))
         # Cache locally
         # Create directory if it doesn't exist
         if not os.path.isfile(local_metadata_path):
