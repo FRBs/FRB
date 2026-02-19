@@ -1,6 +1,6 @@
 """ Module to correct pulsar and FRB DMs for the MW ISM """
 
-from ne2001 import ne_io, density #ne2001 ism model
+from ne2001 import density #ne2001 ism model
 import pygedm #ymw ism model
 import numpy as np
 import pandas as pd
