@@ -1,5 +1,5 @@
 """ Module for generating a finder chart """
-import os
+
 import numpy as np
 
 from IPython import embed
@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 from matplotlib import font_manager
 import matplotlib.cm as cm
 
-from PIL import Image
 
 from astropy import units
 from astropy.visualization.wcsaxes import SphericalCircle

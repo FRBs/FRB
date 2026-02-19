@@ -9,13 +9,12 @@ import importlib_resources
 
 from IPython import embed
 
-from astropy.io import fits
-from astropy.table import Table, hstack, vstack, join
+from astropy.table import Table, hstack, vstack
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
 from astropy.wcs import utils as wcs_utils
-from astropy.nddata import Cutout2D
+
 from astropy.wcs import WCS
 from astropy import stats
 

@@ -8,7 +8,6 @@ import numpy as np
 import pandas
 from scipy.optimize import minimize
 # to hold one of these parameters constant, just remove it from the arg set here
-from zdm import cosmology as cos
 from scipy.stats import poisson
 # internal counter
 NCF=0

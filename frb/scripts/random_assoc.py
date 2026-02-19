@@ -3,9 +3,9 @@ from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table
 from matplotlib import pyplot as plt
-import pdb
+
 from frb.surveys import des
-import sys,os
+
 import progressbar as pb #pip install progressbar2
 from matplotlib import pyplot as plt
 import seaborn as sns

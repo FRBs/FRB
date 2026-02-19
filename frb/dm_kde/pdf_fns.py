@@ -2,8 +2,6 @@
 
 import numpy as np
 import scipy as sp
-import pandas as pd
-import sklearn
 from sklearn.model_selection import GridSearchCV
 from sklearn.neighbors import KernelDensity
 

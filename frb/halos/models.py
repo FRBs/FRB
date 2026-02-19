@@ -18,8 +18,6 @@ from astropy.table import Table
 
 from frb.defs import frb_cosmo as cosmo
 
-from IPython import embed
-
 # Speed up calculations
 m_p = constants.m_p.cgs.value  # g
 

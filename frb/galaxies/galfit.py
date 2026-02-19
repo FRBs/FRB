@@ -13,7 +13,7 @@ to parse the output automatically.
 """
 
 import numpy as np
-import sys, os, subprocess
+import os
 import warnings
 
 from astropy.io import fits

@@ -2,12 +2,10 @@
 
 import os
 import glob
-from IPython import embed
-
 import importlib_resources
 import numpy as np
 from scipy.interpolate import interp1d
-import warnings
+
 
 import pandas
 
@@ -19,7 +17,6 @@ else:
     flg_specdb = True
 
 from astropy.coordinates import SkyCoord
-from astropy import units
 
 import pandas as pd
 

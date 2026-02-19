@@ -8,8 +8,6 @@ import warnings
 
 import json, gzip
 
-from IPython import embed
-
 # Simple method to help with value/units in
 def assign_value(tfrb, key, ilist, tbl_units):
     """

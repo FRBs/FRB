@@ -11,7 +11,6 @@ from astropy import units
 
 import dust_extinction
 
-from IPython import embed
 
 try:
     from linetools.lists import linelist

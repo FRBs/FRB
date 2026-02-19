@@ -1,7 +1,6 @@
 """ Methods to load up additional data """
 
 import importlib_resources
-import os
 
 import pandas
 

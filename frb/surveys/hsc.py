@@ -1,15 +1,10 @@
 #!/bin/env python3
 import json
-import argparse
-import urllib.request, urllib.error, urllib.parse
+import urllib.request, urllib.error
 import time
 import sys
 import csv
-import getpass
 import os
-import os.path
-import re
-import ssl
 from io import StringIO
 from . import surveycoord
 from . import catalog_utils

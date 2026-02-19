@@ -5,7 +5,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 import numpy as np
 import pytest
-import os
 
 from astropy.units import Quantity
 from astropy import units as u

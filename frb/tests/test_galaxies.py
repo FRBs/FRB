@@ -1,10 +1,7 @@
 # TEST_UNICODE_LITERALS
 
-import pytest
-import os
 import numpy as np
 
-from astropy.table import Table
 from astropy import units
 from astropy.coordinates import SkyCoord
 

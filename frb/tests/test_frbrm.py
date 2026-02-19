@@ -4,8 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-import pytest
-import os
 import numpy as np
 
 from astropy.coordinates import SkyCoord

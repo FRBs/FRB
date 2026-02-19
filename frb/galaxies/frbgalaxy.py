@@ -5,7 +5,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 import numpy as np
 import os
 import warnings
-import glob
 
 
 import importlib_resources
@@ -24,8 +23,6 @@ from frb import utils
 from frb.dm import host as dm_host
 
 from scipy.integrate import simpson
-
-from IPython import embed
 
 class FRBGalaxy(object):
     """

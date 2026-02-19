@@ -1,7 +1,5 @@
 """ PSRCat survey """
 
-import pdb
-
 import numpy as np
 
 from astropy.table import Table

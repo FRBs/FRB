@@ -2,9 +2,6 @@
 Warning: Might get chopped up into pieces sommeday
 """
 import numpy as np
-import pdb
-
-import os
 import pandas
 
 from astropy import units

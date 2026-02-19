@@ -3,13 +3,8 @@
 # TEST_UNICODE_LITERALS
 
 import numpy as np
-import pytest
-
-from astropy import units as u
-from astropy.coordinates import SkyCoord
 
 from frb.dm import dm_ism_healpix_map
-from frb import mw
 
 def test_dm_ism_from_healpix():
 

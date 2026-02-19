@@ -14,7 +14,6 @@ from astropy.table import Table
 from frb.surveys import catalog_utils
 from frb import defs
 
-from IPython import embed
 
 # Necessary because people might not execute eazy from src
 # but might have a copy in bin or some other location.

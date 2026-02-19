@@ -3,15 +3,12 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-import pytest
-import os
 import numpy as np
 import importlib_resources
 
 from astropy.table import Table
 from astropy import units 
 from astropy.io import fits 
-from astropy.coordinates import SkyCoord
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 
