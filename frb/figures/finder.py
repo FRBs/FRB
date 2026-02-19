@@ -26,7 +26,7 @@ from frb.surveys import survey_utils
 from frb.surveys import images
 
 try:
-     from photutils import SkyRectangularAperture
+     from photutils.aperture import SkyRectangularAperture
 except ImportError:
     flag_photu = False
     print('Install the photutils package to be able to add a slit to an image')

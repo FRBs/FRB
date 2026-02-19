@@ -9,12 +9,9 @@ import numpy as np
 
 from astropy import units as u,utils as astroutils
 from astropy.io import fits
-from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.table import Table, join
 from ..galaxies.defs import PanSTARRS_bands
 import importlib_resources
-
-from .images import grab_from_url
 
 import warnings
 import requests
