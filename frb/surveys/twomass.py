@@ -5,18 +5,12 @@ Slurp data from 2MASS catalog.
 
 import numpy as np
 
-from astropy import units as u,utils as astroutils
-from astropy.io import fits
-from astropy.coordinates import SkyCoord, match_coordinates_sky
-from astropy.table import Table, join
+from astropy import units as u
 from ..galaxies.defs import MASS_bands
 from astroquery.ipac.irsa import Irsa
 
-from frb.surveys import surveycoord,catalog_utils,images
+from frb.surveys import surveycoord,catalog_utils
 
-import os
-
-from IPython import embed
 
 # Define the data model for 2MASS data
 photom = {}
