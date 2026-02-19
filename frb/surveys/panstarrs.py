@@ -12,6 +12,7 @@ from astropy.io import fits
 from astropy.coordinates import SkyCoord, match_coordinates_sky
 from astropy.table import Table, join
 from ..galaxies.defs import PanSTARRS_bands
+import importlib_resources
 
 from .images import grab_from_url
 
@@ -320,6 +321,23 @@ def _ps1metadata(table="stack",release="dr2",
     r.raise_for_status()
     v = r.json()
     # convert to astropy table
-    tab = Table(rows=[(x['name'],x['type'],x['description']) for x in v],
+    local_metadata_path = importlib_resources.files('frb').joinpath('data','Public', 'Pan-STARRS','ps1_{}_{}_metadata.csv'.format(release,table))
+    try:
+        tab = Table(rows=[(x['name'],x['type'],x['description']) for x in v],
                names=('name','type','description'))
+        # Cache locally
+        # Create directory if it doesn't exist
+        if not os.path.isfile(local_metadata_path):
+            os.makedirs(os.path.dirname(local_metadata_path), exist_ok=True)
+        tab.write(local_metadata_path, overwrite=True)
+
+    # The following catches the case when there is a server issue
+    # and we have a local copy of the metadata.
+    except KeyError:
+        if not os.path.isfile(local_metadata_path):
+            raise IOError("PS1 metadata not available from server and no local copy found.")
+        else:
+            tab = Table.read(local_metadata_path)
+
     return tab
+

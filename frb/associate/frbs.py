@@ -441,6 +441,10 @@ try:
             updates['deblend'] = False
             updates['cut_size'] = 90.
             updates['cand_bright'] = 15.
+        elif tns_name == 'FRB20240201A': # Bright galaxy
+            updates['deblend'] = False
+            updates['cut_size'] = 90.
+            updates['cand_bright'] = 15.
 
 
         globals()[tns_name] = base_config | updates
