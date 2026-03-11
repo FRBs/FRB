@@ -2,12 +2,10 @@
 
 import os
 import glob
-from IPython import embed
-
 import importlib_resources
 import numpy as np
 from scipy.interpolate import interp1d
-import warnings
+
 
 import pandas
 
@@ -19,17 +17,14 @@ else:
     flg_specdb = True
 
 from astropy.coordinates import SkyCoord
-from astropy import units
 
 import pandas as pd
 
 import dust_extinction
 
-from linetools.spectra import xspectrum1d
-
 from frb import frb
 
-def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
+def deredden_spec(spectrum, ebv:float):
     """ Deredden the input spectrum using the input EBV value
 
     Args:
@@ -39,6 +34,8 @@ def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
     Returns:
         xspectrum1d.XSpectrum1D: De-reddened spectrum
     """
+    # linetools WILL BE DEPRECATED
+    from linetools.spectra import xspectrum1d
 
     # Correct for Galactic extinction
     #   Need to replace it 

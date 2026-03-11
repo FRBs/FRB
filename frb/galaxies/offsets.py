@@ -7,7 +7,6 @@ import pandas
 from astropy import units
 from astropy.coordinates import SkyCoord
 
-from IPython import embed
 
 def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
                    gal_sig=None):

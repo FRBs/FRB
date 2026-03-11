@@ -1,6 +1,5 @@
 #!/bin/env python3
 import os
-import os.path
 from . import surveycoord
 from astropy.table import Table
 from frb.defs import frb_cosmo

@@ -2,7 +2,6 @@
 #  Most of these are *not* done with Travis yet
 # TEST_UNICODE_LITERALS
 
-from calendar import c
 import numpy as np
 import astropy
 import pytest
@@ -207,7 +206,7 @@ def test_panstarrs():
         metadata = _ps1metadata()
         assert isinstance(metadata,Table)
         assert len(metadata) > 0
-        assert np.all(np.isin(metadata.colnames, ['name', 'type', 'description']))
+        assert np.all(np.isin(metadata.colnames, ['name', 'datatype', 'description']))
 
 @nedlvs
 def test_nedlvs():

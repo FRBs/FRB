@@ -7,10 +7,6 @@ from astropy.table import Table
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
-from frb.surveys import defs
-
-
-from IPython import embed
 
 try:
     from pyvo.dal import TAPService, sia

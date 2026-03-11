@@ -1,7 +1,7 @@
 """VISTA catalog"""
 
 import numpy as np
-from astropy import units, io, utils
+from astropy import io, utils
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils

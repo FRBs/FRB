@@ -3,15 +3,6 @@
 # It should be possible to remove all the matplotlib calls from this
 # but in the current implementation it is not removed.
 import argparse
-import imp
-import numpy as np
-import os
-
-from zdm import iteration as it
-from zdm import io
-from zdm.craco import loading
-
-from IPython import embed
 
 def main(pargs):
     

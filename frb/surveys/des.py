@@ -1,13 +1,8 @@
 """DES Survey"""
 
-import numpy as np
-from astropy import units, io, utils
-
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
 from frb.surveys import defs
-
-from IPython import embed
 
 # Dependencies
 try:

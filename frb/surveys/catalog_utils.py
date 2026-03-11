@@ -3,7 +3,7 @@ from astropy.table.table import QTable
 import numpy as np
 
 from astropy.coordinates import SkyCoord
-from astropy.table import Table, hstack, vstack, setdiff, join
+from astropy.table import Table, hstack, vstack, join
 from astropy import units
 from frb.galaxies.defs import valid_filters
 

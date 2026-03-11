@@ -1,7 +1,6 @@
 """ Module for an FRB event
 """
 import inspect
-from importlib import resources
 
 import importlib_resources
 import os
@@ -21,10 +20,6 @@ from frb import utils
 from frb import mw
 from frb import defs
 from frb.galaxies import frbgalaxy
-
-from IPython import embed
-
-
 class GenericFRB(object):
     """
     Parent object for FRBs

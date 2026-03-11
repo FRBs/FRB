@@ -9,13 +9,12 @@ import importlib_resources
 
 from IPython import embed
 
-from astropy.io import fits
-from astropy.table import Table, hstack, vstack, join
+from astropy.table import Table, hstack, vstack
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
 from astropy.wcs import utils as wcs_utils
-from astropy.nddata import Cutout2D
+
 from astropy.wcs import WCS
 from astropy import stats
 
@@ -23,7 +22,10 @@ from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
 
-import dust_extinction
+try:
+    import dust_extinction
+except ImportError:
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -180,9 +182,9 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapz(throughput * source_flux * 
-                     10 ** (-0.4 * Alambda), wave) / np.trapz(
-                         throughput * source_flux, wave)
+    delta = np.trapezoid(throughput * source_flux * 
+                     10 ** (-0.4 * Alambda), x=wave) / np.trapezoid(
+                         throughput * source_flux, x=wave)
 
     correction = 1./delta
 

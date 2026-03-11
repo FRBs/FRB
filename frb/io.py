@@ -3,9 +3,6 @@
 import importlib_resources
 import gzip
 import json
-import os
-
-
 
 def load_dla_fits():
     dla_fit_file = str(importlib_resources.files('frb.data.IGM')/'dla_fits.json')

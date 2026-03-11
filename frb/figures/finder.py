@@ -1,5 +1,5 @@
 """ Module for generating a finder chart """
-import os
+
 import numpy as np
 
 from IPython import embed
@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 from matplotlib import font_manager
 import matplotlib.cm as cm
 
-from PIL import Image
 
 from astropy import units
 from astropy.visualization.wcsaxes import SphericalCircle
@@ -26,7 +25,7 @@ from frb.surveys import survey_utils
 from frb.surveys import images
 
 try:
-     from photutils import SkyRectangularAperture
+     from photutils.aperture import SkyRectangularAperture
 except ImportError:
     flag_photu = False
     print('Install the photutils package to be able to add a slit to an image')

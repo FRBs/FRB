@@ -5,9 +5,7 @@ https://github.com/tillahoffmann/asymmetric_kde [Hoffman and Jones, 2015] """
 
 from asymmetric_kde import ProperGammaEstimator
 from pdf_fns import make_kde_funtion
-from data import FRBs
 import numpy as np
-import pandas as pd
 from scipy.signal import argrelextrema
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
