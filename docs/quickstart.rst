@@ -13,10 +13,10 @@ The most common starting point is loading a known FRB by name:
 
 .. code-block:: python
 
-   import frb as ffrb
-   
+   from frb.frb import FRB
+
    # Load a specific FRB by name
-   frb121102 = ffrb.FRB.by_name('FRB121102')
+   frb121102 = FRB.by_name('FRB20121102A')
    
    # Access basic properties
    print(f"Coordinates: {frb121102.coord}")
@@ -101,7 +101,8 @@ Analyze FRB host galaxies when available:
 .. code-block:: python
 
    # Load FRB with known host
-   frb180924 = ffrb.FRB.by_name('FRB180924')
+   from frb.frb import FRB
+   frb180924 = FRB.by_name('FRB20180924B')
    
    # Access host galaxy
    host = frb180924.grab_host()
@@ -124,13 +125,13 @@ Complete analysis of a single FRB:
 
 .. code-block:: python
 
-   import frb as ffrb
+   from frb.frb import FRB
    from frb.dm import igm
    from astropy import units as u
-   
+
    # Load FRB
-   frb_name = 'FRB121102'
-   frb_obj = ffrb.FRB.by_name(frb_name)
+   frb_name = 'FRB20121102A'
+   frb_obj = FRB.by_name(frb_name)
    
    print(f"=== Analysis of {frb_name} ===")
    print(f"Position: {frb_obj.coord}")

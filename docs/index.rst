@@ -47,7 +47,10 @@ Galaxies
 .. toctree::
    :maxdepth: 2
 
-   api/galaxies
+   galaxies
+   adding_host
+   eazy
+   mags_to_flux
 
 Halo Calculations
 -----------------
@@ -91,14 +94,10 @@ FRB Scripts
 
    scripts
 
-API Reference 
+API Reference
 -------------
 
 .. toctree::
    :maxdepth: 2
 
    api/index
-   api/dm
-   api/galaxies
-
-

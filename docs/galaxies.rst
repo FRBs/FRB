@@ -114,13 +114,17 @@ FRBHost
 This is a child of FRBGalaxy and is intended to be used
 for the galaxy which hosts a given FRB.
 
-by_name
--------
+by_frb
+------
 
-One particulaly useful method is by_name() which lets
-you Instantiate the class by the FRB name::
+One particularly useful method is by_frb() which lets
+you instantiate the class from an FRB object::
 
-    host121102 = frbgalaxy.FRBHost.by_name('121102')
+    from frb.frb import FRB
+    from frb.galaxies.frbgalaxy import FRBHost
+
+    frb121102 = FRB.by_name('FRB20121102A')
+    host121102 = FRBHost.by_frb(frb121102)
 
 Of course, a previously generated JSON file must already
 have been archived.

@@ -36,8 +36,8 @@ Most Common Functions
 
 .. code-block:: python
 
-   import frb as ffrb
-   frb_obj = ffrb.FRB.by_name('FRB121102')
+   from frb.frb import FRB
+   frb_obj = FRB.by_name('FRB20121102A')
 
 **DM Calculations:**
 
@@ -103,7 +103,6 @@ Core Functions by Category
 
    frb.FRB.by_name
    frb.FRB.grab_host
-   frb.FRB.calc_DM_galaxy
 
 Class Hierarchy
 ---------------
@@ -113,7 +112,7 @@ Class Hierarchy
    FRB
    ├── FRB.by_name()
    ├── FRB.grab_host()
-   └── FRB.calc_DM_galaxy()
+   └── FRB.set_ee()
 
    FRBHost
    ├── FRBHost.by_frb()
