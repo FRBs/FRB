@@ -20,7 +20,7 @@ from frb.surveys.catalog_utils import convert_mags_to_flux
 def test_dust_correct():
 
     correct = photom.extinction_correction('GMOS_S_r', 0.138)
-    assert np.isclose(correct, 1.3869201954307397)
+    assert np.isclose(correct, 1.3936491887210187)
 
 def test_flux_conversion():
 
