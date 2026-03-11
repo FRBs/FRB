@@ -7,7 +7,7 @@ from studying galaxies related to these events.
 
 This will include both the galaxy that hosted
 the event and galaxies foreground to the event
-which may imprint signatues in the signal itself.
+which may imprint signatures in the signal itself.
 
 We have thus far generated a class FRBGalaxy to
 hold, manipulate, and derive key observed and
@@ -114,13 +114,17 @@ FRBHost
 This is a child of FRBGalaxy and is intended to be used
 for the galaxy which hosts a given FRB.
 
-by_name
--------
+by_frb
+------
 
-One particulaly useful method is by_name() which lets
-you Instantiate the class by the FRB name::
+One particularly useful method is by_frb() which lets
+you instantiate the class from an FRB object::
 
-    host121102 = frbgalaxy.FRBHost.by_name('121102')
+    from frb.frb import FRB
+    from frb.galaxies.frbgalaxy import FRBHost
+
+    frb121102 = FRB.by_name('FRB20121102A')
+    host121102 = FRBHost.by_frb(frb121102)
 
 Of course, a previously generated JSON file must already
 have been archived.
@@ -131,7 +135,7 @@ PATH
 A subset of the FRB Host galaxies have been analyzed using the
 Probabilistic Assignment of Transients to their Hosts (PATH) framework
 as described in `Aggarawal et al. 2021 <https://ui.adsabs.harvard.edu/abs/2021ApJ...911...95A/abstract>`_.
-This relies on the `astropath <>`_ code base.
+This relies on the `astropath <https://github.com/FRBs/astropath>`_ code base.
 
 You can load up the PATH results using::
 

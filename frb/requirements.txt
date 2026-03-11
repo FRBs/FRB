@@ -1,17 +1,17 @@
 # Required packages for testing FRB repo (not all tests, though)
 
 # Users
-numpy>=1.22.0
-scipy>=1.9
-astropy>=5.0
+numpy>=2.2.0
+scipy>=1.17
+astropy>=7.1
 IPython>=7.2.0
 pytest>=6.0.0
-pandas>=1.2
+pandas>=2.2
 photutils>=1.1
 requests>=2.18
 dust_extinction>=1.4
-matplotlib>=3.3
-healpy>=1.12
+matplotlib>=3.7
+healpy>=1.19
 linetools>=0.3.1
 ligo.skymap>=2.3.0
 PyYAML>=5.1
@@ -20,4 +20,4 @@ setuptools>=75.0.0
 tox>=4.15.0
 pyvo>=1.5.3
 importlib-resources>=6.4.0
-astroquery>=0.4.6
+astroquery>=0.4.11

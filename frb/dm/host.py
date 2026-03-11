@@ -8,9 +8,9 @@ from astropy.units import Quantity
 from astropy.cosmology import Planck18
 
 try:
-    import extinction
+    import dust_extinction
 except ImportError:
-    warnings.warn("extinction package not loaded.  Extinction corrections will fail")
+    warnings.warn("dust_extinction package not loaded.  Extinction corrections will fail")
 
 from frb.galaxies import nebular
 from frb import em
@@ -32,7 +32,10 @@ def dm_host_from_Halpha(z:float, Halpha:Quantity, reff_ang:Quantity,
     # Dust correction?
     if AV is not None:
         wave = 6564. 
-        al = extinction.fm07(np.atleast_1d(wave), AV)[0]
+        #al = extinction.fm07(np.atleast_1d(wave), AV)[0]
+        extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+        AlAV = float(extmod(np.atleast_1d(wave))[0])
+        al = AlAV * AV
     else:
         al = 0.
 
