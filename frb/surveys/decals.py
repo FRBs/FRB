@@ -1,7 +1,6 @@
 """DECaLS"""
 
 import numpy as np
-from astropy import units, io, utils
 from astropy.table import Table
 
 from frb.surveys import dlsurvey

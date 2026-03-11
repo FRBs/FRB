@@ -14,7 +14,6 @@ try:
 except ImportError:
     warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
-from IPython import embed
 
 try:
     from linetools.lists import linelist

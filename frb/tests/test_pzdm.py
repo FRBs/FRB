@@ -4,20 +4,8 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-#import pytest
-import os
 import numpy as np
 
-from astropy.coordinates import SkyCoord
-from astropy import units
-from astropy.table import Table
-
-from linetools.spectra import xspectrum1d
-
-from frb.galaxies import frbgalaxy, defs, utils
-from frb.frb import FRB
-
-from frb.galaxies import mag_dm
 from frb.dm import prob_dmz
 
 

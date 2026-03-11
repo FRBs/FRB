@@ -2,10 +2,8 @@
 
 import warnings
 import numpy as np
-from IPython import embed
 
 from astropy import units
-from astropy.io import fits
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy.table import Table

@@ -2,7 +2,6 @@
 """
 Script to print a summary of a given FRB to the terminal
 """
-from IPython import embed
 
 def parser(options=None):
     import argparse
@@ -22,7 +21,6 @@ def parser(options=None):
 def main(pargs):
     """ Run
     """
-    import json
 
     from linetools import utils as ltu
     from linetools.scripts.utils import coord_arg_to_coord

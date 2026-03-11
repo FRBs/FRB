@@ -1,7 +1,6 @@
 """DELVE survey"""
 
 import numpy as np
-from astropy import units, io, utils
 
 from frb.surveys import dlsurvey, defs
 from frb.surveys import catalog_utils

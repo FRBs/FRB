@@ -7,12 +7,9 @@ from frb.dm import igm
 import numpy as np
 import scipy as sp
 import pandas as pd
-from pandas import DataFrame as df
 from scipy.stats import lognorm
 from scipy.signal import argrelextrema
 from pdf_fns import make_kde_funtion, make_pdf, rv_amount
-import matplotlib
-import matplotlib.pyplot as plt
 from astropy import units
 import random
 import logging

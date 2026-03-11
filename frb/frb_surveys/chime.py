@@ -1,6 +1,4 @@
 """ CHIME/FRB calculations """
-import os
-from astropy.io import ascii
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -17,8 +15,6 @@ from frb.galaxies import hosts
 
 #import dustmaps.sfd
 #dustmaps.sfd.fetch()
-
-from IPython import embed
 
 def check_frb_mr(outfile:str='mr_pdf.png',
                  pdf_file:str=None):

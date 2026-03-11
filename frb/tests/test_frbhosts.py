@@ -18,7 +18,6 @@ from frb.galaxies import frbgalaxy, defs, utils
 from frb.frb import FRB
 
 from frb.galaxies import mag_dm
-from frb.dm import prob_dmz
 
 def data_path(filename):
     data_dir = os.path.join(os.path.dirname(__file__), 'files')
@@ -91,7 +90,7 @@ def test_luminosity():
     outfile = data_path('test_frbhost.json')
     frb121102 = FRB.by_name('FRB20121102A')
     host121102 = frbgalaxy.FRBHost.from_json(frb121102, outfile)
-    Lum_Ha, Lum_Ha_err = host121102.calc_nebular_lum('Halpha')
+    Lum_Ha, _ = host121102.calc_nebular_lum('Halpha')
     # Test
     assert Lum_Ha.unit == units.erg/units.s
     assert np.isclose(Lum_Ha.value, 2.9447660789951146e+40)
@@ -134,9 +133,9 @@ def test_get_spectra():
 
 
 def test_table():
-    frbs, hosts = utils.list_of_hosts()
+    _, _ = utils.list_of_hosts()
 
-    host_tbl, host_units = utils.build_table_of_hosts()
+    host_tbl, _ = utils.build_table_of_hosts()
 
     # Tests
     assert len(host_tbl) > 15

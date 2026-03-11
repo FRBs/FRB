@@ -1,7 +1,5 @@
 """ Surveys to be accessed through the HEASARC interface (via astroquery"""
 
-import pdb
-
 from astropy.table import Table
 from astropy import units, wcs
 

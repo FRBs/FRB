@@ -3,9 +3,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-import pytest
-import os
-
 from astropy.table import Table
 
 from frb.frbcat import FRBCat

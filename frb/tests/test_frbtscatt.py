@@ -4,7 +4,6 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 # TEST_UNICODE_LITERALS
 
 import numpy as np
-import pytest
 
 from astropy import units as u
 from astropy import constants as const
