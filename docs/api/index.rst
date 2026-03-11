@@ -11,35 +11,20 @@ The FRB package is organized into several key modules:
 .. toctree::
    :maxdepth: 2
 
+   frb
    dm
    galaxies
-
-Module Overview
----------------
-
-frb.dm - Dispersion Measure Calculations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The dispersion measure module provides comprehensive tools for calculating and modeling DM contributions from various sources:
-
-- :doc:`dm` - Main DM calculation module
-
-  - ``frb.dm.igm`` - Intergalactic Medium calculations
-  - ``frb.dm.cosmic`` - Cosmic dispersion measure modeling
-  - ``frb.dm.host`` - Host galaxy contributions
-  - ``frb.dm.mcmc`` - MCMC analysis methods
-  - ``frb.dm.prob_dmz`` - DM-redshift probability calculations
-
-frb.galaxies - Galaxy Analysis
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-- :doc:`galaxies` - Galaxy and host analysis tools
-
-  - ``frb.galaxies.frbgalaxy`` - FRBGalaxy and FRBHost classes
-  - ``frb.galaxies.photom`` - Photometry handling
-  - ``frb.galaxies.nebular`` - Nebular emission analysis
-  - ``frb.galaxies.eazy`` - EAZY SED fitting interface
-  - ``frb.galaxies.cigale`` - CIGALE SED fitting interface
+   halos
+   surveys
+   associate
+   frb_surveys
+   turb_scattering
+   rm
+   mw
+   em
+   dlas
+   frbcat
+   experiment
 
 Quick Reference
 ---------------
@@ -204,24 +189,6 @@ The package primarily works with astropy quantities and coordinates:
 - Frequencies: ``MHz``, ``GHz``
 - Time: ``s``, ``ms``, ``μs``
 - Angles: ``deg``, ``arcmin``, ``arcsec``, ``mas``, ``μas``
-
-Version Compatibility
---------------------
-
-The API documentation reflects the current development version. Some functions may not be available in older versions of the package.
-
-**Checking Your Version:**
-
-.. code-block:: python
-
-   import frb
-   print(frb.__version__)  # If available
-
-**Compatibility Notes:**
-
-- Python 3.6+ required
-- Astropy 4.0+ recommended  
-- Some features require optional dependencies
 
 Contributing to the API
 -----------------------

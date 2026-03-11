@@ -31,6 +31,7 @@ The DM package contains the following submodules:
 * ``frb.dm.host`` - Host galaxy DM contributions
 * ``frb.dm.mcmc`` - MCMC analysis methods
 * ``frb.dm.prob_dmz`` - DM-redshift probability calculations
+* ``frb.dm.dm_ism_healpix_map.py`` - DM_ISM Healpix map from NE2001 or the like
 
 frb.dm.igm - Intergalactic Medium
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
