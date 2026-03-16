@@ -8,6 +8,8 @@ from frb.halos.models import ModifiedNFW
 
 from ne2001 import density
 
+from IPython import embed
+
 def ismDM(coord):
     """
     Calculate the dispersion measure (DM) contribution from the interstellar medium (ISM)
@@ -23,6 +25,7 @@ def ismDM(coord):
     l, b = gcoord.l.value, gcoord.b.value
     
     ne = density.ElectronDensity()#**PARAMS)
+
     ismDM = ne.DM(l, b, 100.)
     
     # Return
