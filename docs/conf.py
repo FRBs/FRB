@@ -67,11 +67,44 @@ intersphinx_mapping = {
 }
 
 # -- Options for autodoc ----------------------------------------------------
+
+# Mock imports for optional dependencies so autodoc can still document modules
+# that depend on packages not installed in the build environment.
+autodoc_mock_imports = [
+    'pcigale',
+    'ppxf',
+    'pymc3',
+    'threedhst',
+    'pathos',
+    'hmf_emulator',
+    'pyregion',
+    'spectral_cube',
+    'specdb',
+    'dl',           # datalab-client
+    'pyvo',
+    'photutils',
+    'dust_extinction',
+    'scikit_image',
+    'skimage',
+    'astroquery',
+    'pysftp',
+    'asymmetric_kde',
+    'theano',
+    'IPython',
+    'ne2001',
+    'pygedm',
+    'pdf_fns',   # local module in frb/dm_kde imported as bare name
+    'sklearn',
+]
+
+# Provide stub env vars so modules that check them at import time don't raise
+import os as _os
+_os.environ.setdefault('FRB_GDB', '/tmp/stub_gdb')
+_os.environ.setdefault('FRB_DATA', '/tmp/stub_data')
+
 autodoc_default_options = {
-    'members': True,
     'show-inheritance': True,
     'member-order': 'bysource',
     'special-members': '__init__',
-    'undoc-members': True,
     'exclude-members': '__weakref__'
 }
