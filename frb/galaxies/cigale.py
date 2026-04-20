@@ -13,7 +13,7 @@ from astropy.table import Table
 try:
     from pcigale.session.configuration import Configuration
 except ImportError:
-    print("You will need to install pcigale to use the cigale.py module")
+    print("You will need to install pcigale to use the cigale.py module: https://cigale.lam.fr/")
 else:
     from pcigale.analysis_modules import get_module
     from pcigale.utils.console import WARNING, ERROR, console

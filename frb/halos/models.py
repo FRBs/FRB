@@ -54,7 +54,7 @@ def init_hmf():
 try:
     import hmf_emulator
 except:
-    pass
+    print("Warning: Aemulus HMF emulator not found. Install hmf_emulator: github.com/AemulusProject/hmf_emulator")
 else:
     hmfe = init_hmf()
 
