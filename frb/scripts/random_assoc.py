@@ -6,9 +6,8 @@ from matplotlib import pyplot as plt
 
 from frb.surveys import des
 
-import progressbar as pb #pip install progressbar2
+from tqdm import tqdm
 from matplotlib import pyplot as plt
-import seaborn as sns
 def get_catalog(coords,size=1*u.deg):
     """
     Download a catalog objects within
@@ -79,12 +78,9 @@ def random_sightlines(n=100,resolution=3600,sep=1*u.arcsec,size=1*u.deg,
     dec = -60 + np.random.rand(n)*30 #limit DEC to [-60deg,-30deg]
     rand_coords = SkyCoord(ra,dec,unit="deg")
     fracs = np.zeros(n)
-    bar = pb.ProgressBar(max_value=n)
-    bar.start()
-    for num,coords in enumerate(rand_coords):
+    for num,coords in tqdm(enumerate(rand_coords), total=n, desc="Querying DES patches"):
         catalog = get_catalog(coords,size)
         fracs[num] = get_frac_within_sep(coords,catalog,sep=sep,resolution=resolution,band=band,crit_mag=crit_mag)
-        bar.update(num+1)
     #Save to file
     np.savetxt(outfile,fracs)
     return fracs
@@ -92,8 +88,9 @@ def plot_hist(fracs,bins=5):
     """
     Plot a histogram of fractions obtained from `random_sightlines`
     """
-    sns.set(font_scale=1.3,font="serif",style="ticks")
-    sns.axes_style(rc={"weight":"bold"})
+    plt.rcParams['font.size'] = 13
+    plt.rcParams['font.family'] = 'serif'
+    plt.rcParams['font.weight'] = 'bold'
     fig,ax = plt.subplots(nrows=1,ncols=1,figsize=(10,8))
     ax.set_xlabel("Percentage of sightlines within 1'' of a galaxy (r<22)",labelpad=20,weight="bold")
     ax.set_ylabel("Number of DES patches (1 sq. deg)",labelpad=20,weight="bold")
@@ -107,13 +104,13 @@ def plot_hist(fracs,bins=5):
 
     
 """
-If you're running this for the first time or you 
-want to regenerate the database, uncomment the following line
-and run.
+If you're running this for the first time or you
+want to regenerate the database, run this module as a script.
 """
-#fracs = random_sightlines(n=100)
-
-fracs = np.loadtxt("random_sights.txt")
-plot_hist(fracs,bins=9)
+if __name__ == '__main__':
+    # Uncomment to regenerate the database.
+    # fracs = random_sightlines(n=100)
+    fracs = np.loadtxt('random_sights.txt')
+    plot_hist(fracs, bins=9)
 
 
