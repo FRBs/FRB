@@ -17,17 +17,17 @@ try:
     from photutils.aperture import EllipticalAperture
     from photutils.background import Background2D, MedianBackground
 except ImportError:
-    raise ImportError("Requirement unmet: photutils. Run `pip install photutils`")
+    print("Requirement unmet: photutils. Run `pip install photutils`")
 
 try:
     from spectral_cube import SpectralCube
     from spectral_cube import BooleanArrayMask
 except ImportError:
-    raise ImportError("Requirement unmet: SpectralCube. Run `pip install spectral-cube`.")
+    print("Requirement unmet: SpectralCube. Run `pip install spectral-cube`.")
 try:
     import pyregion as pyreg
 except ImportError:
-    raise ImportError("Requirement unmet: pyregion. Run `pip install pyregion`.")
+    print("Requirement unmet: pyregion. Run `pip install pyregion`.")
 
 import os
 
