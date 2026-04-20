@@ -1,0 +1,122 @@
+[build-system]
+requires = ["setuptools>=75.0.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FRB"
+version = "0.1.dev0"
+description = "Python code for FRB calculations"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {text = "BSD"}
+authors = [
+    {name = "FRB Community", email = "xavier@ucolick.org"},
+]
+keywords = ["FRB", "fast", "radio", "burst", "astronomy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Natural Language :: English",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Astronomy",
+]
+
+dependencies = [
+    "numpy>=2.2.0",
+    "scipy>=1.17",
+    "astropy>=7.1",
+    "IPython>=7.2.0",
+    "pytest>=6.0.0",
+    "pandas>=2.2",
+    "photutils>=1.1",
+    "requests>=2.18",
+    "dust_extinction>=1.4",
+    "matplotlib>=3.7",
+    "healpy>=1.19",
+    "linetools @ git+https://github.com/linetools/linetools.git",
+    "ligo.skymap>=2.3.0",
+    "PyYAML>=5.1",
+    "numba>=0.50.0",
+    "setuptools>=75.0.0",
+    "tox>=4.15.0",
+    "pyvo>=1.5.3",
+    "importlib-resources>=6.4.0",
+    "astroquery>=0.4.11",
+    "tqdm>=4.0.0",
+    "ne2001 @ git+https://github.com/FRBs/ne2001.git",
+    "astropath @ git+https://github.com/FRBs/astropath.git",
+]
+
+[project.optional-dependencies]
+optional = [
+    "ppxf @ git+https://github.com/SunilSimha/frb_ppxf.git",
+    "pymc3",
+    "pcigale @ git+https://gitlab.lam.fr/cigale/cigale.git",
+    "pathos",
+    "hmf_emulator @ git+https://github.com/AemulusProject/hmf_emulator.git",
+    "specdb",
+    "datalab-client",
+    "pyregion>=2.3.0",
+    "spectral-cube>=0.6.7",
+]
+
+# CI-safe optional dependencies: exclude hmf_emulator because it requires
+# non-pip system prerequisites (e.g. GSL/CLASS toolchain).
+optional_ci = [
+    "ppxf @ git+https://github.com/SunilSimha/frb_ppxf.git",
+    "pymc3",
+    "pcigale @ git+https://gitlab.lam.fr/cigale/cigale.git",
+    "pathos",
+    "specdb",
+    "datalab-client",
+    "pyregion>=2.3.0",
+    "spectral-cube>=0.6.7",
+]
+
+dev = [
+    "pytest>=6.0.0",
+    "pytest-cov>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/FRBs/FRB"
+Documentation = "https://github.com/FRBs/FRB"
+Repository = "https://github.com/FRBs/FRB.git"
+Issues = "https://github.com/FRBs/FRB/issues"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["frb*"]
+
+[tool.setuptools.package-data]
+frb = ["data/**/*", "*.rst", "*.txt", "*.yaml"]
+
+[project.scripts]
+frb_build = "frb.scripts.build:cli"
+frb_dmism = "frb.scripts.dm_ism_hp_map:main"
+frb_galaxies = "frb.scripts.galaxies:cli"
+frb_image = "frb.scripts.image:cli"
+frb_pzdm_mag = "frb.scripts.pzdm_mag:cli"
+frb_search_for_halos = "frb.scripts.search_for_halos:cli"
+frb_sightline = "frb.scripts.sightline:cli"
+frb_summary = "frb.scripts.frb_summary:cli"
+frb_tns = "frb.scripts.tns:cli"
+
+[tool.black]
+line-length = 120
+target-version = ["py311", "py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["frb/tests"]
+addopts = "-v"
+
+

@@ -308,8 +308,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
     return(trans_metadata)
 
-if __name__ == "__main__":
-    # Verify that you've added these to your env var 
+def cli():
     args = parser()
     check_tns_api_keywords()
     if args.single:
@@ -317,14 +316,18 @@ if __name__ == "__main__":
             print("Error: Missing parameters for single object query.")
             exit(1)
         matched_transient_data = main(filename=None,
-                                      name=args.name, 
-                                      ra=args.ra, 
+                                      name=args.name,
+                                      ra=args.ra,
                                       dec=args.dec,
-                                      theta=args.theta, 
-                                      a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
+                                      theta=args.theta,
+                                      a=args.a, b=args.b, radius=args.radius, single_obj=True)
         save_matches(matched_transient_data, args.outfile)
     else:
-        frb_file = args.filename #sys.argv[1]
+        frb_file = args.filename
         matched_transient_data = main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
                                       radius=args.radius, single_obj=False)
         save_matches(matched_transient_data, args.outfile)
+
+
+if __name__ == "__main__":
+    cli()

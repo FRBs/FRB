@@ -208,4 +208,7 @@ def main(pargs):
     close_by_withmass.write(f"{frb_name}_nedvls_with_mass.fits", overwrite=True)
     if len(match_grps)>0:
         match_grps.write(f"{frb_name}_tully_grps_ICM_fgonly.fits", overwrite=True)
-    
+
+
+def cli():
+    main(parser())
