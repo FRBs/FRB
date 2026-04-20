@@ -20,10 +20,6 @@ try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     print("You will need to run 'pip install pathos' to use some functions in this module.")
-try:
-    from threedhst import eazyPy as ez
-except ImportError:
-    print("You will need to run 'pip install threedhst' to read EAZY output.")
 
 DEFAULT_DATA_FOLDER = "data"
 
@@ -261,7 +257,7 @@ def _sample_eazy_redshifts(gal_ID:int, eazy_outdir:str, ndraws:int = 1000)->np.n
         sample_z (np.ndarray): Redshift sample array of length ndraws.
     """
     # Get posterior
-    zgrid, pz = ez.getEazyPz(gal_ID-1,OUTPUT_DIRECTORY=eazy_outdir)
+    zgrid, pz = frb_ez.getEazyPz(gal_ID-1,OUTPUT_DIRECTORY=eazy_outdir)
     # Force a value of 0 at z = 0
     zgrid = np.hstack([[0],zgrid])
     pz = np.hstack([[0],pz])
