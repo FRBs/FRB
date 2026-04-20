@@ -15,58 +15,38 @@ Access and query photometric/spectroscopic survey data
 Submodules
 ----------
 
-frb.surveys.dlsurvey - Base Survey Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: frb.surveys.dlsurvey
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   surveys.dlsurvey
+   surveys.catalog_utils
+   surveys.sdss
+   surveys.des
+   surveys.decals
+   surveys.wise
+   surveys.panstarrs
+   surveys.twomass
+   surveys.vista
+   surveys.hsc
+   surveys.galex
+   surveys.desi
+   surveys.delve
+   surveys.nedlvs
+   surveys.nsc
+   surveys.psrcat
+   surveys.heasarc
+   surveys.images
+   surveys.cluster_search
+   surveys.surveycoord
+   surveys.survey_io
+   surveys.survey_utils
+   surveys.tns_util
+   surveys.utils_crossmatching
+   surveys.defs
 
-frb.surveys.catalog_utils - Catalog Utilities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. note::
+   ``frb.surveys.dlsurvey`` requires the optional dependency
+   ``datalab-client`` for NOIRLab Data Lab access.
 
-.. automodule:: frb.surveys.catalog_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.surveys.sdss - SDSS
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.surveys.sdss
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.surveys.des - DES
-~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.surveys.des
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.surveys.decals - DECaLS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.surveys.decals
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.surveys.wise - WISE
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.surveys.wise
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.surveys.panstarrs - PanSTARRS
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.surveys.panstarrs
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. note::
+   ``frb.surveys.psrcat`` requires optional ``FRB-pulsars`` support.

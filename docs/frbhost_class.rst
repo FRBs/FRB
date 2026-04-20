@@ -354,30 +354,24 @@ Setting Redshifts
 API Reference
 =============
 
+For the full API reference, see :doc:`api/galaxies.frbgalaxy`.
+
 FRBGalaxy (Parent Class)
 ------------------------
 
-.. autoclass:: frb.galaxies.frbgalaxy.FRBGalaxy
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :class:`frb.galaxies.frbgalaxy.FRBGalaxy` — parent class for galaxies in FRB fields
 
 FRBHost Class
 -------------
 
-.. autoclass:: frb.galaxies.frbgalaxy.FRBHost
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :class:`frb.galaxies.frbgalaxy.FRBHost` — confirmed FRB host galaxy class
 
 Utility Functions
 -----------------
 
-.. autofunction:: frb.galaxies.utils.build_table_of_hosts
-
-.. autofunction:: frb.galaxies.utils.list_of_hosts
-
-.. autofunction:: frb.galaxies.utils.load_PATH
+* :func:`frb.galaxies.utils.build_table_of_hosts` — build a table of host galaxy data
+* :func:`frb.galaxies.utils.list_of_hosts` — list all host galaxies
+* :func:`frb.galaxies.utils.load_PATH` — load the PATH association table
 
 See Also
 ========

@@ -37,8 +37,8 @@ Main module containing halo density profiles, stellar-halo mass relations, and g
 * Specialized models for Milky Way, M31, and galaxy clusters
 * DM calculation methods
 
-Photometric Analysis  
-~~~~~~~~~~~~~~~~~~~
+Photometric Analysis
+~~~~~~~~~~~~~~~~~~~~
 
 .. toctree::
    :maxdepth: 2
@@ -141,7 +141,7 @@ Dependencies
 **Optional for full functionality:**
 * hmf_emulator (for halo mass functions)
 * pathos (for multiprocessing)
-* progressbar2 (for progress tracking)
+* tqdm (for progress tracking)
 * threedhst (for EAZY integration)
 
 **External codes:**

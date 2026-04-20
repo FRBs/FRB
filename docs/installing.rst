@@ -5,86 +5,124 @@ Installing frb
 This document describes how to install the `frb`
 repository.
 
-Installing Dependencies
-=======================
-We have and will continue to keep the number of dependencies low.
-There are a few standard packages that must be installed
-and one package `linetools` under review for
-`astropy` affiliated status.
+Quick Start
+===========
 
-In general, we recommend that you use Anaconda for the majority of
-these installations.
+The recommended installation path is now through ``pip`` using the
+repository's ``pyproject.toml`` metadata.
 
-Detailed installation instructions are presented below:
+We recommend Python 3.11 or later in a fresh virtual environment or
+conda environment.
 
-Python Dependencies
--------------------
+For example, with ``venv``::
 
-frb depends on the following list of Python packages.
+	git clone https://github.com/FRBs/FRB.git
+	cd FRB
+	python -m venv .venv
+	source .venv/bin/activate
+	python -m pip install --upgrade pip
+	python -m pip install -e .
 
-We recommend that you use `Anaconda <https://www.continuum.io/downloads/>`_
-to install and/or update these packages.
+or with conda::
 
-* `python <http://www.python.org/>`_ versions 3.11 or later
-* `numpy <http://www.numpy.org/>`_ version 2.2 or later
-* `astropy <http://www.astropy.org/>`_ version 7.1 or later
-* `scipy <http://www.scipy.org/>`_ version 1.17 or later
-* `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ version 1.19 or later
-* `pandas <https://pandas.pydata.org/>`_ version 2.2 or later
-* `requests <https://pillow.readthedocs.io/en/5.3.x/>`_  version 2.18 or later
-* `dust_extinction <https://dust-extinction.readthedocs.io/en/latest/>`_ 
-* `matplotlib <https://matplotlib.org/>`_ version 3.7 or greater
-* `linetools <https://github.com/linetools/linetools>`_  version 0.3.1 or later
-* `astropath <https://github.com/FRBs/astropath>`_  version 0.1 or later
+	conda create -n frb python=3.11 -y
+	conda activate frb
+	git clone https://github.com/FRBs/FRB.git
+	cd FRB
+	python -m pip install --upgrade pip
+	python -m pip install -e .
 
+This installs the base package plus its core dependencies, including
+the git-based requirements such as ``linetools``, ``ne2001``, and
+``astropath``.
 
-The following packages are required to access surveys (e.g. SDSS, DES)
-for data that may be associated to an FRB:
+.. note::
 
-* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ v0.4.11 or later
-* `datalab-client <https://github.com/noaodatalab/datalab/>`_ v2.20 or later
-* `pyvo <https://pyvo.readthedocs.io/en/latest/>`_  version 0.9.2 or later
+	``setup.py`` is kept for backward compatibility, but the supported
+	installation workflow is ``python -m pip install -e .``.
+	Likewise, ``frb/requirements.txt`` and ``frb/optional_requirements.txt``
+	are now reference files rather than the primary installation source.
+
+Base Dependencies
+-----------------
+
+The base install is defined in ``pyproject.toml`` and includes the main
+runtime requirements for the package.  At the time of writing, these include
+packages such as:
+
+* `python <http://www.python.org/>`_ 3.11 or later
+* `numpy <http://www.numpy.org/>`_ 2.2 or later
+* `scipy <http://www.scipy.org/>`_ 1.17 or later
+* `astropy <http://www.astropy.org/>`_ 7.1 or later
+* `pandas <https://pandas.pydata.org/>`_ 2.2 or later
+* `matplotlib <https://matplotlib.org/>`_ 3.7 or later
+* `healpy <https://healpy.readthedocs.io/en/latest/index.html>`_ 1.19 or later
+* `requests <https://requests.readthedocs.io/>`_ 2.18 or later
+* `dust_extinction <https://dust-extinction.readthedocs.io/en/latest/>`_
+* `photutils <https://photutils.readthedocs.io/en/stable/>`_
+* `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ 0.4.11 or later
+* `pyvo <https://pyvo.readthedocs.io/en/latest/>`_ 1.5.3 or later
+* `ligo.skymap <https://lscsoft.docs.ligo.org/ligo.skymap/>`_ 2.3.0 or later
+* `numba <https://numba.readthedocs.io/>`_ 0.50 or later
+* `tqdm <https://tqdm.github.io/>`_
+* `linetools <https://github.com/linetools/linetools>`_
+* `ne2001 <https://github.com/FRBs/ne2001.git>`_
+* `astropath <https://github.com/FRBs/astropath>`_
 
 Extras
 ------
 
-The following packages are more for builders and not recommended for most users.
+Optional dependencies are split into two groups:
 
-The following package is required to map a slit onto a finder chart (frb.figures.finder):
+Installed through the package extras::
 
-* `photutils <https://photutils.readthedocs.io/en/stable/>`_  version 1.11.0 or later
-* `scikit-image <https://scikit-image.org/>`_  version 0.21.0 or later
+	python -m pip install -e ".[optional]"
 
-The following are required to run some of the halo codes:
+or, for development and tests::
 
-* `ne2001 <https://github.com/FRBs/ne2001.git>`_  NE2001
-* george :: Use pip
-* `class <https://github.com/lesgourg/class_public>`_ version 2.7 or greater
-* `Aemulator <https://github.com/AemulusProject/Aemulator>`_  pip is broken..
-* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_  HMF emulator (requires GSL)
+	python -m pip install -e ".[dev]"
 
-The following are required to build host galaxy objects:
+or both::
 
-* `pPXF <https://pypi.org/project/ppxf/>`_ version 6.7 or greater
-* `pcigale <https://cigale.lam.fr/>`_ version 2025.0
+	python -m pip install -e ".[optional,dev]"
 
-The following is required to run the code in dm_kde:
+The current ``optional`` extra covers packages such as:
 
-* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>`_ no versioning
+* `ppxf <https://pypi.org/project/ppxf/>`_
+* `pymc3 <https://pypi.org/project/pymc3/>`_
+* `pcigale <https://cigale.lam.fr/>`_
+* `threedhst <https://github.com/gbrammer/threedhst>`_
+* `pathos <https://pypi.org/project/pathos/>`
+* `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_
+* `specdb <https://github.com/specdb/specdb>`
+* `datalab-client <https://github.com/noaodatalab/datalab/>`_
+* `pyregion <https://pypi.org/project/pyregion/>`_
+* `spectral-cube <https://pypi.org/project/spectral-cube/>`_
 
-The following is required to run the MCMC DM code in dm.mcmc.py:
+The following feature-specific dependencies may still require separate,
+manual installation:
 
-* `numba <https://github.com/numba/numba>`_ version >= 0.50
+* `FRB-pulsars <https://github.com/FRBs/pulsars>`_ for ``frb.surveys.psrcat``
+* `asymmetric_kde <https://github.com/tillahoffmann/asymmetric_kde>`_ for ``frb.dm_kde``
+* `scikit-image <https://scikit-image.org/>`_ for some image-analysis workflows
+
+The ``hmf_emulator`` package is especially important for halo-related modules,
+but it may require additional local system setup depending on your platform.
+
+Environment Variables
+---------------------
+
+Most users do not need any extra environment variables for a basic install.
+Some workflows do:
+
+* ``FRB_GDB`` is needed by several build scripts and tests that expect access
+	to the FRB database or generated data products.
+* ``EAZYDIR`` is needed for the EAZY wrappers described below.
 
 For pPXF, you will also likely need to modify the standard install
-to use the Chabrier libraries.  See the InstallNotes in this
+to use the Chabrier libraries. The easiest way to do this would be to install this particular fork of the pPXF code.
+https://github.com/SunilSimha/frb_ppxf. If you wish to do it manually from the original repository, see the InstallNotes in this
 `Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
-
-The following are required for using functions in halos.photoz.py:
-
-* `threedhst <https://github.com/gbrammer/threedhst>`_ version >= 0.1.dev0
-* progressbar2 :: Use pip
-* pathos :: Use pip
 
 Our CIGALE wrappers use custom filter files not
 provided by their current release (e.g DES, Pan-STARRS).
@@ -93,20 +131,20 @@ See the instructions for adding those as needed.
 Installing frb
 ==============
 
-Presently, you must download the code from github::
+If you already cloned the repository, install it from the checkout root with::
 
-	#go to the directory where you would like to install frb.
-	git clone https://github.com/FRBs/FRB.git
+	python -m pip install -e .
 
-From there, you can build and install with::
+This installs the package in editable mode and exposes the scripts in your
+active Python environment.
 
-	cd FRB
-	python setup.py install  # or use develop
+If you specifically need the optional packages as well, use::
 
+	python -m pip install -e ".[optional]"
 
-This should install the package and scripts.
-Make sure that your PATH includes the standard
-location for Python scripts (e.g. ~/anaconda/bin)
+If you are working on development or running the test suite, use::
+
+	python -m pip install -e ".[optional,dev]"
 
 Adding additional CIGALE filter files
 =====================================
