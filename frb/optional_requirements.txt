@@ -1,0 +1,44 @@
+# Optional packages for FRB repo
+# DO NOT USE THIS FOR INSTALLATION. THIS IS SUPERSEDED BY A PYPROJECT.TOML FILE WITH A [tool.setuptools.dependencies] SECTION. SEE PYPROJECT.TOML FOR DETAILS.
+# These are not required for basic imports but enable specific functionality
+# Each optional package enables specific features that warn/fail if missing
+
+# Spectral analysis and fitting
+ppxf  # frb.galaxies.ppxf - Message: "ppxf not found. Install it if you want to use it"
+
+# MCMC analysis
+pymc3  # frb.dm.mcmc - Message: "You need to install pymc3 to run mcmc codes"
+
+# SED fitting
+pcigale  # frb.galaxies.cigale - Message: "You will need to install pcigale to use the cigale.py module"
+
+# Photometric redshifts and EAZY reading
+threedhst  # frb.halos.photoz - Message: "You will need to run 'pip install threedhst' to read EAZY output."
+
+# Parallel processing for photoz
+pathos  # frb.halos.photoz - Message: "You will need to run 'pip install pathos' to use some functions in this module."
+
+# Halo mass function emulator
+hmf_emulator  # frb.halos.hmf - Message: "hmf_emulator not imported. Hope you are not intending to use the hmf.py module.."
+
+# Pulsar catalog queries
+FRB-pulsars  # frb.surveys.psrcat - Message: "You need FRB/pulsars installed to use PSRCat"
+              # Note: This is a custom FRB package, see https://github.com/FRBs/pulsars
+
+# Spectroscopic database
+specdb  # frb.scripts.galaxies, frb.builds.build_specdb - Message: "No specdb module found, please install specdb if you wish to build specdb"
+
+# NOAO DataLab access
+datalab-client  # frb.surveys.dlsurvey - Message: "datalab-client is not installed or will not properly connect"
+
+# Extinction corrections (alternative)
+dust_extinction  # frb.dm.host - Note: This is already in base requirements.txt
+
+# Regions for KCWI analysis
+pyregion  # frb.analysis.kcwi - Message: "pyregion not found. Run `pip install pyregion`."
+
+# Spectral-cube analysis for KCWI
+spectral-cube  # frb.analysis.kcwi - Message: "spectral-cube not found. Run `pip install spectral-cube`."
+
+# Removed from requirements (no longer needed)
+# seaborn
