@@ -7,6 +7,7 @@ from astropy.stats import sigma_clipped_stats
 
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from scipy.sparse import lil_matrix, save_npz
+from tqdm import tqdm
 
 from frb.halos.models import ModifiedNFW, halomass_from_stellarmass
 from frb.frb import FRB
@@ -19,10 +20,6 @@ try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     print("You will need to run 'pip install pathos' to use some functions in this module.")
-try:
-    import progressbar
-except ImportError:
-    print("You will need to run 'pip install progressbar2' to use some functions in this module.")
 try:
     from threedhst import eazyPy as ez
 except ImportError:
@@ -589,17 +586,15 @@ def dm_for_all_galaxies(frb:FRB, input_catfile:str, datafolder:str,
     z_draws = np.zeros((len(eazy_tab),1000), dtype='float32')
 
     # Begin calculating
-    with progressbar.ProgressBar(max_value=len(eazy_tab)-1) as bar:
-        for idx, ez_entry in enumerate(eazy_tab):
-            cigale_galaxy = cigale_tab[cigale_tab['gal_ID']==ez_entry['ID']]
-            if np.any(np.isnan(cigale_galaxy['log_mstar'])):
-                continue
-            else:
-                dm_realizations[idx], z_draws[idx] = _dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
-                                        stddev_interp, ang_dia_interp, dm_interpolator,
-                                        n_cores = 20)
-                
-            bar.update(idx)
+    for idx, ez_entry in enumerate(tqdm(eazy_tab, total=len(eazy_tab), desc="Computing halo DMs")):
+        cigale_galaxy = cigale_tab[cigale_tab['gal_ID']==ez_entry['ID']]
+        if np.any(np.isnan(cigale_galaxy['log_mstar'])):
+            continue
+        else:
+            dm_realizations[idx], z_draws[idx] = _dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
+                                    stddev_interp, ang_dia_interp, dm_interpolator,
+                                    n_cores = 20)
+
     # Save results to file
     np.savez_compressed(os.path.join(datafolder, "DM_halos_zdraws.npz"), z_draws=z_draws)
     save_npz(os.path.join(datafolder,"DM_halos_final.npz"), dm_realizations.tocsr())
