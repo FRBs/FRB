@@ -57,24 +57,10 @@ dependencies = [
 optional = [
     "ppxf @ git+https://github.com/SunilSimha/frb_ppxf.git",
     "pymc3",
-    "pcigale @ git+https://gitlab.lam.fr/cigale/cigale.git",
     "pathos",
     "hmf_emulator @ git+https://github.com/AemulusProject/hmf_emulator.git",
     "specdb",
-    "datalab-client",
-    "pyregion>=2.3.0",
-    "spectral-cube>=0.6.7",
-]
-
-# CI-safe optional dependencies: exclude hmf_emulator because it requires
-# non-pip system prerequisites (e.g. GSL/CLASS toolchain).
-optional_ci = [
-    "ppxf @ git+https://github.com/SunilSimha/frb_ppxf.git",
-    "pymc3",
-    "pcigale @ git+https://gitlab.lam.fr/cigale/cigale.git",
-    "pathos",
-    "specdb",
-    "datalab-client",
+    "astro-datalab",
     "pyregion>=2.3.0",
     "spectral-cube>=0.6.7",
 ]
