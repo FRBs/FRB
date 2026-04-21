@@ -80,17 +80,18 @@ def set_bot_tns_marker():
 # New
 def search(json_list, url_tns_api):
     """
-    Querie TNS for transients based on the provided search parameters.
+    Query TNS for transients based on the provided search parameters.
 
-    Parameters: 
+    Parameters:
     -----------
     json_list (list): 
         A list of key-value pairs specifying the search parameters, which will be converted into an OrderedDict.
     url_tns_api (str): 
         The base URL for the TNS API.
-    Returns: 
+
+    Returns:
     --------
-    response (requests.Response): 
+    requests.Response
         The HTTP response object returned by the TNS API, containing the status code and response data.
     """
     try:
@@ -122,7 +123,8 @@ def format_to_json(source):
 
     Returns:
     --------
-    OrderedDict: A dictionary-like object with preserved key order, parsed from the input JSON string.
+    OrderedDict
+        A dictionary-like object with preserved key order, parsed from the input JSON string.
     """
     #parsed = json.loads(source, object_pairs_hook = OrderedDict)
     #result = json.dumps(parsed, indent = 4) this reverse it back to a string instead of json, so don't do that
@@ -131,21 +133,25 @@ def format_to_json(source):
 
 def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_delay=500, outfile='query_results_final.txt'):
 
-    '''
-   Queries transients in TNS at the FRB position with a specfied radius.
+    """
+    Query transients in TNS at the FRB position with a specified radius.
 
-    Parameters: 
+    Parameters:
     -----------
-    ra (float): right ascension of the FRB in deg
-    dec (float): declination of the FRB in deg
-    radius (float): search radius in arcmin
-    frb_name (str): TNS name of the FRB
-    
-    Returns: 
+    ra (float): Right ascension of the FRB in degrees.
+    dec (float): Declination of the FRB in degrees.
+    radius (float): Search radius in arcmin.
+    frb_name (str): TNS name of the FRB.
+    units (str, optional): Units for radius (default: 'arcmin').
+    initial_delay (int, optional): Initial delay for retries in seconds (default: 10).
+    max_delay (int, optional): Maximum delay for retries in seconds (default: 500).
+    outfile (str, optional): Output file for query results (default: 'query_results_final.txt').
+
+    Returns:
     --------
-    query output: dict
-        a dictionary of transients found within the search radius near an FRB position
-    '''
+    dict
+        A dictionary of transients found within the search radius near an FRB position.
+    """
 
     search_obj = [("ra", ra), ("dec", dec), ("radius", radius), ("units", units)]
     max_retries = 10
