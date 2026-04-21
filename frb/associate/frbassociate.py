@@ -57,12 +57,8 @@ class FRBAssociate(path.PATH):
     """
 
     def __init__(self, frb, image_file=None, max_radius=1e9):
-        """Initialize an FRBAssociate object.
+        """
 
-        Args:
-            frb: FRB object containing localization and DM information.
-            image_file (str, optional): Path to the image FITS file. Defaults to None.
-            max_radius (float, optional): Maximum search radius in arcsec. Defaults to 1e9.
         """
         # Init PATH
         super().__init__()

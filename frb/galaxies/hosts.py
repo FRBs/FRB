@@ -18,7 +18,7 @@ def chance_coincidence(rmag, r_i):
     Taken from Bloom et al. 2002
         https://ui.adsabs.harvard.edu/abs/2002AJ....123.1111B/abstract
 
-    .. todo:: Expand to allow for other filters
+    ..todo.. Expand to allow for other filters
 
     Args:
         rmag (float):  r-band magnitude
@@ -206,13 +206,11 @@ def load_host_tbl(hosts_file:str=None, host_tbl:pandas.DataFrame=None):
     the public file
 
     Args:
-        hosts_file (str, optional): Path to a CSV file containing host galaxy data.
-            Defaults to None, in which case the bundled public_hosts.csv is used.
-        host_tbl (pandas.DataFrame, optional): Pre-loaded host table. If provided,
-            hosts_file is ignored. Defaults to None.
+        hosts_file (str, optional): [description]. Defaults to None.
+        host_tbl ([type], optional): [description]. Defaults to None.
 
     Returns:
-        pandas.DataFrame: Table of FRB host galaxy properties.
+        pandas.DataFrame: [description]
     """
     galaxy_path = importlib_resources.files('frb.data.Galaxies')
     if host_tbl is None:

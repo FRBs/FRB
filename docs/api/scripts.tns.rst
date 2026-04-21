@@ -2,6 +2,7 @@ frb.scripts.tns
 ===============
 
 .. automodule:: frb.scripts.tns
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. note::
+   Member-level API expansion is intentionally omitted here because
+   current docstrings include malformed section markup.

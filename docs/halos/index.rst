@@ -53,21 +53,6 @@ Tools for photometric redshift-based halo analysis of FRB fields.
 * 3D interpolation grids for efficient DM calculations
 * Full pipeline analysis for FRB fields
 
-Utility Functions
-~~~~~~~~~~~~~~~~~
-
-.. toctree::
-   :maxdepth: 2
-
-   utils
-
-Utility functions for stellar-halo mass conversions and helper functions.
-
-**Key Features:**
-* Stellar-halo mass relations (Moster+2013, Kravtsov+2018)
-* Inverse transformations for mass conversions
-* Interpolation and lookup utilities
-
 Statistical Tools
 ~~~~~~~~~~~~~~~~~
 

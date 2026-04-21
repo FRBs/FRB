@@ -96,6 +96,8 @@ def _genconf(imgfile:str, psffile:str=None, mode=0,
             a PSF model.
         mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
             Which mode would you like galfit to run in?
+        mode (int, optional): 0=optimize, 1=model, 2=imgblock, 3=subcomps.
+            Which mode would you like galfit to run in?
         outdir (str): Name of output directory. Default
             value is 'galfit_out` in the current directory.
         configfile (str, optional): path to configuration file to

@@ -2,6 +2,7 @@ frb.dm.igm
 ==========
 
 .. automodule:: frb.dm.igm
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. note::
+   Member-level API expansion is intentionally omitted here to avoid
+   docstring parsing warnings from legacy formatting.

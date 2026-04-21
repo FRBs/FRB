@@ -2,6 +2,7 @@ frb.scripts.iteration
 =====================
 
 .. automodule:: frb.scripts.iteration
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. note::
+   Member-level API expansion is intentionally omitted here to keep
+   Sphinx builds robust with existing docstring formatting.

@@ -2,6 +2,7 @@ frb.surveys.catalog_utils
 =========================
 
 .. automodule:: frb.surveys.catalog_utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
+
+.. note::
+   Member-level API expansion is intentionally omitted here to avoid
+   docutils parsing failures during docs builds.

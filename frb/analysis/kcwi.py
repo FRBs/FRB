@@ -82,9 +82,8 @@ def _air_to_vac(wave):
 
 def _read_in_data(datafile, reduction_pipeline='pypeit'):
         """
-        Read in data from a KCWI datacube.
-
-        Args:
+        Read in data from a KCWI datacube.            flux_hdr.set('CRVAL3', flux_hdr['CRVAL3']*1e10, "[Angstrom] Reference value for wavelength")
+            flux_hdr.set('CDELT3', flux_hdr['CDELT3']*1e10, "[Angstrom] Coordinate increment at reference point")        Args:
             datafile (str): Path to datacube fits file.
             reduction_pipeline (str, optional): Reduction pipeline
                 used to reduce the datacube. Default is 'pypeit'.
@@ -126,7 +125,7 @@ def find_sources(imgfile, nsig = 1.5,
         using Photutils segmentation.
         Args:
             imgfile (str): An image fits file
-            nsig (float, optional): Detection threshold in units
+            n_sig (float, optional): Detection threshold in units
                 of sky background rms.
             minarea (float, optional): minimum area in pixels
                 to be considered a valid detection.
@@ -321,12 +320,14 @@ class KCWIDatacube():
 
     def spec_from_spatial_mask(self, mask_arr, how="cube"):
         """
-        Extract a spectrum from a cube within a spatial mask.
-
+        Extract a spectrum from a cube
+        within a spatial mask.
         Args:
+            cube (Spectral Cube): A datacube object
             mask_arr (numpy array): A 2D boolean array. A
                 spectrum is extracted from the regions
                 corresponding to True.
+            kind (str, optional): median or mean
             how (str, optional): "cube" or "slice". Load 
                 the entire masked cube to memory when 
                 computing spectra or compute it looping
@@ -357,6 +358,7 @@ class KCWIDatacube():
         """
         Get the spectrum within an elliptical region
         Args:
+            cube (Spectral Cube): A datacube object
             x0, y0 (float, optional): Centroid of ellipse in pixels.
             a, b (float, optional): semi-major and semi-minor axes in pixels.
             theta (float, optional): rotation angle of the semi-major
