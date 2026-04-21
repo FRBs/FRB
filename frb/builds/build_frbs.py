@@ -25,6 +25,7 @@ def run(frb_input:pandas.core.series.Series,
         outfile:str=None):
     """Main method for generating a Host JSON file
 
+
     Args:
         frb_input (pandas.core.series.Series): Row of the CVS file
             providing the frb items
@@ -33,6 +34,7 @@ def run(frb_input:pandas.core.series.Series,
             Mainly for time-outs of public data. Defaults to False.
         outfile (str, optional): Over-ride default outfile [not recommended; mainly for testing]
         out_path (str, optional): Over-ride default outfile [not recommended; mainly for testing]
+
 
 
     Raises:
@@ -107,6 +109,7 @@ def run(frb_input:pandas.core.series.Series,
 def main(frbs:list, options:str=None, data_file:str=None, lit_refs:str=None,
          override:bool=False, outfile:str=None, out_path:str=None):
     """ Driver of the analysis
+
 
     Args:
         frbs (list): [description]

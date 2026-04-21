@@ -1,8 +1,7 @@
-""" Define allowed quantities for FRB galaxies
+"""Define allowed quantities for FRB galaxies.
 
-  Uncertainty is valid for any quantity with '_err' add-on, eg. W1_err
-     Now _loerr and _uperr are also allowed
-  Am also likely to add _flg for each as well
+Uncertainty is valid for any quantity with ``_err`` add-on (e.g. ``W1_err``).
+Also supports ``_loerr`` and ``_uperr`` suffixes.
 """
 
 allowed_errors = ['_err', '_loerr', '_uperr']

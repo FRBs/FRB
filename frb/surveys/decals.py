@@ -38,6 +38,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
     Class to handle queries on the DECaL survey
     
     Child of DL_Survey which uses datalab to access NOAO
+
     
     Args:
         coord (SkyCoord): Coordinate for surveying around
@@ -57,6 +58,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
     def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_stars=False,**kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
+
         
         Args:
             query: SQL query
@@ -120,6 +122,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         """
         Internal method to generate the bands for grabbing
         a cutout image
+
         
         Args:
             band (str): Band desired 

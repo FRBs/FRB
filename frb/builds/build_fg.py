@@ -28,6 +28,7 @@ def build_fg_181112(build_photom=False):
     """
     Data taken from Prochaska et al. 2019, Science, in press
 
+
     Args:
         build_photom (bool, optional):
             Generate the photometry table

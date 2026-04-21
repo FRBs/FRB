@@ -40,11 +40,15 @@ def load_survey_by_name(name, coord, radius, **kwargs):
     allowed_surveys = ['SDSS', 'DES', 'DESI', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
     'PSRCAT', 'WISE', 'Pan-STARRS', 'NEDLVS']
 
+
+
     Args:
         name (str): Name of the survey 
         coord (astropy.coordiantes.SkyCoord): Coordinate to define survey around 
         radius (astropy.units.Quanity): Outer radius of the survey
         **kwargs: Passed the Survey object
+
+
 
     Returns:
         frb.surveys.SurveyCoord: Child of this parent given by input survey name
@@ -98,9 +102,13 @@ def load_survey_by_name(name, coord, radius, **kwargs):
 def is_inside(surveyname:str, coord:SkyCoord)->bool:
     """
     Tests if a coordinate is within a survey footprint.
+
+
     Args:
         surveyname (str): Name of the survey
         coord (astropy.coordiantes.SkyCoord): Coordinate to check
+
+
     Returns:
         inside (bool): True if coord is within the footprint.
     """
@@ -155,8 +163,12 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
     Check if a particular coord is inside any
     survey that can be currently queried from
     `frb.surveys` module.
+
+
     Args:
         coord (astropy.coordiantes.SkyCoord): Coordinate to check
+
+
     Returns:
         inside (dict): A dict which tells which surveys the coordinate
             is inside.
@@ -181,6 +193,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
     """
     A method to query all allowed surveys and combine
     the results into one table.
+
+
     Args:
         coord (SkyCoord): Central coordinates of cone search.
         radius (Quantity): Search radius in angular units.
@@ -188,6 +202,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             Include at your own risk. Untested. Might break in unexpected ways.
         seed_cat (Table, optional): If you'd like to merge the survey results
             with another photometry table that you already have.
+
+
 
     Returns:
         combined_cat (Table): Table of merged query results.
@@ -270,6 +286,8 @@ def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
     this manually because MAST doesn't
     allow cone searches of radius greater than
     30'.
+
+
     Args:
         coord (SkyCoord): Center of search region.
         side (astropy Quantity): Angular size
@@ -277,6 +295,8 @@ def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
         kwargs: Additional keyword arguments
             to be passed onto the Pan-STARRS_Survey
             get_catalog method.
+
+
     Returns:
         combined_tab (Table): A PS1 catalog.
     """

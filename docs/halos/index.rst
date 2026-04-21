@@ -1,4 +1,4 @@
-frb.halos Package Documentation
+Gas in Halos 
 ===============================
 
 Modules in the ``frb.halos`` folder provide tools 

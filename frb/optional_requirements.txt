@@ -1,5 +1,5 @@
 # Optional packages for FRB repo
-# DO NOT USE THIS FOR INSTALLATION. THIS IS SUPERSEDED BY A PYPROJECT.TOML FILE WITH A [tool.setuptools.dependencies] SECTION. SEE PYPROJECT.TOML FOR DETAILS.
+# DO NOT USE THIS FOR INSTALLATION. THIS IS SUPERSEDED BY A PYPROJECT.TOML FILE WITH A [project.optional-dependencies] SECTION. SEE PYPROJECT.TOML FOR DETAILS.
 # These are not required for basic imports but enable specific functionality
 # Each optional package enables specific features that warn/fail if missing
 
@@ -26,10 +26,7 @@ FRB-pulsars  # frb.surveys.psrcat - Message: "You need FRB/pulsars installed to 
 specdb  # frb.scripts.galaxies, frb.builds.build_specdb - Message: "No specdb module found, please install specdb if you wish to build specdb"
 
 # NOAO DataLab access
-datalab-client  # frb.surveys.dlsurvey - Message: "datalab-client is not installed or will not properly connect"
-
-# Extinction corrections (alternative)
-dust_extinction  # frb.dm.host - Note: This is already in base requirements.txt
+astro-datalab  # frb.surveys.dlsurvey - Message: "astro-datalab is not installed or will not properly connect"
 
 # Regions for KCWI analysis
 pyregion  # frb.analysis.kcwi - Message: "pyregion not found. Run `pip install pyregion`."

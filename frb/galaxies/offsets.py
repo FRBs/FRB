@@ -14,12 +14,14 @@ def angular_offset(frb, galaxy, nsigma=5., nsamp=2000,
 
     Warning: All calculations in arcsec -- Do not use for *large* localization error
 
+
     Args:
         frb (frb.frb.FRB):
         galaxy (frb.galaxies.FRBGalaxy):
         nisgma: Number of sigma around the FRB uncertainty ellipse from which the grid is build
         nsamp: Grid sample points for each 1D Gaussian (one in RA and Dec)
         gal_sig (tuple): RA, DEC errors in arcsec as floats
+
 
     Returns:
         tuple: float, float, float, float
@@ -87,6 +89,7 @@ def incorporate_hst(hst_astrom:pandas.DataFrame, host):
     Offsets ang_avg, ang_best are updated in place
 
     Currently for Mannings+2021 only
+
 
     Args:
         hst_astrom (pandas.DataFrame): [description]

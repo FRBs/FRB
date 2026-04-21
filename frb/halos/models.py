@@ -28,6 +28,8 @@ def init_hmf():
     WARNING: This uses the original version which codes Tinker+2008
     We may refactor to use the more accurate, new version
 
+
+
     Returns:
 
     """
@@ -68,6 +70,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
     Requires Aemulus HMF to be installed
 
+
+
     Args:
         zvals: ndarray
         Mlow: float
@@ -77,6 +81,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         rmax: float
           Extent of the halo in units of rvir
           WARNING: This calculation assumes a single concentration for all halos
+
+
 
     Returns:
         ratios: ndarray
@@ -115,37 +121,10 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 def halo_incidence(Mlow, zFRB, radius=None, hmfe=None, Mhigh=1e16, nsample=20,
                    cumul=False):
     """
-    Calculate the (approximate) average number of intersections to halos of a
-    given minimum mass to a given zFRB.
+    Compute average number of halo intersections to redshift ``zFRB``.
 
-    Requires Aemulus HMF to be installed
-
-    Args:
-        Mlow: float
-          Mass of minimum halo in Solar masses
-          The code deals with h^-1 factors so that you do not
-          The minimum value is 2e10
-        zFRB: float
-          Redshift of the FRB
-        radius: Quantity, optional
-          The calculation will specify this radius as rvir derived from
-           Mlow unless this is specified. And this rvir *will* vary with redshift
-        hmfe (hmf.hmf_emulator, optional): Halo mass function emulator from Aeumulus
-        Mhigh: float, optional
-          Mass of maximum halo in Solar masses
-        nsammple: int, optional
-          Number of samplings in redshift
-          20 should be enough
-        cumul: bool, optional
-          Return the cumulative quantities instead
-
-    Returns:
-        If cumul is False
-        Navg: float
-          Number of average intersections
-        elif cumul is True
-        zeval: ndarray
-        Ncumul: ndarray
+    Uses Aemulus HMF. Returns scalar incidence or cumulative arrays when
+    ``cumul`` is True.
     """
     # Mlow limit
     if Mlow < 2e10:
@@ -199,27 +178,37 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     Requires the Aemulus Halo Mass function
 
-    Args:
-        z_FRB: float, optional
-        ntrial: int, optional
-        seed: int, optional
-        Mlow: float, optional
-          h^-1 mass
-        r_max: float, optional
-          Extent of the halo in units of rvir
-        outfile: str, optional
-          Write
-        dz_box: float, optional
-          Size of the slice of the universe for each sub-calculation
-        dz_grid: float, optional
-          redshift spacing in the DM grid
-        f_hot: float
-          Fraction of the cosmic fraction of matter in diffuse gas (for DM)
 
-    Returns:
-        DM_grid: ndarray (ntrial, nz)
-        halo_tbl: Table
-          Table of all the halos intersected
+
+    Parameters
+    ----------
+    z_FRB : float, optional
+        FRB redshift limit.
+    ntrial : int, optional
+        Number of Monte Carlo trials.
+    seed : int, optional
+        Random seed.
+    Mlow : float, optional
+        Minimum halo mass.
+    r_max : float, optional
+        Halo extent in units of rvir.
+    outfile : str, optional
+        Optional output path.
+    dz_box : float, optional
+        Redshift box size per sub-calculation.
+    dz_grid : float, optional
+        Redshift spacing in DM grid.
+    f_hot : float, optional
+        Diffuse-gas fraction.
+    verbose : bool, optional
+        Verbose logging.
+
+    Returns
+    -------
+    DM_grid : ndarray
+        DM grid with shape ``(ntrial, nz)``.
+    halo_tbl : Table
+        Table of intersected halos.
 
     """
     Mhigh = 1e16  # Msun
@@ -414,11 +403,15 @@ def stellarmass_from_halomass(log_Mhalo,z=0, params=None):
     """ Stellar mass from Halo Mass from Moster+2013
     https://doi.org/10.1093/mnras/sts261
 
+
+
     Args:
         log_Mhalo (float): log_10 halo mass
             in solar mass units. 
         z (float, optional): halo redshift.
             Assumed to be 0 by default.
+
+
     Returns:
         log_mstar (float): log_10 galaxy stellar mass
             in solar mass units.
@@ -460,10 +453,14 @@ def halomass_from_stellarmass(log_mstar,z=0, randomize=False):
     Inverts the function `stellarmass_from_halomass`
     numerically.
 
+
+
     Args:
         log_mstar (float or numpy.ndarray): log_10 stellar mass
             in solar mass units.
         z (float, optional): galaxy redshift
+
+
 
     Returns:
         log_Mhalo (float): log_10 halo mass
@@ -501,8 +498,12 @@ def stellarmass_from_halomass_kravtsov(log_mhalo):
 
     Caution: This relation is valid for low z (z~0). Higher z values
     may require a scaled relation.
+
+
     Args:
         log_mhalo (float): log_10 halo mass
+
+
     Returns:
         log_mstar (float): log_10 galaxy
     """
@@ -521,8 +522,12 @@ def stellarmass_from_halomass_kravtsov(log_mhalo):
 def halomass_from_stellarmass_kravtsov(log_mstar):
     """
     Inverts the function `frb.halos.models.stellarmass_from_halomass_kravtsov`.
+
+
     Args:
         log_mstar (float or numpy.ndarray): log_10 stellar mass
+
+
     Returns:
         log_mhalo (float): log_10 halo mass
     """
@@ -537,6 +542,8 @@ def halomass_from_stellarmass_kravtsov(log_mstar):
 class ModifiedNFW(object):
     """ Generate a modified NFW model, e.g. Mathews & Prochaska 2017
     for the hot, virialized gas.
+
+
 
     Parameters:
         log_Mhalo: float, optional
@@ -603,6 +610,8 @@ class ModifiedNFW(object):
 
     def setup_param(self,cosmo,):
         """ Setup key parameters of the model
+
+
 
         Args:
             cosmo: astropy cosmology
@@ -903,6 +912,8 @@ class MB04(ModifiedNFW):
     Halo based on the Maller & Bullock (2004) model of
     virialized halo gas.
 
+
+
     Parameters:
         Rc: Quantity
           cooling radius
@@ -929,6 +940,8 @@ class MB04(ModifiedNFW):
         """
         Normalize the density constant from MB04
 
+
+
         Returns:
 
         """
@@ -951,9 +964,13 @@ class MB04(ModifiedNFW):
         """
         Baryonic density profile
 
+
+
         Args:
             xyz: ndarray
               Position array assumed in kpc
+
+
 
         Returns:
 
@@ -997,6 +1014,8 @@ class YF17(ModifiedNFW):
         """
         Normalize the density profile from the input mass
 
+
+
         Returns:
             Initializes self.rhoN, the density normalization
 
@@ -1023,9 +1042,13 @@ class YF17(ModifiedNFW):
         """
         Calculate the baryonic density
 
+
+
         Args:
             xyz: ndarray
               Coordinates in kpc
+
+
 
         Returns:
             rho: Quantity array
@@ -1063,9 +1086,13 @@ class MB15(ModifiedNFW):
         """
         Calculate the number density of Hydrogen
 
+
+
         Args:
             xyz: ndarray
               Coordinates in kpc
+
+
 
         Returns:
             ndarray: Number density with units of 1/cm**3
@@ -1116,11 +1143,15 @@ class M31(ModifiedNFW):
         Calculate DM through M31's halo from the Sun
         given a direction
 
+
+
         Args:
             scoord:  SkyCoord
                Coordinates of the sightline
             **kwargs:
                Passed to Ne_Rperp
+
+
 
         Returns:
             DM: Quantity
@@ -1150,11 +1181,15 @@ class M31(ModifiedNFW):
         Calculate DM through M31's halo from the Sun
         given an impact parameter
 
+
+
         Args:
             bimpact: Quantity
                 Ratio of the impact parameter to r200
             **kwargs:
                Passed to Ne_Rperp
+
+
 
         Returns:
             DM: Quantity
@@ -1342,8 +1377,12 @@ class ICM(ModifiedNFW):
         """
         Scale by He
 
+
+
         Args:
             xyz:
+
+
 
         Returns:
 

@@ -33,6 +33,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the SDSS database
 
+
     Args:
         coord (SkyCoord): Coordiante for surveying around
         radius (Angle): Search radius around the coordinate
@@ -53,6 +54,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         TODO -- Expand to include spectroscopy
         TODO -- Consider grabbing all of the photometry fields
 
+
         Args:
             coord: astropy.coordiantes.SkyCoord
             radius: Angle, optional
@@ -63,6 +65,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
               Default value - 120 s.
             print_query: bool, optional
               Print the SQL query for the photo-z values
+
 
         Returns:
             catalog: astropy.table.Table
@@ -172,8 +175,10 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         """
         Grab a cutout from SDSS
 
+
         Args:
             imsize (Quantity):  Size of image desired
+
 
         Returns:
             PNG image, None: self.cutout and a None to match the image header (not provided by SDSS)
@@ -195,6 +200,7 @@ def get_url(coord, imsize=30., scale=0.396127, grid=False, label=False, invert=F
     """
     Generate the SDSS URL for an image retrieval
 
+
     Args:
         coord (astropy.coordiantes.SkyCoord): Center of image
         imsize: float, optional
@@ -203,6 +209,7 @@ def get_url(coord, imsize=30., scale=0.396127, grid=False, label=False, invert=F
         grid (bool, optional):
         label (bool, optional):
         invert (bool, optional):
+
 
     Returns:
         str:  URL for the image
@@ -250,10 +257,12 @@ def trim_down_catalog(catalog, keep_photoz=False, cut_within=1.5*units.arcsec):
     """
     Cut down a catalog to keep only 1 source within cut_within
 
+
     Args:
         catalog (astropy.table.Table):  Input source catalog
         keep_photoz (bool, optional):
         cut_within (Angle or Quantity):  Cut radius
+
 
     Returns:
         astropy.table.Table:  Catalog trimmed down

@@ -7,4 +7,4 @@ frb.surveys.dlsurvey
    :show-inheritance:
 
 .. note::
-   Optional dependency: ``datalab-client`` is required for NOIRLab Data Lab queries.
+   Optional dependency: ``astro-datalab`` is required for NOIRLab Data Lab queries.

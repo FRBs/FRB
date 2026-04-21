@@ -167,20 +167,16 @@ def maximise_likelihood(grid,survey):
 
 
 def calc_likelihoods_1D(grid,survey,doplot=False,norm=True,psnr=False,Pn=True,dolist=0):
-    """ Calculates 1D likelihoods using only observedDM values
-    Here, Zfrbs is a dummy variable allowing it to be treated like a 2D function
-    for purposes of calling.
-    
-    Norm simply means to normalise likelihoods so that the total comes to unity.
-        - Note that the *sum* comes to unity, since each bin in rates is already
-            normalised by the volume in the dz bin
+    """Calculate 1D likelihoods using only observed DM values.
 
-    dolist
-        2: llsum,lllist [Pzdm,Pn,Ps],expected,longlist
-            longlist holds the LL for each FRB
-        5: llsum,lllist,expected,[0.,0.,0.,0.]
-    
-    Pn: Calculate the probability of observing N bursts (Poisson)
+    Parameters
+    ----------
+    grid, survey
+        zdm grid and survey objects.
+    doplot, norm, psnr, Pn : bool, optional
+        Control plotting and likelihood terms.
+    dolist : int, optional
+        Output format selector.
     """
     rates=grid.rates
     dmvals=grid.dmvals
@@ -411,42 +407,16 @@ def calc_likelihoods_2D(grid,survey,
                         doplot=False,norm=True,psnr=True,
                         printit=False,Pn=True,dolist=0,
                         verbose=False):
-    """ Calculates 2D likelihoods using observed DM,z values
-    
-    grid: the grid object calculated from survey
-    
-    survey: survey object containing the observed z,DM values
-    
-    doplot: will generate a plot of z,DM values
-    
-    Pn:
-        True: calculate probability of observing N FRBs
-        False: do not calculate this
-    
-    psnr: calculate the probability of the given snr values
-    
-    dolist:
-        0: returns total log10 likelihood llsum only [float]
-        1: returns llsum, log10([Pzdm,Pn,Ps]), <Nfrbs>
-        2: as above, plus a 'long list' giving log10(likelihood)
-            for each FRB individually
-        3: return (llsum, -np.log10(norm)*Zobs.size, 
-                np.sum(np.log10(pvals)), np.sum(np.log10(wzpsnr)))
-        4: return (llsum, -np.log10(norm)*Zobs.size, 
-                np.sum(np.log10(pvals)), 
-                pvals.copy(), wzpsnr.copy())
-        5: returns llsum, log10([Pzdm,Pn,Ps]), <Nfrbs>, 
-            np.log10([p(z|DM), p(DM), p(DM|z), p(z)])
-        else: returns nothing (actually quite useful behaviour!)
-    
-    norm:
-        True: calculates p(z,DM | FRB detected)
-        False: calculates p(detecting an FRB with z,DM). Meaningless unless
-            some sensible normalisation has already been applied to the grid.
-    
-    zdm_components
-        False: nothing
-        True: Also returns p(z|DM), p(DM), p(DM|z), and p(z)
+    """Calculate 2D likelihoods using observed DM and z values.
+
+    Parameters
+    ----------
+    grid, survey
+        zdm grid and survey objects.
+    doplot, norm, psnr, printit, Pn, verbose : bool, optional
+        Control calculation and diagnostics.
+    dolist : int, optional
+        Output format selector.
     """
 
     ######## Calculates p(DM,z | FRB) ########
@@ -824,6 +794,8 @@ def cube_likelihoods(grids:list,surveys:list,
                      psnr=True,starti=0,clone=None):
     """
 
+
+
     Args:
         grids: list of grids
         surveys: list of surveys corresponding to the grids
@@ -1046,6 +1018,8 @@ def my_minimise(vparams:dict,grids,surveys,steps=None,
                 PenTypes=None,PenParams=None):
     """Minimise on the not disabled parameters
 
+
+
     Args:
         vparams (dict): [description]
         grids ([type]): [description]
@@ -1059,8 +1033,12 @@ def my_minimise(vparams:dict,grids,surveys,steps=None,
         PenTypes ([type], optional): [description]. Defaults to None.
         PenParams ([type], optional): [description]. Defaults to None.
 
+
+
     Raises:
         ValueError: [description]
+
+
 
     Returns:
         float: log-likelihood value
@@ -1713,15 +1691,10 @@ def Poisson_p(observed, expected):
     return p
 
 def CalculateConstant(grid,survey):
-    """ Calculates the best-fitting constant for the total
-    number of FRBs. Units are:
-        - grid volume units of 'per Mpc^3',
-        - survey TOBS of 'days',
-        - beam units of 'steradians'
-        - flux for FRBs with E > Emin
-    Hence the constant is 'Rate (FRB > Emin) Mpc^-3 day^-1 sr^-1'
-    This should be scaled to be above some sensible value of Emin
-    or otherwise made relevant.
+    """Calculate best-fit normalization constant for total FRB counts.
+
+    Returns rate normalization in units of
+    ``Mpc^-3 day^-1 sr^-1`` for FRBs above ``Emin``.
     """
     
     expected=CalculateIntegral(grid,survey)
@@ -1774,6 +1747,8 @@ def minimise_const_only(vparams:dict,grids:list,surveys:list,
     It treats the rest as constants
     the grids must be initialised at the currect values for pset already
 
+
+
     Args:
         vparams (dict): Parameter dict. Can be None if nothing has varied.
         grids (list): List of grids
@@ -1784,9 +1759,13 @@ def minimise_const_only(vparams:dict,grids:list,surveys:list,
             If True, make use of the previous grid when 
             looping over them. Defaults to True.
 
+
+
     Raises:
         ValueError: [description]
         ValueError: [description]
+
+
 
     Returns:
         tuple: newC,llC,lltot
@@ -1854,6 +1833,8 @@ def set_orders(parameter_order:list, PARAMS:list):
     Set the order of the parameters based on the input 
     parameter_order list
 
+
+
     Args:
         parameter_order (list):  Order in which to run the
             cube on the parameters.
@@ -1862,6 +1843,8 @@ def set_orders(parameter_order:list, PARAMS:list):
 
     Raises:
         ValueError: [description]
+
+
 
     Returns:
         tuple: list, np.ndarray -- indices of the PARAMS in the order to run them, inverse of that
@@ -1885,9 +1868,13 @@ def set_cube_shape(vparam_dict:dict, order:list):
     """ Generate a list holding the dimensions of the cube 
     in the order it was generated
 
+
+
     Args:
         vparam_dict (dict): parameter dict
         order (list): order list (integers)
+
+
 
     Returns:
         list: List of the dimensions of the cube
@@ -1908,8 +1895,12 @@ def parse_input_dict(input_dict:dict):
     """ Method to parse the input dict for generating a cube
     It is split up into its various pieces
 
+
+
     Args:
         input_dict (dict): [description]
+
+
 
     Returns:
         tuple: dicts (can be empty):  state, cube, input

@@ -41,12 +41,16 @@ class FRBAssociate(path.PATH):
     from images.
 
     Use PATH methods for the Bayesian analysis
+
+
     
 
     Args:
         frb (frb.frb.FRB): FRB object
         image_file (str, optional): Name of image file
         max_radius (float, optional): Maximum radius for analysis (arcsec)
+
+
 
     Attributes:
         hdu (fits.HDU: FITS header-data unit
@@ -95,6 +99,8 @@ class FRBAssociate(path.PATH):
         """
         Load the image from self.image_file
 
+
+
         Returns:
 
         """
@@ -110,10 +116,14 @@ class FRBAssociate(path.PATH):
         Make a cutout of the image around the FRB
         and write to the data directory under "Galaxies".
 
+
+
         Args:
             imgdata (np.ndarray): Image data
             wcs (astropy.wcs.WCS): WCS of the image
             size (Quantity, optional): Size of the cutout
+
+
         
         Returns:
             Cutout2D: Cutout of the image
@@ -149,6 +159,8 @@ class FRBAssociate(path.PATH):
         self.Pchance filled in place
         Added as P_c to candidates Table
 
+
+
         Args:
             ndens_eval (str, optional): Source of number density evaluation.
                 See frb.associate.chance.pchance for options
@@ -181,6 +193,8 @@ class FRBAssociate(path.PATH):
         Cut down to candidates
 
         self.candidates is made in place
+
+
 
         Args:
             plate_scale (float or str):
@@ -242,6 +256,8 @@ class FRBAssociate(path.PATH):
         
         Half-light radii:
             https://iopscience.iop.org/article/10.1086/444475/pdf
+
+
 
         Args:
             ZP (float):
@@ -311,6 +327,8 @@ class FRBAssociate(path.PATH):
         """
         Generate the segment image
 
+
+
         Args:
             nsig (float):
                 Kernel parameter
@@ -321,6 +339,8 @@ class FRBAssociate(path.PATH):
             outfile:
             deblend (bool, optional):
                 Run deblend algorithm too
+
+
 
         Returns:
 
@@ -385,6 +405,8 @@ class FRBAssociate(path.PATH):
 
         self.thresh_img is set in place
 
+
+
         Args:
             nsig (float, optional):
                 Primary threshold parameter
@@ -392,6 +414,8 @@ class FRBAssociate(path.PATH):
                 Primary Background2D parameter
             filter_size (tuple):
                 Primary Background2D parameter
+
+
         Returns:
 
         """
@@ -440,7 +464,8 @@ def run_individual(config, prior:dict=None, show=False,
     """
     Run through the steps leading up to Bayes
 
-    Args:
+    Parameters
+    ----------
         config (dict):  Runs the PATH analysis
             keys:
                 name (str): Name of the FRB, e.g. FRB20121102
@@ -472,6 +497,7 @@ def run_individual(config, prior:dict=None, show=False,
         generate_png (bool, optional):
             Generate PNGs of the cutouts
         verbose (bool, optional):
+            Verbose output flag.
     """
     if not skip_bayesian and prior == None:
         raise IOError("Must specify the priors if you are running the Bayesian analysis")

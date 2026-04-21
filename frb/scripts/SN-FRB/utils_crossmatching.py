@@ -13,11 +13,13 @@ def cov_matrix(a, b, theta):
 
     """
     Calculate the covariance matrix for a 2D ellipse.
+
     
     Parameters:
     a (float): Semi-major axis of the ellipse
     b (float): Semi-minor axis of the ellipse
     theta (float): Position angle of the ellipse in degrees
+
     
     Returns:
     np.ndarray: 2x2 covariance matrix
@@ -40,10 +42,12 @@ def mahalanobis_distance(point, frbcenter, cov_matrix):
     Calculate the Mahalanobis distance between a given point and the center.
     effectively the Z-score in 1D, and it can be a proxy for how many sigma away you are from the mean.
 
+
     Parameters:
     point (array-like): The point for which to calculate the distance (should be [RA, Dec]).
     frbcenter (array-like): The center point, usually the mean [RA, Dec].
     cov_matrix (array-like): The covariance matrix of the data.
+
 
     Returns:
     float: The Mahalanobis distance.
@@ -76,6 +80,7 @@ def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
     that represent the uncertainty in the position of the FRB as defined by 
     its covariance matrix. Then, it plots the position of the transient along with 
     the Mahalanobis distance from the FRB center.
+
     
     Parameters:
     frbcenter (Astropy SkyCoord): The central position of the FRB.

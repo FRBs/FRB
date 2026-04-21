@@ -22,6 +22,7 @@ def simulate_frb_dm(frb_data, z_stepsize=10**-4, z_max=3, dm_min=0, dm_max=3000,
     Please check your frbcat_df matches the template used here.
     Change the halo and host distributions as you feel appropriate.
 
+
     Arguments:
         transient_data (str):
             Path to data (in .csv format).
@@ -109,6 +110,7 @@ def kde_for_frb_sim(grid, dm_sim, num_samples, num_resamples=50, save_to_path=No
     """
     Estimate simulated DM_FRB using a random draws from the simulation. Used to analyse KDE effectiveness
     for different sample sizes (num_samples).
+
     
     Arguments:
         dm_grid (array):

@@ -45,11 +45,13 @@ class GALEX_Survey(surveycoord.SurveyCoord):
         Query a catalog in the MAST GALEX database for
         photometry.
 
+
         Args:
             query_fields: list, optional
                 A list of query fields to
                 get in addition to the
                 default fields.
+
         
         Returns:
             catalog: astropy.table.Table

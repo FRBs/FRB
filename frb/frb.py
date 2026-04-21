@@ -25,6 +25,8 @@ class GenericFRB(object):
     Parent object for FRBs
 
 
+
+
     Args:
         S : Quantity
           Source density of the burst
@@ -34,6 +36,8 @@ class GenericFRB(object):
         coord (astropy.coordinates.SkyCoord): multi-format, optional
           RA/DEC in one of many formats (see utils.radec_to_coord)
         cosmo:
+
+
 
     Attributes:
         fluence (Quantity):
@@ -63,9 +67,13 @@ class GenericFRB(object):
         """
         Instantiate from a dict
 
+
+
         Args:
             idict (dict):
             **kwargs: Passed to the __init__ call
+
+
 
         Returns:
 
@@ -104,9 +112,13 @@ class GenericFRB(object):
         Instantiate from a JSON file
           A simple wrapper to the from_dict method
 
+
+
         Args:
             json_file (str):
             **kwargs: Passed to from_dict()
+
+
 
         Returns:
             slf
@@ -166,6 +178,8 @@ class GenericFRB(object):
         """
         Set an error ellipse for the FRB position
 
+
+
         Args:
             a (float): major axis; Arcsec
             b (float):  minor axis; Arcsec
@@ -195,6 +209,8 @@ class GenericFRB(object):
         """
         Combined semi-major axis error
 
+
+
         Returns:
             float:
 
@@ -212,6 +228,8 @@ class GenericFRB(object):
         """
         Combined semi-minor axis error
 
+
+
         Returns:
             float:
 
@@ -228,6 +246,8 @@ class GenericFRB(object):
                   tscatt=None, tscatt_err=None, scatt_index=None,
                   scatt_index_err=None, DM_smear=None):
         """
+
+
         Args:
             freq (Quantity):
                 Frequency at which the pulse was analyzed
@@ -257,6 +277,8 @@ class GenericFRB(object):
         """
         Simple method for naming the output file
 
+
+
         Returns:
             str
 
@@ -272,11 +294,15 @@ class GenericFRB(object):
         """
         Write key aspects of the class to disk in a JSON file
 
+
+
         Args:
             outfile (str, optional): Output filename
               If not provided, one will be generated with make_outfile()
             path (str, optional): Path for the output file
             overwrite (bool, optional): Overwrite?
+
+
 
         Returns:
 
@@ -340,9 +366,13 @@ class FRB(GenericFRB):
         """
         Instantiate from a dict
 
+
+
         Args:
             idict (dict):
             **kwargs: Passed to the __init__ call
+
+
 
         Returns:
 
@@ -388,11 +418,15 @@ class FRB(GenericFRB):
         """
         Method to instantiate an FRB by its name
 
+
+
         Args:
             frb_name (str):
               Name of the FRB, with format FRBYYYYMMDDX
                 i.e. FRB + TNS
             **kwargs:
+
+
 
         Returns:
 
@@ -403,6 +437,8 @@ class FRB(GenericFRB):
 
     def __init__(self, frb_name, coord, DM, S=None, nu_c=None, z_frb=None, **kwargs):
         """
+
+
 
         Args:
             frb_name (str):
@@ -423,6 +459,8 @@ class FRB(GenericFRB):
     def grab_host(self, verbose:bool=True):
         """
         Returns the FRBHost object for this FRB
+
+
 
         Returns:
             frb.galaxies.frbgalaxy.FRBHost
@@ -447,9 +485,13 @@ def list_of_frbs(require_z=False):
     """
     Generate a list of FRB objects for all the FRBs in the Repo
 
+
+
     Args:
         require_z (bool, optional):
             If True, require z be set
+
+
 
     Returns:
         list:
@@ -476,10 +518,14 @@ def build_table_of_frbs(frbs=None, fattrs=None):
 
     Warning:  As standard, missing values are given NaN in the Pandas table
         Be careful!
+
+
     Args:
         fattrs (list, optional):
             Float attributes for the Table
             The code also, by default, looks for accompanying _err attributes
+
+
 
     Returns:
         pd.DataFrame, dict:  Table of data on FRBs,  dict of their units

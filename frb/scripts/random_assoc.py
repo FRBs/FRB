@@ -14,10 +14,12 @@ def get_catalog(coords,size=1*u.deg):
     a square of input `size` centered
     around `coords`.
 
+
     Args:
         coords (astropy SkyCoord): central coordinates
         size (astropy Angle, optional): Size of the square FoV around
                               the central coordinates
+
     Returns:
         catalog (astropy Table): DES DR1 search results
     """
@@ -35,9 +37,11 @@ def _generate_coord_grid(coords,size=1*u.deg,resolution=3600):
     an area `size`x`size` with a default `resolution`
     of 1000 points along each axis.
 
+
     Args:
         coords (astropy SkyCoord): central coordinates
         size (astropy Angle, optional): Size of the square FoV around
+
 
     Returns:
             SkyCoord:

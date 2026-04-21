@@ -36,6 +36,7 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
     Child of DL_Survey which uses datalab to access NOAO
 
+
     Args:
         coord (SkyCoord): Coordiante for surveying around
         radius (Angle): Search radius around the coordinate
@@ -57,8 +58,10 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
         For DES, nothing much is necessary.
 
+
         Args:
             band (str): Band desired
+
 
         Returns:
             list, list, str:  Table columns, Column values, band string for cutout
@@ -74,6 +77,7 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         Generate SQL Query for catalog search
 
         self.query is modified in place
+
 
         Args:
             query_fields (list):  Override the default list for the SQL query
@@ -100,11 +104,13 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
+
         Args:
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
             system (str): Magnitude system ['AB', 'Vega']
+
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
@@ -149,10 +155,12 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         """
         Select the best band for a cutout
 
+
         Args:
             imgTable: Table of images
             verbose (bool):  Print status
             timeout (int or float):  How long to wait before timing out, in seconds
+
 
         Returns:
             HDU: header data unit for the downloaded image

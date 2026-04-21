@@ -18,7 +18,7 @@ For example, with ``venv``::
 
 	git clone https://github.com/FRBs/FRB.git
 	cd FRB
-	venv .venv
+	python -m venv .venv
 	source .venv/bin/activate
 	pip install --upgrade pip
 	pip install -e .
@@ -78,9 +78,9 @@ The current ``optional`` packages covers:
 * `ppxf <https://github.com/SunilSimha/frb_ppxf>`_
 * `pymc3 <https://pypi.org/project/pymc3/>`_
 * `pcigale <https://cigale.lam.fr/>`_
-* `pathos <https://pypi.org/project/pathos/>`
+* `pathos <https://pypi.org/project/pathos/>`_
 * `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_
-* `specdb <https://github.com/specdb/specdb>`
+* `specdb <https://github.com/specdb/specdb>`_
 * `pyregion <https://pypi.org/project/pyregion/>`_
 * `spectral-cube <https://pypi.org/project/spectral-cube/>`_
 

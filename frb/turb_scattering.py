@@ -24,6 +24,7 @@ def theta_mist(n_e, nu_obs, L=50*units.kpc, R=1*units.pc, fV=1.):
     Estimate the scattering angle for a mist, following the
     calculations by M. McQuinn presented in Prochaska+2019
 
+
     Args:
         n_e (Quantity):
             Electron density
@@ -35,6 +36,7 @@ def theta_mist(n_e, nu_obs, L=50*units.kpc, R=1*units.pc, fV=1.):
             Size of the clouds
         fV (float, optional):
             Filling factor of the bubbles
+
 
     Returns:
         Quantity:  Angle in radians
@@ -60,6 +62,7 @@ def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1.,
     Temporal broadening for a mist of spherical clouds following the
     calculations by M. McQuinn presented in Prochaska+2019
 
+
     Args:
         n_e (Quantity):
             Electron density
@@ -76,6 +79,7 @@ def tau_mist(n_e, nu_obs, z_FRB, zL, L=50*units.kpc, R=1*units.pc, fV=1.,
         fV (float, optional):
             Filling factor of the bubbles
         cosmo (Cosmology, optional):
+
 
     Returns:
         Quantity: temporal broadening in seconds
@@ -96,6 +100,7 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
     n_e from temporal broadening for a mist of spherical clouds following the
     calculations by M. McQuinn presented in Prochaska+2019
 
+
     Args:
         tau_scatt (Quantity):
             Observed width of the pulse
@@ -113,6 +118,7 @@ def ne_from_tau_mist(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, R=1*units.pc,
             Filling factor of the bubbles
         cosmo (Cosmology, optional):
         verbose (bool, optional):
+
 
     Returns:
         Quantity: density in cm**-3
@@ -161,6 +167,7 @@ def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*un
 
     Scaled from Equation 1 of Prochaska et al. 2019
 
+
     Args:
         tau_scatt (Quantity):
             Observed width of the pulse
@@ -177,6 +184,7 @@ def ne_from_tau_kolmogorov(tau_scatt, z_FRB, zL, nu_obs, L=50*units.kpc, L0=1*un
         alpha (float, optional):
             Filling factor and fudge factor term
         cosmo (Cosmology, optional):
+
 
     Returns:
         Quantity: <n_e>
@@ -314,9 +322,11 @@ class Turbulence(object):
         """
         Taken from JP notes
 
+
         Args:
             lobs:
             fa (int): Number of clouds intersected
+
 
         Returns:
 

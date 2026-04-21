@@ -1,6 +1,7 @@
 import os
 import sys
 from pathlib import Path
+import warnings
 
 # Check if we're building on ReadTheDocs
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
@@ -27,6 +28,7 @@ extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary', 
     'sphinx.ext.napoleon',
+    'sphinx.ext.todo',
     'sphinx.ext.viewcode',
     'sphinx.ext.mathjax',
     'sphinx.ext.intersphinx',
@@ -39,6 +41,7 @@ templates_path = ['_templates']
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
+suppress_warnings = ['ref.python']
 
 # -- Options for HTML output -------------------------------------------------
 html_theme = 'sphinx_rtd_theme'
@@ -57,6 +60,24 @@ napoleon_use_ivar = False
 napoleon_use_param = True
 napoleon_use_rtype = True
 napoleon_type_aliases = None
+napoleon_custom_sections = [
+    ('Args', 'params_style'),
+]
+
+# Keep docs build focused on documentation issues rather than runtime noise
+warnings.filterwarnings(
+    'ignore',
+    message='Please define the variable EAZYDIR in your environment pointing to the EAZY folder.',
+    category=UserWarning,
+)
+warnings.filterwarnings('ignore', category=SyntaxWarning, message='invalid escape sequence.*')
+warnings.filterwarnings('ignore', message='more than one target found for cross-reference .*')
+
+try:
+    from astropy.utils.exceptions import AstropyDeprecationWarning
+except Exception:  # pragma: no cover
+    AstropyDeprecationWarning = Warning
+warnings.filterwarnings('ignore', category=AstropyDeprecationWarning)
 
 # Intersphinx configuration
 intersphinx_mapping = {
