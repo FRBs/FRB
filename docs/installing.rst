@@ -18,10 +18,10 @@ For example, with ``venv``::
 
 	git clone https://github.com/FRBs/FRB.git
 	cd FRB
-	python -m venv .venv
+	venv .venv
 	source .venv/bin/activate
-	python -m pip install --upgrade pip
-	python -m pip install -e .
+	pip install --upgrade pip
+	pip install -e .
 
 or with conda::
 
@@ -29,8 +29,8 @@ or with conda::
 	conda activate frb
 	git clone https://github.com/FRBs/FRB.git
 	cd FRB
-	python -m pip install --upgrade pip
-	python -m pip install -e .
+	pip install --upgrade pip
+	pip install -e .
 
 This installs the base package plus its core dependencies, including
 the git-based requirements such as ``linetools``, ``ne2001``, and
@@ -39,7 +39,7 @@ the git-based requirements such as ``linetools``, ``ne2001``, and
 .. note::
 
 	``setup.py`` is kept for backward compatibility, but the supported
-	installation workflow is ``python -m pip install -e .``.
+	installation workflow is ``pip install -e .``.
 	Likewise, ``frb/requirements.txt`` and ``frb/optional_requirements.txt``
 	are now reference files rather than the primary installation source.
 
@@ -72,32 +72,21 @@ packages such as:
 Extras
 ------
 
-Optional dependencies are split into two groups:
+The current ``optional`` packages covers:
 
-Installed through the package extras::
-
-	python -m pip install -e ".[optional]"
-
-or, for development and tests::
-
-	python -m pip install -e ".[dev]"
-
-or both::
-
-	python -m pip install -e ".[optional,dev]"
-
-The current ``optional`` extra covers packages such as:
-
-* `ppxf <https://pypi.org/project/ppxf/>`_
+* `ppxf <https://github.com/SunilSimha/frb_ppxf>`_
 * `pymc3 <https://pypi.org/project/pymc3/>`_
 * `pcigale <https://cigale.lam.fr/>`_
-* `threedhst <https://github.com/gbrammer/threedhst>`_
 * `pathos <https://pypi.org/project/pathos/>`
 * `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_
 * `specdb <https://github.com/specdb/specdb>`
 * `datalab-client <https://github.com/noaodatalab/datalab/>`_
 * `pyregion <https://pypi.org/project/pyregion/>`_
 * `spectral-cube <https://pypi.org/project/spectral-cube/>`_
+
+We do not include these as dependencies as they may require additional system setup.
+These are however necessary to run specific modules of the code-base,
+and we recommend installing them if you intend to use those modules.
 
 The following feature-specific dependencies may still require separate,
 manual installation:
@@ -119,11 +108,6 @@ Some workflows do:
 	to the FRB database or generated data products.
 * ``EAZYDIR`` is needed for the EAZY wrappers described below.
 
-For pPXF, you will also likely need to modify the standard install
-to use the Chabrier libraries. The easiest way to do this would be to install this particular fork of the pPXF code.
-https://github.com/SunilSimha/frb_ppxf. If you wish to do it manually from the original repository, see the InstallNotes in this
-`Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
-
 Our CIGALE wrappers use custom filter files not
 provided by their current release (e.g DES, Pan-STARRS).
 See the instructions for adding those as needed.
@@ -133,18 +117,10 @@ Installing frb
 
 If you already cloned the repository, install it from the checkout root with::
 
-	python -m pip install -e .
+	pip install -e .
 
 This installs the package in editable mode and exposes the scripts in your
 active Python environment.
-
-If you specifically need the optional packages as well, use::
-
-	python -m pip install -e ".[optional]"
-
-If you are working on development or running the test suite, use::
-
-	python -m pip install -e ".[optional,dev]"
 
 Adding additional CIGALE filter files
 =====================================
@@ -190,5 +166,12 @@ pPXF
 ====
 
 Our pPXF wrapper currently uses an older version of the code 
-(v 6.7.17) and a few custom files.  Contact JXP if you wish 
-to use this.
+(v 6.7.17) and a few custom files. These are made available in a separate repository,
+and you can install it with::
+
+	pip install git+https://github.com/SunilSimha/frb_ppxf.git
+
+If instead you want to install this manually and apply the relevevant patches yourself,
+see  the InstallNotes in this
+`Google Drive <https://drive.google.com/drive/folders/1_nu8IiBm0-dnkpoKBcoXyQuqbsrYHNXh?usp=sharing>`_.
+Contact JXP if you have any questions about this process.
