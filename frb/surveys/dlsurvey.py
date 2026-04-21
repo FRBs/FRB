@@ -14,7 +14,7 @@ try:
     from dl import queryClient as qc, authClient as ac
     from dl.helpers.utils import convert
 except:
-    print("Warning:  datalab-client is not installed or will not properly connect")
+    print("Warning:  astro-datalab is not installed or will not properly connect")
 
 
 try:

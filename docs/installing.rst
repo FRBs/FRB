@@ -61,6 +61,7 @@ packages such as:
 * `dust_extinction <https://dust-extinction.readthedocs.io/en/latest/>`_
 * `photutils <https://photutils.readthedocs.io/en/stable/>`_
 * `astroquery <https://astroquery.readthedocs.io/en/latest/>`_ 0.4.11 or later
+* `astro-datalab <https://github.com/noaodatalab/datalab/>`_
 * `pyvo <https://pyvo.readthedocs.io/en/latest/>`_ 1.5.3 or later
 * `ligo.skymap <https://lscsoft.docs.ligo.org/ligo.skymap/>`_ 2.3.0 or later
 * `numba <https://numba.readthedocs.io/>`_ 0.50 or later
@@ -80,7 +81,6 @@ The current ``optional`` packages covers:
 * `pathos <https://pypi.org/project/pathos/>`
 * `hmf_emulator <https://github.com/AemulusProject/hmf_emulator>`_
 * `specdb <https://github.com/specdb/specdb>`
-* `datalab-client <https://github.com/noaodatalab/datalab/>`_
 * `pyregion <https://pypi.org/project/pyregion/>`_
 * `spectral-cube <https://pypi.org/project/spectral-cube/>`_
 

@@ -46,6 +46,7 @@ dependencies = [
     "setuptools>=75.0.0",
     "tox>=4.15.0",
     "pyvo>=1.5.3",
+    "astro-datalab>=2.16.0",
     "importlib-resources>=6.4.0",
     "astroquery>=0.4.11",
     "tqdm>=4.0.0",
@@ -60,7 +61,6 @@ optional = [
     "pathos",
     "hmf_emulator @ git+https://github.com/AemulusProject/hmf_emulator.git",
     "specdb",
-    "astro-datalab",
     "pyregion>=2.3.0",
     "spectral-cube>=0.6.7",
 ]
