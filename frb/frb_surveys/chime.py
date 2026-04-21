@@ -20,6 +20,7 @@ def check_frb_mr(outfile:str='mr_pdf.png',
                  pdf_file:str=None):
     """ Generate a plot of the host galaxy M_r PDF
 
+
     Args:
         outfile (str, optional): _description_. Defaults to 'mr_pdf.png'.
         pdf_file (str, optional): _description_. Defaults to 'pdf_Mr.npy'.
@@ -54,6 +55,7 @@ def calc_mr_dist(catalog_file:str=None,
                  tblfile:str='CHIME_mr_5Jyms.csv',
                  dm_mw_host:float=200.):
     """ Generate a distribution of m_r values for bright CHIME/FRBs
+
 
     Args:
         catalog_file (str, optional): 

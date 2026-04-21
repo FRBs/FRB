@@ -49,6 +49,7 @@ def check_tns_api_keywords():
     'TNS_BOT_ID', 'TNS_BOT_NAME', and 'TNS_API_KEY'. If any of these keys 
     are missing, an exception is raised.
 
+
     Raises:
     -------
     Exception:
@@ -66,6 +67,7 @@ def set_bot_tns_marker():
     The bot marker is a JSON-formatted string containing the bot's ID and name, 
     which is used for API authentication when querying the TNS database.
 
+
     Returns:
     --------
     tns_marker (str):
@@ -82,13 +84,16 @@ def search(json_list, url_tns_api):
     """
     Querie TNS for transients based on the provided search parameters.
 
-    Parameters: 
+
+    Parameters:
     -----------
     json_list (list): 
         A list of key-value pairs specifying the search parameters, which will be converted into an OrderedDict.
     url_tns_api (str): 
         The base URL for the TNS API.
-    Returns: 
+
+
+    Returns:
     --------
     response (requests.Response): 
         The HTTP response object returned by the TNS API, containing the status code and response data.
@@ -116,9 +121,11 @@ def format_to_json(source):
     """
     Converts a JSON-formatted string into an OrderedDict.
 
+
     Parameters:
     -----------
     source (str): A JSON-formatted string to be converted into an OrderedDict.
+
 
     Returns:
     --------
@@ -134,6 +141,7 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
     '''
    Queries transients in TNS at the FRB position with a specfied radius.
 
+<<<<<<< Updated upstream
     Parameters: 
     -----------
     ra (float): right ascension of the FRB in deg
@@ -142,6 +150,22 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
     frb_name (str): TNS name of the FRB
     
     Returns: 
+=======
+
+    Parameters:
+    -----------
+    ra (float): Right ascension of the FRB in degrees.
+    dec (float): Declination of the FRB in degrees.
+    radius (float): Search radius in arcmin.
+    frb_name (str): TNS name of the FRB.
+    units (str, optional): Units for radius (default: 'arcmin').
+    initial_delay (int, optional): Initial delay for retries in seconds (default: 10).
+    max_delay (int, optional): Maximum delay for retries in seconds (default: 500).
+    outfile (str, optional): Output file for query results (default: 'query_results_final.txt').
+
+
+    Returns:
+>>>>>>> Stashed changes
     --------
     query output: dict
         a dictionary of transients found within the search radius near an FRB position
@@ -225,6 +249,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
     """
     Main function to query the TNS for transient data; can be batched or a single object search.
+
     Parameters:
     filename: The path to the ASCII file containing the catalog data (only used if single_obj is False).
     name (str): FRB name (only used if single_obj is True).
@@ -235,6 +260,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
     b: semi-minor axis in degrees (only used if single_obj is True).
     radius: The search radius (arcmin).
     single_obj: Boolean indicating whether to perform a query for a single object (True) or multiple (False).
+
 
     Returns:
     trans_results: dictionary 
@@ -308,8 +334,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
     return(trans_metadata)
 
-if __name__ == "__main__":
-    # Verify that you've added these to your env var 
+def cli():
     args = parser()
     check_tns_api_keywords()
     if args.single:
@@ -317,14 +342,18 @@ if __name__ == "__main__":
             print("Error: Missing parameters for single object query.")
             exit(1)
         matched_transient_data = main(filename=None,
-                                      name=args.name, 
-                                      ra=args.ra, 
+                                      name=args.name,
+                                      ra=args.ra,
                                       dec=args.dec,
-                                      theta=args.theta, 
-                                      a=args.a, b=args.b, radius=args.radius, single_obj=True) # in degrees
+                                      theta=args.theta,
+                                      a=args.a, b=args.b, radius=args.radius, single_obj=True)
         save_matches(matched_transient_data, args.outfile)
     else:
-        frb_file = args.filename #sys.argv[1]
+        frb_file = args.filename
         matched_transient_data = main(frb_file, name=None, ra=None, dec=None, theta=None, a=None, b=None,
                                       radius=args.radius, single_obj=False)
         save_matches(matched_transient_data, args.outfile)
+
+
+if __name__ == "__main__":
+    cli()

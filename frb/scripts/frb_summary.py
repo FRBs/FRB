@@ -73,3 +73,5 @@ def main(pargs):
             print('neb_lines: \n {}'.format(pjson(hg.neb_lines)))
 
 
+def cli():
+    main(parser())

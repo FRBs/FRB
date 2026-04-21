@@ -13,7 +13,7 @@ from astropy.table import Table
 try:
     from pcigale.session.configuration import Configuration
 except ImportError:
-    print("You will need to install pcigale to use the cigale.py module")
+    print("You will need to install pcigale to use the cigale.py module: https://cigale.lam.fr/")
 else:
     from pcigale.analysis_modules import get_module
     from pcigale.utils.console import WARNING, ERROR, console
@@ -33,9 +33,13 @@ def _sed_default_params(module, photo_z=False):
     """
     Set the default parameters for CIGALE
 
+
+
     Args:
         module (str):
             Specify the SED using the CIGALE standard names, e.g. sfhdelayed, bc03, etc.
+
+
 
     Returns:
         params (dict): the default dict of SED modules
@@ -100,6 +104,8 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
     """
     Generates the input catalog from
     a photometric catalog.
+
+
 
     Args:
         photometry_table (astropy Table):
@@ -233,6 +239,8 @@ def _initialise(data_file, config_file="pcigale.ini",
                 sed_modules_params=None, photo_z=False, **kwargs):
     """
     Initialise a CIGALE configuration file and write to disk.
+
+
     
     Args:
         data_file (str):
@@ -261,6 +269,8 @@ def _initialise(data_file, config_file="pcigale.ini",
         photo_z (bool, optional): If true,
             CIGALE will try to estimate the redshift from SED fitting.
         kwargs: only here to catch extras
+
+
     Returns:
         cigconf (pcigale.session.configuration.Configuration):
                 CIGALE Configuration object
@@ -307,6 +317,8 @@ def run(photometry_table, zcol,
         plot=True, outdir='out', **kwargs):
     """
     Input parameters and then run CIGALE.
+
+
 
     Args:
         photometry_table (astropy Table):
@@ -403,21 +415,16 @@ def run(photometry_table, zcol,
 
 def host_run(host, cut_photom=None, cigale_file=None):
     """
-    Run CIGALE on an FRBGalaxy's photometry
-    and store results in a folder with the
-    FRBGalaxy's name.
-    Args
-    ----
-    photom (astropy Table): Table containing
-        galaxy photometry. Table columns
-        must be in the format '<SOURCE>_<BAND>'
-        and '<SOURCE>_<BAND>_err'.
-        e.g. SDSS_u, SDSS_u_err, Pan-STARRS_g
-    host (FRBGalaxy): A host galaxy.
-    cigale_file (str, optional): Name of main
-        CIGALE output file. Must be in the format
-        `<something>_CIGALE.fits`. No file is
-        renamed if nothing is provided.
+    Run CIGALE on host-galaxy photometry.
+
+    Parameters
+    ----------
+    host : FRBGalaxy
+        Host galaxy object.
+    cut_photom : astropy.table.Table, optional
+        Photometry table to use instead of `host.photom`.
+    cigale_file : str, optional
+        Output filename for copied CIGALE results.
     """
     cigale_tbl = Table()
     cigale_tbl['z'] = [host.z]

@@ -51,11 +51,14 @@ f_C0_3 = cosmic.grab_C0_spline()
 def grab_parmdict(tight_ObH=False):
     """ Generate the parameter dict for the MCMC run
 
+
     Args:
         tight_ObH (bool, optional): [description]. Defaults to False.
 
+
     Raises:
         IOError: [description]
+
 
     Returns:
         dict: [description]
@@ -83,6 +86,7 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     """
     Calculate the probability for a single FRB
 
+
     Args:
         Obh70 (float): Value of Omega_b * H_0 
         F (float): Feedback parameter
@@ -99,6 +103,7 @@ def one_prob(Obh70, F, DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
             calculating sigma
         beta (float, optional):
             Parameter for DM PDF
+
 
     Returns:
         float: Likelihood probability
@@ -153,6 +158,7 @@ def mcquinn_DM_PDF_grid(Delta_values, C0, sigma, alpha=3., beta=3.):
     """
     PDF(Delta) for the McQuinn formalism describing the DM_cosmic PDF
 
+
     Args:
         Delta (2D ndarray):
             DM / averageDM values
@@ -162,6 +168,7 @@ def mcquinn_DM_PDF_grid(Delta_values, C0, sigma, alpha=3., beta=3.):
             sigma values
         alpha (float, optional):
         beta (float, optional):
+
 
     Returns:
 
@@ -183,6 +190,7 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
     """
     Calculate the probability for a set of FRBs
 
+
     Args:
         Obh70 (float): Value of Omega_b * H_0 
         F (float): Feedback parameter
@@ -197,6 +205,7 @@ def all_prob(Obh70, F, in_DM_FRBp, z_FRB, mu=150., lognorm_s=1.,
             Floor to the log-normal PDF
         beta (float, optional):
             Parameter for DM PDF
+
 
     Returns:
         float:  Log like-lihood
@@ -257,11 +266,13 @@ try:
         """
         Calculate likelihood for the real data
 
+
         Args:
             Obh70 (float): Value of Omega_b * H_0 
             F (float): Feedback parameter
             mu (float): Mean of log-normal PDF
             lognorm_s (float): Sigma of log-normal PDF
+
 
         Returns:
             np.ndarray:  Array of log likelihood values, one per FRB
@@ -293,13 +304,16 @@ except: # Hiding this theano method in a try/except
 def pm_four_parameter_model(parm_dict:dict, tight_ObH=False, beta=3.):
     """ Builds a pymc3 model for the 4-parameter MCMC
 
+
     Args:
         parm_dict (dict): dict with the pymc3 parameters
         tight_ObH (bool, optional): If True, restrict the ObH0 value based on CMB. Defaults to False.
         beta (float, optional): PDF parameter. Defaults to 3..
 
+
     Raises:
         IOError: [description]
+
 
     Returns:
         pm.Model: pymc3 model

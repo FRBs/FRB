@@ -37,6 +37,7 @@ class HSC_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the HSC database
 
+
     Args:
         coord (SkyCoord): CoordinAte for surveying around
         radius (Angle): Search radius around the coordinate
@@ -56,6 +57,7 @@ class HSC_Survey(surveycoord.SurveyCoord):
         Query HSC for all objects within a given
         radius of the input coordinates.
 
+
         Args:
             query_fields: list, optional
               Column names to be queried. Default values are
@@ -69,6 +71,7 @@ class HSC_Survey(surveycoord.SurveyCoord):
               Print the SQL query for the photo-z values
             query_table: str, optional
               The table to query. Defaults to 'pdr3_wide.forced'
+
 
         Returns:
             catalog: astropy.table.Table
@@ -127,6 +130,7 @@ def run_query(query:str,
     """
     Submits a query to the HSC database and downloads the results in the specified format.
 
+
     Args:
         query (str): The SQL query to submit to the HSC database.
         user (str, optional): The account name to use for authentication. Defaults to None.
@@ -136,9 +140,11 @@ def run_query(query:str,
         delete_job (bool, optional): Whether to delete the job after downloading the results. Defaults to False.
         max_time (int, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
 
+
     Raises:
         urllib.error.HTTPError: If there is an HTTP error while submitting the query.
         QueryError: If there is an error with the query itself.
+
 
     Returns:
         None

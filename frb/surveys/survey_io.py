@@ -6,6 +6,7 @@ def save_plt(plt, out_dir, root, verbose=False, ftype='png'):
     """
     Save a matplotlib object to disk
 
+
     Args:
         plt: matplotlib.pyplot
         out_dir: str
@@ -15,6 +16,7 @@ def save_plt(plt, out_dir, root, verbose=False, ftype='png'):
         verbose: bool, optional
         ftype: str
           File type, e.g.  png, pdf
+
 
     Returns:
 

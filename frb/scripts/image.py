@@ -63,3 +63,8 @@ def main(pargs):
     plt.savefig(pargs.outfile, dpi=300)
     plt.close()
     print('Wrote {:s}'.format(pargs.outfile))
+
+
+def cli():
+    main(parser())
+

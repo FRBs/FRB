@@ -1,6 +1,57 @@
-**************
-FRBHost Class
-**************
+************
+FRB Galaxies
+************
+
+.. toctree::
+   :maxdepth: 1
+
+   adding_host
+   eazy
+   mags_to_flux
+
+.. toctree::
+    :hidden:
+
+    galaxies
+
+Overview of FRB Galaxy Classes
+==============================
+
+FRB galaxy analysis in this package centers on two related classes:
+
+* ``FRBGalaxy``: parent class for galaxies in FRB fields
+* ``FRBHost``: child class for confirmed host galaxies
+
+The parent class defines the common attribute layout and many core analysis
+methods; the host class adds host-specific workflows and repository loaders.
+
+FRBGalaxy (Parent Class)
+========================
+
+The ``FRBGalaxy`` class is the parent class and is usually accessed through
+its children (most often ``FRBHost``). It contains the majority of shared
+methods and attribute containers used for galaxy measurements and derived
+quantities.
+
+The class stores key measurements in dictionary attributes (``main_attr``)
+whose allowed keys are defined in ``frb.galaxies.defs``.
+
+Example morphology keys include::
+
+    valid_morphology = [
+        'reff_ang',   # Effective radius in arcsec; Galfit
+        'reff_kpc',   # Effective radius in kpc; Galfit
+        'n',          # Sersic index; Galfit
+        'PA',         # Position angle (deg); Galfit
+        'b/a',        # Ellipticity; Galfit
+    ]
+
+Common parent-class methods include:
+
+* ``set_z``: set galaxy/FRB redshift measurements
+* ``parse_galfit``: ingest GALFIT morphology output
+* ``calc_nebular_SFR``: derive nebular SFR from line fluxes
+* ``write_to_json`` / ``from_json``: serialize and reload objects
 
 The ``FRBHost`` class represents the host galaxy of an FRB. It inherits from
 ``FRBGalaxy`` and stores photometry, redshifts, morphology, nebular line
@@ -354,34 +405,27 @@ Setting Redshifts
 API Reference
 =============
 
+For the full API reference, see :doc:`api/galaxies.frbgalaxy`.
+
 FRBGalaxy (Parent Class)
 ------------------------
 
-.. autoclass:: frb.galaxies.frbgalaxy.FRBGalaxy
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :class:`frb.galaxies.frbgalaxy.FRBGalaxy` — parent class for galaxies in FRB fields
 
 FRBHost Class
 -------------
 
-.. autoclass:: frb.galaxies.frbgalaxy.FRBHost
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :class:`frb.galaxies.frbgalaxy.FRBHost` — confirmed FRB host galaxy class
 
 Utility Functions
 -----------------
 
-.. autofunction:: frb.galaxies.utils.build_table_of_hosts
-
-.. autofunction:: frb.galaxies.utils.list_of_hosts
-
-.. autofunction:: frb.galaxies.utils.load_PATH
+* :func:`frb.galaxies.utils.build_table_of_hosts` — build a table of host galaxy data
+* :func:`frb.galaxies.utils.list_of_hosts` — list all host galaxies
+* :func:`frb.galaxies.utils.load_PATH` — load the PATH association table
 
 See Also
 ========
 
 * :doc:`frb_class` - FRB class documentation
-* :doc:`galaxies` - Galaxy analysis overview
 * :doc:`database` - Database utilities

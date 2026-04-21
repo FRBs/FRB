@@ -33,11 +33,13 @@ class FRBGalaxy(object):
     Warning:  Generating hundreds of these objects will likely be slow.
     Especially SkyCoord generation.  A new class will be warranted for that
 
+
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
         frb (frb.FRB): FRB object
         cosmo (astropy.cosmology): Cosmology, e.g. Planck18
+
 
     Attributes:
         redshift (dict):
@@ -53,6 +55,7 @@ class FRBGalaxy(object):
         """
         Instantiate from a dict
 
+
         Args:
             frb (frb.FRB):
             idict (dict):
@@ -60,6 +63,7 @@ class FRBGalaxy(object):
                 Over-ride the cosmology error
                 Not recommended unless you know what you are doing
             **kwargs: Passed to the __init__ call
+
 
         Returns:
 
@@ -98,10 +102,12 @@ class FRBGalaxy(object):
     def from_json(cls, frb, json_file, verbose:bool=True, **kwargs):
         """
 
+
         Args:
             frb (frb.FRB):
             json_file:
             **kwargs:
+
 
         Returns:
             FRBGalaxy or None
@@ -118,6 +124,7 @@ class FRBGalaxy(object):
 
     def __init__(self, ra, dec, frb, cosmo=None):
         """
+
 
         Args:
             ra (float):
@@ -160,6 +167,7 @@ class FRBGalaxy(object):
         """
         Return the redshift of the galaxy
 
+
         Returns:
             float or None: redshift or nadda
 
@@ -172,6 +180,7 @@ class FRBGalaxy(object):
     def z_err(self):
         """
         Return the redshift error of the galaxy
+
 
         Returns:
             float or None: redshift or nadda
@@ -188,6 +197,7 @@ class FRBGalaxy(object):
         Applies dust extinction if self.derived['AV_nebular'] is filled
 
         Mainly a wrapper to nebular.calc_lum()
+
 
         Args:
             line (str):  Name of the line
@@ -214,10 +224,12 @@ class FRBGalaxy(object):
 
         self.derived['AV_nebular'] is filled
 
+
         Args:
             method (str): Method to use
             min_AV (float): Minimum A_V value allowed;  might set 0. someday
             **kwargs: Passed to nebular.calc_dust_extinct
+
 
         Returns:
 
@@ -239,9 +251,11 @@ class FRBGalaxy(object):
 
         self.derived['AV_nebular'] is filled with units SFR/yr
 
+
         Args:
             method (str):  Method to use, e.g. 'Ha' for Halpha
             **kwargs: passed to nebular.calc_SFR
+
 
         Returns:
 
@@ -264,6 +278,7 @@ class FRBGalaxy(object):
         """Calculate total uncertainty in arcsec of 
         FRB localization + Host localization in the 
         reference frame of the FRB
+
 
         Returns:
             tuple: uncerta, uncertb [arcsec]
@@ -302,6 +317,7 @@ class FRBGalaxy(object):
 
         Also fills fluxes in mJy
 
+
         Args:
             phot_tbl (astropy.table.Table):
                 ra, dec entires are required
@@ -309,6 +325,7 @@ class FRBGalaxy(object):
             overwrite (bool, optional):
             EBV (float, optional):  Galactic reddening.  If included, the photometry
                has been corrected for this.  If not, who knows?!  :)
+
 
         Returns:
 
@@ -356,6 +373,7 @@ class FRBGalaxy(object):
         Generates the input data file for CIGALE
         given the photometric points and redshift
         of a galaxy
+
 
         Args:
             ID: str, optional
@@ -422,6 +440,7 @@ class FRBGalaxy(object):
         If there is more than one spectrum, the code returns the first
         unless return_all=True
 
+
         Args:
             instr (str, optional):
                 Restrict to the input Instrument
@@ -429,6 +448,7 @@ class FRBGalaxy(object):
                 Return all of the meta, spectra
             specdb_file (str, optional):
                 Path+name of the specDB file to use (over-ride the default)
+
 
         Returns:
             astropy.table.Table, linetools.spectra.XSpectrum1D: meta data, spectra
@@ -472,10 +492,12 @@ class FRBGalaxy(object):
 
         Read into self.derived
 
+
         Args:
             cigale_file (str): Name of the CIGALE results file
             sfh_file (str, optional): Name of the best SFH model file.
             overwrite (bool, optional):  Over-write any previous values
+
 
         Returns:
 
@@ -540,6 +562,7 @@ class FRBGalaxy(object):
 
         Loaded into self.morphology
 
+
         Args:
             galfit_file (str): processed 'out.fits' file
                 produced by frb.galaxies.galfit.run. Contains
@@ -595,10 +618,12 @@ class FRBGalaxy(object):
 
         Loaded into self.lines
 
+
         Args:
             ppxf_file (str): pPXF results file
             overwrite (bool, optional):
             format (str, optional):  Format of the table
+
 
         Returns:
 
@@ -649,12 +674,14 @@ class FRBGalaxy(object):
         """
         Set the redshift value(s) in self.redshift
 
+
         Args:
             z (float): Redshift value
             origin (str):  Origin
                'spec' for spectroscopic
                'phot' for photometric
             err (float, optional): Error in the redshift
+
 
         Returns:
 
@@ -688,8 +715,10 @@ class FRBGalaxy(object):
         """
         Vette one of the main_attr
 
+
         Parameters:
             attr (str):
+
 
         Returns:
             bool: True = passed
@@ -734,9 +763,11 @@ class FRBGalaxy(object):
         """
         Vette all of the main dicts
 
+
         Args:
             dict:
             valid_defs:
+
 
         Returns:
             bool: True = passed
@@ -753,6 +784,7 @@ class FRBGalaxy(object):
         """
         Auto-generate an output name for the class
 
+
         Returns:
             str: Output filename
 
@@ -765,11 +797,13 @@ class FRBGalaxy(object):
         """
         Write key aspects of the class to disk in a JSON file
 
+
         Args:
             outfile (str, optional): Output filename
               If not provided, one will be generated with make_outfile()
             path (str, optional): Path for the output file
             overwrite (bool, optional): Overwrite?
+
 
         Returns:
 
@@ -818,6 +852,7 @@ class FRBHost(FRBGalaxy):
     """
     Child of FRBGalaxy specific for an FRB host
 
+
     Args:
         ra (float): RA in deg
         dec (float): DEC in deg
@@ -827,6 +862,7 @@ class FRBHost(FRBGalaxy):
     @classmethod
     def by_frb(cls, frb, **kwargs):
         """
+
         
         Args:
             frb (frb.FRB):  FRB object
@@ -864,8 +900,10 @@ class FRBHost(FRBGalaxy):
         """
         Static method to generate outfile based on frbname
 
+
         Args:
             frbname (str):  FRB name, e.g. 121102 or FRB121102
+
 
         Returns:
             str: outfile
@@ -884,8 +922,10 @@ class FRBHost(FRBGalaxy):
         given the host stellar mass in its derived properties
         dict and the FRB coordinates.
 
+
         Args:
             **kwargs: Passed to dm_host.dm_host_halo
+
         
         Returns:
             DM_halo (float): Halo contribution to the DM in pc/cm^3
@@ -909,6 +949,7 @@ class FRBHost(FRBGalaxy):
 
         Naming is FRBXXXXXX_host.json with XXXXXXX supplied by self.frb
 
+
         Returns:
             str:  Name of the default outfile
 
@@ -924,12 +965,14 @@ class FRBHost(FRBGalaxy):
 
         self.redshift is modified in place
 
+
         Args:
             z (float): Redshift value
             origin (str):  Origin
                'spec' for spectroscopic
                'phot' for photometric
             err (float, optional): Error in the redshift
+
 
         Returns:
 

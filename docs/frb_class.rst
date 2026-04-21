@@ -161,7 +161,7 @@ For FRBs with identified host galaxies, use the ``grab_host()`` method::
     print(host.derived)     # Derived quantities (Mstar, SFR, etc.)
     print(host.photom)      # Photometry
 
-See :doc:`frbhost_class` for details on the FRBHost class.
+See :doc:`frbhost_class` for details on FRB galaxy and FRBHost workflows.
 
 Listing All FRBs
 ================
@@ -247,18 +247,15 @@ Save an FRB object to a JSON file::
 API Reference
 =============
 
-.. autoclass:: frb.frb.FRB
-   :members:
-   :undoc-members:
-   :show-inheritance:
+For the full API reference, see :doc:`api/frb`.
 
-.. autofunction:: frb.frb.list_of_frbs
-
-.. autofunction:: frb.frb.build_table_of_frbs
+* :class:`frb.frb.FRB` — FRB event class
+* :func:`frb.frb.list_of_frbs` — list all FRBs in the repository
+* :func:`frb.frb.build_table_of_frbs` — build a table of FRB data
 
 See Also
 ========
 
-* :doc:`frbhost_class` - Host galaxy class documentation
+* :doc:`frbhost_class` - FRB Galaxies and host class documentation
 * :doc:`database` - Database access utilities
 * :doc:`dm` - DM calculations

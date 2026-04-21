@@ -168,7 +168,9 @@ def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec
     """
     Cross matches two astronomical catalogs and returns
     the matched tables.
-    Args:
+
+    Parameters
+    ----------
         cat1, cat2: astropy Tables
             Two tables with sky coordinates to be
             matched.
@@ -190,7 +192,9 @@ def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec
         return_match_idx: bool, optional
             Return the indices of the matched entries with
             with the distance instead?
-    returns:
+
+    Returns
+    -------
         match1, match2: astropy Table
             Tables of matched rows from cat1 and cat2.
         idx, d2d (if return_match_idx): ndarrays
@@ -416,14 +420,18 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     ensures there is a unique match between tables as opposed to the default join_skycoord
     behavior which matches multiple objects on the right table to
     a source on the left. The two tables must contain the columns 'ra' and 'dec' (case-sensitive).
-    Args:
+
+    Parameters
+    ----------
         tab1, tab2 (Table): Photometry catalogs. Must contain columns named
             ra and dec.
         tol (Quantity[Angle], optional): Maximum separation for cross-matching.
         table_names (tuple of str, optional): Names of the two tables for
             naming unique columns in the merged table.
         kwargs: Additional keyword arguments to be passed onto xmatch_catalogs
-    Returns:
+
+    Returns
+    -------
         merged_table (Table): Merged catalog.
     """
     if table_names is not None:

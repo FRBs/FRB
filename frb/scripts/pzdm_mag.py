@@ -159,3 +159,8 @@ def main(pargs):
 
     return z_min, z_max, z_50, z_mode, frac_Lstar_min, frac_Lstar_max
 
+
+def cli():
+    main(parser())
+
+

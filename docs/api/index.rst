@@ -12,12 +12,20 @@ The FRB package is organized into several key modules:
    :maxdepth: 2
 
    frb
+   analysis
    dm
    galaxies
    halos
    surveys
    associate
+   builds
+   figures
+   scripts
+   dm_kde
    frb_surveys
+   defs
+   io
+   utils
    turb_scattering
    rm
    mw
@@ -72,12 +80,12 @@ Core Functions by Category
 .. autosummary::
    :nosignatures:
 
-   frb.dm.igm.DM_cosmic
+   frb.dm.igm.average_DM
    frb.dm.igm.ne_cosmic  
    frb.dm.igm.z_from_DM
-   frb.dm.igm.DM_halos
-   frb.dm.cosmic.DM_cosmic
-   frb.dm.host.DM_host
+   frb.dm.igm.average_DMhalos
+   frb.dm.cosmic.DMcosmic_PDF
+   frb.dm.host.dm_host_from_ssfr
 
 **Scattering:**
 
@@ -101,8 +109,8 @@ Core Functions by Category
 .. autosummary::
    :nosignatures:
 
-   frb.FRB.by_name
-   frb.FRB.grab_host
+   frb.frb.FRB.by_name
+   frb.frb.FRB.grab_host
 
 Class Hierarchy
 ---------------
@@ -162,7 +170,7 @@ The FRB package uses standard Python exception handling:
 .. code-block:: python
 
    try:
-       frb_obj = ffrb.FRB.by_name('NonExistentFRB')
+      frb_obj = FRB.by_name('NonExistentFRB')
    except FileNotFoundError:
        print("FRB data not found")
    except ValueError as e:

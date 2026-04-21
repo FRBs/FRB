@@ -28,6 +28,7 @@ def sub_cartoon(ax1, ax2, coord, zFRB, halos=False, host_DM=50., ymax=None,
 
     Plot of increasing DM from Earth to the FRB
 
+
     Args:
         ax1 (matplotlib.Axis):
             First axis.  Used for Milky Way and local group
@@ -234,6 +235,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
                show_sigmaDM=False, cl=(16,84), beta=3., gold_only=True, gold_frbs=None):
     """
 
+
     Args:
         frbs (list):
             list of FRB objects
@@ -264,6 +266,7 @@ def fig_cosmic(frbs, clrs=None, outfile=None, multi_model=False, no_curves=False
             Max redshift for the MR line
         cosmo (astropy.cosmology, optional):
             Defaults to Repo Cosmology
+
 
     Returns:
         dict:

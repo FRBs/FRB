@@ -9,18 +9,9 @@ frb.associate - FRB-Galaxy Association
 Submodules
 ----------
 
-frb.associate.frbassociate - FRBAssociate Class
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: frb.associate.frbassociate
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.associate.frbs - FRB Association Data
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.associate.frbs
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   associate.frbassociate
+   associate.frbs
+   associate.gen_pox_table

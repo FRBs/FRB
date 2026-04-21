@@ -15,6 +15,8 @@ def assign_value(tfrb, key, ilist, tbl_units):
 
     The input list and dict of units may be modified in place
 
+
+
     Args:
         tfrb (frb.frb.FRB):
         key (str):
@@ -42,8 +44,12 @@ def get_valunit(item):
     Grab the value and unit of an input item allowing
     for an astropy.units.Quantity
 
+
+
     Args:
         item (units.Quantity or any Python object):
+
+
 
     Returns:
         value, unit
@@ -212,6 +218,8 @@ def radec_to_coord(radec):
     Parameters
     ----------
     radec : str or tuple or SkyCoord or list
+
+
         Examples:
         'J124511+144523',
         '124511+144523',
@@ -278,20 +286,20 @@ def radec_to_coord(radec):
 
 
 def Tsky(nu):
-    """ Sky temperature
-     Tsky for all other surveys has been evaluated assuming an average sky
-     temperature of 34 K at 408 MHz and a spectral index of -2.6
-    Follows Haslam et al. 1982
+    """Sky temperature model.
+
+    Uses 34 K at 408 MHz and spectral index -2.6
+    (Haslam et al. 1982 scaling).
 
     Parameters
     ----------
     nu : Quantity
+        Observing frequency.
 
     Returns
     -------
-    Tsky : Quantity
-
-
+    Quantity
+        Sky temperature at `nu`.
     """
     # TODO  -- Need some guidance here
     return 34*units.K * (nu/(408*units.MHz))**(-2.6)
@@ -299,12 +307,18 @@ def Tsky(nu):
 def parse_frb_name(name:str, prefix='FRB'):
     """Parse the incoming name to generate a 'proper' FRB name
 
+
+
     Args:
         name (str): [description]
         prefix (str, optional): [description]. Defaults to 'FRB'.
 
+
+
     Raises:
         IOError: [description]
+
+
 
     Returns:
         str: The proper FRB name
@@ -327,6 +341,8 @@ def parse_frb_name(name:str, prefix='FRB'):
 def log10_to_linear_errors(value, log_upper_error, log_lower_error):
     """
     Convert log10 errors to linear errors.
+
+
     
     Parameters:
     -----------
@@ -336,6 +352,8 @@ def log10_to_linear_errors(value, log_upper_error, log_lower_error):
         Upper error in log10 space
     log_lower_error : float
         Lower error in log10 space
+
+
     
     Returns:
     --------

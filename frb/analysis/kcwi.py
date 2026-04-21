@@ -17,17 +17,17 @@ try:
     from photutils.aperture import EllipticalAperture
     from photutils.background import Background2D, MedianBackground
 except ImportError:
-    raise ImportError("Requirement unmet: photutils. Run `pip install photutils`")
+    print("Requirement unmet: photutils. Run `pip install photutils`")
 
 try:
     from spectral_cube import SpectralCube
     from spectral_cube import BooleanArrayMask
 except ImportError:
-    raise ImportError("Requirement unmet: SpectralCube. Run `pip install spectral-cube`.")
+    print("Requirement unmet: SpectralCube. Run `pip install spectral-cube`.")
 try:
     import pyregion as pyreg
 except ImportError:
-    raise ImportError("Requirement unmet: pyregion. Run `pip install pyregion`.")
+    print("Requirement unmet: pyregion. Run `pip install pyregion`.")
 
 import os
 
@@ -35,6 +35,8 @@ def _interp_trans(transfile, kind= "cubic", fill_value=0, **readkw):
     """
     Interpolate a transmission curve from
     a file.
+
+
     Args:
         transfile (str): Path to transmission curve file.
             The file should contain two columns in this order:
@@ -46,6 +48,8 @@ def _interp_trans(transfile, kind= "cubic", fill_value=0, **readkw):
             https://docs.scipy.org/doc/scipy/reference/generated/scipy.interpolate.interp1d.html
         **readkw: Keyword arguments for reading the
             input file using astropy Table.
+
+
     Returns:
         transfunc (function): interpolation
     """
@@ -59,6 +63,8 @@ def silence_warnings(warncategory):
     To silence spectral cube warnings.
     Check out spectral_cube.utils for
     warning categories.
+
+
     Args:
         warncategory (Warnings category): category of Warnings you want
             to silence.
@@ -70,8 +76,12 @@ def _air_to_vac(wave):
         """
         Helper function to convert wavelengths
         in air to vacuum.
+
+
         Args:
             wave (float or ndarray): wavelength in air in angstroms
+
+
         Returns:
             wave_vac (float or ndarray): wavelength in vacuum in angstroms
         """
@@ -82,13 +92,18 @@ def _air_to_vac(wave):
 
 def _read_in_data(datafile, reduction_pipeline='pypeit'):
         """
-        Read in data from a KCWI datacube.            flux_hdr.set('CRVAL3', flux_hdr['CRVAL3']*1e10, "[Angstrom] Reference value for wavelength")
-            flux_hdr.set('CDELT3', flux_hdr['CDELT3']*1e10, "[Angstrom] Coordinate increment at reference point")        Args:
+        Read in data from a KCWI datacube.
+
+
+
+        Args:
             datafile (str): Path to datacube fits file.
             reduction_pipeline (str, optional): Reduction pipeline
                 used to reduce the datacube. Default is 'pypeit'.
                 Also allowed 'kcwidrp'. Other pipelines are not
                 supported yet.
+
+
         Returns:
             flux (array): 3D array of fluxes.
             std (array): 3D Std. dev. array.
@@ -123,6 +138,8 @@ def find_sources(imgfile, nsig = 1.5,
         """
         Find sources in the whitelight image
         using Photutils segmentation.
+
+
         Args:
             imgfile (str): An image fits file
             n_sig (float, optional): Detection threshold in units
@@ -140,6 +157,8 @@ def find_sources(imgfile, nsig = 1.5,
                 areas to be masked out.
             write (str, optional): write extracted object table
                 to this path.
+
+
         Returns:
             objects (Table): Summary table of detected objects.
             segmap (ndarray): Segmentation map.
@@ -221,8 +240,12 @@ class KCWIDatacube():
         Helper function that tiles 1D array of
         size cube.spectral_axis.shape and tiles it
         to the same shape as the cube.
+
+
         Args:
             array (ndarray): the 1D array that needs to be tiled.
+
+
         Returns:
             tiled_array (ndarray): an array with the 1D array tiled
                 in the spatial dimension. This has the same shape
@@ -236,9 +259,13 @@ class KCWIDatacube():
         Mask out wavelengths using
         a 1D grid. Values corresponding
         to "False" are masked out.
+
+
         Args:
             mask_1D (bool ndarray): 1D boolean array
                 of same length as cube.spectral_axis
+
+
         Returns:
             masked_cube (Spectral cube): masked datacube.
             masked_varcube (Spectral cube): masked variance cube.
@@ -258,6 +285,8 @@ class KCWIDatacube():
         """
         Flatten cube along wavelength and produce a 2D
         image.
+
+
         Args:
             wlow, whigh (Quantity, optional): wavelength 
                 limits (with astropy units) to flatten between.
@@ -280,6 +309,8 @@ class KCWIDatacube():
                 saved to.
             overwrite (bool, optional): Overwrite existing
                 file?
+
+
         Returns:
             img (Spectral Cube Projection): Flattened 2D image
         """
@@ -320,22 +351,21 @@ class KCWIDatacube():
 
     def spec_from_spatial_mask(self, mask_arr, how="cube"):
         """
-        Extract a spectrum from a cube
-        within a spatial mask.
-        Args:
-            cube (Spectral Cube): A datacube object
-            mask_arr (numpy array): A 2D boolean array. A
-                spectrum is extracted from the regions
-                corresponding to True.
-            kind (str, optional): median or mean
-            how (str, optional): "cube" or "slice". Load 
-                the entire masked cube to memory when 
-                computing spectra or compute it looping
-                over slices.
-        Returns:
-            spec (OneDSpectrum): The extracted spectrum.
-            var (OneDSpectrum): Variance in spectrum.
-                Only returned if varcube is supplied.
+        Extract a spectrum from a cube within a spatial mask.
+
+        Parameters
+        ----------
+        mask_arr : numpy.ndarray
+            2D boolean mask. Pixels set to True are extracted.
+        how : str, optional
+            Summation mode for spectral-cube ("cube" or "slice").
+
+        Returns
+        -------
+        spec : OneDSpectrum
+            Extracted mean spectrum.
+        varspec : OneDSpectrum
+            Variance of extracted mean spectrum.
         """
         assert mask_arr.dtype == bool, "Masks must be boolean. int type masks make computation slow."
 
@@ -357,16 +387,22 @@ class KCWIDatacube():
         
         """
         Get the spectrum within an elliptical region
-        Args:
-            cube (Spectral Cube): A datacube object
-            x0, y0 (float, optional): Centroid of ellipse in pixels.
-            a, b (float, optional): semi-major and semi-minor axes in pixels.
-            theta (float, optional): rotation angle of the semi-major
-                axis from the positive x axis.
-        Returns:
-            spec (OneDSpectrum): The extracted spectrum.
-            var (OneDSpectrum): Variance in spectrum.
-                Only returned if varcube is supplied.
+
+        Parameters
+        ----------
+        x0, y0 : float, optional
+            Ellipse center in pixel coordinates.
+        a, b : float, optional
+            Semi-major and semi-minor axes in pixels.
+        theta : float, optional
+            Position angle of semi-major axis from positive x axis.
+
+        Returns
+        -------
+        spec : OneDSpectrum
+            Extracted mean spectrum.
+        varspec : OneDSpectrum
+            Variance of extracted mean spectrum.
         """
         #TODO: Use photutils aperture object for this.
         # Create 2D mask first
@@ -380,6 +416,8 @@ class KCWIDatacube():
     def _make_marz(self, speclist, varspeclist, objects,  wave=None, marzfile="marzfile.fits", vac_wave = True):
         """
         Helper function to create a MARZ input file
+
+
         Args:
             cube (Spectral cube): Datacube
             speclist (list): list of spectra. i.e.
@@ -454,27 +492,29 @@ class KCWIDatacube():
         return marz_hdu
     def get_source_spectra(self, objects, outdir = "spectra/", marzfile = None, vac_wave=True, wvlims= None):
         """
-        Extract spectra of sources found using SExtractor
-        from datacube.
-        Args:
-            cubefile (str): A datacube fits file
-            varfile (str): Variance datacube fits file
-            objects (Table): Table of extracted objects produced
-                by SourceCatalog.
-            outdir (str, optional): directory to store spectra
-            marzfile (str, optional): name of MARZ file to dump
-                all spectra into. File creation is skipped if
-                a name is not supplied.
-            vac_wave (bool, optional): Wavelengths are in vacuum.
-            wvlims (tuple, optional): Wavelength limits to
-                extract spectra between. If None, the full
-                wavelength range is used. Expects floats in angstroms.
-        Returns:
-            speclist (ndarray): A 2D array of with an extracted
-                spectrum in each row.
-            varspeclist (ndarray): Similarly designed array with
-                variance information.
-            wave (1D Quantity array): Wavelength array.
+        Extract 1D spectra for detected sources.
+
+        Parameters
+        ----------
+        objects : astropy.table.Table
+            Source table from segmentation/photutils.
+        outdir : str, optional
+            Output directory for per-source spectra.
+        marzfile : str, optional
+            MARZ output filename. If None, MARZ export is skipped.
+        vac_wave : bool, optional
+            Whether wavelength grid is vacuum.
+        wvlims : tuple, optional
+            Wavelength limits in Angstrom.
+
+        Returns
+        -------
+        speclist : numpy.ndarray
+            Extracted spectra, one row per source.
+        varspeclist : numpy.ndarray
+            Variance spectra, one row per source.
+        wave : numpy.ndarray
+            Wavelength grid in Angstrom.
         """
 
         # Preliminaries

@@ -79,9 +79,11 @@ def chk_fill(value):
 def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     """Assign a redshift using one of the Galaxy_DB tables
 
+
     Args:
         ztbl_file (str): table file
         host (frbgalaxy.FRBHost): host object
+
 
     Raises:
         ValueError: [description]
@@ -103,12 +105,14 @@ def search_for_file(projects, references, root:str,
 
     If multiple files are found, the *last* one is returned
 
+
     Args:
         projects ([type]): [description]
         references ([type]): [description]
         root (str): [description]
         prefix (str, optional): [description]. Defaults to 'ref'.
         return_last_file (bool, optional): [description]. Defaults to False.
+
 
     Returns:
         tuple: bool, str  [file was found?, name of file with path]
@@ -134,13 +138,16 @@ def search_for_file(projects, references, root:str,
 def read_lit_table(lit_entry, coord=None):
     """ Reade a literature table
 
+
     Args:
         lit_entry (pandas row): Row of the overview table
         coord (astropy.coordiantes.SkyCoord, optional): Coordinate
             for the galaxy of interest. Defaults to None.
 
+
     Raises:
         ValueError: [description]
+
 
     Returns:
         astropy.table.Table: table of literature data
@@ -179,6 +186,7 @@ def run(host_input:pandas.core.series.Series,
         outfile:str=None):
     """Main method for generating a Host JSON file
 
+
     Args:
         host_input (pandas.core.series.Series): Row of the CVS file
             providing the host inputs
@@ -194,6 +202,7 @@ def run(host_input:pandas.core.series.Series,
         out_path (str, optional): Over-ride default outfile [not recommended; mainly for testing]
         skip_surveys (bool, optional): 
             Skip the survey data.  Useful for testing. Defaults to False.
+
 
 
     Raises:
@@ -508,6 +517,7 @@ def run(host_input:pandas.core.series.Series,
 def main(frbs:list, options:str=None, hosts_file:str=None, lit_refs:str=None,
          override:bool=False, outfile:str=None, out_path:str=None):
     """ Driver of the analysis
+
 
     Args:
         frbs (list): [description]
