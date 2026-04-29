@@ -180,9 +180,13 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapz(throughput * source_flux * 
-                     10 ** (-0.4 * Alambda), wave) / np.trapz(
-                         throughput * source_flux, wave)
+    if getattr(np, "trapz", None) is not None:
+        delta = np.trapz(throughput * source_flux * 
+                        10 ** (-0.4 * Alambda), wave) / np.trapz(
+                            throughput * source_flux, wave)
+    else:
+        delta = np.trapezoid(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapezoid(
+                            throughput * source_flux, wave)
 
     correction = 1./delta
 
@@ -203,7 +207,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         photom (astropy.table.Table):
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
-        name (str):\
+        name (str):
             Name of the object to correct
         required (bool, optional):
             Crash out if the transmission curve is not present
