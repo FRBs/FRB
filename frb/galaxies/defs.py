@@ -263,7 +263,6 @@ valid_derived_photom = [
     'Z_photom',        # Metallicity from photometry; CIGALE
     'Z_spec',          # Metallicity from spectra; pPXF
     'Z_stellar',        # Stellar metallicity; Prospector
-    'Z_gas'            # Gas-phase metallicity; Prospector
     ]
 
 valid_derived_nebular = [
