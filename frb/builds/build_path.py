@@ -35,6 +35,7 @@ def run(frb_list:list,
         override:bool=False):
     """Main method for running PATH analysis for a list of FRBs
 
+
     Args:
         frb_list (list): List of FRB names from the database
         prior (dict):
@@ -46,9 +47,11 @@ def run(frb_list:list,
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
 
+
     Raises:
         e: [description]
         ValueError: [description]
+
 
     Returns:
         pandas.DataFrame:  Table of PATH values and a bit more
@@ -142,6 +145,7 @@ def run(frb_list:list,
 def main(options:str=None, frb:str=None):
     """ Driver of the analysis
 
+
     Args:
         options (str, optional): [description]. Defaults to None.
         frb (str, optional): FRB name
@@ -154,8 +158,13 @@ def main(options:str=None, frb:str=None):
         # Generate FRBs for PATH analysis
         frb_list = host_tbl.FRB.values.tolist()
     else:
-        # Generate the list
-        frb_list = frb.split(',')
+        # CSV?
+        if frb.endswith('.csv'):
+            df = pandas.read_csv(frb)
+            frb_list = df.TNS.values.tolist()
+        else:
+            # Generate the list
+            frb_list = frb.split(',')
         #ifrb = [FRB.by_name(ifrb) for ifrb in frbs]
         #host = ifrb.grab_host()
         #frb_list = [ifrb.frb_name]
@@ -164,18 +173,19 @@ def main(options:str=None, frb:str=None):
     # Load prior
     priors = load_std_priors()
     prior = priors['adopted'] # Default
+    # Shannon+2025 revised prior
+    theta_new = dict(method='exp', 
+                        max=priors['adopted']['theta']['max'], 
+                        scale=0.5)
+    prior['theta'] = theta_new
+    prior['U'] = 0.1
+    print("Using new prior with scale=0.5 and P(U) = 0.1")
 
     # Parse optionsd
     write_indiv = False
     show = False
     add_skipped = False
     if options is not None:
-        if 'new_prior' in options:
-            theta_new = dict(method='exp', 
-                             max=priors['adopted']['theta']['max'], 
-                             scale=0.5)
-            prior['theta'] = theta_new
-            print("Using new prior with scale=0.5")
         if 'write_indiv' in options:
             write_indiv = True
         if 'show' in options:

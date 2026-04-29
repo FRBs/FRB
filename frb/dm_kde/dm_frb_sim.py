@@ -7,12 +7,9 @@ from frb.dm import igm
 import numpy as np
 import scipy as sp
 import pandas as pd
-from pandas import DataFrame as df
 from scipy.stats import lognorm
 from scipy.signal import argrelextrema
 from pdf_fns import make_kde_funtion, make_pdf, rv_amount
-import matplotlib
-import matplotlib.pyplot as plt
 from astropy import units
 import random
 import logging
@@ -24,6 +21,7 @@ def simulate_frb_dm(frb_data, z_stepsize=10**-4, z_max=3, dm_min=0, dm_max=3000,
     Simulate DM_FRB by constructing PDFs for DM_cosmic, DM_host and DM_halo.
     Please check your frbcat_df matches the template used here.
     Change the halo and host distributions as you feel appropriate.
+
 
     Arguments:
         transient_data (str):
@@ -112,6 +110,7 @@ def kde_for_frb_sim(grid, dm_sim, num_samples, num_resamples=50, save_to_path=No
     """
     Estimate simulated DM_FRB using a random draws from the simulation. Used to analyse KDE effectiveness
     for different sample sizes (num_samples).
+
     
     Arguments:
         dm_grid (array):

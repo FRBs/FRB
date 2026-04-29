@@ -5,9 +5,7 @@ https://github.com/tillahoffmann/asymmetric_kde [Hoffman and Jones, 2015] """
 
 from asymmetric_kde import ProperGammaEstimator
 from pdf_fns import make_kde_funtion
-from data import FRBs
 import numpy as np
-import pandas as pd
 from scipy.signal import argrelextrema
 from astropy.stats import bootstrap
 from astropy.utils import NumpyRNGContext
@@ -19,6 +17,7 @@ logging.basicConfig(format='%(asctime)s - %(message)s', datefmt='%d-%b-%y %H:%M:
 def kde_for_frb(grid, dm_frb, num_samples, num_resamples=100, save_to_path=None):
     """
     Find FRB KDE and minima
+
     
     Arguments:
         dm_grid (array):
@@ -73,6 +72,7 @@ def kde_for_frb(grid, dm_frb, num_samples, num_resamples=100, save_to_path=None)
 def kde_for_psr(grid, dm_psr, num_samples, num_resamples=100, min_bandwidth=8, max_bandwidth=15, bandwidth_stepsize=0.1, cv=100, kernel='gaussian', save_to_path=None):
     """
     Find pulsar KDE and maxima
+
     
     Arguments:
         dm_grid (array):

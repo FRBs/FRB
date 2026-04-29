@@ -1,6 +1,5 @@
 #!/bin/env python3
 import os
-import os.path
 from . import surveycoord
 from astropy.table import Table
 from frb.defs import frb_cosmo
@@ -49,11 +48,13 @@ class NEDLVS(surveycoord.SurveyCoord):
                     print_query=False):
         """
         Get the catalog of objects within the given limits of redshift, impact parameter, and angular separation.
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             impact_par_lim (Quantity): The maximum impact parameter of the objects to include in the catalog.
             ang_sep_lim (Quantity): The maximum angular separation of the objects to include in the catalog.
             query_fields (list): The fields to include in the catalog. If None, the default fields are used.
+
         Returns:
             A table of objects within the given limits.
         """

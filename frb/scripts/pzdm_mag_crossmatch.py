@@ -4,8 +4,6 @@ Estimate p(z|DM) for an assumed location on the sky and DM_FRB
 as well as the limiting magnitude for the host galaxy
 Defaults to using a perfect telescope model for the DM-z grid
 """
-from IPython import embed
-
 
 def parser(options=None):
     import argparse

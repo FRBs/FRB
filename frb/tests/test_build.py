@@ -2,7 +2,6 @@
 
 # TEST_UNICODE_LITERALS
 
-import numpy as np
 import os
 import pytest
 

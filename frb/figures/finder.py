@@ -1,5 +1,5 @@
 """ Module for generating a finder chart """
-import os
+
 import numpy as np
 
 from IPython import embed
@@ -8,7 +8,6 @@ from matplotlib import pyplot as plt
 from matplotlib import font_manager
 import matplotlib.cm as cm
 
-from PIL import Image
 
 from astropy import units
 from astropy.visualization.wcsaxes import SphericalCircle
@@ -26,7 +25,7 @@ from frb.surveys import survey_utils
 from frb.surveys import images
 
 try:
-     from photutils import SkyRectangularAperture
+     from photutils.aperture import SkyRectangularAperture
 except ImportError:
     flag_photu = False
     print('Install the photutils package to be able to add a slit to an image')
@@ -40,9 +39,11 @@ def from_hdu(hdu, title, **kwargs):
 
     see generate() for more details
 
+
     Args:
         hdul (astropy.io.fits.PrimaryHDU):
         title (str):
+
 
     Returns:
         matplotlib.pyplot.figure, matplotlib.pyplot.Axis: figure generated
@@ -64,6 +65,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
              vmnx=None, extra_text=None, outfile=None, figsize=None):
     """
     Basic method to generate a Finder chart figure
+
 
     Args:
         image (np.ndarray):
@@ -108,6 +110,7 @@ def generate(image, wcs, title, flip_ra=False, flip_dec=False,
           to the extension
         figsize (tuple, optional):
           tuple to define the figure size. It goes within the fig=plt.figure(figsize=figsize)
+
 
     Returns:
         matplotlib.pyplot.figure, matplotlib.pyplot.Axis
@@ -269,6 +272,7 @@ def sdss_dss(coord, title, show_circ=True, EPOCH=None, imsize=5.*units.arcmin, o
 
     Pulled from xastropy
 
+
     Args:
         coord (SkyCoord):
         title (str):
@@ -425,12 +429,14 @@ def getjpg(coord, imsize, dss_only=False):
     """
     Grab an SDSS or DSS image
 
+
     Args:
         coord (SkyCoord):
         imsize (Angle or Quantity):
             image size
         dss_only (bool, optional):
             Only pull from DSS
+
 
     Returns:
         PIL, bool:  Image, flag indicating if the image is B&W
@@ -458,10 +464,12 @@ def dsshttp(coord, imsize):
     """
     Generate URL for DSS
 
+
     Args:
         coord (SkyCoord):
         imsize (Angle or Quantity):
             image size
+
 
     Returns:
         str:  URL

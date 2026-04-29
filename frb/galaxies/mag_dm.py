@@ -5,19 +5,14 @@ import os
 
 #import healpy as hp
 
-from cycler import cycler
-
 from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from astropy.coordinates import Distance
-from linetools.scripts.utils import coord_arg_to_coord
 
-from frb.frb import FRB, build_table_of_frbs, list_of_frbs
 from frb.figures import utils as frb_fig_u
 from frb.galaxies import utils as frb_gal_u
 
-from IPython import embed
 
 
 def r_vs_dm_figure(z_min, z_max, z, PzDM, outfile='fig_r_vs_z.png',

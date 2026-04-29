@@ -1,37 +1,18 @@
 """ Estimate magnitude range for a host FRB given DM """
 
 import numpy as np
-import glob, os, sys, json
-import pdb
-
-from scipy.interpolate import interp1d
 
 #import healpy as hp
-
-from cycler import cycler
-import matplotlib as mpl
-import seaborn as sns
-
-import pandas
 
 from matplotlib import pyplot as plt
 import matplotlib.gridspec as gridspec
 
 from astropy.coordinates import Distance
-from astropy import visualization as vis
 from astropy.coordinates import SkyCoord
 
-from linetools import utils as ltu
-from linetools.scripts.utils import coord_arg_to_coord
-
-from frb.frb import FRB, build_table_of_frbs, list_of_frbs
 from frb.figures import utils as frb_fig_u
-from frb.figures import dm as frb_fig_dm
 from frb.galaxies import utils as frb_gal_u
 from frb import mw
-from frb.dm import prob_dmz, igm
-
-from IPython import embed
 
 # user parameters
 FRB = 'FRB20240304'

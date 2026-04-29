@@ -3,16 +3,10 @@ Slurp data from GALEX catalog using the MAST API.
 
 """
 
-import numpy as np
-
-from astropy import units as u,utils as astroutils
-from astropy.io import fits
-from astropy.coordinates import SkyCoord, match_coordinates_sky
-from astropy.table import Table, join
 from ..galaxies.defs import GALEX_bands
 from astroquery.mast import Catalogs
 
-from frb.surveys import surveycoord,catalog_utils,images
+from frb.surveys import surveycoord,catalog_utils
 
 import os
 
@@ -46,16 +40,18 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         self.Survey = "GALEX"
     
-    def get_catalog(self,query_fields=None):
+    def get_catalog(self,query_fields=None, print_query=False):
         """
         Query a catalog in the MAST GALEX database for
         photometry.
+
 
         Args:
             query_fields: list, optional
                 A list of query fields to
                 get in addition to the
                 default fields.
+
         
         Returns:
             catalog: astropy.table.Table

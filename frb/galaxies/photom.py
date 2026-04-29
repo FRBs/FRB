@@ -9,13 +9,12 @@ import importlib_resources
 
 from IPython import embed
 
-from astropy.io import fits
-from astropy.table import Table, hstack, vstack, join
+from astropy.table import Table, hstack, vstack
 from astropy.coordinates import SkyCoord
 from astropy.coordinates import match_coordinates_sky
 from astropy import units
 from astropy.wcs import utils as wcs_utils
-from astropy.nddata import Cutout2D
+
 from astropy.wcs import WCS
 from astropy import stats
 
@@ -23,7 +22,10 @@ from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
 
-import dust_extinction
+try:
+    import dust_extinction
+except ImportError:
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
 # Photometry globals
 table_format = 'ascii.fixed_width'
@@ -34,11 +36,13 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
     Merge photometry tables
 
+
     Args:
         new_tbl (astropy.table.Table):
             New table of photometry
         old_file (str or Table):
             Path to the old table
+
 
     Returns:
         astropy.table.Table:
@@ -86,9 +90,11 @@ def photom_by_name(name, filelist):
 
     Warning:  Order matters!  Use best data last
 
+
     Args:
         name (str):
         filelist (list):
+
 
     Returns:
         astropy.table.Table:
@@ -131,6 +137,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
             MW extinction curve ends at 1.4 microns.
         required (bool, optional):
             Crash out if the transmission curve is not present
+
 
     Returns:
              float: linear extinction correction
@@ -203,14 +210,17 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
 
     Uses extinction_correction()
 
+
     Args:
         photom (astropy.table.Table):
+            Required keys: 'Name', filters
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
         name (str):
             Name of the object to correct
         required (bool, optional):
             Crash out if the transmission curve is not present
+
 
     Returns:
         int: Return code
@@ -274,6 +284,7 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
     """ Measure the surface brightness at an FRB location
     in a host galaxy
 
+
     Args:
         host (Host object): host galaxy object from frb repo
         cut_dat (np.ndarray): data (data from astorpy 2D Cutout object)
@@ -284,6 +295,7 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
         physical (bool, optional): If True, FWHM is in kpc. Defaults to False.
         min_uncert (int, optional): Minimum localization unceratainty
             for the FRB, in pixels.  Defaults to 2.
+
 
     Returns:
         tuple: sb_average, sb_average_err  [counts/sqarcsec]
@@ -363,11 +375,13 @@ def sb_at_frb(host, cut_dat:np.ndarray, cut_err:np.ndarray, wcs:WCS,
 def fractional_flux(cutout, frbdat, hg, nsig=3.):
     """Calculate the fractional flux at the FRB location
 
+
     Args:
         cutout (WCS Cutout2D): astropy 2D Cutout of data around host galaxy
         frbdat (frb.FRB): frb object loaded from frb repo
         hg (frb.galaxies.frbgalaxy.FRBHost): host galaxy object loaded from frb repo
         nsig (float, optional): sigma for FRB localization within which the measurement should be made. Defaults to 3.
+
 
     Returns:
         tuple: median_ff, sig_ff, ff_weight [no units]

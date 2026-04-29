@@ -4,20 +4,8 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-#import pytest
-import os
 import numpy as np
 
-from astropy.coordinates import SkyCoord
-from astropy import units
-from astropy.table import Table
-
-from linetools.spectra import xspectrum1d
-
-from frb.galaxies import frbgalaxy, defs, utils
-from frb.frb import FRB
-
-from frb.galaxies import mag_dm
 from frb.dm import prob_dmz
 
 
@@ -75,7 +63,7 @@ def test_pzdm_telescopes():
     assert isinstance(z_mode, float)
 
     assert np.isclose(frac_Lstar_min, 0.00804, atol=1e-4)
-    assert np.isclose(frac_Lstar_max, 2.88776, atol=1e-4)
+    assert np.isclose(frac_Lstar_max, 2.8914, atol=1e-4)
     assert z_min < z_max
     assert 0 <= z_50 <= 1
     assert 0 <= z_mode <= 1

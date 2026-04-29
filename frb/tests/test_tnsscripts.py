@@ -26,9 +26,9 @@ def test_tns():
     theta = 0.0
     dec = 54.3116510708
     ra = 210.910674637
-    skip = None
+    # skip = None
     single_obj = True
-    outfile = 'outfile.txt'
+    # outfile = 'outfile.txt'
 
     match = tns.main(filename=None,
                      name=None, 

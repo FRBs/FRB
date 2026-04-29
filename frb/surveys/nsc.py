@@ -1,7 +1,6 @@
 """NOIRLab source catalog"""
 
 import numpy as np
-from astropy import units, io, utils
 
 from frb.surveys import dlsurvey, defs
 from frb.surveys import catalog_utils
@@ -33,6 +32,7 @@ class NSC_Survey(dlsurvey.DL_Survey):
 
     Child of DL_Survey which uses datalab to access NOAO
 
+
     Args:
         coord (SkyCoord): Coordiante for surveying around
         radius (Angle): Search radius around the coordinate
@@ -52,10 +52,12 @@ class NSC_Survey(dlsurvey.DL_Survey):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
+
         Args:
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
+
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE

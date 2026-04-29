@@ -3,15 +3,12 @@ from __future__ import print_function, absolute_import, division, unicode_litera
 
 # TEST_UNICODE_LITERALS
 
-import pytest
-import os
 import numpy as np
 import importlib_resources
 
 from astropy.table import Table
 from astropy import units 
 from astropy.io import fits 
-from astropy.coordinates import SkyCoord
 from astropy.nddata import Cutout2D
 from astropy.wcs import WCS
 
@@ -23,7 +20,7 @@ from frb.surveys.catalog_utils import convert_mags_to_flux
 def test_dust_correct():
 
     correct = photom.extinction_correction('GMOS_S_r', 0.138)
-    assert np.isclose(correct, 1.3869201954307397)
+    assert np.isclose(correct, 1.3936491887210187)
 
 def test_flux_conversion():
 

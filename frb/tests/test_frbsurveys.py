@@ -205,6 +205,13 @@ def test_panstarrs():
         assert np.all(np.isin(metadata.colnames, ['name', 'type', 'description']))
 
 
+    # Test getting metadata repeatedly to check caching
+    for index in range(10):
+        metadata = _ps1metadata()
+        assert isinstance(metadata,Table)
+        assert len(metadata) > 0
+        assert np.all(np.isin(metadata.colnames, ['name', 'datatype', 'description']))
+
 @nedlvs
 def test_nedlvs():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))

@@ -14,7 +14,6 @@ from astropy.table import Table
 from frb.surveys import catalog_utils
 from frb import defs
 
-from IPython import embed
 
 # Necessary because people might not execute eazy from src
 # but might have a copy in bin or some other location.
@@ -95,12 +94,14 @@ def eazy_filenames(input_dir, name):
     """
     Generate names for EAZY files
 
+
     Args:
         input_dir (str):
             Path to eazy inputs/ folder  (can be relative)
             This is where eazy will be run
         name (str):
             Name of the source being analzyed
+
 
     Returns:
         tuple:  catalog_filename, parameter_filename, translate_file
@@ -119,6 +120,7 @@ def eazy_setup(input_dir, template_dir=None):
     """
     Setup for EAZY
 
+
     Args:
         input_dir (str):
             Path to personal eazy inputs/ folder  (can be relative)
@@ -126,6 +128,7 @@ def eazy_setup(input_dir, template_dir=None):
             Path to templates/ folder in EAZY software package.
             If not given, it looks for the folder of `eazy`,
             the executable and navigates from there.
+
 
     Returns:
 
@@ -153,6 +156,7 @@ def eazy_input_files(photom, input_dir, name, out_dir, id_col="id", prior_filter
       - catalog file
       - translation file
       - param file
+
 
     Args:
         photom (dict or Table):
@@ -363,6 +367,7 @@ def run_eazy(input_dir, name, logfile):
     """
     Find and run the EAZY executable on the files
 
+
     Args:
         input_dir (str):
             Path to eazy inputs/ folder  (can be relative)
@@ -404,9 +409,11 @@ def eazy_stats(zgrid, pzi):
     """
     Calculate the 'best' zphot and error
 
+
     Args:
         zgrid (np.ndarray):
         pzi (np.ndarray):
+
 
     Returns:
 

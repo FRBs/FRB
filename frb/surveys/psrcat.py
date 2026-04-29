@@ -1,7 +1,5 @@
 """ PSRCat survey """
 
-import pdb
-
 import numpy as np
 
 from astropy.table import Table
@@ -20,6 +18,7 @@ from frb.surveys import catalog_utils
 class PSRCAT_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the PSRCAT catalog
+
     
     Args:
         coord (SkyCoord): Coordiante for surveying around
@@ -34,6 +33,7 @@ class PSRCAT_Survey(surveycoord.SurveyCoord):
     def get_catalog(self):
         """
         Grab the catalog of pulsars around the input coordinate to the search radius
+
         
         Returns:
             astropy.table.Table:  Catalog of sources returned

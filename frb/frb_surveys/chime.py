@@ -1,6 +1,4 @@
 """ CHIME/FRB calculations """
-import os
-from astropy.io import ascii
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -18,11 +16,10 @@ from frb.galaxies import hosts
 #import dustmaps.sfd
 #dustmaps.sfd.fetch()
 
-from IPython import embed
-
 def check_frb_mr(outfile:str='mr_pdf.png',
                  pdf_file:str=None):
     """ Generate a plot of the host galaxy M_r PDF
+
 
     Args:
         outfile (str, optional): _description_. Defaults to 'mr_pdf.png'.
@@ -58,6 +55,7 @@ def calc_mr_dist(catalog_file:str=None,
                  tblfile:str='CHIME_mr_5Jyms.csv',
                  dm_mw_host:float=200.):
     """ Generate a distribution of m_r values for bright CHIME/FRBs
+
 
     Args:
         catalog_file (str, optional): 

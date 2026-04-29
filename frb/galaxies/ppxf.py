@@ -1,6 +1,7 @@
 """ Module for running pPXF analyses"""
 
 import importlib_resources 
+import warnings
 
 import numpy as np
 if not hasattr(np, "string_"):
@@ -14,12 +15,22 @@ from astropy.table import Table
 
 c = constants.c.to(units.km / units.s).value
 
-from linetools.spectra.xspectrum1d import XSpectrum1D
-from linetools.spectra.io import readspec
+# linetools will be DEPRECATED
+try:
+    import linetools
+except ImportError:
+    warnings.warn("linetools not found.  Install it if you want to use it")
+else:
+    from linetools.spectra.xspectrum1d import XSpectrum1D
+    from linetools.spectra.io import readspec
 
-from ppxf import ppxf
-from ppxf import ppxf_util as util
-from ppxf import miles_util as lib
+try:
+    from ppxf import ppxf
+except ImportError:
+    warnings.warn("ppxf not found.  Install it if you want to use it")
+else:
+    from ppxf import ppxf_util as util
+    from ppxf import miles_util as lib
 import time
 
 from frb.defs import frb_cosmo as cosmo 
@@ -32,6 +43,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     Wrapper for running and handling outputs
 
     Outputs are written to disk
+
+
 
     Args:
         spec_file (str or XSpectrum1D):
@@ -351,7 +364,7 @@ def total_mass(miles, weights, quiet=False):
     in models fitted, given the weights produced and output by pPXF.
 
     A Salpeter IMF is assumed (slope=1.3) initially.
-        -   TODO: Employ Chabrier models
+    TODO: Employ Chabrier models.
     The returned mass excludes the gas lost during stellar evolution.
 
     This procedure uses the mass predictions

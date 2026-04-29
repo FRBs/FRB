@@ -26,7 +26,9 @@ from frb.galaxies import photom
 from frb.galaxies import nebular
 from frb.galaxies.galfit import write_cutout
 
-import photutils
+from photutils.background import MedianBackground, Background2D
+from photutils.segmentation import detect_sources, deblend_sources, SourceCatalog
+from photutils.aperture import EllipticalAperture
 
 from IPython import embed
 
@@ -39,12 +41,16 @@ class FRBAssociate(path.PATH):
     from images.
 
     Use PATH methods for the Bayesian analysis
+
+
     
 
     Args:
         frb (frb.frb.FRB): FRB object
         image_file (str, optional): Name of image file
         max_radius (float, optional): Maximum radius for analysis (arcsec)
+
+
 
     Attributes:
         hdu (fits.HDU: FITS header-data unit
@@ -93,6 +99,8 @@ class FRBAssociate(path.PATH):
         """
         Load the image from self.image_file
 
+
+
         Returns:
 
         """
@@ -108,10 +116,14 @@ class FRBAssociate(path.PATH):
         Make a cutout of the image around the FRB
         and write to the data directory under "Galaxies".
 
+
+
         Args:
             imgdata (np.ndarray): Image data
             wcs (astropy.wcs.WCS): WCS of the image
             size (Quantity, optional): Size of the cutout
+
+
         
         Returns:
             Cutout2D: Cutout of the image
@@ -147,6 +159,8 @@ class FRBAssociate(path.PATH):
         self.Pchance filled in place
         Added as P_c to candidates Table
 
+
+
         Args:
             ndens_eval (str, optional): Source of number density evaluation.
                 See frb.associate.chance.pchance for options
@@ -179,6 +193,8 @@ class FRBAssociate(path.PATH):
         Cut down to candidates
 
         self.candidates is made in place
+
+
 
         Args:
             plate_scale (float or str):
@@ -241,6 +257,8 @@ class FRBAssociate(path.PATH):
         Half-light radii:
             https://iopscience.iop.org/article/10.1086/444475/pdf
 
+
+
         Args:
             ZP (float):
                 Zero point magnitude
@@ -261,7 +279,7 @@ class FRBAssociate(path.PATH):
         if isinstance(ZP, str):
             ZP = self.header[ZP]
 
-        self.cat = photutils.segmentation.SourceCatalog(
+        self.cat = SourceCatalog(
             self.hdu.data - self.bkg.background,
             self.segm,
             background=self.bkg.background)
@@ -273,7 +291,7 @@ class FRBAssociate(path.PATH):
             a = obj.semimajor_sigma.value * radius
             b = obj.semiminor_sigma.value * radius
             theta = obj.orientation.to(units.rad).value
-            apertures.append(photutils.aperture.EllipticalAperture(position, a, b, theta=theta))
+            apertures.append(EllipticalAperture(position, a, b, theta=theta))
         self.apertures = apertures
 
         # Magnitudes
@@ -309,6 +327,8 @@ class FRBAssociate(path.PATH):
         """
         Generate the segment image
 
+
+
         Args:
             nsig (float):
                 Kernel parameter
@@ -319,6 +339,8 @@ class FRBAssociate(path.PATH):
             outfile:
             deblend (bool, optional):
                 Run deblend algorithm too
+
+
 
         Returns:
 
@@ -336,26 +358,26 @@ class FRBAssociate(path.PATH):
 
         # Segment
         try:
-            self.segm = photutils.segmentation.detect_sources(self.hdu.data, self.thresh_img,
+            self.segm = detect_sources(self.hdu.data, self.thresh_img,
                                              npixels=npixels, 
                                              kernel=self.kernel)
         except TypeError:
             warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
             convolved_data = convolve(self.hdu.data, self.kernel)
-            self.segm = photutils.segmentation.detect_sources(convolved_data, self.thresh_img,
+            self.segm = detect_sources(convolved_data, self.thresh_img,
                                              npixels=npixels)
 
         # Debelnd?
         if deblend:
             try:
-                segm_deblend = photutils.segmentation.deblend_sources(self.hdu.data, self.segm,
+                segm_deblend = deblend_sources(self.hdu.data, self.segm,
                                                      npixels=npixels,
                                                      kernel=self.kernel,
                                                      nlevels=32,
                                                      contrast=0.001)
             except TypeError:
                 warnings.warn("Support for older photutils versions will be deprecated. Upgrade to >1.8", category=DeprecationWarning)
-                segm_deblend = photutils.segmentation.deblend_sources(convolved_data, self.segm,
+                segm_deblend = deblend_sources(convolved_data, self.segm,
                                                      npixels=npixels,
                                                      nlevels=32,
                                                      contrast=0.001)
@@ -383,6 +405,8 @@ class FRBAssociate(path.PATH):
 
         self.thresh_img is set in place
 
+
+
         Args:
             nsig (float, optional):
                 Primary threshold parameter
@@ -390,6 +414,8 @@ class FRBAssociate(path.PATH):
                 Primary Background2D parameter
             filter_size (tuple):
                 Primary Background2D parameter
+
+
         Returns:
 
         """
@@ -398,9 +424,9 @@ class FRBAssociate(path.PATH):
             self.load_image()
 
         # Background
-        bkg_estimator = photutils.MedianBackground()
+        bkg_estimator = MedianBackground()
         #embed(header='threshold 402 frbassociate')
-        self.bkg = photutils.Background2D(self.hdu.data, box_size,
+        self.bkg = Background2D(self.hdu.data, box_size,
                                           filter_size=filter_size,
                                           bkg_estimator=bkg_estimator,
                                           exclude_percentile=self.exc_per)
@@ -438,7 +464,8 @@ def run_individual(config, prior:dict=None, show=False,
     """
     Run through the steps leading up to Bayes
 
-    Args:
+    Parameters
+    ----------
         config (dict):  Runs the PATH analysis
             keys:
                 name (str): Name of the FRB, e.g. FRB20121102
@@ -470,6 +497,7 @@ def run_individual(config, prior:dict=None, show=False,
         generate_png (bool, optional):
             Generate PNGs of the cutouts
         verbose (bool, optional):
+            Verbose output flag.
     """
     if not skip_bayesian and prior == None:
         raise IOError("Must specify the priors if you are running the Bayesian analysis")

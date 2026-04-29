@@ -8,9 +8,9 @@ from astropy.units import Quantity
 from astropy.cosmology import Planck18
 
 try:
-    import extinction
+    import dust_extinction
 except ImportError:
-    warnings.warn("extinction package not loaded.  Extinction corrections will fail")
+    warnings.warn("dust_extinction package not loaded.  Extinction corrections will fail")
 
 from frb.galaxies import nebular
 from frb import em
@@ -20,11 +20,13 @@ def dm_host_from_Halpha(z:float, Halpha:Quantity, reff_ang:Quantity,
                              AV:float=None):
     """Estimate DM_Host from Halpha and angular size (and redshift)
 
+
     Args:
         z (float): Redshift
         Halpha (Quantity): Total Halpha flux of the galaxy
         reff_ang (Quantity): Galaxy angular size
         AV (float, optional): Correct for dust if provided
+
 
     Returns:
         Quantity: DM_host as observed (i.e. includes the 1/1+z term)
@@ -32,7 +34,10 @@ def dm_host_from_Halpha(z:float, Halpha:Quantity, reff_ang:Quantity,
     # Dust correction?
     if AV is not None:
         wave = 6564. 
-        al = extinction.fm07(np.atleast_1d(wave), AV)[0]
+        #al = extinction.fm07(np.atleast_1d(wave), AV)[0]
+        extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
+        AlAV = float(extmod(np.atleast_1d(wave))[0])
+        al = AlAV * AV
     else:
         al = 0.
 
@@ -51,6 +56,7 @@ def dm_host_from_ssfr(z:float, ssfr:Quantity):
     Args:
         z (float): Redshift
         ssfr (Quantity): Surface density of SFR (with units)
+
 
     Returns:
         Quantity: DM_host as observed (i.e. includes the 1/1+z term)
@@ -84,6 +90,7 @@ def dm_host_halo(R: units.Quantity,
                  HMR: str = 'Moster', mNFW: models.ModifiedNFW = None):
     """Calculate the DM contribution from the host galaxy's halo
 
+
     Args:
         R (Quantity): Projected radial distance from the center of the halo
         log10_Mstar (float): Logarithm (base 10) of the stellar mass of the host galaxy
@@ -92,8 +99,10 @@ def dm_host_halo(R: units.Quantity,
         mNFW (models.ModifiedNFW, optional): Instance of the ModifiedNFW model. 
             If None, a default model will be created. Default is None
 
+
     Returns:
         Quantity: DM contribution from the host galaxy's halo
+
 
     Raises:
         IOError: If the specified halo mass relation (HMR) is not supported

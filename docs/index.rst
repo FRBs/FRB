@@ -1,15 +1,10 @@
-.. specdb documentation master file, created by
-   sphinx-quickstart on Fri Nov 13 13:39:35 2015.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 Welcome to the FRB documentation!
 =================================
 
-
-FRB is a repository for FRB research.
-Ideally made and maintained by the
-FRB community.
+FRB is a Python package for Fast Radio Burst research, providing tools for
+dispersion measure calculations, host galaxy analysis, FRB-galaxy associations,
+and survey data handling. The package is developed and maintained largely by the members of
+the `F^4 <https://sites.google.com/ucolick.org/f-4/home>` collaboration.
 
 
 Getting Started
@@ -19,15 +14,23 @@ Getting Started
    :maxdepth: 2
 
    installing
+   quickstart
 
-Data
-----
+Core Classes
+------------
 
 .. toctree::
    :maxdepth: 2
 
-   data
-   database
+   frb_class
+
+Galaxies
+--------
+
+.. toctree::
+   :maxdepth: 2
+
+   FRB Galaxies <frbhost_class>
 
 Dispersion Measure
 ------------------
@@ -37,14 +40,23 @@ Dispersion Measure
 
    dm
 
-Galaxies
---------
+
+Surveys
+-------
 
 .. toctree::
    :maxdepth: 2
 
-   galaxies
-   eazy
+   surveys
+
+
+Halo Calculations
+-----------------
+
+.. toctree::
+   :maxdepth: 2
+
+   halos/index
 
 
 Rotation Measure
@@ -64,14 +76,6 @@ Scattering
 
    tscatt
 
-Surveys
--------
-
-.. toctree::
-   :maxdepth: 2
-
-   surveys
-
 
 FRB Scripts
 -----------
@@ -81,4 +85,10 @@ FRB Scripts
 
    scripts
 
+API Reference
+-------------
 
+.. toctree::
+   :maxdepth: 2
+
+   api/index

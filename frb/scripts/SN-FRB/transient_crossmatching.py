@@ -52,6 +52,7 @@ def check_tns_api_keywords():
     'TNS_BOT_ID', 'TNS_BOT_NAME', and 'TNS_API_KEY'. If any of these keys 
     are missing, an exception is raised.
 
+
     Raises:
     -------
     Exception:
@@ -68,6 +69,7 @@ def set_bot_tns_marker():
 
     The bot marker is a JSON-formatted string containing the bot's ID and name, 
     which is used for API authentication when querying the TNS database.
+
 
     Returns:
     --------
@@ -86,12 +88,14 @@ def search(json_list, url_tns_api):
     """
     Querie TNS for transients based on the provided search parameters.
 
+
     Parameters: 
     -----------
     json_list (list): 
         A list of key-value pairs specifying the search parameters, which will be converted into an OrderedDict.
     url_tns_api (str): 
         The base URL for the TNS API.
+
     Returns: 
     --------
     response (requests.Response): 
@@ -123,9 +127,11 @@ def format_to_json(source):
     """
     Converts a JSON-formatted string into an OrderedDict.
 
+
     Parameters:
     -----------
     source (str): A JSON-formatted string to be converted into an OrderedDict.
+
 
     Returns:
     --------
@@ -141,12 +147,14 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
     '''
    Queries transients in TNS at the FRB position with a specfied radius.
 
+
     Parameters: 
     -----------
     ra (float): right ascension of the FRB in deg
     dec (float): declination of the FRB in deg
     radius (float): search radius in arcmin
     frb_name (str): TNS name of the FRB
+
     
     Returns: 
     --------
@@ -240,6 +248,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
 
     """
     Main function to query the TNS for transient data; can be batched or a single object search.
+
     Parameters:
     filename: The path to the ASCII file containing the catalog data (only used if single_obj is False).
     name (str): FRB name (only used if single_obj is True).
@@ -250,6 +259,7 @@ def main(filename, name, ra, dec, theta, a, b, radius, single_obj=False):
     b: semi-minor axis in degrees (only used if single_obj is True).
     radius: The search radius (arcmin).
     single_obj: Boolean indicating whether to perform a query for a single object (True) or multiple (False).
+
 
     Returns:
     trans_results: dictionary 

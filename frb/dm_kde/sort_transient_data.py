@@ -1,6 +1,6 @@
 """ Module to correct pulsar and FRB DMs for the MW ISM """
 
-from ne2001 import ne_io, density #ne2001 ism model
+from ne2001 import density #ne2001 ism model
 import pygedm #ymw ism model
 import numpy as np
 import pandas as pd
@@ -17,6 +17,7 @@ def find_delta_dm(transient_type,transient_data,ism_model,b_val,mc_deg=5,save_df
     Returns array of DMs
     FRB data is available as a csv in the FRBs/FRB/frb/data/FRBs repo (FRB catalogue [Petroff et al. 2017])
     Pulsar data is avaiable as a csv in the FRBs/pulsars/pulsars/data/atnf_cat repo (v1.61 ATNF pulsar catalogue [Manchester et al. 2005])
+
     
     Arguments:
         transient_type (str):

@@ -13,7 +13,7 @@ to parse the output automatically.
 """
 
 import numpy as np
-import sys, os, subprocess
+import os
 import warnings
 
 from astropy.io import fits
@@ -28,9 +28,13 @@ def get_platescale(wcs:WCS)->float:
     """
     Extract the plate-scale from
     a WCS object
+
+
     Args:
         wcs (WCS): A celestial WCS object
             extracted from a FITS header.
+
+
     Returns:
         platescale (float): arcsec/pixel
     """
@@ -46,6 +50,8 @@ def write_cutout(cutout:Cutout2D, filename:str = "cutout.fits", overwrite:bool=F
     """
     Takes an astropy Cutout2D
     object and writes it to disk.
+
+
     Args:
         cutout (Cutout2D): Prefaerably
             has WCS info in it.
@@ -89,6 +95,8 @@ def _genconf(imgfile:str, psffile:str=None, mode=0,
     """
     Creates a configuration file for GALFIT. Conventionally,
     GALFIT is run using the command: `galfit <config-file>`.
+
+
     Args:
         imgfile (str): path to the image fits file.
         psffile (str, optional): path to the PSF model fits file.
@@ -148,6 +156,8 @@ def _genconf(imgfile:str, psffile:str=None, mode=0,
         skip_sky (bool, optional): Do you also want
             to fit a constant sky background? Set to 
             false if your sky background is 0.
+
+
     Returns:
         configfile (str): Path to the configuration
             file.
@@ -288,6 +298,8 @@ def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
     """
     Reads the output fit.log
     file and returns the sersic fit parameters
+
+
     Args:
         outfile (str): Path and name of the fit log
             file.
@@ -295,6 +307,8 @@ def read_fitlog(outfile:str, initfile:str, twocomponent:bool=False)->dict:
             used to produce the log entry. This
             is used to distinguish multiple
             entried in the logfile.
+
+
     Returns:
         pix_dict (dict): A dict containing
             the GALFIT best fit parameters
@@ -359,6 +373,8 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False,multicomponent:bool=False
     Takes the output table from galfit's
     fit.log file and converts all pixel
     measurements to physical measurements.
+
+
     Args:
         pix_dict (dict): Raw sersic
             fit parameter dict from fit.log
@@ -369,6 +385,8 @@ def pix2coord(pix_dict:dict, wcs:WCS, table:bool=False,multicomponent:bool=False
             true, this snippet accounts out for
             multiple sersic profiles in the same
             model.
+
+
     Returns:
         sky_dict (dict/Table): pix_dict
             translated to angular units
@@ -478,6 +496,8 @@ def run(imgfile:str, psffile:str=None, **kwargs)->int:
         skip_sky (bool, optional): Do you also want
             to fit a constant sky background? Set to 
             false if your sky background is 0.
+
+
     Returns:
         fit_outcome (int): An int encoding the success/failure
             of the fitting procedure. 0 corresponds

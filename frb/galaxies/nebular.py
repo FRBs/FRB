@@ -9,9 +9,11 @@ from xml.etree import ElementTree as ET
 from astropy.table import Table
 from astropy import units
 
-import dust_extinction
+try:
+    import dust_extinction
+except ImportError:
+    warnings.warn("Galaxy nebular line analysis requires dust_extionction.  Install it if you want to use them")
 
-from IPython import embed
 
 try:
     from linetools.lists import linelist
@@ -31,11 +33,13 @@ def calc_dust_extinct(neb_lines, method):
 
     Uses the Gordon 2024
 
+
     Args:
         neb_lines (dict):  Line fluxes
         method (str): Name of the method
           Ha/Hb -- Use the Halpha/Hbeta ratio and standard intrinsic flux
         curve (str): Extinction curve to use
+
 
     Returns:
         float: A_V in magnitudes
@@ -88,10 +92,12 @@ def calc_logOH(neb_lines, method):
     Estimate the oxygen abundance based on the input nebular emission line fluxes
     For now based on the O3N2 calibration from https://ui.adsabs.harvard.edu/abs/2018AJ....155...82H/abstract
 
+
     Args:
         neb_lines (dict):  Line fluxes
         method (str): Name of the method
           O3N2 -- Use the O3N2 calibration from Hirschauer+18
+
 
     Returns:
         tuple: 12+log(O/H), sigma+, sigma-
@@ -136,12 +142,14 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
 
     Error is -999.*erg/s if input line flux has negative error
 
+
     Args:
         neb_lines (dict):  Observed line fluxes and errors
         line (str): Line to analyze
         z (float):  Emission redshift -- for Luminosity distance
         cosmo (astropy.cosmology.FLRW): Cosmology
         AV (float, optional):  Visual extinction, if supplied will apply
+
 
     Returns:
         Quantity, Quantity:  Luminosity, sig(Luminosity)
@@ -180,6 +188,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
     """
     Calculate the SFR from input nebular line emission
 
+
     Args:
         neb_lines (dict):  Observed line fluxes
         method (str): Method for deriving the SFR
@@ -188,6 +197,7 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
         cosmo (astropy.cosmology.FLRW): Cosmology
         AV (float, optional):  Visual extinction, if supplied will apply
         curve (str):  Name of the extinction curve.  Only used if A_V is supplied
+
 
     Returns:
         Quantity:  SFR with units of Msun/yr
@@ -215,6 +225,7 @@ def get_ebv(coords,definition="SandF",
     """
     Get the E(B-V) value and statistic from the Milky way dust extinction
     within the query region around the input coordinate
+
     
     Args:
         coords (Astropy SkyCoord):
@@ -233,6 +244,7 @@ def get_ebv(coords,definition="SandF",
         get_ext_table: bool, optional
             If true, also returns the table with A/E(B-V) ratios
             for multiple filters.
+
     Returns:
         dict:
             Dict with E(B-V) at refPixelValue, meanValue, std, minValue and maxValue in

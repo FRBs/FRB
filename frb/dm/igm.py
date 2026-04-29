@@ -151,31 +151,9 @@ def f_diffuse(z, cosmo=defs.frb_cosmo,
               return_rho:bool=False,
               perturb_Mstar:float=None):
     """
-    Calculate the cosmic fraction of baryons
-    in diffuse gas phase based on our empirical
-    knowledge of baryon distributions and their 
-    ionization state.
+    Compute diffuse-baryon fraction as a function of redshift.
 
-    Note that the default values use the standard
-    values from Madau & Dickinson (2014) and Fukugita (2004).
-    The former use a Salpeter IMF for rho_* which is no longer
-    in fashion.
-
-    Args:
-        z (float or ndarray): Redshift
-        cosmo (Cosmology, optional): Cosmology of
-        the universe.
-        return_rho (bool, optional): If true, 
-            the diffuse gas density
-            is returned too.
-        perturb_Mstar (float, optional):
-            If provided, scale rho_Mstar by this value.
-            Useful for exploring the uncertainty in f_diffuse
-
-    Returns:
-        f_diffuse (float, ndarray): Diffuse gas baryon fraction.
-        rho_diffuse (Quantity, optional): Physical diffuse gas density.
-            Returned if return_rho is set to true.
+    If ``return_rho`` is True, also returns physical diffuse-gas density.
     """
     # Get comoving baryon mass density
     rho_b = cosmo.Ob0 * cosmo.critical_density0.to('Msun/Mpc**3')
@@ -224,11 +202,13 @@ def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
     """
     Calculate the average cosmic electron
     number density as a function of redshift.
+
     Args:
         z (float or ndarray): Redshift
         cosmo (Cosmology, optional): Cosmology in 
         which the calculations are to be performed.
         mu (float): Reduced mass
+
     Returns:
         ne_cosmic (Quantity): Average physical number
         density of electrons in the unverse in cm^-3.
@@ -287,26 +267,10 @@ def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
 def average_DMhalos(z, cosmo = defs.frb_cosmo, f_hot = 0.75, rmax=1., 
                     logMmin=10.3, logMmax=16., neval = 10000, cumul=False):
     """
-    Average DM_halos term from halos along the sightline to an FRB
+    Compute average halo DM contribution along FRB sightline.
 
-    Args:
-        z (float): Redshift of the FRB
-        cosmo (Cosmology): Cosmology in which the calculations
-          are to be performed.
-        f_hot (float, optional): Fraction of the halo baryons in diffuse phase.
-        rmax (float, optional): Size of a halo in units of r200
-        logMmin (float, optional): Lowest mass halos to consider
-          Cannot be much below 10.3 or the Halo code barfs
-          The code deals with h^-1 factors, i.e. do not impose it yourself
-        logMmax (float, optional): Highest halo mass. Default to 10^16 Msun
-        neval (int, optional): Number of redshift values between
-          0 and z the function is evaluated at.
-        cumul (bool, optional): Return a cumulative evaluation?
-
-    Returns:
-        DM_halos (Quantity or Quantity array): One value if cumul=False
-          else evaluated at a series of z
-        zeval (ndarray): Evaluation redshifts if cumul=True
+    Returns scalar DM by default, or cumulative `(DM_halos, zeval)` when
+    ``cumul`` is True.
     """
 
     zeval, dz = np.linspace(0, z, neval, retstep = True)
@@ -343,32 +307,10 @@ def average_DMIGM(z, cosmo = defs.frb_cosmo,
                   logMmin=10.3, neval = 10000,
                   cumul=False, return_DMhalos=False):
     """
-    Estimate DM_IGM in a cumulative fashion
+    Estimate IGM DM by subtracting average halo DM from cosmic DM.
 
-    Args:
-        z (float): Redshift of the FRB
-        cosmo (Cosmology, optional): Cosmology in which 
-          the calculations are to be performed. LambdaCDM
-          with the Repo cosmology assumed by default.
-        f_hot (float, optional): Fraction of the halo
-          baryons in diffuse phase.
-        rmax (float, optional):
-          Size of a halo in units of r200
-        logMmin (float, optional):
-          Lowest mass halos to consider. Cannot be much below
-          10.3 or the Halo code barfs. The code deals with
-           h^-1 factors, i.e. do not impose it yourself
-        neval (int, optional): Number of redshift values between
-          0 and z the function is evaluated at.
-        cumul (bool, optional):
-          Return a cumulative evaluation?
-        return_DMHalos (bool, optional): Also return avgDM_halos?
-    Returns:
-        float or list: 
-            DM_IGM (Quantity or Quantity array): One value if cumul=False
-              else evaluated at a series of z
-            zeval (ndarray, optional): Evaluation redshifts if cumul=True
-            DM_halos (ndarray, optinal):
+    Returns scalar DM by default, or cumulative arrays depending on
+    ``cumul`` and ``return_DMhalos``.
     """
     # DM cosmic
     DM_cosmic, zeval = average_DM(z, cosmo = cosmo, cumul=True, neval=neval)

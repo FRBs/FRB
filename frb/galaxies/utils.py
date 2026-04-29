@@ -2,12 +2,10 @@
 
 import os
 import glob
-from IPython import embed
-
 import importlib_resources
 import numpy as np
 from scipy.interpolate import interp1d
-import warnings
+
 
 import pandas
 
@@ -19,26 +17,27 @@ else:
     flg_specdb = True
 
 from astropy.coordinates import SkyCoord
-from astropy import units
 
 import pandas as pd
 
 import dust_extinction
 
-from linetools.spectra import xspectrum1d
-
 from frb import frb
 
-def deredden_spec(spectrum:xspectrum1d.XSpectrum1D, ebv:float):
+def deredden_spec(spectrum, ebv:float):
     """ Deredden the input spectrum using the input EBV value
+
 
     Args:
         spectrum (xspectrum1d.XSpectrum1D): Spectrum
         ebv (float): Galactic reddening
 
+
     Returns:
         xspectrum1d.XSpectrum1D: De-reddened spectrum
     """
+    # linetools WILL BE DEPRECATED
+    from linetools.spectra import xspectrum1d
 
     # Correct for Galactic extinction
     #   Need to replace it 
@@ -60,9 +59,11 @@ def load_specdb(specdb_file=None):
     """
     Automatically load the specDB file from $SPECDB/FRB_specDB.hdf5
 
+
     Args:
         specdb_file (str, optional):
             Over-ride the default file
+
 
     Returns:
         specdb.specdb.SpecDB:
@@ -92,10 +93,12 @@ def list_of_hosts(skip_bad_hosts=True, verbose:bool=False):
 
     Also returns a list of the FRBs
 
+
     Args:
         skip_bad_hosts (bool):
         verbose (bool):
             If True, print more to the screen
+
 
     Returns:
         list, list:
@@ -139,6 +142,7 @@ def build_table_of_hosts(attrs:list=None): #PATH_root_file:str='scale0.5.csv'):
 
     Note:
         RA, DEC are given as RA_host, DEC_host to avoid conflict with the FRB table
+
 
     Args:
 
@@ -249,6 +253,7 @@ def load_f_mL():
 
     Warning:  this is rather approximate
 
+
     Returns:
         scipy.interpolate.interp1d:
 
@@ -267,8 +272,10 @@ def load_f_mL():
 def load_PATH(PATH_root_file:str='adopted.csv'):
     """Load up the PATH table
 
+
     Args:
         PATH_root_file (str, optional): [description]. Defaults to 'adopted.csv'.
+
 
     Returns:
         pandas.DataFrame: Table of galaxy coordinates and PATH results

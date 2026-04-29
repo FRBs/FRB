@@ -13,6 +13,7 @@ class SurveyCoord(object):
 
     See the children for specific methods
 
+
     Args:
         coord (SkyCoord): Coordiante for surveying around
         radius (Angle): Search radius around the coordinate
@@ -37,6 +38,7 @@ class SurveyCoord(object):
 
     def get_catalog(self):
         """
+
 
         Returns:
             self.catalog
@@ -64,6 +66,7 @@ class SurveyCoord(object):
         """
         Write an input astropy Table to disk
 
+
         Args:
             tbl: astropy.table.Table
             out_dir: str
@@ -77,6 +80,7 @@ class SurveyCoord(object):
             overwrite: bool, optional
               Overwrite the existing file?
             verbose: bool, optional
+
 
         Returns:
 
@@ -111,10 +115,12 @@ class SurveyCoord(object):
         """
         Write the cutout image to disk
 
+
         Args:
             output_dir: str
             root: str, optional
             verbose: bool, optional
+
 
         Returns:
 

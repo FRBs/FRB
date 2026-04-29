@@ -4,7 +4,6 @@ Script generate an image of an FRB
 """
 from __future__ import (print_function, absolute_import, division, unicode_literals)
 
-from IPython import embed
 
 def parser(options=None):
     import argparse
@@ -64,3 +63,8 @@ def main(pargs):
     plt.savefig(pargs.outfile, dpi=300)
     plt.close()
     print('Wrote {:s}'.format(pargs.outfile))
+
+
+def cli():
+    main(parser())
+
