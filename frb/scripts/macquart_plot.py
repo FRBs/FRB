@@ -417,7 +417,3 @@ def main():
         show_plot=args.show_plot,
         outfile=args.fig_outfile,
     )
-
-
-if __name__ == "__main__":
-    main()
