@@ -393,8 +393,9 @@ def parse_args():
     )
     return parser.parse_args()
 
-def main(args):
+def main():
 
+    args = parse_args()
     set_mplrc()
 
     if (not os.path.exists(args.outfile)) or args.force_rebuild:
