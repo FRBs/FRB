@@ -217,8 +217,8 @@ def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec
         dist1 = None
         dist2 = None
     # Get corodinates
-    cat1_coord = SkyCoord(cat1[RACol1]*units.deg, cat1[DecCol1]*units.deg, distance=dist1)
-    cat2_coord = SkyCoord(cat2[RACol2]*units.deg, cat2[DecCol2]*units.deg, distance=dist2)
+    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit='deg', distance=dist1)
+    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit='deg', distance=dist2)
 
     # Match 2D
     idx, d2d, d3d = cat1_coord.match_to_catalog_sky(cat2_coord)

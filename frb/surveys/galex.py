@@ -63,7 +63,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
             query_fields = _DEFAULT_query_fields
         else:
             query_fields = _DEFAULT_query_fields+query_fields
-        
+        import astropy.units as u
         data = {}
         data['ra'] = self.coord.ra.value
         data['dec'] = self.coord.dec.value
