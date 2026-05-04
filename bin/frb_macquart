@@ -1,0 +1,16 @@
+#!/usr/bin/env python
+#
+# See top-level LICENSE file for Copyright information
+#
+# -*- coding: utf-8 -*-
+
+
+"""
+This script generates a DM vs z plot for FRBs from the F4 Watchlist.
+"""
+
+from frb.scripts import macquart_plot
+
+if __name__ == '__main__':
+    args = macquart_plot.parse_args()
+    macquart_plot.main(args)

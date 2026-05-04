@@ -200,6 +200,63 @@ frb_dmism
 Script for DM ISM HEALPix map operations including
 generating maps, querying DM_ISM values, and plotting.
 
+frb_macquart
+============
+
+Script to collate F4 Watchlist CSV tables and generate a Macquart-style
+DM versus redshift plot. It computes DM_ISM, DM_EG, and DM_cosmic_est for
+each FRB, writes a collated CSV table, and saves the figure.
+
+Here is the usage::
+
+        usage: frb_macquart [-h] [--table-loc TABLE_LOC] [--outfile OUTFILE]
+                                                [--force-rebuild] [--fig-outfile FIG_OUTFILE]
+                                                [--color COLOR] [--emoji-file EMOJI_FILE]
+                                                [--emoji-zoom EMOJI_ZOOM] [--font-size FONT_SIZE]
+                                                [--special-frbs [SPECIAL_FRBS ...]]
+                                                [--special-color SPECIAL_COLOR]
+                                                [--plot-dm-eg | --no-plot-dm-eg]
+                                                [--plot-running-mean | --no-plot-running-mean]
+                                                [--show-plot | --no-show-plot]
+
+        optional arguments:
+            -h, --help            show this help message and exit
+            --table-loc TABLE_LOC
+                                                        Directory containing watchlist CSVs named like
+                                                        F4_watchlist*.csv (default: ./)
+            --outfile OUTFILE     Path to collated watchlist table CSV
+                                                        (default: watchlist_collated.csv)
+            --force-rebuild       Rebuild collated table even if --outfile exists
+            --fig-outfile FIG_OUTFILE
+                                                        Output filename for figure
+                                                        (default: fig_macquart_with_script.png)
+            --color COLOR         Scatter color for FRB points (default: pink)
+            --emoji-file EMOJI_FILE
+                                                        Path to emoji image for custom point markers
+            --emoji-zoom EMOJI_ZOOM
+                                                        Zoom level for emoji markers (default: 0.02)
+            --font-size FONT_SIZE
+                                                        Final axis/legend font size (default: 17)
+            --special-frbs [SPECIAL_FRBS ...]
+                                                        Optional list of FRB names to highlight
+            --special-color SPECIAL_COLOR
+                                                        Color for highlighted FRBs (default: blue)
+            --plot-dm-eg | --no-plot-dm-eg
+                                                        Plot DM_EG instead of DM_cosmic_est (default: True)
+            --plot-running-mean | --no-plot-running-mean
+                                                        Overplot binned running mean with errors
+                                                        (default: True)
+            --show-plot | --no-show-plot
+                                                        Display figure interactively (default: False)
+
+Here is an example call::
+
+        frb_macquart --table-loc ../DESI/FRB_tables/ \
+            --outfile watchlist_collated_with_script.csv \
+            --fig-outfile fig_macquart_with_script.png \
+            --color pink --emoji-file Cherry-Blossom-Emoji.png \
+            --emoji-zoom 0.02 --plot-dm-eg --plot-running-mean --show-plot
+
 frb_search_for_halos
 ====================
 
@@ -209,3 +266,4 @@ frb_tns
 =======
 
 Script for querying the Transient Name Server (TNS) for FRB entries.
+
