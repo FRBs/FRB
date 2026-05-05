@@ -428,4 +428,3 @@ See Also
 ========
 
 * :doc:`frb_class` - FRB class documentation
-* :doc:`database` - Database utilities

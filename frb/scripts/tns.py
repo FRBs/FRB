@@ -141,16 +141,6 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
     '''
    Queries transients in TNS at the FRB position with a specfied radius.
 
-<<<<<<< Updated upstream
-    Parameters: 
-    -----------
-    ra (float): right ascension of the FRB in deg
-    dec (float): declination of the FRB in deg
-    radius (float): search radius in arcmin
-    frb_name (str): TNS name of the FRB
-    
-    Returns: 
-=======
 
     Parameters:
     -----------
@@ -165,7 +155,6 @@ def tns_query(ra, dec, radius, frb_name, units='arcmin', initial_delay=10, max_d
 
 
     Returns:
->>>>>>> Stashed changes
     --------
     query output: dict
         a dictionary of transients found within the search radius near an FRB position

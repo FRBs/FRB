@@ -95,6 +95,7 @@ frb_search_for_halos = "frb.scripts.search_for_halos:cli"
 frb_sightline = "frb.scripts.sightline:cli"
 frb_summary = "frb.scripts.frb_summary:cli"
 frb_tns = "frb.scripts.tns:cli"
+frb_macquart = "frb.scripts.macquart_plot:main"
 
 [tool.black]
 line-length = 120

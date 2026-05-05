@@ -257,5 +257,4 @@ See Also
 ========
 
 * :doc:`frbhost_class` - FRB Galaxies and host class documentation
-* :doc:`database` - Database access utilities
 * :doc:`dm` - DM calculations
