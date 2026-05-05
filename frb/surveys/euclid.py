@@ -7,10 +7,11 @@ including photometry (VIS+NIR), morphology, and optional spectroscopy.
 
 import warnings
 import signal
+import os
+import shutil
 from contextlib import contextmanager
 import numpy as np
 from astropy import units as u
-from astropy.coordinates import SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 
@@ -228,10 +229,10 @@ class Euclid_Survey(surveycoord.SurveyCoord):
 
         Args:
             euclid_id (int): The Euclid object ID to retrieve the spectrum for.
-            output_folder (str, optional): Output folder for spectrum FITS. If None, uses temporary location. Usually, each source has a red and blue spectrum.
+            output_folder (str, optional): Output folder for spectrum FITS. If None, uses temporary location.
             timeout (float, optional): Query timeout in seconds. Default: 120 s.
         Returns:
-            specfiles: (list) Filenames if spectrum found, [] otherwise.
+            tuple: (spectrum_data, spectrum_header) if spectrum found, (None, None) otherwise.
         """
 
         try:
@@ -244,7 +245,7 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             if not has_spec:
                 if self.verbose:
                     print(f"No datalinks found for Euclid ID {euclid_id}")
-                return []
+                return None, None
             else:
                 if self.verbose:
                     print(f"Datalinks found for Euclid ID {euclid_id}.")
@@ -254,11 +255,11 @@ class Euclid_Survey(surveycoord.SurveyCoord):
                     output_folder = str(euclid_id) # Use ID as folder name to avoid collisions
                 with _query_timeout(timeout):
                     
-                    return Euclid.get_spectrum(source_id=euclid_id, output_file=f'{output_folder}/spectrum.fits', verbose=False)
+                    Euclid.get_spectrum(source_id=euclid_id, output_file=f'{output_folder}/spectrum.fits', verbose=False)
         except Exception as e:
             if self.verbose:
                 print(f"Spectrum retrieval failed for Euclid ID {euclid_id}: {e}")
-            return []
+            return None, None
                 
     def get_cutout(self, imsize=None, output_file=None, verbose=None, timeout=120):
         """
@@ -345,6 +346,18 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         with fits.open(cutout_file) as hdul:
             self.cutout = hdul[0].data
             self.cutout_hdr = hdul[0].header.copy()
+
+        # Astroquery writes to a temporary path when output_file is not set.
+        # We keep data in memory but remove that on-disk temp artifact.
+        if output_file is None:
+            try:
+                if os.path.isfile(cutout_file):
+                    os.remove(cutout_file)
+                parent_dir = os.path.dirname(cutout_file)
+                if parent_dir and os.path.basename(parent_dir).startswith('temp_'):
+                    shutil.rmtree(parent_dir, ignore_errors=True)
+            except OSError:
+                pass
 
         self.cutout_size = imsize
             
