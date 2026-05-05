@@ -65,6 +65,16 @@ The DECaL survey imaged the majority of the Northern,
 extragalactic sky in the g,r, and z bands for the
 DESI survey.
 
+Euclid
+++++++
+
+The ESA Euclid mission provides deep imaging of the Universe
+to study dark energy and dark matter through weak gravitational lensing
+and galaxy clustering. The Q1 (March 2025) public data release includes
+VIS-band and NISP near-infrared (J, H, Y) photometry, morphological parameters,
+and optional spectroscopy (NISP red). Coverage includes three deep fields (EDF North, EDF Fornax, EDF South).
+Data is queried from the mer_catalogue table providing multi-band photometry and source morphology.
+
 Pan-STARRS
 ++++++++++
 

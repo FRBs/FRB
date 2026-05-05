@@ -17,6 +17,7 @@ from frb.surveys.galex import GALEX_Survey
 from frb.surveys.twomass import TwoMASS_Survey
 from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
+from frb.surveys.euclid import Euclid_Survey
 from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 
 from astropy.coordinates import SkyCoord
@@ -28,7 +29,7 @@ from requests import ReadTimeout, HTTPError
 import numpy as np
 import warnings
 
-optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE',  'DECaL', 'VISTA', 'NSC', 'HSC', 'NEDLVS', '2MASS', 'GALEX']
+optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE', 'DECaL', 'Euclid', 'VISTA', 'NSC', 'HSC', 'NEDLVS', '2MASS', 'GALEX']
 group_catalogs = ['TullyGroupCat']
 radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys+group_catalogs
@@ -95,6 +96,8 @@ def load_survey_by_name(name, coord, radius, **kwargs):
         survey = TwoMASS_Survey(coord, radius, **kwargs)
     elif name == 'DESI':
         survey = DESI_Survey(coord, radius, **kwargs)
+    elif name == 'Euclid':
+        survey = Euclid_Survey(coord, radius, **kwargs)
 
     # Return
     return survey
