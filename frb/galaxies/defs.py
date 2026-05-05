@@ -170,6 +170,11 @@ DECaL_bands = ['g', 'r', 'z']
 for band in DECaL_bands:
     valid_filters.append('DECaL_{:s}'.format(band))
 
+# Euclid
+Euclid_bands = ['VIS', 'J', 'H', 'Y']
+for band in Euclid_bands:
+    valid_filters.append('Euclid_{:s}'.format(band))
+
 # SOAR Goodman
 SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
             'cousins_R','stromgren_v','stromgren_b','stromgren_y']
