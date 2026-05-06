@@ -39,7 +39,7 @@ def grab_zlim():
 
 
     # Load z-DM distribution
-    sdict = prob_dmz.grab_repo_grid('PDM_z.npz')
+    sdict = prob_dmz.grab_repo_grid()
     PDM_z = sdict['PDM_z']
     z = sdict['z']
     DM = sdict['DM']
@@ -127,7 +127,7 @@ def r_vs_dm(outfile='fig_r_vs_z.png',
 
     # Add P(z|DM)
     xmnx = (0., 4.)
-    ymnx = (14, 27.5)
+    ymnx = (14, 33.)
     if flipy:
         ymnx = (ymnx[1], ymnx[0])
     
