@@ -452,27 +452,31 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
         return tab1.copy()
 
     # Cross-match tables for tab1 INTERSECTION tab2.
-    matched_tab1, matched_tab2 = xmatch_catalogs(tab1, tab2, tol, **kwargs)
+    # Use return_match_idx=True so we get indices rather than table rows;
+    # np.isin on full Tables fails with mixed/float dtypes in newer numpy.
+    idx, d2d, _ = xmatch_catalogs(tab1, tab2, tol, return_match_idx=True, **kwargs)
+    matched_mask1 = d2d < tol
+    matched_mask2 = np.zeros(len(tab2), dtype=bool)
+    if np.any(matched_mask1):
+        matched_mask2[idx[matched_mask1]] = True
+
+    matched_tab1 = tab1[matched_mask1]
+    matched_tab2 = tab2[matched_mask2]
 
     # tab1 INTERSECTION tab2
     inner_join = hstack([matched_tab1, matched_tab2],
                         table_names=table_names)
     # Remove unnecessary ra/dec columns and rename remaining coordinate
-    # columns corectly. 
+    # columns correctly.
     tab1_coord_cols = ['ra_'+table_names[0],"dec_"+table_names[0]]
     tab2_coord_cols = ['ra_'+table_names[1],"dec_"+table_names[1]]
-
 
     inner_join.remove_columns(tab2_coord_cols)
     inner_join.rename_columns(tab1_coord_cols, ['ra', 'dec'])
 
     # Now get all objects that weren't matched.
-    if len(matched_tab1) == 0:
-        not_matched_tab1 = tab1
-        not_matched_tab2 = tab2
-    else:
-        not_matched_tab1 = tab1[~np.isin(tab1, matched_tab1)]
-        not_matched_tab2 = tab2[~np.isin(tab2, matched_tab2)]
+    not_matched_tab1 = tab1[~matched_mask1]
+    not_matched_tab2 = tab2[~matched_mask2]
 
     # (tab1 UNION tab2) - (tab1 INTERSECTION tab2)
 
