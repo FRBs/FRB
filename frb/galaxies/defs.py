@@ -255,6 +255,7 @@ valid_derived_photom = [
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
+    'L_r',             # Luminosity in r-band rest-frame; cosmology dependent
     'AV_young',        # Dust attenuation of young stellar light; magnitudes; Prospector
     'AV_old',          # Dust attenuation of old stellar light; magnitudes; Prospector
     'age_mass',        # Mass-weighted age (Gyr) from CIGALE (or Prospector if Gordon2023)
