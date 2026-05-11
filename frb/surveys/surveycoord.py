@@ -5,13 +5,22 @@ import os
 
 from frb.surveys import images
 from frb.surveys import survey_io
+from frb.surveys import catalog_utils
 
 
 class SurveyCoord(object):
     """
-    Parent class of surveying around an input coordinate
+    Parent class of surveying around an input coordinate.
 
-    See the children for specific methods
+    API semantics for survey children:
+    - ``get_catalog`` returns an astropy Table around ``coord`` within ``radius``.
+    - ``get_image`` returns FITS-like image products when survey provides them.
+    - ``get_cutout`` returns rendered products (e.g. PNG/JPEG) when available.
+
+    Compatibility policy:
+    Surveys that only provide FITS image retrieval should expose that via
+    ``get_image``. If those surveys keep ``get_cutout`` for backward
+    compatibility, it should call ``get_image`` and emit ``DeprecationWarning``.
 
 
     Args:
@@ -38,28 +47,73 @@ class SurveyCoord(object):
 
     def get_catalog(self):
         """
+        Run survey catalog query.
 
+        Child classes should set and return ``self.catalog`` as an astropy Table.
+        Expected output contract for normalized survey catalogs:
+        - Coordinate columns: ``ra``, ``dec``.
+        - Metadata keys: ``radius``, ``survey``.
+        - Separation column: ``separation`` in arcmin.
 
         Returns:
-            self.catalog
+            astropy.table.Table: Survey catalog.
 
         """
         pass
 
     def get_cutout(self, imsize):
+        """
+        Retrieve rendered cutout product (e.g. PNG/JPEG).
+
+        For FITS products, use ``get_image`` as canonical method. FITS-only
+        surveys may keep ``get_cutout`` as deprecated alias to ``get_image``
+        for backward compatibility.
+
+        Args:
+            imsize (Quantity): Angular size of desired cutout.
+
+        Returns:
+            object or None: Rendered image-like product, depending on survey.
+        """
         return None
 
-    def get_image(self, imsize, filter):
+    def get_image(self, imsize, band=None):
+        """
+        Retrieve FITS-like image product.
+
+        Args:
+            imsize (Quantity): Angular size of desired image.
+            band (str, optional): Filter/band identifier if required by survey.
+
+        Returns:
+            object: FITS HDU or survey-specific FITS-like image product.
+        """
         pass
 
     def validate_catalog(self):
-        if len(self.catalog) > 0:
-            # Columns
-            assert 'ra' in self.catalog.keys()
-            assert 'dec' in self.catalog.keys()
-            # Meta
-            assert 'radius' in self.catalog.meta.keys()
-            assert 'survey' in self.catalog.meta.keys()
+        """
+        Validate and normalize catalog to enforce uniform output contract.
+        
+        Ensures: lowercase ra/dec, required metadata (radius, survey), 
+        and separation column in arcmin for all survey catalogs.
+        """
+        if self.catalog is None:
+            return
+        
+        # Normalize catalog to enforce uniform contract
+        self.catalog = catalog_utils.normalize_catalog(
+            self.catalog, 
+            self.coord, 
+            self.radius, 
+            self.survey,
+            add_sep=True
+        )
+        
+        # Validate minimum required structure
+        assert 'ra' in self.catalog.keys(), "Normalized catalog missing 'ra' column"
+        assert 'dec' in self.catalog.keys(), "Normalized catalog missing 'dec' column"
+        assert 'radius' in self.catalog.meta.keys(), "Catalog missing 'radius' metadata"
+        assert 'survey' in self.catalog.meta.keys(), "Catalog missing 'survey' metadata"
             
     def write_catalog(self, out_dir, ftype='ecsv', verbose=None, create_dirs=False,
                       overwrite=True):
