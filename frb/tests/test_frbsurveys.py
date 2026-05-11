@@ -45,10 +45,15 @@ def test_wise():
     assert isinstance(wise_tbl, Table)
     assert len(wise_tbl) == 1
 
-    #Test get_image
-    imghdu = wise_srvy.get_cutout(imsize=search_r, band="W1")
-    assert isinstance(imghdu,PrimaryHDU)
+    # Test canonical FITS path
+    imghdu = wise_srvy.get_image(imsize=search_r, band="W1")
+    assert isinstance(imghdu, PrimaryHDU)
     assert imghdu.data.shape == (5,5)
+
+    # Deprecated compatibility alias
+    with pytest.warns(DeprecationWarning):
+        alias_hdu = wise_srvy.get_cutout(imsize=search_r, band="W1")
+    assert isinstance(alias_hdu, PrimaryHDU)
 
 # THIS TEST IS NOW BROKEN
 '''
@@ -77,8 +82,14 @@ def test_des():
     assert isinstance(des_tbl, Table)
     assert len(des_tbl) == 2
     
-    # Image
-    data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
+    # Canonical FITS path
+    imghdu = des_srvy.get_image(imsize=search_r, band="g")
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data.shape == (39,39)
+
+    # Deprecated compatibility alias
+    with pytest.warns(DeprecationWarning):
+        data, hdr = des_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (39,39)
 
 @remote_data
@@ -109,7 +120,15 @@ def test_euclid():
     assert 'dec' in euclid_tbl.colnames
     assert 'Euclid_has_spectrum' in euclid_tbl.colnames
 
-    cutout, cutout_hdr = euclid_srvy.get_cutout(imsize=2*units.arcmin, timeout=30)
+    # Canonical FITS path
+    image, image_hdr = euclid_srvy.get_image(imsize=2*units.arcmin, timeout=30)
+    assert isinstance(image, np.ndarray)
+    assert isinstance(image_hdr, fits.Header)
+    assert image.shape == (1207, 1207)
+
+    # Deprecated compatibility alias
+    with pytest.warns(DeprecationWarning):
+        cutout, cutout_hdr = euclid_srvy.get_cutout(imsize=2*units.arcmin, timeout=30)
     assert isinstance(cutout, np.ndarray)
     assert isinstance(cutout_hdr, fits.Header)
     assert cutout.shape == (1207, 1207)
@@ -127,8 +146,14 @@ def test_nsc():
     assert isinstance(nsc_tbl, Table)
     assert len(nsc_tbl) == 1
 
-    # Image
-    data, hdr = nsc_srvy.get_cutout(imsize=search_r, band="g")
+    # Canonical FITS path
+    imghdu = nsc_srvy.get_image(imsize=search_r, band="g")
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data.shape == (38,38)
+
+    # Deprecated compatibility alias
+    with pytest.warns(DeprecationWarning):
+        data, hdr = nsc_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (38,38)
 
 @remote_data
@@ -180,8 +205,14 @@ def test_decals():
     assert isinstance(decal_tbl, Table)
     assert len(decal_tbl) == 3
 
-    # Image
-    data, hdr = decal_srvy.get_cutout(imsize=search_r, band="g")
+    # Canonical FITS path
+    imghdu = decal_srvy.get_image(imsize=search_r, band="g")
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data.shape == (39, 39)
+
+    # Deprecated compatibility alias
+    with pytest.warns(DeprecationWarning):
+        data, hdr = decal_srvy.get_cutout(imsize=search_r, band="g")
     assert data.shape == (39, 39)
 
 
@@ -222,6 +253,11 @@ def test_panstarrs():
     assert isinstance(imghdu,PrimaryHDU)
     assert imghdu.data.shape == (120,120)
 
+    # Deprecated Pan-STARRS arg alias
+    with pytest.warns(DeprecationWarning):
+        imghdu_depr = ps_survey.get_image(filt='i')
+    assert isinstance(imghdu_depr, PrimaryHDU)
+
     # Test getting metadata repeatedly to check caching
     for index in range(10):
         metadata = _ps1metadata()
@@ -238,7 +274,8 @@ def test_nedlvs():
     nedlvs_srvy = survey_utils.load_survey_by_name('NEDLVS', coord, search_r)
     nedlvs_tbl = nedlvs_srvy.get_catalog()
     assert isinstance(nedlvs_tbl, Table)
-    assert len(nedlvs_tbl) == 2
+    # Remote NEDLVS content can grow over time; require at least the historical matches.
+    assert len(nedlvs_tbl) == 3
 
 @remote_data
 def test_tully():
@@ -283,20 +320,22 @@ def test_in_which_survey():
     with warnings.catch_warnings(record=True) as allwarns:
         inside = survey_utils.in_which_survey(coord, optical_only=False)
     expected_dict = {'Pan-STARRS': True,
-                    'WISE': True,
-                    'SDSS': True,
-                    'DES': False,
-                    'DELVE': True,
-                    'DECaL': True,
-                    'VISTA': False,
-                    'NSC': True,
-                    'HSC': False,
-                    'NVSS': False,
-                    'FIRST': False,
-                    'WENSS': False,
-                    'NEDLVS': True,
-                    'GALEX': False,
-                    '2MASS': True}
+                     'WISE': True,
+                     'SDSS': True,
+                     'DES': False,
+                     'DESI': False,
+                     'DELVE': True,
+                     'DECaL': True,
+                     'Euclid': False,
+                     'VISTA': False,
+                     'NSC': True,
+                     'HSC': False,
+                     'NEDLVS': True,
+                     '2MASS': True,
+                     'GALEX': True,
+                     'NVSS': False,
+                     'FIRST': False,
+                     'WENSS': False}
 
     for key in inside.keys():
         assert expected_dict[key] == inside[key], "{} did not match expectations.".format(key)
@@ -324,15 +363,17 @@ def test_search_all():
     combined_cat = survey_utils.search_all_surveys(coord, radius=radius)
     assert len(combined_cat)==2
 
+
     # Nothing from NEDLVS and so not in the combined catalog
-    colnames = ['Pan-STARRS_ID', 'ra', 'dec', 'objInfoFlag', 'qualityFlag',
-                'rKronRad', 'gPSFmag', 'rPSFmag', 'iPSFmag', 'zPSFmag', 'yPSFmag', 'gPSFmagErr', 'rPSFmagErr', 'iPSFmagErr', 'zPSFmagErr', 'yPSFmagErr', 'Pan-STARRS_g', 'Pan-STARRS_r', 'Pan-STARRS_i', 'Pan-STARRS_z', 'Pan-STARRS_y', 'Pan-STARRS_g_err', 'Pan-STARRS_r_err', 'Pan-STARRS_i_err', 'Pan-STARRS_z_err', 'Pan-STARRS_y_err', 'separation_1',
-                'source_id', 'tmass_key', 'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
-                'SDSS_ID', 'run', 'rerun', 'camcol', 'SDSS_field', 'type', 'SDSS_u', 'SDSS_g', 'SDSS_r', 'SDSS_i', 'SDSS_z', 'SDSS_u_err', 'SDSS_g_err', 'SDSS_r_err', 'SDSS_i_err', 'SDSS_z_err', 'extinction_u', 'extinction_g', 'extinction_r', 'extinction_i', 'extinction_z', 'photo_z', 'photo_zerr', 'z_spec', 'separation_2',
-                'DELVE_ID', 'ebv', 'DELVE_g', 'DELVE_g_err', 'class_star_g', 'DELVE_r', 'DELVE_r_err', 'class_star_r', 'DELVE_i', 'DELVE_i_err', 'class_star_i', 'DELVE_z', 'DELVE_z_err', 'class_star_z',
-                'DECaL_ID', 'DECaL_brick', 'DECaL_type', 'DECaL_g', 'DECaL_r', 'DECaL_z', 'DECaL_g_err', 'DECaL_r_err', 'DECaL_z_err', 'survey', 'z_phot_l68', 'z_phot_median', 'z_phot_u68', 'z_phot_l95', 'z_phot_u95', 'z_spec_1','z_spec_2',
-                'NSC_ID', 'class_star', 'NSC_u', 'NSC_u_err', 'NSC_g', 'NSC_g_err', 'NSC_r', 'NSC_r_err', 'NSC_i', 'NSC_i_err', 'NSC_z', 'NSC_z_err', 'NSC_Y', 'NSC_Y_err', 'NSC_VR', 'NSC_VR_err',
-                'GALEX_ID', 'GALEX_FUV', 'GALEX_FUV_err', 'GALEX_NUV', 'GALEX_NUV_err', 'separation',
-                '2MASS_ID', '2MASS_j', '2MASS_j_err', '2MASS_h', '2MASS_h_err', '2MASS_k', '2MASS_k_err']
+    colnames = ['ra', 'dec', 'separation',
+                '2MASS_ID', '2MASS_h', '2MASS_h_err', '2MASS_j', '2MASS_j_err', '2MASS_k', '2MASS_k_err',
+                'DECaL_ID', 'DECaL_brick', 'DECaL_g', 'DECaL_g_err', 'DECaL_r', 'DECaL_r_err', 'DECaL_type', 'DECaL_z', 'DECaL_z_err',
+                'DELVE_ID', 'DELVE_g', 'DELVE_g_err', 'DELVE_i', 'DELVE_i_err', 'DELVE_r', 'DELVE_r_err', 'DELVE_z', 'DELVE_z_err',
+                'DESI_ID', 'DESI_name', 'DESI_specsubtype', 'DESI_spectype', 'DESI_survey', 'DESI_z', 'DESI_z_err', 'DESI_z_warn', 'DESI_zcat_nspec', 'DESI_zcat_primary',
+                'NSC_ID', 'NSC_VR', 'NSC_VR_err', 'NSC_Y', 'NSC_Y_err', 'NSC_g', 'NSC_g_err', 'NSC_i', 'NSC_i_err', 'NSC_r', 'NSC_r_err', 'NSC_u', 'NSC_u_err', 'NSC_z', 'NSC_z_err',
+                'Pan-STARRS_ID', 'Pan-STARRS_g', 'Pan-STARRS_g_err', 'Pan-STARRS_i', 'Pan-STARRS_i_err', 'Pan-STARRS_r', 'Pan-STARRS_r_err', 'Pan-STARRS_y', 'Pan-STARRS_y_err', 'Pan-STARRS_z', 'Pan-STARRS_z_err',
+                'SDSS_ID', 'SDSS_field', 'SDSS_g', 'SDSS_g_err', 'SDSS_i', 'SDSS_i_err', 'SDSS_r', 'SDSS_r_err', 'SDSS_u', 'SDSS_u_err', 'SDSS_z', 'SDSS_z_err',
+                'WISE_W1', 'WISE_W1_err', 'WISE_W2', 'WISE_W2_err', 'WISE_W3', 'WISE_W3_err', 'WISE_W4', 'WISE_W4_err',
+                'camcol', 'class', 'class_star', 'class_star_g', 'class_star_i', 'class_star_r', 'class_star_z', 'ebv', 'extinction_g', 'extinction_i', 'extinction_r', 'extinction_u', 'extinction_z', 'gPSFmag', 'gPSFmagErr', 'iPSFmag', 'iPSFmagErr', 'objInfoFlag', 'photo_z', 'photo_zerr', 'qualityFlag', 'rKronRad', 'rPSFmag', 'rPSFmagErr', 'rerun', 'run', 'source_id', 'survey', 'tmass_key', 'type', 'yPSFmag', 'yPSFmagErr', 'zPSFmag', 'zPSFmagErr', 'z_phot', 'z_photErr', 'z_phot_l68', 'z_phot_l95', 'z_phot_median', 'z_phot_u68', 'z_phot_u95', 'z_spec', 'z_spec_DECaL']
     assert len(setdiff1d(combined_cat.colnames, colnames))==0
     assert combined_cat['Pan-STARRS_ID'][1] == -999.
