@@ -93,7 +93,7 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
 
         pdict = photom['2MASS'].copy()
         
-        photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
+        photom_catalog = catalog_utils.clean_cat(ret, pdict, mask_photometry=True) # rename columns
 
         photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
 

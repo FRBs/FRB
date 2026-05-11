@@ -67,7 +67,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
         data = {}
         data['ra'] = self.coord.ra.value
         data['dec'] = self.coord.dec.value
-        data['radius'] = self.radius.to(u.deg).value
+        data['radius'] = self.radius.to("deg").value
         data['columns'] = query_fields
         data['format'] = 'csv'
 
@@ -76,7 +76,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         pdict = photom['GALEX'].copy()
         
-        photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
+        photom_catalog = catalog_utils.clean_cat(ret, pdict, mask_photometry=True) # rename columns
 
         photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
 

@@ -1,6 +1,7 @@
 """WISE Survey"""
 
 import numpy as np
+import warnings
 
 from astropy import units, io, utils
 from astropy.table import Table
@@ -87,8 +88,9 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat = self.service.run_async(self.query).to_table()
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
-        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=999.)
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], mask_photometry=True)
         if len(main_cat) == 0:
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['WISE'].keys()))
             return main_cat
         
         # Convert to AB mag
@@ -110,9 +112,9 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.validate_catalog()
         return self.catalog.copy()
     
-    def get_cutout(self, imsize, band, timeout=120):
+    def get_image(self, imsize, band, timeout=120):
         """
-        Download an image from IRSA
+        Download a FITS image from IRSA
 
 
         Args:
@@ -137,6 +139,16 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.cutout = io.fits.open(utils.data.download_file(img_url,cache=True,show_progress=False,timeout=timeout))[0]
         self.cutout_size = imsize
         return self.cutout.copy()
+
+    def get_cutout(self, imsize, band, timeout=120):
+        """Deprecated alias for get_image()."""
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; "
+            "use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_image(imsize=imsize, band=band, timeout=timeout)
         
     def _gen_cat_query(self,query_fields=_DEFAULT_query_fields):
         """

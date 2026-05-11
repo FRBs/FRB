@@ -1,5 +1,7 @@
 """ Surveys to be accessed through the HEASARC interface (via astroquery"""
 
+import warnings
+
 from astropy.table import Table
 from astropy import units, wcs
 
@@ -43,16 +45,17 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         """
         try:
             catalog = self.heasarc.query_region(self.coord,
-                                                mission=self.mission,
+                                                catalog=self.mission,
                                                 radius=self.radius)
         except (ValueError, TypeError):  # No table found
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(Table(), ['ra', 'dec'])
         else:
             # Clean
             if len(catalog)!=0:
-                
-                catalog.rename_column("RA", "ra")
-                catalog.rename_column("DEC", "dec")
+                if "RA" in catalog.colnames:
+                    catalog.rename_column("RA", "ra")
+                if "DEC" in catalog.colnames:
+                    catalog.rename_column("DEC", "dec")
                 for key in ['ra', 'dec']:
                     catalog[key].unit = units.deg
                 # Sort
@@ -61,6 +64,8 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
                                                                 radec=('ra', 'dec'))
             else:
                 self.catalog = catalog
+        if len(self.catalog) == 0:
+            self.catalog = catalog_utils.ensure_empty_schema(self.catalog, ['ra', 'dec'])
         # Add meta, etc.
         self.catalog.meta['radius'] = self.radius
         self.catalog.meta['survey'] = self.survey
@@ -89,7 +94,7 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         # Instantiate astroquery object
         self.skyview = SkyView()
 
-    def get_cutout(self, radius=None):
+    def get_image(self, radius=None):
         radius = radius if radius is not None else self.radius
         self.cutout_size = 2*radius
 
@@ -113,6 +118,19 @@ class SkyView_Survey(surveycoord.SurveyCoord):
                                                         0)
         print("Got image spanning (RA, Dec) = ({0} - {1}, {2} - {3})"
               .format(ra0, ra1, dec0, dec1))
+
+        return img_hdu
+
+    def get_cutout(self, radius=None):
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; "
+            "use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        img_hdu = self.get_image(radius=radius)
+        self.cutout = img_hdu.data
+        self.cutout_hdr = img_hdu.header
 
         return self.cutout
 

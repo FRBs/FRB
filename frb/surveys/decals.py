@@ -85,6 +85,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
                                                         print_query=print_query,**kwargs)
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
+            main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'], mask_photometry=True)
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DECaL'].keys()))
             return main_cat 
         #
         for col in main_cat.colnames:
@@ -102,8 +104,6 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         for col in snr_cols:
             main_cat[col].mask = main_cat[col]<0
             main_cat[col] = 2.5*np.log10(1+1/main_cat[col])
-        
-        main_cat = main_cat.filled(-99.0)
         #Remove gaia objects if necessary
         if exclude_stars and 'type' in main_cat.colnames:
             self.catalog = main_cat[main_cat['DECaL_type']=='PSF']
@@ -113,7 +113,7 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         else:
             self.catalog = main_cat
         # Clean
-        main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'])
+        main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'], mask_photometry=True)
         self.validate_catalog()
         # Return
         return self.catalog
