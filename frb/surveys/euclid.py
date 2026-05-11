@@ -68,6 +68,23 @@ photom['Euclid']['Euclid_ellipticity'] = 'ellipticity'
 photom['Euclid']['Euclid_kron_radius'] = 'kron_radius'
 photom['Euclid']['Euclid_segmentation_area'] = 'segmentation_area'
 
+_EUCLID_FLUX_SCALE = 1e-6 / 3630.7805
+
+
+def _euclid_flux_to_abmag(flux_microjy, fluxerr_microjy):
+    """Convert Euclid microJy fluxes and errors to AB magnitudes."""
+    flux = np.asarray(flux_microjy, dtype=float)
+    fluxerr = np.asarray(fluxerr_microjy, dtype=float)
+    mag = np.full(flux.shape, np.nan, dtype=float)
+    mag_err = np.full(flux.shape, np.nan, dtype=float)
+
+    good_flux = np.isfinite(flux) & (flux > 0)
+    mag[good_flux] = -2.5 * np.log10(flux[good_flux] * _EUCLID_FLUX_SCALE)
+
+    good_err = good_flux & np.isfinite(fluxerr) & (fluxerr > 0)
+    mag_err[good_err] = (2.5 / np.log(10.0)) * fluxerr[good_err] / flux[good_err]
+    return mag, mag_err
+
 # Define the data model for Euclid spectroscopy (if available)
 spectrom = {}
 spectrom['Euclid'] = {}
@@ -163,7 +180,9 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             photom_catalog = job.get_results()
 
         if photom_catalog is None or len(photom_catalog) == 0:
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(
+                Table(), list(photom['Euclid'].keys())
+            )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             if self.verbose:
@@ -171,8 +190,16 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             self.validate_catalog()
             return self.catalog
 
+        for band in Euclid_bands:
+            flux_key = photom['Euclid'][f'Euclid_{band}']
+            err_key = photom['Euclid'][f'Euclid_{band}_err']
+            if flux_key in photom_catalog.colnames and err_key in photom_catalog.colnames:
+                photom_catalog[flux_key], photom_catalog[err_key] = _euclid_flux_to_abmag(
+                    photom_catalog[flux_key], photom_catalog[err_key]
+                )
+
         # Clean up catalog - rename columns to FRB standard names
-        self.catalog = catalog_utils.clean_cat(photom_catalog, photom['Euclid'])
+        self.catalog = catalog_utils.clean_cat(photom_catalog, photom['Euclid'], mask_photometry=True)
 
         # Add metadata
         self.catalog.meta['radius'] = self.radius
@@ -190,7 +217,8 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             has_spec = self.spectra_exist(euclid_ids)
             self.catalog['Euclid_has_spectrum'] = has_spec
 
-        return self.catalog
+        self.validate_catalog()
+        return self.catalog.copy()
 
     def spectra_exist(self, euclid_ids: list | np.ndarray | int):
         """
@@ -261,9 +289,9 @@ class Euclid_Survey(surveycoord.SurveyCoord):
                 print(f"Spectrum retrieval failed for Euclid ID {euclid_id}: {e}")
             return None, None
                 
-    def get_cutout(self, imsize=None, output_file=None, verbose=None, timeout=120):
+    def get_image(self, imsize=None, output_file=None, verbose=None, timeout=120):
         """
-        Get a cutout of a Euclid MER background-subtracted mosaic image.
+        Get a FITS image cutout of a Euclid MER background-subtracted mosaic image.
 
         Queries the mosaic_product table to find MER background-subtracted
         mosaics covering the target region, then retrieves a cutout.
@@ -362,3 +390,13 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         self.cutout_size = imsize
             
         return self.cutout, self.cutout_hdr
+
+    def get_cutout(self, imsize=None, output_file=None, verbose=None, timeout=120):
+        """Deprecated alias for get_image()."""
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; "
+            "use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_image(imsize=imsize, output_file=output_file, verbose=verbose, timeout=timeout)

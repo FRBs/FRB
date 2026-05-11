@@ -49,7 +49,7 @@ class PSRCAT_Survey(surveycoord.SurveyCoord):
         gdp = pcoord.separation(self.coord) <= self.radius
 
         if not np.any(gdp):
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(Table(), ['ra', 'dec'])
         else:
             catalog = pulsars[gdp]
 

@@ -74,6 +74,8 @@ class DESI_Survey(dlsurvey.DL_Survey):
                                                         print_query=print_query, photomdict=spectrom['DESI'],**kwargs)
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
+            main_cat = catalog_utils.clean_cat(main_cat, spectrom['DESI'])
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(spectrom['DESI'].keys()))
             return main_cat 
         #
         for col in main_cat.colnames:
@@ -102,5 +104,11 @@ class DESI_Survey(dlsurvey.DL_Survey):
         elif zcat_primary_only and 'DESI_zcat_primary' not in self.catalog.colnames:
             print("Warning: 'DESI_zcat_primary' not stored in catalog, cannot filter by zcat_primary.")
 
+        # Normalize and validate
+        self.validate_catalog()
+        
         # Return
         return self.catalog
+
+    def get_image(self, **kwargs):
+        raise NotImplementedError("Cutout retrieval not implemented for DESI. This class is meant to purely retreive spectroscopic data. For imaging, use the DeCAL_Survey class instead.")

@@ -1,7 +1,5 @@
 """NOIRLab source catalog"""
 
-import numpy as np
-
 from frb.surveys import dlsurvey, defs
 from frb.surveys import catalog_utils
 
@@ -68,14 +66,10 @@ class NSC_Survey(dlsurvey.DL_Survey):
                                                        query_fields=query_fields,
                                                        print_query=print_query,**kwargs)
         if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat,photom['NSC'])
+            main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'], mask_photometry=True)
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['NSC'].keys()))
             return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'])
-        #import pdb; pdb.set_trace()
-        for col in main_cat.colnames:
-            if main_cat[col].dtype==float:
-                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
-                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
+        main_cat = catalog_utils.clean_cat(main_cat, photom['NSC'], mask_photometry=True)
         
         # Finish
         self.catalog = main_cat

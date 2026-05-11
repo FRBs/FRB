@@ -35,7 +35,7 @@ class NEDLVS(surveycoord.SurveyCoord):
 
         # Set redshift distances using the cosmology of choice
         redshift_dist_sources = self.datatab['DistMpc_method']=='Redshift'
-        self.datatab['DistMpc'][redshift_dist_sources] = self.cosmo.luminosity_distance(self.datatab['z'][redshift_dist_sources]).to('Mpc').value
+        self.datatab['DistMpc'][redshift_dist_sources] = self.cosmo.luminosity_distance(self.datatab['z'][redshift_dist_sources])
         self.datatab['phys_sep'] = self.datatab['DistMpc']*u.Mpc*np.sin(self.datatab['ang_sep'].to('rad').value)
     
     def get_column_names(self):
@@ -78,4 +78,8 @@ class NEDLVS(surveycoord.SurveyCoord):
         close_by = self.datatab[is_nearby_fg][query_fields]
 
         self.catalog = close_by
+        
+        # Normalize and validate (preserves ang_sep/phys_sep, adds canonical separation if needed)
+        self.validate_catalog()
+        
         return self.catalog

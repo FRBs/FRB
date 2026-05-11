@@ -178,6 +178,15 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         if self.svc is None:
             raise RuntimeError("svc attribute cannot be None. Have you installed pyvo?")
+
+        if band is None:
+            if "r" in self.bands:
+                band = "r"
+            else:
+                # This is only true for VISTA.
+                # Get Y band. This is the first band in the list.
+                band = self.bands[0]
+                warnings.warn("Retrieving image in {:s} band".format(band))
         
         if band.lower() not in self.bands and band not in self.bands:
             raise TypeError("Allowed filters (case-insensitive) for {:s} photometric bands are {}".format(self.survey,self.bands))
@@ -226,15 +235,14 @@ class DL_Survey(surveycoord.SurveyCoord):
             ndarray, Header: cutout image, cutout image header
 
         """
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; "
+            "use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+
         self.cutout_size = imsize
-
-        if band is None:
-            if "r" in self.bands:
-                band = "r"
-            elif band is None:
-                band = self.bands[-1]
-                warnings.warn("Retrieving cutout in {:s} band".format(band))
-
         img_hdu = self.get_image(imsize, band)
         if img_hdu is not None:
             self.cutout = img_hdu.data

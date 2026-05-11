@@ -124,13 +124,10 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         main_cat = super(VISTA_Survey, self).get_catalog(query=self.query, print_query=print_query,
                                                          photomdict=photom['VISTA'],**kwargs)
         if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat,photom['VISTA'])
+            main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()))
             return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'])
-        for col in main_cat.colnames:
-            if main_cat[col].dtype==float:
-                mask = np.isnan(main_cat[col])+(main_cat[col]==99.99)
-                main_cat[col] = np.where(~mask, main_cat[col], -999.0)
+        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
         # Convert to AB mag
         if system == 'AB':
             #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA

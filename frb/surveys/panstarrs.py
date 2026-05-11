@@ -114,7 +114,9 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         ret = requests.get(url,params=data)
         ret.raise_for_status()
         if len(ret.text)==0:
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(
+                Table(), list(photom['Pan-STARRS'].keys())
+            )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             # Validate
@@ -129,7 +131,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 pdict["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
                 pdict["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
         
-        photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
+        photom_catalog = catalog_utils.clean_cat(photom_catalog, pdict, mask_photometry=True)
 
         #Remove bad positions because Pan-STARRS apparently decided
         #to flag some positions with large negative numbers. Why even keep
@@ -180,35 +182,48 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         #Return
         return self.catalog.copy()
 
-    def get_cutout(self,imsize=30*u.arcsec,filt="irg",output_size=None):
+    def get_cutout(self, imsize=30*u.arcsec, band="irg", output_size=None, **kwargs):
         """
         Grab a color cutout (PNG) from Pan-STARRS
 
 
         Args:
             imsize (Quantity):  Angular size of image desired
-            filt (str): A string with the three filters to be used
+            band (str): A string with the three filters to be used
             output_size (int): Output image size in pixels. Defaults
                                 to the original cutout size.
 
         Returns:
             PNG image, None (None for the header).
         """
-        assert len(filt)==3, "Need three filters for a cutout."
+        if 'filt' in kwargs:
+            warnings.warn(
+                "'filt' is deprecated; use 'band' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if band != "irg":
+                raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+            band = kwargs.pop('filt')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
+        assert len(band) == 3, "Need three filters for a cutout."
         #Sort filters from red to blue
-        filt = filt.lower() #Just in case the user is cheeky about the filter case.
+        band = band.lower() #Just in case the user is cheeky about the filter case.
         reffilt = "yzirg"
-        idx = np.argsort([reffilt.find(f) for f in filt])
-        newfilt = ""
+        idx = np.argsort([reffilt.find(f) for f in band])
+        newband = ""
         for i in idx:
-            newfilt += filt[i]
+            newband += band[i]
         #Get image url
-        url = _get_url(self.coord,imsize=imsize,filt=newfilt,output_size=output_size,color=True,imgformat='png')
+        url = _get_url(self.coord, imsize=imsize, band=newband, output_size=output_size,
+                       color=True, imgformat='png')
         self.cutout = images.grab_from_url(url)
         self.cutout_size = imsize
         return  self.cutout.copy(), 
     
-    def get_image(self,imsize=30*u.arcsec,filt="i",timeout=120):
+    def get_image(self, imsize=30*u.arcsec, band="i", timeout=120, **kwargs):
         """
         Grab a fits image from Pan-STARRS in a
         specific band.
@@ -216,40 +231,64 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 
         Args:
             imsize (Quantity): Angular size of the image desired
-            filt (str): One of 'g','r','i','z','y' (default: 'i')
+            band (str): One of 'g','r','i','z','y' (default: 'i')
             timeout (int): Number of seconds to timout the query (default: 120 s)
 
         Returns:
             hdu: fits header data unit for the downloaded image
         """
-        assert len(filt)==1 and filt in "grizy", "Filter name must be one of 'g','r','i','z','y'"
-        url = _get_url(self.coord,imsize=imsize,filt=filt,imgformat='fits')[0]
+        if 'filt' in kwargs:
+            warnings.warn(
+                "'filt' is deprecated; use 'band' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if band != "i":
+                raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+            band = kwargs.pop('filt')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
+        assert len(band) == 1 and band in "grizy", "Filter name must be one of 'g','r','i','z','y'"
+        url = _get_url(self.coord, imsize=imsize, band=band, imgformat='fits')[0]
         imagedat = fits.open(astroutils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))[0]
         return imagedat
 
 
 
-def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
+def _get_url(coord, imsize=30*u.arcsec, band="i", output_size=None, imgformat="fits", color=False, **kwargs):
     """
     Returns the url corresponding to the requested image cutout
 
     Args:
         coord (astropy SkyCoord): Center of the search area.
         imsize (astropy Angle): Length and breadth of the search area.
-        filt (str): 'g','r','i','z','y'
+        band (str): 'g','r','i','z','y'
         output_size (int): display image size (length) in pixels
         imgformat (str): "fits","png" or "jpg"
     """
     assert imgformat in ['jpg','png','fits'], "Image file can be only in the formats 'jpg', 'png' and 'fits'."
+    if 'filt' in kwargs:
+        warnings.warn(
+            "'filt' is deprecated; use 'band' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if band != "i":
+            raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+        band = kwargs.pop('filt')
+    if kwargs:
+        raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
     if color:
-        assert len(filt)==3,"Three filters are necessary for a color image"
+        assert len(band) == 3,"Three filters are necessary for a color image"
         assert imgformat in ['jpg','png'], "Color image not available in fits format"
     
     pixsize = int(imsize.to(u.arcsec).value/0.25) #0.25 arcsec per pixel
     service = "https://ps1images.stsci.edu/cgi-bin/ps1filenames.py"
     filetaburl = ("{:s}?ra={:f}&dec={:f}&size={:d}&format=fits"
-           "&filters={:s}").format(service,coord.ra.value,
-                                        coord.dec.value, pixsize,filt)
+            "&filters={:s}").format(service,coord.ra.value,
+                             coord.dec.value, pixsize,band)
     file_extensions = Table.read(filetaburl, format='ascii')['filename']
 
     url = "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra={:f}&dec={:f}&size={:d}&format={:s}".format(coord.ra.value,coord.dec.value,

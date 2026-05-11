@@ -85,12 +85,14 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         photom_catalog = SDSS.query_region(self.coord, radius=self.radius, timeout=timeout,
                                            photoobj_fields=photoobj_fields)
         if photom_catalog is None:
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(
+                Table(), list(photom['SDSS'].keys())
+            )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             # Validate
             self.validate_catalog()
-            return
+            return self.catalog.copy()
         elif '<html>' in photom_catalog.colnames[0]:
             raise RuntimeError("SDSS photometry query appears to have failed. Error message: {}".format(photom_catalog.colnames[0]+photom_catalog[0][0]))
 
@@ -135,7 +137,7 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         trim_catalog = trim_down_catalog(photom_catalog, keep_photoz=True)
 
         # Clean up
-        trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'])
+        trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'], mask_photometry=True)
 
         # Spectral info
         spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']

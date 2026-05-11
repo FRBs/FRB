@@ -5,6 +5,7 @@ import time
 import sys
 import csv
 import os
+import warnings
 from io import StringIO
 from . import surveycoord
 from . import catalog_utils
@@ -50,9 +51,9 @@ class HSC_Survey(surveycoord.SurveyCoord):
         self.data_release = 'pdr3'
 
 
-    def get_catalog(self, query_fields=None, query=None, max_time=120,
+    def get_catalog(self, query_fields=None, query=None, timeout=120,
                     print_query=False, query_table='pdr3_wide.summary',
-                    photoz_table = 'mizuki'):
+                    photoz_table='mizuki', **kwargs):
         """
         Query HSC for all objects within a given
         radius of the input coordinates.
@@ -65,7 +66,7 @@ class HSC_Survey(surveycoord.SurveyCoord):
             query: str, optional
               Full query as a string to be passed to the database.
               Overrides the default query.
-            max_time: float, optional
+                        timeout: float, optional
               The maximum time interval to wait between query status checks. Defaults to 120s.
             print_query: bool, optional
               Print the SQL query for the photo-z values
@@ -80,6 +81,18 @@ class HSC_Survey(surveycoord.SurveyCoord):
               source, with unique objid values
 
         """
+        if 'max_time' in kwargs:
+            warnings.warn(
+                "'max_time' is deprecated; use 'timeout' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if timeout != 120:
+                raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+            timeout = kwargs.pop('max_time')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
         if query_fields is None:
             query_fields = list(photom['HSC'].values())
         # Call
@@ -99,10 +112,10 @@ class HSC_Survey(surveycoord.SurveyCoord):
             print(query)
 
         # SQL command
-        query_cat = run_query(query, max_time=max_time,
+        query_cat = run_query(query, timeout=timeout,
                               release_version=self.data_release, delete_job=True)
 
-        catalog = catalog_utils.clean_cat(query_cat, photom['HSC'])
+        catalog = catalog_utils.clean_cat(query_cat, photom['HSC'], mask_photometry=True)
 
         self.catalog = catalog_utils.sort_by_separation(catalog, self.coord, radec=('ra','dec'), add_sep=True)
 
@@ -125,7 +138,8 @@ def run_query(query:str,
               preview:bool=False,
               out_format:str='csv',
               delete_job:bool=False,
-              max_time:int=120
+              timeout:int=120,
+              max_time:int=None
               ):
     """
     Submits a query to the HSC database and downloads the results in the specified format.
@@ -138,7 +152,7 @@ def run_query(query:str,
         preview (bool, optional): Whether to use quick mode (short timeout). Defaults to False.
         out_format (str, optional): The format in which to download the query results. Defaults to 'csv'.
         delete_job (bool, optional): Whether to delete the job after downloading the results. Defaults to False.
-        max_time (int, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
+        timeout (int, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
 
 
     Raises:
@@ -153,6 +167,16 @@ def run_query(query:str,
     credential = {'account_name': user, 'password': password}
     sql = query
 
+    if max_time is not None:
+        warnings.warn(
+            "'max_time' is deprecated; use 'timeout' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if timeout != 120:
+            raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+        timeout = max_time
+
     job = None
 
     try:
@@ -163,7 +187,7 @@ def run_query(query:str,
                             out_format=out_format,
                             release_version=release_version)
             blockUntilJobFinishes(credential, job['id'],
-                                  max_time=max_time)
+                                  timeout=timeout)
             res = download(credential, job['id'])
             pseudo_file = StringIO(res.read().decode('utf-8').split("# ")[1])
             table = Table.from_pandas(read_csv(pseudo_file)).filled(-99.)
@@ -245,7 +269,17 @@ def preview(credential, sql, out, release_version:str="pdr3"):
         raise QueryError('only top %d records are displayed !' % len(result['result']['rows']))
 
 
-def blockUntilJobFinishes(credential, job_id, max_time=120):
+def blockUntilJobFinishes(credential, job_id, timeout=120, max_time=None):
+    if max_time is not None:
+        warnings.warn(
+            "'max_time' is deprecated; use 'timeout' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if timeout != 120:
+            raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+        timeout = max_time
+
     interval = 1
     while True:
         time.sleep(interval)
@@ -255,8 +289,8 @@ def blockUntilJobFinishes(credential, job_id, max_time=120):
         if job['status'] == 'done':
             break
         interval *= 2
-        if interval > max_time:
-            interval = max_time
+        if interval > timeout:
+            interval = timeout
 
 
 def download(credential, job_id):
