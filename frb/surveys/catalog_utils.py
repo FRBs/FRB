@@ -71,36 +71,44 @@ def _mask_bad_photometry(catalog, pdict, fill_mask=-99.0):
     masked_catalog = None
     touched = False
 
+    # Loop over photometric keys and mask bad values along with their paired errors
     for phot_key, err_key in photom_pairs.items():
+
+        # Skip if photometric key is missing or non-numeric
         if phot_key not in catalog.colnames:
             continue
         if not _is_numeric_column(catalog[phot_key]):
             continue
-
+        
+        # Non-finite, negative, or unphysically large photometric values
         phot_values = np.asarray(catalog[phot_key], dtype=float)
         phot_bad = ~np.isfinite(phot_values)
+
+        # This is key. 30 might not work for something like JWST, but is a reasonable upper limit for all ground based surveys we are using.
         phot_bad |= (phot_values < 0) | (phot_values > 30)
 
+        # Errors that are bad; i.e. the photometry is an upper limit
         err_bad = np.zeros(len(catalog), dtype=bool)
         if err_key is not None and err_key in catalog.colnames and _is_numeric_column(catalog[err_key]):
             err_values = np.asarray(catalog[err_key], dtype=float)
             err_bad = ~np.isfinite(err_values)
+
+            # This is key
             err_bad |= (err_values < 0) | (err_values > 5)
         combined_bad = phot_bad | err_bad
+
+        # No bad values? Skip to next key.
         if not np.any(combined_bad):
             continue
 
-        if masked_catalog is None:
-            masked_catalog = _masked_copy_if_needed(catalog)
-        masked_catalog[phot_key].mask = np.asarray(masked_catalog[phot_key].mask) | combined_bad
-        if err_key is not None and err_key in masked_catalog.colnames and _is_numeric_column(masked_catalog[err_key]):
-            masked_catalog[err_key].mask = np.asarray(masked_catalog[err_key].mask) | combined_bad
-        touched = True
+        # Mask bad photometry and paired errors, then fill with sentinel value.
+        catalog[phot_key][phot_bad] = fill_mask
 
-    if not touched:
-        return catalog
-    return masked_catalog.filled(fill_mask)
+        # Mask bad errors and also mask errors corresponding to bad photometry.
+        if err_key is not None and err_key in catalog.colnames and _is_numeric_column(catalog[err_key]):
+            catalog[err_key][combined_bad] = fill_mask
 
+    return catalog
 
 def clean_cat(catalog, pdict, fill_mask=-99.0, mask_photometry=False, ):
     """
@@ -675,7 +683,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if (len(not_matched_tab1)!=0)&(len(not_matched_tab2)!=0):
         outer_join = join(not_matched_tab1, not_matched_tab2,
                     keys=['ra','dec'], join_type='outer', table_names=table_names)
-        merged = vstack([inner_join, outer_join]).filled(-99.)
+        merged = vstack([inner_join, outer_join])
     # Only table 1 has unmatched entries?
     elif (len(not_matched_tab1)!=0)&(len(not_matched_tab2)==0):
         merged = vstack([inner_join, not_matched_tab1])
@@ -690,7 +698,7 @@ def xmatch_and_merge_cats(tab1:Table, tab2:Table, tol:units.Quantity=1*units.arc
     if np.any(weird_cols):
         merged.remove_columns(np.array(['ra_1','dec_1','ra_2','dec_2'])[weird_cols])
     # Fill and return.
-    return merged.filled(-99.)
+    return merged
     
     '''
     TODO: Write this function once CDS starts working again (through astroquery) 
