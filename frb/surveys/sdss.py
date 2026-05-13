@@ -143,7 +143,18 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
         spec_catalog = SDSS.query_region(self.coord,spectro=True, radius=self.radius,
                                          timeout=timeout, specobj_fields=spec_fields) # Duplicates may exist
-        if spec_catalog is not None:
+        
+        # Make sure the returned spec_catalog isn't bad
+        if spec_catalog == None:
+            bad_spec = True
+        elif len(spec_catalog) == 0:
+            bad_spec = True
+        elif len(spec_catalog.colnames) == 1 and '<html>' in spec_catalog.colnames[0]:
+            bad_spec = True
+        else:
+            bad_spec = False
+
+        if not bad_spec:
             trim_spec_catalog = trim_down_catalog(spec_catalog)
             # Match
             spec_coords = SkyCoord(ra=trim_spec_catalog['ra'], dec=trim_spec_catalog['dec'], unit='deg')
