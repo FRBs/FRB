@@ -274,8 +274,11 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                         renamed_duplicates = [colname+"_"+surveyname for colname in duplicate_colnames]
                         survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
 
+                    # Remov ethe 'survey' entry in the table meta data
+                    if 'survey' in survey.catalog.meta:
+                        del survey.catalog.meta['survey'] 
+                    
                     # Now merge
-
                     if surveyname in ['GALEX', 'WISE', 'VISTA']:
                         tol = 3*u.arcsec # Just worse PSFs
                     else:
