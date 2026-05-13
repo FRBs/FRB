@@ -127,7 +127,6 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
             main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()))
             return main_cat
-        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
         # Convert to AB mag
         if system == 'AB':
             #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA
@@ -141,7 +140,8 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             pass
         else:
             raise RuntimeError("Photometry system must be one of 'AB' and 'Vega'")
-
+        
+        main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
         # Finish
         self.catalog = main_cat
         self.validate_catalog()
