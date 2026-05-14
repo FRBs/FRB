@@ -44,7 +44,12 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
     def _transverse_distance_cut(self, catalog, transverse_distance_cut, distance_column='Dist'):
         # Apply a transverse distance cut
         angular_dist = self.coord.separation(SkyCoord(catalog['ra'], catalog['dec'], unit='deg')).to('rad').value
-        transverse_dist = catalog[distance_column]*np.sin(angular_dist)
+        radial_dist = catalog[distance_column]
+        if getattr(radial_dist, 'unit', None) is None:
+            radial_dist = radial_dist * u.Mpc
+        else:
+            radial_dist = radial_dist.to(u.Mpc)
+        transverse_dist = radial_dist * np.sin(angular_dist)
         catalog = catalog[transverse_dist<transverse_distance_cut]
         return catalog
 
@@ -126,6 +131,9 @@ class TullyGroupCat(VizierCatalogSearch):
                 result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
             result = result[result['Ngal']>=richness_cut]
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
 
         return self.catalog
     
@@ -187,6 +195,10 @@ class WenGroupCat(VizierCatalogSearch):
                 result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
             result = result[result['Ngal']>=richness_cut]
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
     
 # Bahk and Hwang 2024 (Updated Planck+2015)
@@ -240,6 +252,10 @@ class UPClusterSZCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(UPClusterSZCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
     
 # Xu+2022 (ROSAT X ray cluster)
@@ -289,6 +305,10 @@ class ROSATXClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(ROSATXClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
     
 # Tempel+2018
@@ -338,6 +358,10 @@ class TempelClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(TempelClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
 
 
@@ -388,6 +412,10 @@ class RASSClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(RASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
 
     
@@ -440,6 +468,10 @@ class RedMapperClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(RedMapperClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
 
     
@@ -491,6 +523,10 @@ class ACTDR5ClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(ACTDR5ClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog
 
     
@@ -542,4 +578,8 @@ class ERASSClusterCat(VizierCatalogSearch):
         if transverse_distance_cut<np.inf*u.Mpc:
             result = super(ERASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
+        
+        # Normalize and validate
+        self.validate_catalog()
+        
         return self.catalog

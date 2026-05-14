@@ -16,6 +16,7 @@ except ImportError:
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from frb.surveys import images
+from frb.surveys.skyview import SkyView_Survey
 
 # Define the data model for SDSS data
 photom = {}
@@ -29,7 +30,7 @@ photom['SDSS']['ra'] = 'ra'
 photom['SDSS']['dec'] = 'dec'
 photom['SDSS']['SDSS_field'] = 'field'
 
-class SDSS_Survey(surveycoord.SurveyCoord):
+class SDSS_Survey(SkyView_Survey):
     """
     Class to handle queries on the SDSS database
 
@@ -40,9 +41,22 @@ class SDSS_Survey(surveycoord.SurveyCoord):
 
     """
     def __init__(self, coord, radius, **kwargs):
-        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        SkyView_Survey.__init__(self, coord, radius, 'sdss', **kwargs)
         #
         self.survey = 'SDSS'
+
+    def get_image(self, imsize, band='r'):
+        """
+        Retrieve a SkyView FITS image for SDSS.
+
+        Args:
+            imsize (Quantity): Angular size of desired image.
+            band (str, optional): One of ``u``, ``g``, ``r``, ``i``, ``z``.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: FITS image product.
+        """
+        return SkyView_Survey.get_image(self, imsize=imsize, band=band)
 
     def get_catalog(self, photoobj_fields=None, timeout=120, print_query=False):
         """
@@ -85,12 +99,14 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         photom_catalog = SDSS.query_region(self.coord, radius=self.radius, timeout=timeout,
                                            photoobj_fields=photoobj_fields)
         if photom_catalog is None:
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(
+                Table(), list(photom['SDSS'].keys())
+            )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             # Validate
             self.validate_catalog()
-            return
+            return self.catalog.copy()
         elif '<html>' in photom_catalog.colnames[0]:
             raise RuntimeError("SDSS photometry query appears to have failed. Error message: {}".format(photom_catalog.colnames[0]+photom_catalog[0][0]))
 
@@ -135,13 +151,24 @@ class SDSS_Survey(surveycoord.SurveyCoord):
         trim_catalog = trim_down_catalog(photom_catalog, keep_photoz=True)
 
         # Clean up
-        trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'])
+        trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'], mask_photometry=True)
 
         # Spectral info
         spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
         spec_catalog = SDSS.query_region(self.coord,spectro=True, radius=self.radius,
                                          timeout=timeout, specobj_fields=spec_fields) # Duplicates may exist
-        if spec_catalog is not None:
+        
+        # Make sure the returned spec_catalog isn't bad
+        if spec_catalog == None:
+            bad_spec = True
+        elif len(spec_catalog) == 0:
+            bad_spec = True
+        elif len(spec_catalog.colnames) == 1 and '<html>' in spec_catalog.colnames[0]:
+            bad_spec = True
+        else:
+            bad_spec = False
+
+        if not bad_spec:
             trim_spec_catalog = trim_down_catalog(spec_catalog)
             # Match
             spec_coords = SkyCoord(ra=trim_spec_catalog['ra'], dec=trim_spec_catalog['dec'], unit='deg')

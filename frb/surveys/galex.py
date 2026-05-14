@@ -3,10 +3,13 @@ Slurp data from GALEX catalog using the MAST API.
 
 """
 
+import warnings
+
 from ..galaxies.defs import GALEX_bands
 from astroquery.mast import Catalogs
 
 from frb.surveys import surveycoord,catalog_utils
+from frb.surveys.skyview import SkyView_Survey
 
 import os
 
@@ -27,7 +30,7 @@ _DEFAULT_query_fields = ['distance_arcmin','objID','survey','ra','dec','e_bv']
 _DEFAULT_query_fields +=['{:s}_mag'.format(band) for band in GALEX_bands]
 _DEFAULT_query_fields +=['{:s}_magerr'.format(band) for band in GALEX_bands]
 
-class GALEX_Survey(surveycoord.SurveyCoord):
+class GALEX_Survey(SkyView_Survey):
     """
     A class to access all the catalogs hosted on the
     MAST database. Inherits from SurveyCoord. This
@@ -36,9 +39,10 @@ class GALEX_Survey(surveycoord.SurveyCoord):
     classes like GALEX_Survey
     """
     def __init__(self,coord,radius,**kwargs):
-        surveycoord.SurveyCoord.__init__(self,coord,radius,**kwargs)
+        SkyView_Survey.__init__(self, coord, radius, 'galex', **kwargs)
 
         self.Survey = "GALEX"
+        self.survey = 'GALEX'
     
     def get_catalog(self,query_fields=None, print_query=False):
         """
@@ -67,7 +71,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
         data = {}
         data['ra'] = self.coord.ra.value
         data['dec'] = self.coord.dec.value
-        data['radius'] = self.radius.to(u.deg).value
+        data['radius'] = self.radius.to("deg").value
         data['columns'] = query_fields
         data['format'] = 'csv'
 
@@ -76,7 +80,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         pdict = photom['GALEX'].copy()
         
-        photom_catalog = catalog_utils.clean_cat(ret,pdict) # rename columns
+        photom_catalog = catalog_utils.clean_cat(ret, pdict, mask_photometry=True) # rename columns
 
         photom_catalog.keep_columns(list(pdict.keys())) # Keep only the columns we care about
 
@@ -94,3 +98,16 @@ class GALEX_Survey(surveycoord.SurveyCoord):
 
         #Return
         return self.catalog.copy()
+
+    def get_image(self, imsize, band='NUV'):
+        """Retrieve a SkyView FITS image for GALEX."""
+        return SkyView_Survey.get_image(self, imsize=imsize, band=band)
+
+    def get_cutout(self, imsize, band='NUV'):
+        """Deprecated alias for FITS image retrieval."""
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_image(imsize=imsize, band=band)

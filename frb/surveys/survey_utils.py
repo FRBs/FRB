@@ -25,6 +25,10 @@ from astropy import units as u
 from astropy.table import Table, join
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
+try:
+    from dl.queryClient import queryClientError
+except Exception:
+    queryClientError = None
 
 import numpy as np
 import warnings
@@ -136,6 +140,12 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except HTTPError:
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
         cat = None
+    except Exception as e:
+        if queryClientError is not None and isinstance(e, queryClientError):
+            warnings.warn("Couldn't reach NOIRLAB DataLab.", RuntimeWarning)
+            cat = None
+        else:
+            raise
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
         return False
@@ -236,6 +246,11 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             survey.get_catalog()
         except (ConnectionError, HTTPError, QueryError):
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+        except Exception as e:
+            if queryClientError is not None and isinstance(e, queryClientError):
+                warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+            else:
+                raise
 
         # Did the survey return something?
         if (survey.catalog is not None):
@@ -259,8 +274,11 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
                         renamed_duplicates = [colname+"_"+surveyname for colname in duplicate_colnames]
                         survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
 
+                    # Remov ethe 'survey' entry in the table meta data
+                    if 'survey' in survey.catalog.meta:
+                        del survey.catalog.meta['survey'] 
+                    
                     # Now merge
-
                     if surveyname in ['GALEX', 'WISE', 'VISTA']:
                         tol = 3*u.arcsec # Just worse PSFs
                     else:
