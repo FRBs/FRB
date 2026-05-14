@@ -16,6 +16,7 @@ except ImportError:
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
 from frb.surveys import images
+from frb.surveys.skyview import SkyView_Survey
 
 # Define the data model for SDSS data
 photom = {}
@@ -29,7 +30,7 @@ photom['SDSS']['ra'] = 'ra'
 photom['SDSS']['dec'] = 'dec'
 photom['SDSS']['SDSS_field'] = 'field'
 
-class SDSS_Survey(surveycoord.SurveyCoord):
+class SDSS_Survey(SkyView_Survey):
     """
     Class to handle queries on the SDSS database
 
@@ -40,9 +41,22 @@ class SDSS_Survey(surveycoord.SurveyCoord):
 
     """
     def __init__(self, coord, radius, **kwargs):
-        surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        SkyView_Survey.__init__(self, coord, radius, 'sdss', **kwargs)
         #
         self.survey = 'SDSS'
+
+    def get_image(self, imsize, band='r'):
+        """
+        Retrieve a SkyView FITS image for SDSS.
+
+        Args:
+            imsize (Quantity): Angular size of desired image.
+            band (str, optional): One of ``u``, ``g``, ``r``, ``i``, ``z``.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: FITS image product.
+        """
+        return SkyView_Survey.get_image(self, imsize=imsize, band=band)
 
     def get_catalog(self, photoobj_fields=None, timeout=120, print_query=False):
         """

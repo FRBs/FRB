@@ -4,12 +4,14 @@ Slurp data from 2MASS catalog.
 """
 
 import numpy as np
+import warnings
 
 from astropy import units as u
 from ..galaxies.defs import MASS_bands
 from astroquery.ipac.irsa import Irsa
 
 from frb.surveys import surveycoord,catalog_utils
+from frb.surveys.skyview import SkyView_Survey
 
 
 # Define the data model for 2MASS data
@@ -29,7 +31,7 @@ _DEFAULT_query_fields = ['designation','survey','ra','dec']
 _DEFAULT_query_fields +=['{:s}_m'.format(band) for band in MASS_bands]
 _DEFAULT_query_fields +=['{:s}_msig'.format(band) for band in MASS_bands]
 
-class TwoMASS_Survey(surveycoord.SurveyCoord):
+class TwoMASS_Survey(SkyView_Survey):
     """
     A class to access all the catalogs hosted on the
     IRSA database. Inherits from SurveyCoord. This
@@ -38,9 +40,10 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
     classes like TwoMASS_Survey
     """
     def __init__(self,coord,radius,**kwargs):
-        surveycoord.SurveyCoord.__init__(self,coord,radius,**kwargs)
+        SkyView_Survey.__init__(self, coord, radius, '2mass', **kwargs)
 
         self.Survey = "2MASS"
+        self.survey = '2MASS'
     
     def get_catalog(self,query_fields=None):
         """
@@ -130,3 +133,16 @@ class TwoMASS_Survey(surveycoord.SurveyCoord):
                 raise ValueError(f"Column {filt} not found in catalog.")
             
         return self.catalog
+
+    def get_image(self, imsize, band='J'):
+        """Retrieve a SkyView FITS image for 2MASS."""
+        return SkyView_Survey.get_image(self, imsize=imsize, band=band)
+
+    def get_cutout(self, imsize, band='J'):
+        """Deprecated alias for FITS image retrieval."""
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_image(imsize=imsize, band=band)
