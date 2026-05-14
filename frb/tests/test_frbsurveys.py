@@ -76,6 +76,7 @@ def test_sdss():
     #coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     coord = SkyCoord(0, 0, unit=units.deg)
     search_r = 1 * units.arcmin
+    img_r = 30 * units.arcsec
     # Instantiate
     sdss_srvy = survey_utils.load_survey_by_name('SDSS', coord, search_r)
     sdss_tbl = sdss_srvy.get_catalog()
@@ -88,6 +89,12 @@ def test_sdss():
 
     # Test empty table handling
     _assert_empty_catalog('SDSS')
+
+    imghdu = sdss_srvy.get_image(imsize=img_r, band='r')
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data is not None
+    assert imghdu.data.ndim == 2
+    assert imghdu.data.shape == (76, 76)
 
 
 @remote_data
@@ -271,7 +278,9 @@ def test_delve():
 def test_vista():
     # Catalog
     coord = SkyCoord('J214425.25-403400.81', unit=(units.hourangle, units.deg))
+    #coord = SkyCoord('J210000-400000', unit=(units.hourangle, units.deg))
     search_r = 120 * units.arcsec
+    img_r = 120 * units.arcsec
 
     vista_srvy = survey_utils.load_survey_by_name('VISTA', coord, search_r)
     vista_tbl = vista_srvy.get_catalog(print_query=True)
@@ -281,6 +290,13 @@ def test_vista():
     _assert_masked_photometry(vista_tbl)
 
     _assert_empty_catalog('VISTA')
+
+    # VSA image retrieval is service-dependent; if unavailable the method should fail gracefully.
+    imghdu = vista_srvy.get_image(imsize=img_r, band='J', timeout=120)
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.header.get('ESO INS FILT1 NAME') == 'J'
+    assert imghdu.data.ndim == 2
+    assert imghdu.data.shape == (354, 354)
 
 
 @remote_data
@@ -323,6 +339,13 @@ def test_first():
     assert len(first_tbl) == 1
 
     _assert_empty_catalog('FIRST')
+
+    # Imaging from SkyView
+    imghdu = first_srvy.get_image(imsize=10*units.arcsec)
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data is not None
+    assert imghdu.data.ndim == 2
+    assert imghdu.data.shape == (6, 6)
 
 
 @remote_data
@@ -393,6 +416,7 @@ def test_tully():
 def test_galex():
     coord = SkyCoord('J142532.38+120121.17', unit=(units.hourangle, units.deg))
     search_r = 240 * units.arcsec
+    img_r = 60 * units.arcsec
 
     # Test get_catalog
     galex_srvy = survey_utils.load_survey_by_name('GALEX', coord, search_r)
@@ -403,11 +427,18 @@ def test_galex():
 
     _assert_empty_catalog('GALEX')
 
+    imghdu = galex_srvy.get_image(imsize=img_r, band='NUV')
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data is not None
+    assert imghdu.data.ndim == 2
+    assert imghdu.data.shape == (40, 40)
+
 
 @remote_data
 def test_2mass():
     coord = SkyCoord('J081240.68+320809', unit=(units.hourangle, units.deg))
     search_r = 240 * units.arcsec
+    img_r = 60 * units.arcsec
 
     # Test get_catalog
     mass_srvy = survey_utils.load_survey_by_name('2MASS', coord, search_r)
@@ -417,6 +448,12 @@ def test_2mass():
     _assert_masked_photometry(mass_tbl)
 
     _assert_empty_catalog('2MASS')
+
+    imghdu = mass_srvy.get_image(imsize=img_r, band='J')
+    assert isinstance(imghdu, PrimaryHDU)
+    assert imghdu.data is not None
+    assert imghdu.data.ndim == 2
+    assert imghdu.data.shape == (60, 60)
 
 
 @remote_data
