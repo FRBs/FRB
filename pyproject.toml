@@ -49,6 +49,7 @@ dependencies = [
     "tqdm>=4.0.0",
     "ne2001 @ git+https://github.com/FRBs/ne2001.git",
     "astropath @ git+https://github.com/FRBs/astropath.git",
+    "mastcasjobs>=0.0.8"
 ]
 
 [project.optional-dependencies]
