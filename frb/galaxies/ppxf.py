@@ -44,6 +44,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
 
     Outputs are written to disk
 
+
+
     Args:
         spec_file (str or XSpectrum1D):
         R (float):
@@ -362,7 +364,7 @@ def total_mass(miles, weights, quiet=False):
     in models fitted, given the weights produced and output by pPXF.
 
     A Salpeter IMF is assumed (slope=1.3) initially.
-        -   TODO: Employ Chabrier models
+    TODO: Employ Chabrier models.
     The returned mass excludes the gas lost during stellar evolution.
 
     This procedure uses the mass predictions

@@ -37,3 +37,7 @@ Submodules
    galaxies.defs
    galaxies.hosts
    galaxies.photom
+   galaxies.convert_tables
+   galaxies.extra_data
+   galaxies.galfit
+   galaxies.mag_dm

@@ -141,3 +141,6 @@ def main(pargs):
         plot_spec(specDB, meta, ifrb, dust_correct=pargs.dust)
 
 
+def cli():
+    main(parser())
+

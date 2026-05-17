@@ -36,6 +36,7 @@ def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
                       ISMfrac=0.10, DM_MWhalo=50.):
     """
     Generate P(DM_cosmic) for an input FRP
+
     
     Args:
         frb (:class:`frb.frb.FRB`):
@@ -49,6 +50,7 @@ def prob_DMcosmic_FRB(frb, DM_min=0., DM_max=5000., step=1.,
             Fraction of DM_ISM to adopt as the 1-sigma error
         DM_MWhalo (float, optional):
             Fixed value to use for the MW halo
+
 
     Returns:
         tuple:  numpy.ndarray, numpy.ndarray
@@ -96,6 +98,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None,
     """
     Generate a grid of P(DM_cosmic|z)
 
+
     Args:
         beta (float, optional):
             sigma_DM_cosmic parameter
@@ -107,6 +110,7 @@ def grid_P_DMcosmic_z(beta=3., F=0.31, zvals=None,
             DMs for the grid
         cosmo (optional):
             Cosmology
+
 
     Returns:
         tuple: z, DM_cosmic, P(DM_cosmic|z)
@@ -151,6 +155,7 @@ def build_grid_for_repo(outfile:str):
     """
     Build a P(DM,z) grid for the Repository
 
+
     Args:
         outfile (str): Path+filename for output file
     """
@@ -171,8 +176,10 @@ def grab_repo_grid(grid_name):
     """
     Grab the grid from the Repository based on the given grid name
 
+
     Args:
         grid_name (str): Name of the grid to grab
+
 
     Returns:
         dict: Numpy dict from the npz or npy save file

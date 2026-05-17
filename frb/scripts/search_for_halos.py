@@ -32,17 +32,26 @@ def parser(options=None):
 def halo_dm(z, offset, log_mhalo, rmax=1, fhot=1, is_grp=False):
     """
     Calculate the dispersion measure (DM) contribution from a halo.
-    Parameters:
-    z (float): Redshift of the halo.
-    offset (float): Offset distance from the center of the halo in kpc.
-    log_mhalo (float): Logarithm of the halo mass.
-    rmax (float, optional): Maximum radius to consider for the halo model. Default is 1.
-    fhot (float, optional): Fraction of hot gas in the halo. Default is 1.
-    is_grp (bool, optional): Flag indicating if the halo is a group or cluster. Default is False.
-    Returns:
-    tuple: A tuple containing:
-        - dm_halo (float): Dispersion measure contribution from the halo in pc/cm^3.
-        - rvir (Quantity): Virial radius of the halo in kpc.
+
+    Parameters
+    ----------
+    z : float
+        Halo redshift.
+    offset : float
+        Impact parameter in kpc.
+    log_mhalo : float
+        Log10 halo mass.
+    rmax : float, optional
+        Halo extent in units of virial radius.
+    fhot : float, optional
+        Fraction of halo gas in hot phase.
+    is_grp : bool, optional
+        Treat as group/cluster halo when True.
+
+    Returns
+    -------
+    tuple
+        ``(dm_halo, rvir)`` where `dm_halo` is in pc/cm^3.
     """
     if log_mhalo<14: # Low mass halos
         if offset>1300*u.kpc: # Don't bother instantiating the model if the distance is too far
@@ -62,6 +71,8 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
     """
     Estimate the contribution of the local volume halos available
     within the NEDLVS catalog. Produces estimates where masses are available.
+
+
     Args:
         frb_name (str): Name of the Fast Radio Burst (FRB).
         frb_coord (SkyCoord): Coordinate of the FRB.
@@ -69,6 +80,8 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
         nedlvs_tab (Table): NED Local Volume Sample (NEDLVS) catalog table.
         tully_clusters (Table): Tully clusters catalog table.
         rmax (float, optional): Maximum radius for halo DM calculation. Default is 1.
+
+
     Returns:
         mean_dm_halos_lvs (float): Mean dispersion measure (DM) of local volume halos.
         mean_dm_halos_lvs_phot (float): Mean DM of local volume halos with only photometric redshifts.
@@ -208,4 +221,7 @@ def main(pargs):
     close_by_withmass.write(f"{frb_name}_nedvls_with_mass.fits", overwrite=True)
     if len(match_grps)>0:
         match_grps.write(f"{frb_name}_tully_grps_ICM_fgonly.fits", overwrite=True)
-    
+
+
+def cli():
+    main(parser())

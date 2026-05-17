@@ -94,6 +94,27 @@ def test_desi():
     assert len(desi_tbl) == 3230
 
 
+def test_euclid():
+    from astropy.io import fits
+    coord = SkyCoord("17h51m07.4s +65d31m50.8s", frame='icrs')
+    search_r = 10 * units.arcsec
+
+    euclid_srvy = survey_utils.load_survey_by_name('Euclid', coord, search_r)
+    euclid_tbl = euclid_srvy.get_catalog(check_spectra=True, timeout=30)
+
+    assert isinstance(euclid_tbl, Table)
+    assert len(euclid_tbl) == 1
+    assert euclid_tbl.meta['survey'] == 'Euclid'
+    assert 'ra' in euclid_tbl.colnames
+    assert 'dec' in euclid_tbl.colnames
+    assert 'Euclid_has_spectrum' in euclid_tbl.colnames
+
+    cutout, cutout_hdr = euclid_srvy.get_cutout(imsize=2*units.arcmin, timeout=30)
+    assert isinstance(cutout, np.ndarray)
+    assert isinstance(cutout_hdr, fits.Header)
+    assert cutout.shape == (1207, 1207)
+
+
 @remote_data
 def test_nsc():
     # Catalog

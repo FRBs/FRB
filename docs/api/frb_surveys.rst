@@ -11,10 +11,7 @@ FRB survey-specific data and utilities (e.g. CHIME).
 Submodules
 ----------
 
-frb.frb_surveys.chime - CHIME
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+.. toctree::
+   :maxdepth: 1
 
-.. automodule:: frb.frb_surveys.chime
-   :members:
-   :undoc-members:
-   :show-inheritance:
+   frb_surveys.chime

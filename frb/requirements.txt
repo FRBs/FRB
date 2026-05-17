@@ -1,5 +1,7 @@
 # Required packages for testing FRB repo (not all tests, though)
 
+# CAUTION: THIS IS NOW DEPRECATED AND SHOULD NOT BE USED FOR INSTALLATION. THIS IS SUPERSEDED BY A PYPROJECT.TOML FILE WITH A [project.dependencies] SECTION. SEE PYPROJECT.TOML FOR DETAILS.
+
 # Users
 numpy>=2.2.0
 scipy>=1.17
@@ -21,3 +23,6 @@ tox>=4.15.0
 pyvo>=1.5.3
 importlib-resources>=6.4.0
 astroquery>=0.4.11
+tqdm>=4.0.0
+ne2001 @ git+https://github.com/FRBs/ne2001.git
+astropath @ git+https://github.com/FRBs/astropath.git

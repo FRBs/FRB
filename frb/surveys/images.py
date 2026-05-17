@@ -17,8 +17,10 @@ def grab_from_url(url):
     """
     Grab a PIL Image from a URL
 
+
     Args:
         url (str): URL
+
 
     Returns:
         PIL.Image: Image retrieved from the URL
@@ -35,12 +37,14 @@ def gen_snapshot_plt(img, imsize, show=False):
     """
     Generate a simple figure from an input PIL.Image
 
+
     Args:
         img (PIL.Image): Image to plot
         imsize: Angle
           Angular dimension of the image
         show (bool, optional): Show to the screen?  
            If done, will need to regenerate to then save to disk
+
 
     Returns:
         matplotlib.pyplot:  Allows one to further modify the plot

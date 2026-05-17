@@ -7,11 +7,13 @@ def stellarmass_from_halomass(log_Mhalo, z=0):
     """ Stellar mass from Halo Mass from Moster+2013
     https://doi.org/10.1093/mnras/sts261
 
+
     Args:
         log_Mhalo (float): log_10 halo mass
             in solar mass units.
         z (float, optional): halo redshift.
             Assumed to be 0 by default.
+
     Returns:
         log_mstar (float): log_10 galaxy stellar mass
             in solar mass units.
@@ -50,10 +52,12 @@ def halomass_from_stellarmass(log_mstar, z=0):
     Inverts the function `stellarmass_from_halomass`
     numerically.
 
+
     Args:
         log_mstar (float or numpy.ndarray): log_10 stellar mass
             in solar mass units.
         z (float, optional): galaxy redshift
+
 
     Returns:
         log_Mhalo (float): log_10 halo mass

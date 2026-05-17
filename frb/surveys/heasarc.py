@@ -17,6 +17,7 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
     """
         Class to handle queries on the HEASARC survey.
         Uses `astroquery` for searching the Heasarc SQL database.
+
     
     Args:
         coord (SkyCoord): Coordiante for surveying around
@@ -35,6 +36,7 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
     def get_catalog(self):
         """
         Grab a catalog of sources around the input coordinate to the search radius
+
         
         Returns:
             astropy.table.Table:  Catalog of sources returned
@@ -71,6 +73,7 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
 class SkyView_Survey(surveycoord.SurveyCoord):
     """
         Class to handle queries to the SkyView service of `astroquery`.
+
     
     Args:
         coord (SkyCoord): Coordiante for surveying around

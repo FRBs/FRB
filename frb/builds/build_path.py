@@ -35,6 +35,7 @@ def run(frb_list:list,
         override:bool=False):
     """Main method for running PATH analysis for a list of FRBs
 
+
     Args:
         frb_list (list): List of FRB names from the database
         prior (dict):
@@ -46,9 +47,11 @@ def run(frb_list:list,
         override (bool, optional): Attempt to over-ride errors. 
             Mainly for time-outs of public data. Defaults to False.
 
+
     Raises:
         e: [description]
         ValueError: [description]
+
 
     Returns:
         pandas.DataFrame:  Table of PATH values and a bit more
@@ -141,6 +144,7 @@ def run(frb_list:list,
 
 def main(options:str=None, frb:str=None):
     """ Driver of the analysis
+
 
     Args:
         options (str, optional): [description]. Defaults to None.

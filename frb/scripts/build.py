@@ -70,3 +70,6 @@ def main(pargs):
         raise IOError("Bad build item {:s}".format(item))
 
 
+def cli():
+    main(parser())
+

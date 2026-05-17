@@ -38,6 +38,7 @@ def grab_files(all_files, refs_list, instrument):
     """
     Simple method to parse a set of files for a given an instrument
 
+
     Args:
         all_files (list):
             Complete list of files
@@ -45,6 +46,7 @@ def grab_files(all_files, refs_list, instrument):
             List of references of these files
         instrument (str):
             Instrument name to parse on
+
 
     Returns:
         list, list: List of files and their references matching the input instrument
@@ -69,9 +71,11 @@ def load_z_tables(path):
 
     Redshift tables are those that begin with 'z'
 
+
     Args:
         path (str):
             Path to the folder holding one or more redshift tables.
+
 
     Returns:
         astropy.table.Table: Redshift table with RA, DEC, ZEM, ..
@@ -103,6 +107,7 @@ def sdss_redshifts():
     """
     Enter the directory and build a redshift table
     based on the spectra present
+
 
     Returns:
 
@@ -155,6 +160,7 @@ def sdss_redshifts():
 def generate_by_refs(input_refs, outfile, version):
     """
     Build a specDB file according to the input references
+
 
     Args:
         input_refs (list):

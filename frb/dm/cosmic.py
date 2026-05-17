@@ -30,6 +30,7 @@ def DMcosmic_PDF(Delta, C0, sigma, A=1., alpha=3., beta=3.):
 
     See Macquart+2020 for details
 
+
     Args:
         Delta (float or np.ndarray):
             DM / averageDM values
@@ -39,6 +40,7 @@ def DMcosmic_PDF(Delta, C0, sigma, A=1., alpha=3., beta=3.):
         A (float, optional):
         alpha (float, optional):
         beta (float, optional):
+
 
     Returns:
         float or np.ndarray:
@@ -53,12 +55,14 @@ def deviate1(C0, sigma, beta, orig=False):
     """
     Calculate deviate to solve fo C0
 
+
     Args:
         C0 (float):
         sigma (float):
         beta (float):
         orig (bool, optional):
             use the original approach.  Not recommended
+
 
     Returns:
         float: deviate
@@ -84,12 +88,14 @@ def build_C0_spline(max_log10_sigma=0., npt=100, ret_all=False, beta=4.):
     Generate a spline of C0 vs sigma values for the
     McQuinn formalism
 
+
     Args:
         max_log10_sigma (float, optional):
         npt (int, optional):
         ret_all (bool, optional):
             if True, return more items
         beta (float, optional):
+
 
     Returns:
         float or tuple:  If ret_all, return f_C), sigmas, COs else return the spline
@@ -115,8 +121,10 @@ def grab_sigma_spline():
     """
     Load up the sigma spline
 
+
     Args:
         redo:
+
 
     Returns:
         scipy.interpolate.InterpolatedUnivariateSpline:
@@ -134,6 +142,7 @@ def grab_C0_spline(max_log10_sigma=0., npt=100, ret_all=False,
     """
     Load up the C0 spline
 
+
     Args:
         max_log10_sigma:
         npt:
@@ -141,6 +150,7 @@ def grab_C0_spline(max_log10_sigma=0., npt=100, ret_all=False,
         redo:
         beta:
         ifile:
+
 
     Returns:
         scipy.interpolate.InterpolatedUnivariateSpline:

@@ -1,6 +1,6 @@
 """
 DataLab survey class. Gets data from any survey
-available through the NOAO datalab-client.
+available through astro-datalab. Inherits from SurveyCoord. See surveycoord.py for more details on the parent class.
 """
 import numpy as np
 import warnings
@@ -14,7 +14,7 @@ try:
     from dl import queryClient as qc, authClient as ac
     from dl.helpers.utils import convert
 except:
-    print("Warning:  datalab-client is not installed or will not properly connect")
+    print("Warning:  astro-datalab is not installed or will not properly connect")
 
 
 try:
@@ -54,6 +54,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         Args:
             band (str): Band desired
 
+
         Returns:
             list, list, str:  Table columns, Column values, band string for cutout
 
@@ -68,6 +69,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         Generate SQL Query for catalog search
 
         self.query is modified in place
+
 
         Args:
             query_fields (list):  Override the default list for the SQL query
@@ -102,10 +104,12 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         Select the best band for a cutout
 
+
         Args:
             imgTable: Table of images
             verbose (bool):  Print status
             timeout (int or float):  How long to wait before timing out, in seconds
+
 
         Returns:
             HDU: header data unit for the downloaded image
@@ -124,6 +128,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         Get catalog sources around the given coordinates
         within self.radius.
+
         
         Args:
             query (str, optional): SQL query to generate the catalog
@@ -159,11 +164,13 @@ class DL_Survey(surveycoord.SurveyCoord):
         Get images from the catalog if available
             for a given fov and band.
 
+
         Args:
             imsize (Quantity): FOV for the desired image
             band (str): Band for the image (e.g. 'r')
             timeout (int, optional): Time to wait in seconds before timing out
             verbose (bool, optional):
+
 
         Returns:
             HDU: Image header data unit
@@ -209,9 +216,11 @@ class DL_Survey(surveycoord.SurveyCoord):
         """
         Get cutout (and header)
 
+
         Args:
             imsize (Quantity): e.g 10*units.arcsec
             band (str): e.g. 'r'
+
 
         Returns:
             ndarray, Header: cutout image, cutout image header
@@ -239,6 +248,7 @@ class DL_Survey(surveycoord.SurveyCoord):
 def _default_query_str(query_fields, database, coord, radius, ra_col=None, dec_col=None):
     """
     Generates default query string for a catalog search.
+
     
     Args:
         query_fields (list of str): A list of query fields to
@@ -248,6 +258,7 @@ def _default_query_str(query_fields, database, coord, radius, ra_col=None, dec_c
         radius (astropy.units.Quantity or Angle): Search radius
         ra_col, dec_col (str, optional): Name of the RA and Dec columns in the database
             If None, defaults to 'ra' and 'dec'
+
         
     Returns:
         str: A query to be fed to datalab's SQL client

@@ -68,6 +68,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         Query a catalog in the MAST Pan-STARRS database for
         photometry.
 
+
         Args:
             query_fields: list, optional
                 A list of query fields to
@@ -85,6 +86,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
             photoz: bool, optional
                 If True, also download photometric redshifts
                 using the Mast CasJobs API.
+
         
         Returns:
             catalog: astropy.table.Table
@@ -182,11 +184,13 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         """
         Grab a color cutout (PNG) from Pan-STARRS
 
+
         Args:
             imsize (Quantity):  Angular size of image desired
             filt (str): A string with the three filters to be used
             output_size (int): Output image size in pixels. Defaults
                                 to the original cutout size.
+
         Returns:
             PNG image, None (None for the header).
         """
@@ -209,10 +213,12 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         Grab a fits image from Pan-STARRS in a
         specific band.
 
+
         Args:
             imsize (Quantity): Angular size of the image desired
             filt (str): One of 'g','r','i','z','y' (default: 'i')
             timeout (int): Number of seconds to timout the query (default: 120 s)
+
         Returns:
             hdu: fits header data unit for the downloaded image
         """
@@ -226,6 +232,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
 def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
     """
     Returns the url corresponding to the requested image cutout
+
     Args:
         coord (astropy SkyCoord): Center of the search area.
         imsize (astropy Angle): Length and breadth of the search area.
@@ -265,6 +272,7 @@ def _check_columns(columns,table,release):
     Checks if the requested columns are present in the
     table from which data is to be pulled. Raises an error
     if those columns aren't found.
+
     Args:
         columns (list of str): column names to retrieve
         table (str): "mean","stack" or "detection"
@@ -285,6 +293,7 @@ def _check_legal(table,release):
     Checks if this combination of table and release is acceptable
     Raises a VelueError exception if there is problem.
     Taken from http://ps1images.stsci.edu/ps1_dr2_api.html
+
     Args:
         table (str): "mean","stack" or "detection"
         release (str): "dr1" or "dr2"
@@ -303,6 +312,7 @@ def _check_legal(table,release):
 def _ps1metadata(table="stack",release="dr2",
                  baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
     """Return metadata for the specified catalog and table
+
     
     Args:
         table (string): mean, stack, or detection

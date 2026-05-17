@@ -42,6 +42,8 @@ class WISE_Survey(surveycoord.SurveyCoord):
 
     Child of DL_Survey which uses datalab to access NOAO
 
+
+
     Args:
         coord (SkyCoord): Coordiante for surveying around
         radius (Angle): Search radius around the coordinate
@@ -61,11 +63,15 @@ class WISE_Survey(surveycoord.SurveyCoord):
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
+
+
         Args:
             query: Not used
             query_fields (list, optional): Over-ride list of items to query
             print_query (bool): Print the SQL query generated
             system (str): Magnitude system ['AB', 'Vega']
+
+
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
@@ -107,11 +113,15 @@ class WISE_Survey(surveycoord.SurveyCoord):
     def get_cutout(self, imsize, band, timeout=120):
         """
         Download an image from IRSA
+
+
         Args:
             imsize(Quantity): Size of the cutout in angular units.
             band(str): One of "W1", "W2", "W3" or "W4"
             timeout(float): Number of seconds to wait to hear a response from
                 the IRSA SIA server.
+
+
         Returns:
             imghdu(fits.HDU): Fits HDU with image
         """
@@ -133,6 +143,8 @@ class WISE_Survey(surveycoord.SurveyCoord):
         Generate ADQL query for catalog search
 
         self.query is modified in place
+
+
 
         Args:
             query_fields (list):  Override the default list for the SQL query

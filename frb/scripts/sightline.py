@@ -51,3 +51,7 @@ def main(pargs):
     print("Checking the imaging surveys...")
     inside = survey_utils.in_which_survey(icoord, optical_only=True)
     print(inside)
+
+
+def cli():
+    main(parser())

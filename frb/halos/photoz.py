@@ -7,6 +7,7 @@ from astropy.stats import sigma_clipped_stats
 
 from scipy.interpolate import interp1d, interp2d, RegularGridInterpolator
 from scipy.sparse import lil_matrix, save_npz
+from tqdm import tqdm
 
 from frb.halos.models import ModifiedNFW, halomass_from_stellarmass
 from frb.frb import FRB
@@ -19,14 +20,6 @@ try:
     from pathos.multiprocessing import ProcessingPool as Pool
 except ImportError:
     print("You will need to run 'pip install pathos' to use some functions in this module.")
-try:
-    import progressbar
-except ImportError:
-    print("You will need to run 'pip install progressbar2' to use some functions in this module.")
-try:
-    from threedhst import eazyPy as ez
-except ImportError:
-    print("You will need to run 'pip install threedhst' to read EAZY output.")
 
 DEFAULT_DATA_FOLDER = "data"
 
@@ -34,6 +27,8 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
                  starflagval:float=0.9, gaiacat:str=None, write:bool=False, outfile:str=None)->Table:
     """
     Download photometry for galaxies within an FRB field.
+
+
     Args:
         coords (SkyCoord): Coordinates of the center of a cone search.
         radius (Quantity, optional): Radius of cone search.
@@ -50,6 +45,8 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
         outfile (str, optional): Path to the output file. If not given and write is True,
                                  the table will be written to "photom_cat_J{coords}_{radius}arcmin.fits"
                                  in the current working directory.
+
+
     Returns:
         des_data (Table): Table of DES galaxies within the search radius.
     """
@@ -91,6 +88,8 @@ def get_des_data(coords:SkyCoord, radius:u.Quantity=15.*u.arcmin, starbright:flo
 def _gen_eazy_tab(photom_cat:Table, input_dir:str="eazy_in", name:str="FRB180924", out_dir:str="eazy_out", output_tab:str="no_stars_eazy.fits")->Table:
     """
     Run EAZY on the photometry and produce p(z) estimates.
+
+
     Args:
         photom_cat (Table): Photometry catalog.
         input_dir (str, optional): Folder where EAZY config files are written.
@@ -98,6 +97,8 @@ def _gen_eazy_tab(photom_cat:Table, input_dir:str="eazy_in", name:str="FRB180924
             to generate input files.
         out_dir (str, optional): Folder where EAZY output is stored.
         output_tab (str, optional): Name of the output summary table fits file.
+
+
     Returns:
         joined_tab (Table): EAZY results table joined (type:inner) with photom_cat based
             on the id/ID columns. 
@@ -129,12 +130,16 @@ def _create_cigale_in(photom_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:
     For each galaxy, create multiple entries
     with different redshifts from 0 to 2.
     These redshifts will be uniformly spaced.
+
+
     Args:
         photom_cat (Table): Photometry catalog
         zmin (float, optional): Minimum redshift for analysis.
         zmax (float, optional): Maximum redshift for analysis.
         n_z (int, optional): Number of redshift grid points.
         cigale_input (str, optional): Name of input file to be produced.
+
+
     Returns:
         stacked_photom (Table): A table with multiple groups, one for each galaxy.
             Each entry in a group has the same photometry but different redshift values.
@@ -170,12 +175,16 @@ def _create_cigale_in(photom_cat:Table, zmin:float = 0.01, zmax:float=0.35, n_z:
 def _gen_cigale_tab(stacked_photom:Table, n_chunks:int=10, n_cores:int=25, outdir:str=DEFAULT_DATA_FOLDER)->Table:
     """
     Run CIGALE and produce a table of results.
+
+
     Args:
         stacked_photom (Table): Table with a group for each galaxy. Output of _create_cigale_in.
         n_chunks (int, optional): How many chunks do you want to split stacked_photom.groups into?
             Just so that galaxies are not redone in case of a crash.
         n_cores (int, optional): Number of CPU threads to be used.
         outdir (str, optional): Path to the output directory.
+
+
     Returns:
         full_results (Table): CIGALE output with stellar mass and error for all entries
             in stakced_photom.
@@ -212,9 +221,13 @@ def _gen_cigale_tab(stacked_photom:Table, n_chunks:int=10, n_cores:int=25, outdi
 def _load_cigale_results(cigale_input:str, cigale_output:str)->Table:
     """
     Load the CIGALE stellar mass data.
+
+
     Args:
         cigale_input (str): cigale input file path.
         cigale_output (str): cigale_output file path.
+
+
     Returns:
         trim_tab (Table): Summary table with CIGALE results.
     """
@@ -256,15 +269,19 @@ def _sample_eazy_redshifts(gal_ID:int, eazy_outdir:str, ndraws:int = 1000)->np.n
     """
     Returns a sample of redshifts drawn from the
     EAZY photo-z PDF of galaxy <gal_iD>.
+
+
     Args:
         gal_ID(int): ID number of the galaxy in the EAZY table.
         eazy_outdir(str): Path to the EAZY results folder
         ndraws(int, optional): Number of redshift samples desired.
+
+
     Returns:
         sample_z (np.ndarray): Redshift sample array of length ndraws.
     """
     # Get posterior
-    zgrid, pz = ez.getEazyPz(gal_ID-1,OUTPUT_DIRECTORY=eazy_outdir)
+    zgrid, pz = frb_ez.getEazyPz(gal_ID-1,OUTPUT_DIRECTORY=eazy_outdir)
     # Force a value of 0 at z = 0
     zgrid = np.hstack([[0],zgrid])
     pz = np.hstack([[0],pz])
@@ -286,6 +303,8 @@ def _mhalo_lookup_table(z:float, npz_out:str = "m_halo_realizations", n_cores:in
     For a given z, produce realizations of m_halo for relevant
     m_star values using only the uncertainty in the SHMR relation.
     Internal function. Use directly if you know what you're doing.
+
+
     Args:
         z (float): redshift
         npz_out(str, optional): output .npz file path.
@@ -327,6 +346,8 @@ def mhalo_lookup_tables(z_grid:list, datafolder:str=DEFAULT_DATA_FOLDER, n_cores
     by sampling the Moster+13 SHMR relation. The fits files can then be
     used to produce interpolation functions of the moments of the m_halo
     distribution (e.g. mean, std.dev) as a function of redshift and log_mstar.
+
+
     Args:
         z_grid (list or np.ndarray): List of redshift values to be sampled.
         datafolder (str, optional): Path to the directory where the results will be stored.
@@ -347,6 +368,8 @@ def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
     Using the lookup tables generated (see function mhalo_lookup_tables), produce
     realiztions of mhalo. This takes into account both the stellar mass uncertainty
     and the uncertainty in the SMHR relation from Moster+13.
+
+
     Args:
         log_mstar (float): log stellar mass in M_sun.
         log_mstar_err (float): log error in log_mstar
@@ -357,6 +380,8 @@ def _mhalo_realizations(log_mstar:float, log_mstar_err:float, z:float,
         n_norm (int, optional): Number of m_halo samples for each m_star sample.
         max_log_mhalo (float, optional): Maximum allowed log halo mass. log halo masses
             are capped artificially to this value if any exceed.
+
+
     Returns:
         mhalo_reals (np.ndarray): log_mhalo realizations.
     """
@@ -385,6 +410,8 @@ def _dm_pdf(cigale_tab:Table, eazy_outdir:str,
     """
     For a given galaxy, compute its PDF of
     DM from the CIGALE and EAZY inputs.
+
+
     Args:
         cigale_tab (Table): On of the groups
             from the full cigale result. This
@@ -396,6 +423,8 @@ def _dm_pdf(cigale_tab:Table, eazy_outdir:str,
         ang_dia_interp (interp1d): angular_diameter_distance(z) (default Repo cosmology)
         dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
         n_cores (int, optional): Number of CPU threads to use.
+
+
     Returns:
         dm_values (np.ndarray): Array containing DM realizations for the galaxy.
         z_draws (np.ndarray): Array containing redshift draws from which dm_values were produced.
@@ -434,6 +463,8 @@ def dm_grid(frb_z:float, n_z:int = 100, n_o:int = 100, n_m:int =100, max_log_mha
     Produce DM estimates for a 3D grid of
     redshift, offsets and log_halo_masses and write
     them to disk.
+
+
     Args:
         frb_z(float): frb redshift
         n_z(int, optional): size of the redshift grid. i.e. np.linspace(0, frb_z, n_z)
@@ -482,10 +513,14 @@ def _instantiate_intepolators(datafolder:str=DEFAULT_DATA_FOLDER, dmfilename:str
     Produce interpolator functions
     for key quantities required
     for the analysis.
+
+
     Args:
         datfolder(str, optional): Folder where the interpolation data files exist
         dmfilename(str, optional): file name (within datafolder) for the DM interpolation data.
         frb_name(str, optional): Assumes "FRB180924" by default.
+
+
     Returns:
         dm_interpolator (RegularGridInterpolator): DM(z, offset_kpc, log_mhalo)
         mean_interp (interp2d): <log_mhalo(log_mstar, z)> (based on SHMR)
@@ -546,6 +581,8 @@ def dm_for_all_galaxies(frb:FRB, input_catfile:str, datafolder:str,
     used for the DM realizations and "DM_halos_final.npz" which contains the
     DM realizations themselves. Each row in each of these files corresponds to
     one galaxy and each z draw corresponds to 1000 DM realizations for a galaxy.
+
+
     Args:
         frb (FRB): The FRB object of interest.
         input_catfile (str): Path to the input catalog of photometry. Assumed
@@ -589,17 +626,15 @@ def dm_for_all_galaxies(frb:FRB, input_catfile:str, datafolder:str,
     z_draws = np.zeros((len(eazy_tab),1000), dtype='float32')
 
     # Begin calculating
-    with progressbar.ProgressBar(max_value=len(eazy_tab)-1) as bar:
-        for idx, ez_entry in enumerate(eazy_tab):
-            cigale_galaxy = cigale_tab[cigale_tab['gal_ID']==ez_entry['ID']]
-            if np.any(np.isnan(cigale_galaxy['log_mstar'])):
-                continue
-            else:
-                dm_realizations[idx], z_draws[idx] = _dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
-                                        stddev_interp, ang_dia_interp, dm_interpolator,
-                                        n_cores = 20)
-                
-            bar.update(idx)
+    for idx, ez_entry in enumerate(tqdm(eazy_tab, total=len(eazy_tab), desc="Computing halo DMs")):
+        cigale_galaxy = cigale_tab[cigale_tab['gal_ID']==ez_entry['ID']]
+        if np.any(np.isnan(cigale_galaxy['log_mstar'])):
+            continue
+        else:
+            dm_realizations[idx], z_draws[idx] = _dm_pdf(cigale_galaxy, eazy_outdir, mean_interp,
+                                    stddev_interp, ang_dia_interp, dm_interpolator,
+                                    n_cores = 20)
+
     # Save results to file
     np.savez_compressed(os.path.join(datafolder, "DM_halos_zdraws.npz"), z_draws=z_draws)
     save_npz(os.path.join(datafolder,"DM_halos_final.npz"), dm_realizations.tocsr())

@@ -51,11 +51,13 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
     def _get_catalog(self, query_fields=None, **kwargs):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
             If no objects found, returns an empty table with fields ['ra','dec', and 'z'].
@@ -105,11 +107,13 @@ class TullyGroupCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -164,11 +168,13 @@ class WenGroupCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc, richness_cut = 5):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -216,11 +222,13 @@ class UPClusterSZCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -263,11 +271,13 @@ class ROSATXClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -310,11 +320,13 @@ class TempelClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -358,11 +370,13 @@ class RASSClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -408,11 +422,13 @@ class RedMapperClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -457,11 +473,13 @@ class ACTDR5ClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """
@@ -506,11 +524,13 @@ class ERASSClusterCat(VizierCatalogSearch):
                     transverse_distance_cut = np.inf*u.Mpc):
         """
         Get the catalog of objects
+
         Args:
             z_lim (float): The maximum redshift of the objects to include in the catalog.
             transverse_distance_cut (Quantity): The maximum impact parameter of the objects to include in the catalog.
             richness_cut (int): The minimum number of members in any group/cluster returned.
             query_fields (list): The fields to include in the catalog. If None, all fields are used.
+
         Returns:
             A table of objects within the given limits.
         """

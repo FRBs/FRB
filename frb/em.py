@@ -14,6 +14,7 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
 
     Follows the Reynolds 1977 formalism
 
+
     Args:
         sb_obs (Quantity):
             Observed surface brightness
@@ -21,6 +22,7 @@ def em_from_halpha(sb_obs, z, T=1e4*units.K):
             Redshift of the galaxy
         T (Quantity, optional):
             Temperature for the analysis
+
 
     Returns:
         Quantity: EM
@@ -48,6 +50,7 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
     This follows the formalism presented in Tendulkar+2017
     which follows Reynolds 1977 and Cordes+2016
 
+
     Args:
         EM (Quantity):
           Emission measure
@@ -61,6 +64,7 @@ def dm_from_em(EM, L, ff=1., eps=1., cloudcloud=2.):
         cloudcloud (float, optional):
             cloud-to-cloud density variations in the ionized region of depth 
             L in kpc.
+
 
     Returns:
         Quantity: DM at the source;  correct for (1+z)^-1 at your liking

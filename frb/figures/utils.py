@@ -7,6 +7,7 @@ import matplotlib as mpl
 def log_me(val, err):
     """
     Generate log and error from linear input
+
     
     Args:
         val (float): 
@@ -28,10 +29,12 @@ def log_me(val, err):
 def set_fontsize(ax,fsz):
     """
     Set the fontsize throughout an Axis
+
     
     Args:
         ax (Matplotlib Axis): 
         fsz (float): Font size
+
 
     Returns:
 
@@ -44,6 +47,7 @@ def set_fontsize(ax,fsz):
 def set_bokeh_fontsize(p, fsz):
     """
     Adjust font size for Bokeh axes
+
 
     Args:
         p (Bokeh plot class):
@@ -59,6 +63,7 @@ def set_bokeh_fontsize(p, fsz):
 def set_mplrc():
     """
     Font fussing for matplotlib
+
 
     Returns:
 

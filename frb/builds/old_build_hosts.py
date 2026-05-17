@@ -85,6 +85,7 @@ def build_host_121102(build_photom=False, build_cigale=False, use_orig=False):
     reff from Bassa+17 https://ui.adsabs.harvard.edu/abs/2017ApJ...843L...8B/abstract
 
 
+
     Args:
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
 
@@ -251,6 +252,7 @@ def build_host_180301(build_ppxf=False, build_photom=False, build_cigale=False):
 
     Bhandari+2021
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -378,6 +380,7 @@ def build_host_180924(build_photom=False, build_cigale=False):
 
     Writes to 180924/FRB180924_host.json
 
+
     Args:
         build_photom (bool, optional): Generate the photometry file in the Galaxy_DB
     """
@@ -472,6 +475,7 @@ def build_host_181112(build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 181112
 
     All of the data comes from Prochaska+2019, Science
+
 
     Args:
         build_photom (bool, optional):
@@ -569,6 +573,7 @@ def build_host_190102(build_photom=False, build_cigale=False,
     """ Build the host galaxy data for FRB 190102
 
     All of the data comes from Bhandrari+2020, ApJL, in press
+
 
     Args:
         build_photom (bool, optional):
@@ -695,8 +700,10 @@ def build_host_190523(build_photom=False, build_cigale=False):  #:run_ppxf=False
     a consistent analysis with the ASKAP hosts.
 
 
+
     Args:
         build_photom:
+
 
     Returns:
 
@@ -786,6 +793,7 @@ def build_host_190608(run_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 190608
 
     All of the data comes from Bhandrari+2020, ApJL, in press
+
 
     Args:
         build_photom (bool, optional):
@@ -889,6 +897,7 @@ def build_host_180916(run_ppxf=False, build_photom=False, build_cigale=False):
     https://ui.adsabs.harvard.edu/abs/2020Natur.577..190M/abstract
 
     CIGALE and galfit will be published in Kasper et al. 2020
+
 
     Args:
         build_photom (bool, optional):
@@ -1010,6 +1019,7 @@ def build_host_190611(run_ppxf=False, build_photom=False, build_cigale=False, so
     """ Build the host galaxy data for FRB 190611
     There are 2 sources in play.
     Heintz+2020
+
     Args:
         build_photom (bool, optional):
     """
@@ -1133,6 +1143,7 @@ def build_host_190614(build_photom=False, build_cigale=False, run_eazy=False,
             build_A=False, build_B=False, build_C=False):
     """ Build the host galaxy data for FRB 190614
     See Law+2020 https://ui.adsabs.harvard.edu/abs/2020ApJ...899..161L/abstract
+
 
     Args:
         build_photom (bool, optional):
@@ -1428,6 +1439,7 @@ def build_host_190711(build_ppxf=False, build_photom=False, build_cigale=False):
 
     Heintz+2020
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -1551,6 +1563,7 @@ def build_host_190714(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 190714
 
     Heintz+2020
+
 
     Args:
         build_photom (bool, optional):
@@ -1687,6 +1700,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
 
     Heintz+2020
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -1811,6 +1825,7 @@ def build_host_191001(build_ppxf=False, build_photom=False, build_cigale=False):
 
 def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 191228
+
 
     Args:
         build_photom (bool, optional):
@@ -1944,6 +1959,7 @@ def build_host_191228(build_ppxf=False, build_photom=False, build_cigale=False):
 def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, run_eazy=False):
     """ Build the host galaxy data for FRB 200430
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -2074,6 +2090,7 @@ def build_host_200430(build_ppxf=False, build_photom=False, build_cigale=False, 
 
 def build_host_200906(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 200906
+
 
     Args:
         build_photom (bool, optional):
@@ -2242,6 +2259,7 @@ def build_host_201124(build_ppxf=False,
                       build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 201124
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -2382,6 +2400,7 @@ def build_host_201124(build_ppxf=False,
 def build_host_20200120E(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 20200120E
 
+
     Args:
         build_photom (bool, optional):
         build_cigale (bool, optional):
@@ -2420,6 +2439,7 @@ def build_host_20200120E(build_ppxf=False, build_photom=False, build_cigale=Fals
 
 def build_host_171020(build_ppxf=False, build_photom=False, build_cigale=False):
     """ Build the host galaxy data for FRB 200906
+
 
     Args:
         build_photom (bool, optional):

@@ -1,42 +1,17 @@
 frb.halos - Halo Models
 =======================
 
-.. automodule:: frb.halos
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Package for modelling the dispersion measure contributions from galaxy halos.
 
-Submodules
-----------
+.. note::
+   Most submodules require the optional ``hmf_emulator`` package.
+   Install with: ``pip install hmf_emulator``
 
-frb.halos.hmf - Halo Mass Function
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+See the full halo package documentation at :doc:`../halos/index`.
 
-.. automodule:: frb.halos.hmf
-   :members:
-   :undoc-members:
-   :show-inheritance:
+Submodule API Reference
+-----------------------
 
-frb.halos.models - Halo Models
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.halos.models
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.halos.photoz - Photo-z Utilities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.halos.photoz
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-frb.halos.utils - Utilities
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-.. automodule:: frb.halos.utils
-   :members:
-   :undoc-members:
-   :show-inheritance:
+* :doc:`../halos/models` — Halo density profiles and mass relations
+* :doc:`../halos/photoz` — Photometric redshift-based halo analysis
+* :doc:`../halos/hmf` — Halo mass function statistics

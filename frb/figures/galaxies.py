@@ -26,6 +26,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
               cmap='Blues', frb_clr='red'):
     """
 
+
     Args:
         fig:
         hdu:
@@ -39,6 +40,7 @@ def sub_image(fig, hdu, FRB, img_center=None,
         invert:
         cmap:
         cclr:
+
 
     Returns:
 
@@ -104,6 +106,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
     https://drive.google.com/open?id=1yHlfsvcRPXK73F6hboT1nM4bRF59ESab
     and put it in data/Public/SDSS
 
+
     Args:
         ax_BPT (matplotlib.Axis):
         galaxies (list):
@@ -120,6 +123,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
           Show a legend
         bptdat (Table like):
             SDSS BPT data
+
 
     Returns:
         ax_BPT is modified in place
@@ -218,6 +222,7 @@ def sub_bpt(ax_BPT, galaxies, clrs, markers, show_kewley=True, SDSS_clr='BuGn',
 def sub_sfms(ax_M, galaxies, clrs, markers, show_legend=True):
     """
     Generate a SF vs. M* plot on top of PRIMUS galaxies
+
 
     Args:
         ax_M (matplotlib.axis):
@@ -327,6 +332,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
     Generate a color-magnitude diagram using PRIMUS data
     and FRB galaxies
 
+
     Args:
         ax (matplotlib.Axis):
         galaxies (list):
@@ -335,6 +341,7 @@ def sub_color_mag(ax, galaxies, clrs, markers):
             List of matplotlib colors
         markers (list):
             List of matplotlib marker types
+
 
     Returns:
 

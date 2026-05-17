@@ -3,7 +3,8 @@ Welcome to the FRB documentation!
 
 FRB is a Python package for Fast Radio Burst research, providing tools for
 dispersion measure calculations, host galaxy analysis, FRB-galaxy associations,
-and survey data handling. The package is developed and maintained by the FRB community.
+and survey data handling. The package is developed and maintained largely by the members of
+the `F^4 <https://sites.google.com/ucolick.org/f-4/home>` collaboration.
 
 
 Getting Started
@@ -22,16 +23,14 @@ Core Classes
    :maxdepth: 2
 
    frb_class
-   frbhost_class
 
-Data
-----
+Galaxies
+--------
 
 .. toctree::
    :maxdepth: 2
 
-   data
-   database
+   FRB Galaxies <frbhost_class>
 
 Dispersion Measure
 ------------------
@@ -41,16 +40,15 @@ Dispersion Measure
 
    dm
 
-Galaxies
---------
+
+Surveys
+-------
 
 .. toctree::
    :maxdepth: 2
 
-   galaxies
-   adding_host
-   eazy
-   mags_to_flux
+   surveys
+
 
 Halo Calculations
 -----------------
@@ -59,6 +57,7 @@ Halo Calculations
    :maxdepth: 2
 
    halos/index
+
 
 Rotation Measure
 ----------------
@@ -76,14 +75,6 @@ Scattering
    :maxdepth: 2
 
    tscatt
-
-Surveys
--------
-
-.. toctree::
-   :maxdepth: 2
-
-   surveys
 
 
 FRB Scripts

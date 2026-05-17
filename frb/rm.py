@@ -37,6 +37,7 @@ def load_hutschenreuter2020():
     See: https://ui.adsabs.harvard.edu/abs/2022A%26A...657A..43H/abstract
     for full details
 
+
     Returns:
         healpy map, healpy map: RM and RM_err with units of rad/m^2
 
@@ -69,6 +70,7 @@ def galactic_rm(coord, use_map=2020):
         use_map (int, optional):
             Specifies the map to use.  Options are [2014, 2020]
             Default is 2020
+
 
     Returns:
         Quantity, Quantity: RM and RM_err with units of rad/m^2

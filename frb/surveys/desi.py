@@ -29,6 +29,7 @@ class DESI_Survey(dlsurvey.DL_Survey):
     Class to handle queries on the DESI survey
     
     Child of DL_Survey which uses datalab to access NOAO
+
     
     Args:
         coord (SkyCoord): Coordinate for surveying around
@@ -47,6 +48,7 @@ class DESI_Survey(dlsurvey.DL_Survey):
                     exclude_stars=False, zcat_primary_only=True,**kwargs):
         """
         Grab a catalog of sources around the input coordinate to the search radius
+
         
         Args:
             query: SQL query
@@ -55,6 +57,7 @@ class DESI_Survey(dlsurvey.DL_Survey):
                                          remove those objects from the output catalog.
             print_query (bool): Print the SQL query generated
             zcat_primary_only (bool): If True, only return objects with zcat_primary=True
+
 
         Returns:
             astropy.table.Table:  Catalog of sources returned

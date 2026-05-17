@@ -10,6 +10,7 @@ rv_amount = 10**6
 def make_pdf(distribution, num_of_draws, grid, stepsize):
     """
     Makes PDF of given distribution
+
     
     Arguments:
         distribution (array):
@@ -40,6 +41,7 @@ def make_kde_funtion(grid, draws, min_bandwidth, max_bandwidth, bandwidth_stepsi
     " cv is number of cross-validation folds "
     """
        Returns KDE distribution
+
     
     Arguments:
         grid (array):

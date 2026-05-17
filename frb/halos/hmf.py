@@ -20,6 +20,8 @@ def init_hmf():
     WARNING: This uses the original version which codes Tinker+2008
     We may refactor to use the more accurate, new version
 
+
+
     Returns:
         hmfe (hmf_emulator.hmf_emulator): An Aemulus halo mass function emulator.
 
@@ -48,7 +50,7 @@ def init_hmf():
 try:
     import hmf_emulator
 except:
-    warnings.warn("hmf_emulator not imported.  Hope you are not intending to use the hmf.py module..")
+    print("If you wish to use the halos modules, you need the Aemulus HMF emulator. Please install it: github.com/AemulusProject/hmf_emulator")
 else:
     hmfe = init_hmf()
 
@@ -63,6 +65,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
 
     Requires Aemulus HMF to be installed
 
+
+
     Args:
         zvals: ndarray
         Mlow: float
@@ -72,6 +76,8 @@ def frac_in_halos(zvals, Mlow, Mhigh, rmax=1.):
         rmax: float
           Extent of the halo in units of rvir
           WARNING: This calculation assumes a single concentration for all halos
+
+
 
     Returns:
         ratios: ndarray
@@ -122,33 +128,29 @@ def halo_incidence(Mlow, zFRB, radius=None, hmfe=None,
 
     Requires Aemulus HMF to be installed
 
-    Args:
-        Mlow: float
-          Mass of minimum halo in Solar masses
-          The code deals with h^-1 factors so that you do not
-          The minimum value is 2e10
-        zFRB: float
-          Redshift of the FRB
-        radius: Quantity, optional
-          Physical separation from the sightline for the calculation.
-          The calculation will specify this radius as rvir derived from
-           Mlow unless this is specified. And this rvir *will* vary with redshift
-        hmfe (hmf.hmf_emulator, optional): Halo mass function emulator from Aeumulus
-        Mhigh: float, optional
-          Mass of maximum halo in Solar masses
-        nsammple: int, optional
-          Number of samplings in redshift
-          20 should be enough
-        cumul: bool, optional
-          Return the cumulative quantities instead
 
-    Returns:
-        If cumul is False
-        Navg: float
-          Number of average intersections
-        elif cumul is True
-        zeval: ndarray
-        Ncumul: ndarray
+
+    Parameters
+    ----------
+    Mlow : float
+        Minimum halo mass in solar masses.
+    zFRB : float
+        FRB redshift.
+    radius : Quantity, optional
+        Fixed impact radius; if None, infer from r200(Mlow, z).
+    hmfe : object, optional
+        Aemulus halo mass function emulator.
+    Mhigh : float, optional
+        Maximum halo mass in solar masses.
+    nsample : int, optional
+        Number of redshift samples.
+    cumul : bool, optional
+        Return cumulative incidence if True.
+
+    Returns
+    -------
+    float or tuple
+        Mean intersections, or ``(zs, Navg)`` when `cumul=True`.
     """
     # Mlow limit
     if Mlow < 2e10:
@@ -202,27 +204,37 @@ def build_grid(z_FRB=1., ntrial=10, seed=12345, Mlow=1e10, r_max=2., outfile=Non
 
     Requires the Aemulus Halo Mass function
 
-    Args:
-        z_FRB: float, optional
-        ntrial: int, optional
-        seed: int, optional
-        Mlow: float, optional
-          h^-1 mass
-        r_max: float, optional
-          Extent of the halo in units of rvir
-        outfile: str, optional
-          Write
-        dz_box: float, optional
-          Size of the slice of the universe for each sub-calculation
-        dz_grid: float, optional
-          redshift spacing in the DM grid
-        f_hot: float
-          Fraction of the cosmic fraction of matter in diffuse gas (for DM)
 
-    Returns:
-        DM_grid: ndarray (ntrial, nz)
-        halo_tbl: Table
-          Table of all the halos intersected
+
+    Parameters
+    ----------
+    z_FRB : float, optional
+      FRB redshift limit.
+    ntrial : int, optional
+      Number of Monte Carlo trials.
+    seed : int, optional
+      Random seed.
+    Mlow : float, optional
+      Minimum halo mass.
+    r_max : float, optional
+      Halo extent in units of rvir.
+    outfile : str, optional
+      Optional output path.
+    dz_box : float, optional
+      Redshift box size per sub-calculation.
+    dz_grid : float, optional
+      Redshift spacing in DM grid.
+    f_hot : float, optional
+      Diffuse-gas fraction.
+    verbose : bool, optional
+      Verbose logging.
+
+    Returns
+    -------
+    DM_grid : ndarray
+      DM grid with shape ``(ntrial, nz)``.
+    halo_tbl : Table
+      Table of intersected halos.
 
     """
     Mhigh = 1e16  # Msun

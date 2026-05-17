@@ -1,8 +1,7 @@
-""" Define allowed quantities for FRB galaxies
+"""Define allowed quantities for FRB galaxies.
 
-  Uncertainty is valid for any quantity with '_err' add-on, eg. W1_err
-     Now _loerr and _uperr are also allowed
-  Am also likely to add _flg for each as well
+Uncertainty is valid for any quantity with ``_err`` add-on (e.g. ``W1_err``).
+Also supports ``_loerr`` and ``_uperr`` suffixes.
 """
 
 allowed_errors = ['_err', '_loerr', '_uperr']
@@ -170,6 +169,11 @@ for band in DELVE_bands:
 DECaL_bands = ['g', 'r', 'z']
 for band in DECaL_bands:
     valid_filters.append('DECaL_{:s}'.format(band))
+
+# Euclid
+Euclid_bands = ['VIS', 'J', 'H', 'Y']
+for band in Euclid_bands:
+    valid_filters.append('Euclid_{:s}'.format(band))
 
 # SOAR Goodman
 SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
