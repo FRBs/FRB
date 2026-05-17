@@ -13,7 +13,6 @@ from scipy.interpolate import InterpolatedUnivariateSpline as IUS
 
 from astropy import units
 from astropy.table import Table
-from astropy.utils import isiterable
 from astropy import constants
 
 from frb.halos import hmf as frb_hmf
@@ -541,7 +540,7 @@ def z_to_array(z):
 
     """
     # float or ndarray?
-    if not isiterable(z):
+    if not np.iterable(z):
         z = np.array([z])
         flg_z = 0
     else:

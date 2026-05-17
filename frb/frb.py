@@ -397,7 +397,11 @@ class FRB(GenericFRB):
         Returns:
 
         """
-        json_file = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}.json'
+        # searches for defined input directory. Otherwise uses default
+        if "ZDM_PATH_FRBDIR" in os.environ:
+            json_file = os.environ["ZDM_PATH_FRBDIR"]+f"/{frb_name}.json"
+        else:
+            json_file = importlib_resources.files('frb.data')/ f'FRBs/{frb_name}.json'
         slf = cls.from_json(str(json_file), **kwargs)
         return slf
 
