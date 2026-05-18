@@ -1,6 +1,10 @@
 """ utils related to SurveyCoord objects"""
 
 from urllib.error import HTTPError
+try:
+    from dl.queryClient import queryClientError
+except ImportError:
+    queryClientError = None
 from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
@@ -136,6 +140,31 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except HTTPError:
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
         cat = None
+    except Exception as e:
+        # Catch queryClientError and other connection errors (e.g., 502 Bad Gateway)
+        if queryClientError is not None and isinstance(e, queryClientError):
+            err_type = "NOIRLab Data Lab error"
+        elif "502" in str(e) or "Bad Gateway" in str(e):
+            err_type = "502 Bad Gateway"
+        else:
+            raise  # Re-raise if it's an unexpected error
+
+        print(f"\n{'='*60}")
+        print(f"ERROR: {err_type} while querying {surveyname}")
+        print(f"Coordinate: RA={coord.ra.deg:.6f}, Dec={coord.dec.deg:.6f}")
+        print(f"Error details: {str(e)[:200]}")
+        print(f"{'='*60}")
+        print(f"\nPlease verify manually if this coordinate is inside {surveyname}.")
+        print("You can check at: https://www.legacysurvey.org/viewer")
+
+        while True:
+            user_input = input(f"Is coordinate inside {surveyname}? (true/false): ").strip().lower()
+            if user_input in ('true', 't', 'yes', 'y', '1'):
+                return True
+            elif user_input in ('false', 'f', 'no', 'n', '0'):
+                return False
+            else:
+                print("Invalid input. Please enter 'true' or 'false'.")
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:
         return False
