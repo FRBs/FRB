@@ -31,6 +31,7 @@ Submodules
    surveys.galex
    surveys.desi
    surveys.delve
+   surveys.euclid
    surveys.nedlvs
    surveys.nsc
    surveys.psrcat
