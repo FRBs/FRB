@@ -181,6 +181,16 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'Pan-STARRS_y': 'panstarrs.ps1.y',
         'LRISr_I': 'LRIS_I',
         'LRISb_V': 'LRIS_V',
+        'LRISb_G': 'LRIS_G',
+        'LRISr_R': 'LRIS_R',
+        'GMOS_N_g': "GMOS_N_g",
+        'GMOS_N_r': "GMOS_N_r",
+        'GMOS_N_i': "GMOS_N_i",
+        'GMOS_N_z': "GMOS_N_z",
+        'GMOS_S_g': "GMOS_S_g",
+        'GMOS_S_r': "GMOS_S_r",
+        'GMOS_S_i': "GMOS_S_i",
+        'GMOS_S_z': "GMOS_S_z",
         'WFC3_F160W': 'hst.wfc3.ir.F160W',
         'WFC3_F300X': 'WFC3_F300X', 
         'Spitzer_3.6': 'spitzer.irac.l1',
@@ -392,10 +402,17 @@ def run(photometry_table, zcol,
             series = ['stellar_attenuated', 'stellar_unattenuated', 'dust', 'agn', 'model']
             SED(config = cigconf, sed_type = "mJy", nologo = True,
                 xrange = (False, False), yrange =  (False, False),
-                series = series, format =  "pdf", outdir =  Path("out"))
+                series = series, format =  "png", outdir =  Path("out"))
             # Set back to a GUI
+            # import matplotlib
+            # matplotlib.use('TkAgg')
             import matplotlib
-            matplotlib.use('TkAgg')
+            if matplotlib.get_backend().lower() != 'tkagg':
+                try:
+                    matplotlib.use('TkAgg')
+                except ImportError:
+                    pass
+
 
     # Rename the default output directory?
     if outdir != 'out':
@@ -451,4 +468,55 @@ def host_run(host, cut_photom=None, cigale_file=None):
         # SFH
         sfh_file = cigale_file.replace('CIGALE', 'CIGALE_SFH')
         os.system('mv {:s}/{:s}_SFH.fits {:s}'.format(host.name, host.name, sfh_file))
+    return
+
+def add_text_SED(host, cigale_results, out_name=None):
+    """
+    Add a text file with the SED results
+    to the host object.
+    Args
+    ----
+    host (FRBGalaxy): A host galaxy.
+    """
+    try:
+        from pcigale_plots.plot_types.sed import SED
+    except ImportError:
+        console.print(f"{ERROR} This wrapper is compatible with CIGALE v. 2025. and later. Please update your version.")
+        pass
+
+    # Get unique surveys to put on plot
+    surveys = set()
+    for key in host.photom.keys():
+        survey = key.split("_")[0]  # take everything before the first underscore
+        if survey == "Pan-STARRS":
+            survey = "PS1"
+        surveys.add(survey)
+    surveys = sorted(list(surveys))
+
+    from PIL import Image, ImageDraw, ImageFont
+
+    # Open the image
+    img = Image.open(f"{host.name}/{host.name}_best_model.png")
+
+    # Create a drawing object
+    draw = ImageDraw.Draw(img)
+
+    # Define font (use a system font or specify a .ttf file)
+    font = ImageFont.load_default(size=22)
+
+    plot_text = f"Mstar = {cigale_results['Mstar']:.2e} Msun \n"
+    plot_text += f"SFR = {cigale_results['SFR_photom']:.2f} Msun/yr\n"
+    plot_text += "Photometry: \n  + " + "\n  + ".join(surveys)
+
+    # Add text (x, y coordinates, text, color, font)
+    draw.text((20, 15), plot_text, fill="black", font=font)
+
+    # Save result
+    if out_name is not None:
+        img.save(f"{host.name}/{out_name}")
+        print(f"Saved {host.name}/{out_name}")
+    else:
+        img.save(f"{host.name}/{host.name}_best_model_text.png")
+        print(f"Saved {host.name}/{host.name}_best_model_text.png")
+
     return

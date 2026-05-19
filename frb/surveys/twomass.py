@@ -16,8 +16,8 @@ from frb.surveys import surveycoord,catalog_utils
 photom = {}
 photom['2MASS'] = {}
 for band in MASS_bands:
-    photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band.lower()) # Many options for apertures, tbd
-    photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig'.format(band.lower())
+    photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band) # default aperture queried like this is k20fe
+    photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig'.format(band)
     photom["2MASS"]["2MASS_ID"] = 'designation'
 photom["2MASS"]['ra'] = 'ra'
 photom["2MASS"]['dec'] = 'dec'

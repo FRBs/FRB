@@ -100,7 +100,11 @@ def match_ids(IDs, match_IDs, require_in_match=True):
     """
     rows = -1 * np.ones_like(IDs).astype(int)
     # Find which IDs are in match_IDs
-    in_match = np.in1d(IDs, match_IDs)
+    try:
+        in_match = np.isin(IDs, match_IDs)
+    except AttributeError:
+        # Older NumPy versions
+        in_match = np.in1d(IDs, match_IDs)
     if require_in_match:
         if np.sum(~in_match) > 0:
             raise IOError("qcat.match_ids: One or more input IDs not in match_IDs")
@@ -213,8 +217,8 @@ def xmatch_catalogs(cat1:Table, cat2:Table, dist:units.Quantity = 5*units.arcsec
         dist1 = None
         dist2 = None
     # Get corodinates
-    cat1_coord = SkyCoord(cat1[RACol1]*units.deg, cat1[DecCol1]*units.deg, distance=dist1)
-    cat2_coord = SkyCoord(cat2[RACol2]*units.deg, cat2[DecCol2]*units.deg, distance=dist2)
+    cat1_coord = SkyCoord(cat1[RACol1], cat1[DecCol1], unit='deg', distance=dist1)
+    cat2_coord = SkyCoord(cat2[RACol2], cat2[DecCol2], unit='deg', distance=dist2)
 
     # Match 2D
     idx, d2d, d3d = cat1_coord.match_to_catalog_sky(cat2_coord)

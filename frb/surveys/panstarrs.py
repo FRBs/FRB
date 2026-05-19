@@ -13,6 +13,8 @@ from astropy.table import Table, join
 from ..galaxies.defs import PanSTARRS_bands
 import importlib_resources
 
+from .images import grab_from_url
+
 import warnings
 import requests
 

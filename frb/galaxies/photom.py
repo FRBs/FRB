@@ -187,9 +187,13 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapezoid(throughput * source_flux * 
-                     10 ** (-0.4 * Alambda), x=wave) / np.trapezoid(
-                         throughput * source_flux, x=wave)
+    if getattr(np, "trapz", None) is not None:
+        delta = np.trapz(throughput * source_flux * 
+                        10 ** (-0.4 * Alambda), wave) / np.trapz(
+                            throughput * source_flux, wave)
+    else:
+        delta = np.trapezoid(throughput * source_flux * 10 ** (-0.4 * Alambda), wave) / np.trapezoid(
+                            throughput * source_flux, wave)
 
     correction = 1./delta
 
@@ -212,7 +216,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
             Required keys: 'Name', filters
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
-        name (str):\
+        name (str):
             Name of the object to correct
         required (bool, optional):
             Crash out if the transmission curve is not present
@@ -250,12 +254,13 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
                 continue
         except:
             embed(header='187 in photom')
-        # SDSS
-        if 'SDSS' in filt:
-            if 'extinction_{}'.format(filt[-1]) in photom.keys():
-                print("Appying SDSS-provided extinction correction")
-                cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
-                continue
+        print('Correcting filter {} for Galactic extinction'.format(filt))
+        # SDSS ### removing this because SDSS correction is sometimes different for very dusty sightlines, but TBD
+        # if 'SDSS' in filt:
+        #     if 'extinction_{}'.format(filt[-1]) in photom.keys():
+        #         print("Appying SDSS-provided extinction correction")
+        #         cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
+        #         continue
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
@@ -268,6 +273,7 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
                                              required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
         cut_photom[key] += mag_dust
+
     # Add it back in
     photom[idx] = cut_photom
 
