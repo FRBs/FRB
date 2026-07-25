@@ -6,7 +6,7 @@ import numpy as np
 
 from frb.halos.models import ModifiedNFW
 
-from ne2001 import density
+#from ne2001 import density
 
 from IPython import embed
 

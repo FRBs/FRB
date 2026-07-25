@@ -10,6 +10,7 @@ import importlib_resources
 
 from scipy.interpolate import interp1d
 from scipy.interpolate import InterpolatedUnivariateSpline as IUS
+from scipy.integrate import cumulative_trapezoid
 
 from astropy import units
 from astropy.table import Table
@@ -198,7 +199,7 @@ def sigma_fd(z, rel_err_Mstar):
     # Return
     return s_fd
 
-def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
+def ne_cosmic(z, cosmo = defs.frb_cosmo, y_He = 0.25, mu = 4./3):
     """
     Calculate the average cosmic electron
     number density as a function of redshift.
@@ -213,13 +214,16 @@ def ne_cosmic(z, cosmo = defs.frb_cosmo, mu = 4./3):
         ne_cosmic (Quantity): Average physical number
         density of electrons in the unverse in cm^-3.
     """
+    if mu != 4./3:
+        raise ValueError("mu != 4/3 is not supported. Please use mu = 4/3 or specify y_He instead.")
+    from astropy import constants
     # Get diffuse gas density
     _, rho_diffuse = f_diffuse(z, cosmo=cosmo, return_rho=True)
 
     # Number densities of H and He
-    n_H = (rho_diffuse/constants.m_p/mu).to('cm**-3')
-    n_He = n_H / 12.  # 25% He mass fraction
-
+    y_H = 1 - y_He
+    n_H = (rho_diffuse * y_H / constants.m_p).to('cm**-3')
+    n_He = (rho_diffuse * y_He / 4 / constants.m_p).to('cm**-3')
     # Compute electron number density
     ne_cosmic = n_H * (1.-average_fHI(z)) + n_He*(average_He_nume(z))
     return ne_cosmic
@@ -246,7 +250,7 @@ def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
           cumul is True.
     """
     # Init
-    zeval, dz = np.linspace(0., z, neval,retstep=True)
+    zeval = np.linspace(0., z, neval)
 
     # Get n_e as a function of z
     n_e = ne_cosmic(zeval, cosmo=cosmo)
@@ -254,8 +258,11 @@ def average_DM(z, cosmo = defs.frb_cosmo, cumul=False, neval=10000, mu=4/3):
     # Cosmology -- 2nd term is the (1+z) factor for DM
     denom = cosmo.H(zeval) * (1+zeval) * (1+zeval)
 
-    # Time to Sum
-    DM_cum = (constants.c * np.cumsum(n_e * dz / denom)).to('pc/cm**3')
+    # Time to integrate (cumulative trapezoid over zeval; scipy strips units so carry them
+    # explicitly). initial=0 makes DM_cum[0] = 0 at z=0 and keeps the length equal to zeval.
+    integrand = n_e / denom
+    DM_cum = (constants.c * cumulative_trapezoid(integrand.value, x=zeval, initial=0.0)
+              * integrand.unit).to('pc/cm**3')
 
     # Return
     if cumul:
@@ -483,7 +490,7 @@ def z_to_array(z):
 
     """
     # float or ndarray?
-    if not isiterable(z):
+    if not np.iterable(z):
         z = np.array([z])
         flg_z = 0
     else:
