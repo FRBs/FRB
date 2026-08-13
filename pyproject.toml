@@ -47,8 +47,8 @@ dependencies = [
     "importlib-resources>=6.4.0",
     "astroquery>=0.4.11",
     "tqdm>=4.0.0",
-    "ne2001 @ git+https://github.com/FRBs/ne2001.git",
-    "astropath @ git+https://github.com/FRBs/astropath.git",
+    "ne2001 @ git+https://github.com/FRBs/ne2001",
+    "astropath @ git+https://github.com/FRBs/astropath",
     "mastcasjobs>=0.0.8"
 ]
 
