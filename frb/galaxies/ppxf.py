@@ -1,11 +1,13 @@
 """ Module for running pPXF analyses"""
 
-import importlib_resources 
+import importlib_resources
 import warnings
 
 import numpy as np
 if not hasattr(np, "string_"):
     np.string_ = np.bytes_  # NumPy 2.0 compatibility for old code
+
+from scipy import optimize as _sp_optimize
 
 from matplotlib import pyplot as plt
 #from goodies import closest
@@ -31,11 +33,68 @@ except ImportError:
 else:
     from ppxf import ppxf_util as util
     from ppxf import miles_util as lib
+
+    # ppxf's nnls_flags() (ppxf/ppxf.py, called once per nonlinear-fit
+    # iteration via linear_fit -> bvls_solve) calls scipy.optimize.nnls with
+    # no explicit maxiter, so scipy defaults to 3 * n_cols. Our fits solve for
+    # weights across MILES's full 50-age x 6-metallicity template grid (~300
+    # templates) with 2nd-order regularization enabled (regul=1/regul_err),
+    # a large, near-degenerate NNLS problem that occasionally needs more than
+    # 3*n_cols active-set iterations, raising "Maximum number of iterations
+    # reached." NNLS iterations are cheap, so raise the cap here rather than
+    # editing the vendored ppxf fork.
+    if hasattr(ppxf, 'nnls_flags'):
+        def _nnls_flags_higher_maxiter(A, b, npoly):
+            m, n = A.shape
+            AA = np.hstack([A, -A[:, :npoly]])
+            maxiter = max(3 * AA.shape[1], 5000)
+            x = _sp_optimize.nnls(AA, b, maxiter=maxiter)[0]
+            x[:npoly] -= x[n:]
+            return x[:n]
+        ppxf.nnls_flags = _nnls_flags_higher_maxiter
+    else:
+        warnings.warn(
+            "ppxf.nnls_flags not found; skipping NNLS maxiter patch. If "
+            "pPXF fits fail with 'Maximum number of iterations reached', "
+            "this patch needs updating for the installed ppxf version.")
 import time
 
-from frb.defs import frb_cosmo as cosmo 
+from frb.defs import frb_cosmo as cosmo
 
 from IPython import embed
+
+
+# ---------------------------------------------------------------------------
+# Named constants for all fixed fit/model parameters.
+# Used directly in run() and fit_spectrum() so the values appear in exactly
+# one place and are importable for provenance recording.
+# ---------------------------------------------------------------------------
+
+# Fixed values passed by run() to fit_spectrum()
+_DEGREE_ADD  = 3      # degree of additive Legendre polynomial
+_DEGREE_MULT = 0      # degree of multiplicative Legendre polynomial
+_REDDENING   = 1.0    # Calzetti reddening parameter
+
+# Hardcoded inside fit_spectrum() body
+_TEMPLATE_WAVE_REST_MIN = 3540   # Å — blue edge of MILES template coverage
+_TEMPLATE_WAVE_REST_MAX = 7409   # Å — red edge of MILES template coverage
+_REGUL_ERR              = 0.01   # desired regularisation error
+
+# Exported summary dict — import this in HostPipeline to record provenance.
+# tie_balmer / limit_doublets are fit_spectrum() signature defaults, never
+# overridden by run(), so they are recorded here as their default values.
+PPXF_MODEL_PARAMS = {
+    'degree_add':               _DEGREE_ADD,
+    'degree_mult':              _DEGREE_MULT,
+    'reddening':                _REDDENING,
+    'tie_balmer':               False,
+    'limit_doublets':           False,
+    'template_library':         'miles_padova_chabrier',
+    'template_file_pattern':    'Mch1.30*.fits',
+    'template_wave_rest_range': [_TEMPLATE_WAVE_REST_MIN, _TEMPLATE_WAVE_REST_MAX],
+    'regul_err':                _REGUL_ERR,
+}
+
 
 def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         flux_scale=1., atmos=[], gaps=[], wvmnx=(0.,1e9)):
@@ -107,8 +166,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
 
     # Run it
     ppfit, miles, star_weights = fit_spectrum(
-        newspec, zgal, R, degree_mult=0, degree_add=3,
-        goodpixels=goodpixels, reddening=1., rebin=False)
+        newspec, zgal, R, degree_mult=_DEGREE_MULT, degree_add=_DEGREE_ADD,
+        goodpixels=goodpixels, reddening=_REDDENING, rebin=False)
 
     # Age
     age, metals = miles.mean_age_metal(star_weights)
@@ -143,6 +202,19 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
     # Reddening
     print('E(B-V) = {}'.format(ppfit.reddening))
 
+    # Summarize the pPXF fit parameters actually used, for provenance
+    # (recorded into HostCAT's params.ppxf JSON section by the caller).
+    fit_diagnostics = {
+        'moments':     np.atleast_1d(ppfit.moments).tolist(),
+        'regul':       float(ppfit.regul),
+        'reg_ord':     int(ppfit.reg_ord),
+        'reg_dim':     [int(d) for d in ppfit.reg_dim],
+        'n_templates': int(ppfit.ntemp),
+        'gas_names':   [str(g) for g in ppfit.gas_names] if ppfit.gas_names is not None else [],
+        'chi2':        float(ppfit.chi2),
+        'nfev':        int(ppfit.nfev),
+    }
+
     # Write?
     if results_file is not None:
         dump_ppxf_results(ppfit, miles, zgal, results_file)
@@ -156,6 +228,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         plt.plot(newspec.wavelength, newspec.flux)
         plt.plot(bestfit.wavelength, bestfit.flux)
         plt.show()
+
+    return fit_diagnostics
 
 
 def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
@@ -232,7 +306,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     wave *= np.median(util.vac_to_air(wave) / wave)
 
     # use only wavelength range covered by templates
-    mask = (wave > 3540) & (wave < 7409)
+    mask = (wave > _TEMPLATE_WAVE_REST_MIN) & (wave < _TEMPLATE_WAVE_REST_MAX)
     #mask = (wave > 1682) & (wave < 10000.)
     maskidx = np.where(mask)[0]
     # also deal with declared good regions of the spectrum
@@ -287,7 +361,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     stars_templates = miles.templates.reshape(miles.templates.shape[0], -1)
 
     # See the pPXF documentation for the keyword REGUL
-    regul_err = 0.01  # Desired regularization error
+    regul_err = _REGUL_ERR
 
     ### Now the emission lines!  Only include lines in fit region.
     if 'goodpixels' in kwargs:
