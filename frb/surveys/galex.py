@@ -5,6 +5,7 @@ Slurp data from GALEX catalog using the MAST API.
 
 from ..galaxies.defs import GALEX_bands
 from astroquery.mast import Catalogs
+from astropy import units as u
 
 from frb.surveys import surveycoord,catalog_utils
 
@@ -63,7 +64,7 @@ class GALEX_Survey(surveycoord.SurveyCoord):
             query_fields = _DEFAULT_query_fields
         else:
             query_fields = _DEFAULT_query_fields+query_fields
-        import astropy.units as u
+
         data = {}
         data['ra'] = self.coord.ra.value
         data['dec'] = self.coord.dec.value
