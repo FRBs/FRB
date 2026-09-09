@@ -18,7 +18,7 @@ from frb.surveys.twomass import TwoMASS_Survey
 from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.euclid import Euclid_Survey
-from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
+from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates, _detect_mag_cols
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
@@ -316,51 +316,66 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
 
 def pick_best_row_by_phot(cat, mag_cols=None, max_sep=None):
     """
-    From a catalog sorted by separation, pick the best row
-    based on having any good photometry in the specified
-    magnitude columns.
+    From a catalog sorted by separation, pick the nearest row that has
+    any good photometry.
+
+    Not applied by search_all_surveys(), which returns every row in the
+    cone; callers wanting a single best match invoke this themselves.
+
+    The returned table is masked, with each magnitude column masked where
+    its photometry is unusable, so callers can see which filters carried
+    the row rather than just that something did.
+
     Args:
         cat (Table): Astropy table sorted by separation.
         mag_cols (list, optional): List of magnitude column names
-            to consider for "good photometry". If None,
-            will use all valid filters from frb.galaxies.defs.
+            to consider for "good photometry". If None, the magnitude
+            columns actually present are detected with
+            catalog_utils._detect_mag_cols.
         max_sep (Quantity, optional): Maximum separation
             to consider. If None, no maximum separation
             is applied.
 
     Returns:
-        best_row (Table): A 1-row table with the best row.
+        best_row (Table): A 1-row masked table with the best row. The input
+            is returned unchanged if it is empty or has no 'separation'.
     """
     if len(cat) == 0:
         return cat
 
-    if mag_cols is None:
-        from frb.galaxies.defs import valid_filters
-        mag_cols = valid_filters
+    if 'separation' not in cat.colnames:
+        warnings.warn("No 'separation' column to rank rows by; returning the "
+                      "catalog unchanged.", RuntimeWarning)
+        return cat
 
-    # require separation column already computed in arcmin/arcsec/whatever
+    cat = Table(cat, masked=True)
+
+    if mag_cols is None:
+        mag_cols, _ = _detect_mag_cols(cat)
+
     sep = cat['separation']
     if max_sep is not None:
         inrad = sep <= max_sep
     else:
         inrad = np.ones(len(cat), dtype=bool)
 
-    # “has any good mag”
+    # Mask each magnitude column where its photometry is unusable, then OR the
+    # per-column results together. Keeping the per-filter masks preserves the
+    # granularity for callers who want to know *which* bands were good.
     has_good = np.zeros(len(cat), dtype=bool)
-    for c in mag_cols:
-        if c in cat.colnames:
-            m = np.array(cat[c])
-            good = np.isfinite(m) & (m < 900) & (m > -10)
-            has_good |= good
+    for col in mag_cols:
+        m = np.asarray(cat[col], dtype=float)
+        good = np.isfinite(m) & (m < 900.) & (m > -10.)
+        cat[col].mask = ~good   # astropy: mask=True means "not usable"
+        has_good |= good
 
     ok = inrad & has_good
     if not np.any(ok):
-        # fall back: just nearest, but you’ll know it’s junk
+        # fall back: just nearest, but you'll know it's junk
         i = np.argmin(sep)
     else:
         # nearest among rows with any good photometry
-        i = np.argmin(sep[ok])
-        i = np.where(ok)[0][i]
+        i = np.where(ok)[0][np.argmin(sep[ok])]
 
     return cat[i:i+1]  # returns a 1-row table
 
