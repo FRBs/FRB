@@ -181,6 +181,10 @@ SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
 for band in SOAR_bands:
     valid_filters.append("SOAR_{:s}".format(band))
 
+MOSFIRE_bands = ['Y', 'J', 'H', 'K', 'Ks', 'J2', 'J3', 'H1', 'H2']
+for band in MOSFIRE_bands:
+    valid_filters.append("MOSFIRE_{:s}".format(band))
+
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
 valid_flux = [entry+'_flux' for entry in valid_filters]
