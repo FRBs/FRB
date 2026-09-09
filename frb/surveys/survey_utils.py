@@ -261,8 +261,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
 
                     # Now merge
 
-                    if surveyname in ['GALEX', 'WISE', 'VISTA']:
-                        tol = 3*u.arcsec # Just worse PSFs
+                    if surveyname in ['GALEX', 'WISE', 'VISTA', '2MASS']:
+                        tol = 3*u.arcsec # Lower astrometric precision vs optical
                     else:
                         tol = 1*u.arcsec
                     combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog, tol=tol)
