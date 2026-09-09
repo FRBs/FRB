@@ -23,7 +23,10 @@ except ImportError:
 # GLOBALS
 Ha_Hb_intrin = 2.87  # Osterbrock 2006 Book
 Hb_Hg_intrin = 1./0.466  # Osterbrock 2006 Book
-Ha_conversion = 0.63 * 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998 + Chabrier,
+salpeter_to_chabrier_SFR = 0.63
+Oii_conversion = salpeter_to_chabrier_SFR * 1.4e-41 * units.Msun/units.yr # Kennicutt 1998
+Oii_conversion_err = salpeter_to_chabrier_SFR * 0.4e-41 * units.Msun/units.yr
+Ha_conversion = salpeter_to_chabrier_SFR * 7.9e-42 * units.Msun/units.yr   # Kennicutt 1998 + Chabrier,
 # e.g. https://ned.ipac.caltech.edu/level5/March14/Madau/Madau3.html
 
 
@@ -35,7 +38,7 @@ def calc_dust_extinct(neb_lines, method):
 
 
     Args:
-        neb_lines (dict):  Line fluxes
+        neb_lines (dict):  Line fluxes and errors (keys: line name, line name + '_err')
         method (str): Name of the method
           Ha/Hb -- Use the Halpha/Hbeta ratio and standard intrinsic flux
         curve (str): Extinction curve to use
@@ -43,6 +46,7 @@ def calc_dust_extinct(neb_lines, method):
 
     Returns:
         float: A_V in magnitudes
+        float or None: 1-sigma uncertainty on A_V (None if line errors unavailable)
 
     """
     if method == 'Ha/Hb':
@@ -51,6 +55,8 @@ def calc_dust_extinct(neb_lines, method):
         #
         F1_obs = neb_lines['Halpha']
         F2_obs = neb_lines['Hbeta']
+        F1_err = neb_lines.get('Halpha_err', -1.)
+        F2_err = neb_lines.get('Hbeta_err', -1.)
         #
         pair = True
         intrinsic = Ha_Hb_intrin
@@ -60,6 +66,8 @@ def calc_dust_extinct(neb_lines, method):
         #
         F1_obs = neb_lines['Hbeta']
         F2_obs = neb_lines['Hgamma']
+        F1_err = neb_lines.get('Hbeta_err', -1.)
+        F2_err = neb_lines.get('Hgamma_err', -1.)
         #
         pair = True
         intrinsic = Hb_Hg_intrin
@@ -83,8 +91,20 @@ def calc_dust_extinct(neb_lines, method):
     # Calculate using intrinsic ratio
     AV = 2.5 * np.log10(intrinsic/fratio_obs) / (a1AV - a2AV)
 
+    # Propagate line flux errors through Balmer decrement
+    # AV = 2.5*log10(intrinsic*F2/F1) / (a1AV-a2AV)
+    # dAV/dF1 = -2.5 / (ln10 * F1 * (a1AV-a2AV))
+    # dAV/dF2 = +2.5 / (ln10 * F2 * (a1AV-a2AV))
+    if F1_err > 0. and F2_err > 0.:
+        denom = np.log(10) * (a1AV - a2AV)
+        dAV_dF1 = -2.5 / (denom * F1_obs)
+        dAV_dF2 = +2.5 / (denom * F2_obs)
+        AV_err = np.sqrt((dAV_dF1 * F1_err)**2 + (dAV_dF2 * F2_err)**2)
+    else:
+        AV_err = None
+
     # Return
-    return AV
+    return AV, AV_err
 
 
 def calc_logOH(neb_lines, method):
@@ -110,9 +130,10 @@ def calc_logOH(neb_lines, method):
             if iline not in neb_lines.keys():
                 print("One or more lines missing for logOH calculation.  Returning None's")
                 return None, None, None
-        # Proceed
-        x0 = neb_lines['[NII] 6584'] / neb_lines['Halpha']
-        y0 = neb_lines['[OIII] 5007'] / neb_lines['Hbeta']
+        # Proceed.  pPXF reports the total doublet flux for [NII] and [OIII];
+        # the 6584/5007 components are 75% of the total (3:1 ratio within each doublet).
+        x0 = neb_lines['[NII] 6584']  * 0.75 / neb_lines['Halpha']
+        y0 = neb_lines['[OIII] 5007'] * 0.75 / neb_lines['Hbeta']
         x0_err = x0 * np.sqrt((neb_lines['[NII] 6584_err'] / neb_lines['[NII] 6584'])**2 + (neb_lines['Halpha_err'] / neb_lines['Halpha'])**2)
         y0_err = y0 * np.sqrt((neb_lines['[OIII] 5007_err'] / neb_lines['[OIII] 5007'])**2 + (neb_lines['Hbeta_err'] / neb_lines['Hbeta'])**2)
     else:
@@ -136,7 +157,7 @@ def calc_logOH(neb_lines, method):
     return logOH, logOH_errp, logOH_errm
 
 
-def calc_lum(neb_lines, line, z, cosmo, AV=None):
+def calc_lum(neb_lines, line, z, cosmo, AV=None, AV_err=None):
     """
     Calculate the line luminosity (and error) from input nebular line emission
 
@@ -149,6 +170,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
         z (float):  Emission redshift -- for Luminosity distance
         cosmo (astropy.cosmology.FLRW): Cosmology
         AV (float, optional):  Visual extinction, if supplied will apply
+        AV_err (float, optional):  1-sigma uncertainty on AV; propagated into Lum_err
 
 
     Returns:
@@ -159,6 +181,7 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
     wave = llist[line]['wrest']
 
     # Dust correct?
+    AlAV = 0.
     if AV is not None:
         #al = extinction.fm07(np.atleast_1d(wave.to('Angstrom').value), AV)[0]
         extmod = dust_extinction.parameter_averages.G23(Rv=3.1)
@@ -174,17 +197,22 @@ def calc_lum(neb_lines, line, z, cosmo, AV=None):
     flux = neb_lines[line]
     Lum = flux * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
 
-    # Error
+    # Error: flux contribution
     if neb_lines[line+'_err'] > 0.:
         flux_err = neb_lines[line+'_err']
         Lum_err = flux_err * units.erg/units.s/units.cm**2 * 10**(al/2.5) * (4*np.pi * DL**2)
+        # AV uncertainty contribution: dLum/dAV = Lum * ln(10)/2.5 * AlAV
+        if AV is not None and AV_err is not None:
+            Lum_err_AV = (abs(Lum.to('erg/s').value) * np.log(10) / 2.5 * AlAV * AV_err
+                          ) * units.erg/units.s
+            Lum_err = np.sqrt(Lum_err.to('erg/s')**2 + Lum_err_AV**2)
     else:
         Lum_err = -999 * units.erg/units.s
     # Return
     return Lum.to('erg/s'), Lum_err.to('erg/s')
 
 
-def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
+def calc_SFR(neb_lines, method, z, cosmo, AV=None, AV_err=None, curve='MW'):
     """
     Calculate the SFR from input nebular line emission
 
@@ -196,11 +224,12 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
         z (float):  Emission redshift -- for Luminosity distance
         cosmo (astropy.cosmology.FLRW): Cosmology
         AV (float, optional):  Visual extinction, if supplied will apply
+        AV_err (float, optional):  1-sigma uncertainty on AV; propagated into SFR_err
         curve (str):  Name of the extinction curve.  Only used if A_V is supplied
 
 
     Returns:
-        Quantity:  SFR with units of Msun/yr
+        Quantity, Quantity:  SFR, SFR_err with units of Msun/yr
 
     """
     if method == 'Ha':
@@ -209,16 +238,24 @@ def calc_SFR(neb_lines, method, z, cosmo, AV=None, curve='MW'):
     elif method == 'Hb':
         line = 'Hbeta'
         conversion = Ha_conversion * Ha_Hb_intrin
+    elif method == 'Oii':
+        line = '[OII] 3727'
+        conversion = Oii_conversion
     else:
         raise IOError("Not prepared for method: {}".format(method))
 
     # Luminosity
-    Lum, Lum_err = calc_lum(neb_lines, line, z, cosmo, AV=AV)#, curve=curve)
+    Lum, Lum_err = calc_lum(neb_lines, line, z, cosmo, AV=AV, AV_err=AV_err)
 
     # SFR
     SFR = Lum.to('erg/s').value * conversion
+    SFR_err = Lum_err.to('erg/s').value * conversion
+    # [OII] calibration uncertainty: σ_conv contribution is L * σ_k (in quadrature)
+    if method == 'Oii' and Lum_err.to('erg/s').value > 0:
+        sfr_conv_err = Lum.to('erg/s').value * Oii_conversion_err
+        SFR_err = np.sqrt(SFR_err**2 + sfr_conv_err**2)
 
-    return SFR
+    return SFR, SFR_err
 
 def get_ebv(coords,definition="SandF",
             region=5*units.deg,get_ext_table=False):
