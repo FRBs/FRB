@@ -1,6 +1,6 @@
 """ utils related to SurveyCoord objects"""
 
-from urllib.error import HTTPError
+from urllib.error import HTTPError as URLHTTPError
 from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
@@ -25,9 +25,23 @@ from astropy import units as u
 from astropy.table import Table, join
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
+import requests
 
 import numpy as np
+import traceback
 import warnings
+
+# Remote services that are down, slow, rate-limiting, or returning an error
+# status.  Expected in a multi-survey sweep and not a defect in this repo.
+# Note requests.ConnectionError is NOT a subclass of the builtin ConnectionError,
+# so both have to be listed.
+SURVEY_QUERY_ERRORS = (
+    requests.RequestException,      # ConnectionError, HTTPError, ReadTimeout, Timeout, ...
+    URLHTTPError,                   # astroquery paths still on urllib
+    DALServiceError,                # pyvo/DataLab: DELVE, NSC, DES
+    QueryError,                     # HSC
+    ConnectionError, TimeoutError,  # builtins, raised by some backends
+)
 
 optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE', 'DECaL', 'Euclid', 'VISTA', 'NSC', 'HSC', 'NEDLVS', '2MASS', 'GALEX']
 group_catalogs = ['TullyGroupCat']
@@ -192,7 +206,7 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
 
 
 def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=False,
-                       seed_cat:Table=None):
+                       seed_cat:Table=None, strict:bool=False):
     """
     A method to query all allowed surveys and combine
     the results into one table.
@@ -205,7 +219,10 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             Include at your own risk. Untested. Might break in unexpected ways.
         seed_cat (Table, optional): If you'd like to merge the survey results
             with another photometry table that you already have.
-
+        strict (bool, optional): By default a survey that fails to return a
+            catalog is warned about and skipped, so one flaky service doesn't
+            abort the whole sweep. Set True to re-raise instead -- useful in
+            tests and when debugging a survey backend.
 
 
     Returns:
@@ -234,8 +251,23 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-        except (ConnectionError, HTTPError, QueryError):
-            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+        except SURVEY_QUERY_ERRORS as e:
+            if strict:
+                raise
+            warnings.warn("Couldn't query {:s} ({:s}). Skipping this for now.".format(
+                surveyname, type(e).__name__), RuntimeWarning)
+            continue
+        except Exception as e:
+            # Not a connection problem: a bug here, or an upstream schema change.
+            # Still don't abort the whole sweep, but say so loudly and keep the
+            # traceback -- a bare warning here is how a real bug hides for months.
+            if strict:
+                raise
+            warnings.warn("{:s} query raised {:s}: {:s}. Skipping. This is not a "
+                          "connection error; please report it.".format(
+                              surveyname, type(e).__name__, e), RuntimeWarning)
+            traceback.print_exc()
+            continue
 
         # Did the survey return something?
         if (survey.catalog is not None):
