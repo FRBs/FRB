@@ -25,6 +25,86 @@ _DEFAULT_SED_MODULES = ("sfhdelayed", "bc03", "nebular",
                         "dustatt_calzleit", "dale2014",
                         "restframe_parameters", "redshifting")
 
+# Maps our photometry key names to the filter names used by CIGALE
+# (and to the .dat stems in frb/data/analysis/CIGALE/).
+PHOT_TO_CIGALE_FILTER = {
+    'SDSS_u': 'sloan.sdss.u',
+    'SDSS_g': 'sloan.sdss.g',
+    'SDSS_r': 'sloan.sdss.r',
+    'SDSS_i': 'sloan.sdss.i',
+    'SDSS_z': 'sloan.sdss.z',
+    'VLT_u': 'VLT_FORS2_u',
+    'VLT_g': 'VLT_FORS2_g',
+    'VLT_I': 'VLT_FORS2_I',
+    'VLT_z': 'VLT_FORS2_z',
+    'WISE_W1': 'wise.W1',
+    'WISE_W2': 'wise.W2',
+    'WISE_W3': 'wise.W3',
+    'WISE_W4': 'wise.W4',
+    'VISTA_Y': 'paranal.vircam.Y',
+    'VISTA_J': 'paranal.vircam.J',
+    'VISTA_H': 'paranal.vircam.H',
+    'VISTA_Ks': 'paranal.vircam.Ks',
+    'Pan-STARRS_g': 'panstarrs.ps1.g',
+    'Pan-STARRS_r': 'panstarrs.ps1.r',
+    'Pan-STARRS_i': 'panstarrs.ps1.i',
+    'Pan-STARRS_z': 'panstarrs.ps1.z',
+    'Pan-STARRS_y': 'panstarrs.ps1.y',
+    'LRISr_I': 'LRIS_I',
+    'LRISb_V': 'LRIS_V',
+    'LRISb_G': 'LRIS_G',
+    'LRISr_R': 'LRIS_R',
+    'GMOS_N_g': 'GMOS_N_g',
+    'GMOS_N_r': 'GMOS_N_r',
+    'GMOS_N_i': 'GMOS_N_i',
+    'GMOS_N_z': 'GMOS_N_z',
+    'GMOS_S_g': 'GMOS_S_g',
+    'GMOS_S_r': 'GMOS_S_r',
+    'GMOS_S_i': 'GMOS_S_i',
+    'GMOS_S_z': 'GMOS_S_z',
+    'WFC3_F160W': 'hst.wfc3.ir.F160W',
+    'WFC3_F300X': 'WFC3_F300X',
+    'Spitzer_3.6': 'spitzer.irac.l1',
+    'Spitzer_4.5': 'spitzer.irac.l2',
+    'NSC_u': 'DECam_u',
+    'NSC_g': 'DES_g',
+    'NSC_r': 'DES_r',
+    'NSC_i': 'DES_i',
+    'NSC_z': 'DES_z',
+    'NSC_Y': 'DES_Y',
+    'DECam_u': 'DECam_u',
+    'DECam_g': 'DECam_g',
+    'DECam_r': 'DECam_r',
+    'DECam_i': 'DECam_i',
+    'DECam_z': 'DECam_z',
+    'DECam_Y': 'DECam_Y',
+    'DELVE_g': 'DECam_g',
+    'DELVE_r': 'DECam_r',
+    'DELVE_i': 'DECam_i',
+    'DELVE_z': 'DECam_z',
+    '6dF_Bj': '6dF_Bj',
+    '6dF_Rf': '6dF_Rf',
+    '6dF_H': '2mass.H',
+    '6dF_J': '2mass.J',
+    '6dF_K': '2mass.Ks',
+    'SOAR_cousins_R': 'SOAR_cousins_R',
+    'SOAR_bessell_B': 'SOAR_bessell_B',
+    'SOAR_bessell_V': 'SOAR_bessell_V',
+    'SOAR_stromgren_b': 'SOAR_stromgren_b',
+    'SOAR_stromgren_v': 'SOAR_stromgren_v',
+    'SOAR_stromgren_y': 'SOAR_stromgren_y',
+    'HSC_g': 'subaru.suprime.g',
+    'HSC_r': 'subaru.suprime.r',
+    'HSC_i': 'subaru.suprime.i',
+    'HSC_z': 'subaru.suprime.z',
+    'HSC_Y': 'subaru.suprime.Y',
+    'GALEX_FUV': 'galex.FUV',
+    'GALEX_NUV': 'galex.NUV',
+    '2MASS_J': '2mass.J',
+    '2MASS_H': '2mass.H',
+    '2MASS_Ks': '2mass.Ks',
+}
+
 #TODO Create a function to check the input filters
 #Or create a translation file like eazy's.
 #def check_filters(data_file):
@@ -33,14 +113,9 @@ def _sed_default_params(module, photo_z=False):
     """
     Set the default parameters for CIGALE
 
-
-
     Args:
         module (str):
             Specify the SED using the CIGALE standard names, e.g. sfhdelayed, bc03, etc.
-
-
-
     Returns:
         params (dict): the default dict of SED modules
         and their initial parameters.
@@ -105,8 +180,6 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
     Generates the input catalog from
     a photometric catalog.
 
-
-
     Args:
         photometry_table (astropy Table):
             A table from some photometric
@@ -156,83 +229,7 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
     cigtab = cigtab[['id','redshift']+photom_cols]
 
     # Rename our filters to CIGALE names, as needed
-    new_names = {
-        'SDSS_u': 'sloan.sdss.u',
-        'SDSS_g': 'sloan.sdss.g',
-        'SDSS_r': 'sloan.sdss.r',
-        'SDSS_i': 'sloan.sdss.i',
-        'SDSS_z': 'sloan.sdss.z',
-        'VLT_u': 'VLT_FORS2_u',
-        'VLT_g': 'VLT_FORS2_g',
-        'VLT_I': 'VLT_FORS2_I',
-        'VLT_z': 'VLT_FORS2_z',
-        'WISE_W1': 'wise.W1',
-        'WISE_W2': 'wise.W2',
-        'WISE_W3': 'wise.W3',
-        'WISE_W4': 'wise.W4',
-        'VISTA_Y': 'paranal.vircam.Y',
-        'VISTA_J': 'paranal.vircam.J',
-        'VISTA_H': 'paranal.vircam.H',
-        'VISTA_Ks': 'paranal.vircam.Ks',
-        'Pan-STARRS_g': 'panstarrs.ps1.g',
-        'Pan-STARRS_r': 'panstarrs.ps1.r',
-        'Pan-STARRS_i': 'panstarrs.ps1.i',
-        'Pan-STARRS_z': 'panstarrs.ps1.z',
-        'Pan-STARRS_y': 'panstarrs.ps1.y',
-        'LRISr_I': 'LRIS_I',
-        'LRISb_V': 'LRIS_V',
-        'LRISb_G': 'LRIS_G',
-        'LRISr_R': 'LRIS_R',
-        'GMOS_N_g': "GMOS_N_g",
-        'GMOS_N_r': "GMOS_N_r",
-        'GMOS_N_i': "GMOS_N_i",
-        'GMOS_N_z': "GMOS_N_z",
-        'GMOS_S_g': "GMOS_S_g",
-        'GMOS_S_r': "GMOS_S_r",
-        'GMOS_S_i': "GMOS_S_i",
-        'GMOS_S_z': "GMOS_S_z",
-        'WFC3_F160W': 'hst.wfc3.ir.F160W',
-        'WFC3_F300X': 'WFC3_F300X', 
-        'Spitzer_3.6': 'spitzer.irac.l1',
-        'Spitzer_4.5': 'spitzer.irac.l2',
-        'NSC_u': 'DECam_u',
-        'NSC_g': 'DES_g',
-        'NSC_r': 'DES_r',
-        'NSC_i': 'DES_i',
-        'NSC_z': 'DES_z',
-        'NSC_Y': 'DES_Y',
-        'DECam_u': 'DECam_u',
-        'DECam_g': 'DECam_g',
-        'DECam_r': 'DECam_r',
-        'DECam_i': 'DECam_i',
-        'DECam_z': 'DECam_z',
-        'DECam_Y': 'DECam_Y',
-        'DELVE_g': 'DECam_g',
-        'DELVE_r': 'DECam_r',
-        'DELVE_i': 'DECam_i',
-        'DELVE_z': 'DECam_z',
-        '6dF_Bj': '6dF_Bj',
-        '6dF_Rf': '6dF_Rf',
-        '6dF_H': '2mass.H',
-        '6dF_J': '2mass.J',
-        '6dF_K': '2mass.Ks',
-        'SOAR_cousins_R':'SOAR_cousins_R',
-        'SOAR_bessell_B':'SOAR_bessell_B',
-        'SOAR_bessell_V':'SOAR_bessell_V',
-        'SOAR_stromgren_b':'SOAR_stromgren_b',
-        'SOAR_stromgren_v':'SOAR_stromgren_v',
-        'SOAR_stromgren_y':'SOAR_stromgren_y',
-        'HSC_g': 'subaru.suprime.g',
-        'HSC_r': 'subaru.suprime.r',
-        'HSC_i': 'subaru.suprime.i',
-        'HSC_z': 'subaru.suprime.z',
-        'HSC_Y': 'subaru.suprime.Y',
-        'GALEX_FUV': 'galex.FUV',
-        'GALEX_NUV': 'galex.NUV',
-        '2MASS_J': '2mass.J',
-        '2MASS_H': '2mass.H',
-        '2MASS_Ks': '2mass.Ks'
-    }
+    new_names = PHOT_TO_CIGALE_FILTER
     for key in new_names:
         if key in photom_cols:
             cigtab.rename_column(key, new_names[key])
@@ -249,8 +246,6 @@ def _initialise(data_file, config_file="pcigale.ini",
                 sed_modules_params=None, photo_z=False, **kwargs):
     """
     Initialise a CIGALE configuration file and write to disk.
-
-
     
     Args:
         data_file (str):
@@ -327,8 +322,6 @@ def run(photometry_table, zcol,
         plot=True, outdir='out', **kwargs):
     """
     Input parameters and then run CIGALE.
-
-
 
     Args:
         photometry_table (astropy Table):
