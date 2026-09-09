@@ -305,7 +305,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         # Fill in any empty separations and sort them.
         combined_cat['separation'] = coord.separation(SkyCoord(combined_cat['ra'], combined_cat['dec'], unit='deg')).to(u.arcmin)
         combined_cat.sort('separation')
-        combined_cat = pick_best_row_by_phot(combined_cat)
+        # Every row in the cone is returned. Callers that want a single best
+        # match call pick_best_row_by_phot() on the result themselves.
         # Make the ra, dec, separation the first columns
         colnames = combined_cat.colnames
         other_cols = np.setdiff1d(colnames, ['ra', 'dec', 'separation'])
