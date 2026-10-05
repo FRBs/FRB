@@ -24,6 +24,5 @@
     "refs": [
         "Astroflash"
     ],
-    "repeater": true,
-    "z": 0.26064
+    "repeater": true
 }

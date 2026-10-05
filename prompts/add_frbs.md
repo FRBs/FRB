@@ -168,3 +168,58 @@ Reference labels to use:
 - The `astro` env has a **stale non-editable install** of `frb` (site-packages, dated Sep 11, with no `Galaxies/20181030A/`). A script run outside the repo root picks it up, for example `python py/build_host_table.py` from `zdm/` (prompt 9), or `fix_frb20181030A_host.py` in prompt 1, which only used it for `get_ebv`. Run `pip install -e .` in the `astro` env, or set `PYTHONPATH`.
 - `build_hosts` survey queries need `$NEDLVS` set (prompt 6).
 - Correction to the Prompt 1 side note: `read_lit_table` matches literature rows by **ra/dec (< 1″)**, not by `Name`. So `bhardwaj2021_derived.csv`, which has no `Name` column, still matches its host.
+
+### Prompt 3: Rename the two repeaters to their first-burst names (2026-10-04, Claude Opus 5.5)
+
+| Old (later burst) | New (source) | Check |
+|---|---|---|
+| FRB20231204A | FRB20190303A | CHIME Cat 1 (`chimefrbcat.csv`, `CHIME_catalog-2021-1-27.json`) lists FRB20190303A at RA 208.03, Dec 48.24, DM 221.67. This is consistent with the 2023 burst (207.999, 48.116, DM 222). |
+| FRB20231128A | FRB20191106C | Not in Cat 1. Identification per KKO §6.6. |
+
+**`FRBs_base.csv`.** Only the `Name` and `refs` fields changed. The localization, DM, fluence, z and P(O|x) of the later (KKO) burst were kept. `refs` changed from `Leung+2025` to `"Leung+2025,burst:FRB20231204A"` (and `burst:FRB20231128A`). `build_frbs` splits `refs` on commas, so the burst name becomes its own `refs` entry (`burst:` prefix) in the FRB JSON.
+- The rows stay in their old (2023) positions in the file, to keep the diff small.
+- The file has **CRLF** line endings. My first edit with Python text mode converted the whole file to LF. I redid it in binary mode from the HEAD version, so the diff is two lines. The same applies to `public_hosts.csv`.
+
+**Host directories.** `git mv Galaxies/20231204A → Galaxies/20190303A` and `Galaxies/20231128A → Galaxies/20191106C`, with the JSONs renamed to `FRB20190303A_host.json` and `FRB20191106C_host.json`. The `"FRB"` field was updated in each. Nothing else in the host JSONs referred to the old names.
+
+**`public_hosts.csv`.** The two rows were renamed (20231204A → 20190303A, 20231128A → 20191106C). Coordinates and references are unchanged.
+
+**FRB JSONs.** Both `FRB20231204A.json` and `FRB20231128A.json` existed; nothing existed under the new names.
+- Built `FRB20190303A.json` and `FRB20191106C.json` with `build_frbs.main([...])`. They are identical to the old files apart from `FRB`, `refs` and the last digit of DMISM.
+- `frb.list_of_frbs()` and `galaxies.utils.list_of_hosts()` glob `FRB*.json`, so the old files would have listed each source twice. With the user's OK, I removed them with `git rm` (git shows them as renames).
+- Checks:
+  - `FRB.by_name` and `FRBHost.by_frb` load both new names.
+  - `list_of_hosts()` returns 95 hosts with no duplicates, including FRB20190303A and FRB20191106C.
+
+**Other references.** The only other repo files that mention the old or new names are `chimefrbcat.csv` and `CHIME_catalog-2021-1-27.json`. These are catalog data and were left alone. `FRB_pulses.csv` and the literature tables have no entries for either name.
+- Downstream: `zdm/.../build_host_table.py` `RENAME` handles this mapping. It can be dropped in prompt 9.
+
+### Prompt 4: Base-table fixes (2026-10-04, Claude Opus 5.5)
+
+All `FRBs_base.csv` edits were made in binary mode and keep the CRLF line endings. Each change touches only the `z` field.
+
+**FRB20231201A.** `z` changed from 0.119 to **0.1119** in `FRBs_base.csv`. I rebuilt `FRB20231201A.json` with `build_frbs`. The host JSON and `public_hosts.csv` already had 0.1119.
+- The row still has `repeater = FALSE`. KKO/Leung+2025b do not mark it as a repeater, so I left it.
+
+**The 12 insecure z (P(O|x) < 0.9).** The values arrived in commit 0c665727 ("kko", profxj, 2025-02-27), with `refs = Leung+2025` and no source file or note. KKO Table 3 gives no z for any of them. Their origin is unknown; the user did not say.
+- Per the user's choice, I **blanked** z in `FRBs_base.csv` for 20230410A, 20230616A, 20230702A, 20230828A, 20230918A, 20230923A, 20230924A, 20231006B, 20231102A, 20231223D, 20231224A and 20240210C.
+- I rebuilt their `FRB*.json` with `build_frbs.main([...])`. The JSON diffs drop `"z"`; the only other change is DMISM in the 15th decimal place (NE2001 rounding).
+- `P(O|x)` was kept, so the candidate associations are still recorded.
+- None of the 12 has a host JSON or a `public_hosts.csv` row.
+
+**FRB20181119A.** I removed `"z": 0.26064` from `FRB20181119A.json` by editing the text, since the source is not yet in `FRBs_base.csv`. `FRB.by_name('FRB20181119A').z` is now `None`.
+- The JSON still has `refs = ["Astroflash"]` and a placeholder ellipse (a = b = 0.01). Prompt 5 replaces both when the row is added and the JSON is rebuilt.
+
+**Cross-match with CHIME Cat 1 (`CHIME_catalog-2021-1-27.json`, `repeater_of`).** Cat 1 has 18 repeating sources. I matched all 174 base rows with coordinates against the mean burst position of each source (< 1°, |ΔDM|/DM < 5%), and checked names as well. The only matches are rows already flagged `repeater = TRUE`:
+- FRB20180916B
+- FRB20190303A (4.4′ / 7.5′)
+- FRB20181030A, which Cat 1 lists under the source name **FRB20181030B** (Cat 1's burst FRB20181030A has `repeater_of = FRB20181030B`)
+- FRB20121102A, which Cat 1 lists as source **FRB20181119D**
+
+**No new repeaters to flag.** The Cat 1 repeating sources missing from the base table are:
+- 20180814A, 20181119A, 20190208A and 20190417A, which prompt 5 adds;
+- 20180908B, 20181017A, 20181128A, 20190116B, 20190117A, 20190209A, 20190212A, 20190213A, 20190222A and 20190604A. These have only Cat 1 (arcmin) positions and no host, so they are out of scope.
+
+**Other issues noticed (not changed):**
+- **Name mismatch for the ASKAP FRB.** The `FRBs_base.csv` row for the ASKAP FRB (RA 326.105) is named **FRB20180924A**. Everything else in the repo uses **FRB20180924B**: the `FRB20180924B.json`, `Galaxies/20180924B/`, `public_hosts`, the literature/PATH tables and `test_build`. FRB20180924A in TNS and Cat 1 is a CHIME one-off at RA 35.46. `build_frbs.main(['all'])` would therefore write a stray `FRB20180924A.json`.
+- **Missing coordinates.** Five DSA rows have no ra/dec: FRB20220121B, FRB20220424E, FRB20220801A, FRB20220926A and FRB20221002A (Sherman23). `build_frbs` would fail on them.
