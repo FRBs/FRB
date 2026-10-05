@@ -223,3 +223,41 @@ All `FRBs_base.csv` edits were made in binary mode and keep the CRLF line ending
 **Other issues noticed (not changed):**
 - **Name mismatch for the ASKAP FRB.** The `FRBs_base.csv` row for the ASKAP FRB (RA 326.105) is named **FRB20180924A**. Everything else in the repo uses **FRB20180924B**: the `FRB20180924B.json`, `Galaxies/20180924B/`, `public_hosts`, the literature/PATH tables and `test_build`. FRB20180924A in TNS and Cat 1 is a CHIME one-off at RA 35.46. `build_frbs.main(['all'])` would therefore write a stray `FRB20180924A.json`.
 - **Missing coordinates.** Five DSA rows have no ra/dec: FRB20220121B, FRB20220424E, FRB20220801A, FRB20220926A and FRB20221002A (Sherman23). `build_frbs` would fail on them.
+
+### Prompt 5: Add the missing CHIME repeaters to `FRBs_base.csv` (2026-10-04, Claude Opus 5.5)
+
+I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in binary mode with CRLF line endings. The file was not sorted, so the rows go at the end.
+- All rows: `repeater = TRUE` and `telescope = CHIME`. In this table `telescope` means the discovery or CHIME-selection instrument, as for FRB20180916B, which has an EVN position but is labelled CHIME. `build_host_table.py` selects on `telescope == CHIME`. The localizing instrument is recorded through the refs.
+- `ee_a`/`ee_b` are 1σ semi-axes in arcsec, and `ee_theta` is the major axis in degrees E of N (`build_frbs` sets cl = 68).
+- Fluence, RM and P(O|x) were left blank.
+- Every value below was read from the PDF (text and tables). Figures were rendered at 300 dpi where needed.
+
+| FRB | Position (source) | 1σ ellipse a × b, θ | DM [pc cm⁻³] | z | refs |
+|---|---|---|---|---|---|
+| 20180814A | 4h22m44s +73°39′52″ (M23 Tab 1) | 20″ × 18″, 0° (σDec = 20, σRA = 18) | 189.4 ± 0.4 (M23 Tab 1) | 0.06835 (M23 Tab 2) | Michilli2023 |
+| 20190110C | 249.33, 41.445 deg (CHIME2023 Tab 1) | 21.9″ × 19.7″, 90° (see note) | 221.92 ± 0.01 (CHIME2023 Tab 1) | 0.12244 (I24a Tab 3) | CHIME2023, Ibik2024a |
+| 20200223B | 8.265, 28.831 deg (CHIME2023 Tab 1) | 17.5″ × 15.3″, 90° | 202.268 ± 0.007 (CHIME2023) | 0.06024 (I24a Tab 3) | CHIME2023, Ibik2024a |
+| 20190417A | 19h39m05.8919s +59°19′36.828″ (Moroianu §3, EVN) | 5.2 × 4.9 mas, 0° | 1378.9 ± 1.4 (Moroianu, mean of B2 and B5) | 0.12817 (Moroianu) | Moroianu2025, Ibik2024b |
+| 20220912A | 23h09m04.8988s +48°42′23.9078″ (Hewitt+23 §3.3, EVN final) | 5 × 5 mas | 219.46 ± 0.04 (CHIME; Hewitt+23 §1, Ravi) | 0.0771 (Ravi Tab 2) | Ravi2023, Hewitt2023 |
+| 20240114A | 21h27m39.835s +04°19′45.668″ (Bh25 §3.1.2, EVN) | 93 × 28 mas, **153°** (see note) | 527.723 ± 0.042 (Bh25 §3.1.3) | 0.130287 (Bh25) | Bhardwaj2025, Tian2024 |
+| 20240209A | 19h19m33s +86°03′52″ (Shah Tab 1, CHIME–KKO) | 2.12″ × 1.08″, 9.54° | 176.49 ± 0.01 (Shah Tab 2, B1) | 0.1384 (Eft Tab 2) | Shah2024, Eftekhari2024 |
+| 20190208A | 18h54m11.27s +46°55′21.67″ (Hewitt+24, EVN) | 260 × 260 mas | 580.03 ± 0.14 (Hewitt+24 Tab 1, B2 DM_S/N) | — | Hewitt2024 |
+| 20181119A | 12h41m52s +65°07′02″ (M23 Tab 1) | 29″ × 25″, 0° | 364.05 ± 0.09 (M23 Tab 1) | — | Michilli2023 |
+
+**Notes and decisions:**
+- **New reference: 20190110C / 20200223B.** Ibik2024a gives no FRB positions, only DMs (Tab 1) and host positions. Its positions come from CHIME/FRB Collaboration 2023 (ApJ 947, 83; arXiv:2301.08762), which was not in `papers/`. I downloaded it from arXiv and saved it as `papers/CHIME_2023_arXiv2301.08762.pdf`.
+  - Its Table 1 gives α, δ in degrees, with baseband uncertainties at **90% confidence**: 249.33(1), 41.445(9) and 8.265(8), 28.831(7).
+  - I converted these to 1σ assuming per-coordinate Gaussian errors (÷1.645) and treated the RA error as on-sky degrees. This is the more conservative choice; the paper does not say.
+  - The DMs used are the CHIME2023 inverse-variance averages (221.92 and 202.268). Ibik Tab 1 quotes 221.6(1.6) and 201.8(4).
+  - `CHIME2023` is a new ref label (not in the list above).
+- **Ellipse angle: 20240114A.** Bh25 says "rotated by 27°" without a convention. The combined ellipse in Fig. 1 (RA increasing to the left) leans from N toward **W**, so PA = −27° → θ = 153° E of N.
+- **Wrong FRB position in prompt 6: 20190417A.** The adopted FRB position is the fitted EVN one, +59°19′36.**828**″. Prompt 6's "19h39m05.8919s +59d19m36.99s" mixes the fitted RA with the Dec of Moroianu's footnote 37 (19h39m05.892s +59°19′36.99″), which appears to be a correlation phase centre. Use 36.828″ in prompt 6.
+- **Coarse position: 20240209A.** Shah Tab 1 rounds the centre to 1 s of RA (≈1.05″ at δ = 86°) and 1″ in Dec, which is comparable to the ellipse. The FRB–host offset is 15.7″ (≈38 kpc at z = 0.138), consistent with "outskirts".
+- **Paper inconsistency: 20180814A.** **Michilli+2023 contradicts itself.** Table 1 gives σRA = 18″ and σDec = 20″ ("approximately circular"), which is what I entered. But the 1σ (dashed) ellipse in Fig. 2 measures about **57″ (RA) × 20″ (Dec)** against the 30″ scale bar. Its centre agrees with Table 1 (≈4h22m43.4s +73°39′54″).
+  - The proposed host (PS1 J042256.01+733940.7) is 51.9″ from the FRB (ΔRA = +50.7″, ΔDec = −11.3″). That is ≈2.5σ with the Table 1 errors, but inside the 2σ ellipse of Fig. 2, as the text says.
+  - 20181119A (same table) may have the same problem; it has no figure to check against.
+  - **For the user:** keep Table 1 (as entered), or use a ≈ 57″, b = 20″, θ = 90° from the figure?
+- **Other offsets (sanity check).** 20190110C: 31.7″ (≈1.4σ; limited by the 0.01° RA precision). 20200223B: 14.2″. 20220912A: 0.5″ (PSO name truncation). 20240114A: 0.15″. 20190208A: 0″ (O4 at the EVN position).
+- **Existing JSONs overwritten.** `FRB20190208A.json` (579.4, 3″ ± 0.4″ sys, refs "Astroflash") and `FRB20181119A.json` (190.4799, 65.1119, 0.01″, "Astroflash") were replaced by `build_frbs` output from the new rows. The old sources are unknown. The other seven JSONs are new.
+
+**JSONs.** `build_frbs.main([...9 names...])` wrote all nine. `FRB.by_name` loads each with the ellipse, refs, `repeater = True` and an NE2001 DMISM.
