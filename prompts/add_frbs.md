@@ -103,10 +103,12 @@ Reference labels to use:
    - Leung2025b (Table 1) CIGALE / NED-LVS masses for the KKO hosts lacking `Mstar`: 20230926A 10.49, 20231011A 9.59, 20231123A 9.42, 20191106C 9.47, 20231201A 9.47, 20231229A 9.87, 20231230A 10.04 (CIGALE); 20230222B 10.19 and 20231223C 10.40 (NED-LVS). All are Chabrier, with no per-object errors. These need a way to record the method (CIGALE vs NED-LVS). Propose one to the user.
    Log your work below.
 
-8. **Redo stellar masses with Prospector (Q26, Q38).**
-   - FRB20191106C: Chang+2015 (via Ibik2024a) gives 4.5e10, but Leung2025b CIGALE gives 10^9.47, a 1.2 dex conflict. Fit it with Prospector (Gordon2023 setup).
-   - Do the same for the other KKO hosts that have only CIGALE or NED-LVS masses, and for FRB20181030A, whose Prospector fit (Bhardwaj2021b) used a different setup.
-   - Where a host already has a repo value, the repo value stays until the new fit is reviewed (Q26).
+8. **Stellar-mass conflicts and non-Prospector masses (Q26, Q38).** We cannot run Prospector (and will not), so there are no new SED fits. Instead:
+   - Keep the literature masses as recorded. The method is set by `Mstar_ref` and its suffix (Q9).
+   - FRB20191106C: Leung2025b CIGALE (10^9.47) stays, per the Q38 tiers. Record the Chang+2015 value (4.5 ± 1.2 e10, via Ibik2024a) so that the CHIME table can cite it.
+   - Sanity-check every non-Prospector mass (CIGALE, NED-LVS, SDSS) with a colour-based M/L estimate from the repo photometry, calibrated on the Gordon2023 Prospector masses. Flag outliers in the Q&A. This is a check only; the estimates are not stored as masses.
+   - FRB20181030A: keep the Bhardwaj2021b Prospector value (no refit).
+   - Look in `papers/` for any published Prospector mass for these hosts. If there is one, add it per Q26.
    Log your work below.
 
 9. **Regenerate the CHIME table.** Once prompts 1–7 are done:
@@ -119,6 +121,7 @@ Reference labels to use:
 
 - [ ] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
 - [ ] **20180814A P_Ox (Q2).** Blank in `public_hosts.csv`, because Michilli+2023 did not run PATH on this host. Set it once Dr. Michilli replies.
+- [ ] **20191106C stellar mass (Q11).** Waiting on the Leung+2025b authors. Leung Table 1 gives log M* = 9.47 (CIGALE), the same as 20231201A in the next row. The colour-M/L estimate (10.3–10.5) and Chang+2015 (10.65, via Ibik2024a) suggest about 10.6. The repo keeps `Leung2025b_CIGALE` 9.47 for now. If the authors confirm a typo, update `leung2025b_cigale_derived.csv` (or add `chang2015_derived.csv`) and rebuild 20191106C.
 
 ## Q&A
 
@@ -183,6 +186,34 @@ There is no `defs` key for it: `SFR_SED` is Prospector and `SFR_photom` is CIGAL
 - (c) Skip it.
 
 >A. Use SFR_photom.  We will figure it out from the reference
+
+**Q11. FRB20191106C stellar mass: keep Leung (tier rule) or switch to Chang+2015?**
+The colour-M/L check (Prompt 8 log) puts this host at log M* ≈ 10.3–10.8 in every survey (DECaL, SDSS, PS1): M_r = −21.2, g−r ≈ 0.7–0.8.
+- Chang+2015 (via Ibik2024a): **10.65 ± 0.12**, consistent with that.
+- Leung2025b CIGALE: **9.47**, about 1 dex low.
+- Leung Table 1 also gives exactly 9.47 for 20231201A (the next row). For 20231201A that value *is* consistent with the colour-M/L estimate (9.7), so 20191106C's 9.47 may be a transcription error in Leung.
+
+Options:
+- (a) **Recommended:** adopt Chang+2015, i.e. a `chang2015_derived.csv` with ref `Chang2015` (Ibik2024a does not state the method, and Chang+2015 is not in `papers/`), listed after the Leung table so that it wins. This overrides the Q38 tier rule for this one host because of the evidence above.
+- (b) Keep Leung (9.47), as agreed in Q38, and cite Chang in the CHIME-table `Refs` (prompt 9).
+- (c) Ask the Leung+2025b authors.
+
+>A. (c).  Add this as a TODO that I will follow up on once I get a response from them
+
+**Q12. 20231230A: DECaL r is a shredded fragment.**
+The host JSON has `DECaL_r = 19.89` but `Pan-STARRS_r = 15.00` and `DELVE_r = 14.56`. At z = 0.0298, DECaL gives M_r = −15.8; PS1 gives −20.7, which is consistent with Leung's log M* = 10.04. The DECaL Tractor catalog evidently matched a fragment of this bright, nearby galaxy (DECaL g, r, z are all affected). If `build_host_table.py` prefers DECaL magnitudes, the CHIME table will be about 5 mag too faint for this host. Options:
+- (a) **Recommended:** drop the DECaL bands for 20231230A, e.g. via a per-host exclusion such as `Bad_EM_lines`. That column is only for emission lines, so this needs a small `build_hosts` addition such as a `Bad_photom` column. Alternatively, delete them by hand after the build.
+- (b) Have the CHIME table prefer PS1 for this host.
+- (c) Leave it.
+
+Should I also screen all hosts for DECaL vs PS1 disagreements > 1 mag?
+
+>A. (a), and yes do that screening
+
+**Q13. Leftover files in zdm.**
+`py/lit_host_photom_cache.json` (tracked in git) is no longer read by `build_host_table.py`. I also left the previous output as `CHIME_FRB_hosts.prev.csv` (untracked) for comparison. OK to `git rm` the cache and delete the `.prev.csv`?
+
+>A.
 
 ## Logs
 
@@ -428,3 +459,81 @@ I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in b
   - **New bands:** GALEX (now working after the prompt 6 `galex.py` fix) or 2MASS. No bands were lost.
 - Tests: `test_frbhosts`, `test_galaxies`, `test_photom`, `test_frbsurveys::test_sdss` and `::test_galex` pass (12).
 - `build_table_of_hosts()`: 103 hosts, 44 with `Mstar`.
+
+### Prompt 8: Stellar-mass conflicts and non-Prospector masses (2026-10-05, Claude Opus 5.5)
+
+**Prompt rewritten.** Prospector cannot be run, so prompt 8 no longer asks for new fits. It now asks to keep the literature masses, record Chang+2015 for 20191106C, run a colour-M/L sanity check on the non-Prospector masses, and look for published Prospector masses.
+
+**Published Prospector masses.** I searched the PDFs in `papers/` for the KKO hosts with CIGALE/NED-LVS masses and for 20190303A. "Prospector" does not appear at all in the CHIME/KKO 2025, Leung2025b, CHIME 2023 or Ibik2024b papers, so there is nothing to add per Q26. FRB20181030A keeps Bhardwaj2021b (Prospector).
+
+**Colour-M/L sanity check (a check only; no values were stored).** Method:
+- Bell+2003 log(M/L_r) = −0.306 + 1.097(g−r), with the host's extinction-corrected g and r from the JSON (DECaL, else PS1, else SDSS). The distance modulus is Planck18, with no K-correction, and M_r,⊙ = 4.65.
+- Calibrated on the 17 Gordon2023 (Prospector) hosts at z < 0.5: median offset (Prospector − Bell) = −0.51 dex, robust scatter 0.31 dex, range −1.15 to +0.01.
+- Caveat: the calibration sample sits at higher z than the CHIME hosts and there is no K-correction, so absolute offsets are uncertain by a few tenths of a dex. The other literature Prospector masses (Ibik, Michilli, Ravi, Bhardwaj, Eftekhari) come out +0.1 to +0.7 dex above the calibrated estimate. Only outliers of about 1 dex are meaningful.
+
+| Host | z | phot | g−r | log M* (repo) | log M* (M/L, cal.) | Δ | ref |
+|---|---|---|---|---|---|---|---|
+| 20191106C | 0.108 | DECaL | 0.82 | 9.47 | 10.46 (SDSS 10.32, PS1 10.30) | **−0.99** | Leung2025b_CIGALE |
+| 20230926A | 0.055 | DECaL | 0.77 | 10.49 | 10.55 | −0.06 | Leung2025b_CIGALE |
+| 20231011A | 0.078 | PS1 | 0.37 | 9.59 | 9.48 | +0.11 | Leung2025b_CIGALE |
+| 20231123A | 0.073 | PS1 | 0.14 | 9.42 | 9.21 | +0.21 | Leung2025b_CIGALE |
+| 20231201A | 0.112 | PS1 | 0.78 | 9.47 | 9.73 | −0.26 | Leung2025b_CIGALE |
+| 20231229A | 0.019 | PS1 | 0.46 | 9.87 | 9.28 | +0.59 | Leung2025b_CIGALE |
+| 20231230A | 0.030 | DECaL → **PS1** | 0.43 | 10.04 | 8.27 → **9.77** | +0.27 (with PS1) | Leung2025b_CIGALE |
+| 20230222B | 0.110 | DECaL | 0.64 | 10.19 | 10.25 | −0.06 | Leung2025b_NEDLVS |
+| 20231223C | 0.106 | DECaL | 0.84 | 10.40 | 10.81 | −0.41 | Leung2025b_NEDLVS |
+| 20190303A | 0.064 | DECaL | 0.55 | 10.75 | 10.46 | +0.29 | Michilli2023_SDSS |
+
+**Findings:**
+- **20191106C:** Leung's 9.47 is about 1 dex below the photometric estimate in all three surveys. Chang+2015's 10.65 (Ibik2024a Tab 3, "previously published by Chang et al. 2015"; method not stated there) agrees. Leung lists the same 9.47 for 20231201A, the next row of Table 1. → **Q11**.
+  - For now the repo keeps Leung (Q38 tiers). Chang+2015 (4.5 ± 1.2 e10) is recorded here and in Q11 for the CHIME-table `Refs` (prompt 9).
+- **20231230A:** with DECaL the estimate is 1.8 dex below Leung, because DECaL_r = 19.89 is a shredded fragment (PS1_r = 15.00, DELVE_r = 14.56). With PS1 it agrees with Leung. Leung's mass is fine; the repo DECaL photometry is not. → **Q12**.
+- All other CIGALE, NED-LVS and SDSS masses are within ±0.6 dex of the estimate, inside the calibration spread. No action is needed.
+
+### Prompt 9: Regenerate the CHIME table (2026-10-05, Claude Opus 5.5)
+
+**Answers applied first:**
+- **Q11 (c):** TODO added (follow up with the Leung+2025b authors on 20191106C).
+- **Q12 (a): new per-host photometry exclusion.**
+  - `build_hosts.run` reads a new `public_hosts.csv` column, **`Bad_photom`** (comma-separated filter names). Those filters, with `_err` and `_ref`, are removed from the merged table before the extinction correction.
+  - `public_hosts.csv` gained the column. Every row got a trailing empty field (CRLF kept); 20231230A has `"DECaL_g,DECaL_r,DECaL_z"`.
+  - Rebuilt 20231230A: only the 12 DECaL entries were removed, and nothing else changed.
+- **Q12 screening.** I compared DECaL/PS1/SDSS/DELVE g, r, z for every host (350 band pairs) and flagged |Δ| > 1 mag.
+  - Only **20231230A** is a shred: DECaL is 4.7–5.6 mag *fainter* than PS1 and DELVE in all three bands.
+  - The rest go the other way, with DECaL 1.0–1.9 mag *brighter*:
+    - 20200120E (M81; PS1 saturated or shredded): g, r;
+    - 20220920A: r, z vs PS1;
+    - 20221219A: g vs SDSS (faint);
+    - 20230307A: z vs PS1, r and z vs SDSS;
+    - 20231230D: z vs PS1, g vs DELVE.
+  - These look like extended or faint galaxies where the PS1/SDSS catalog magnitudes miss flux. I took no action. For the CHIME table only 20231230A matters (the others are not CHIME hosts).
+
+**`zdm/papers/Mo_Repeaters/py/build_host_table.py`:**
+- **Removed:**
+  - `RENAME` (the repo now uses the source names);
+  - `LIT_HOSTS` and the whole literature-only branch, with `catalog_mag`, the photometry cache and the now-unused imports (`nebular`, `photom`, `survey_utils`, `SkyCoord`, `units`, `warnings`). The script no longer imports `frb` at all, so the stale `astro` install no longer matters;
+  - `LIT_SUPPLEMENT`. The only value it held that is not in the repo, the Chang+2015 note for 20191106C, moved to a small `NOTES` dict;
+  - `FIX_181030A` and its fallback in `load_host_json`;
+  - `LEUNG_L`.
+- **Added:**
+  - `PROSPECTOR_REFS` now includes Michilli2023, Ibik2024a, Moroianu2025, Ravi2023, Bhardwaj2025 and Eftekhari2024.
+  - `REF_SUFFIX` maps the Q9 ref suffixes to tiers: `_CIGALE` → `Photometric:CIGALE:<ref>`, `_NEDLVS` → `Other:NED-LVS:<ref>`, `_SDSS` → `Other:SDSS:<ref>`.
+  - An `SFR_photom` with an `_SDSS` ref gets `SFR_type = SDSS`.
+  - `GTC_OSIRIS_r` added to `POINTED`.
+  - **P(O|x)**: when `FRBs_base.csv` has no P(O|x), the script uses `public_hosts.csv` `P_Ox`. Without this the Q3 values (0.779, 0.899) would never trigger the 0.9 cut.
+- Ran `python py/build_host_table.py`: 97 rows, the same FRB list as before. The previous output is saved as `CHIME_FRB_hosts.prev.csv`.
+
+**Diff vs the previous table** (18 rows with value changes, 19 with `Refs` changes). Every change is explained:
+
+| Change | Rows | Why |
+|---|---|---|
+| All host values blanked; `Refs = host_ignored:P(O\|x)=0.779<0.9` / `0.899` | 20190110C, 20200223B | Q3: P(U) = 0.1 PATH values, read from `public_hosts.csv` |
+| Mag 19.89 (DECaL_r) → **14.56 (DELVE_r)** | 20231230A | Q12: shredded DECaL removed. DELVE ranks above PS1 in the Q18 order; PS1_r = 15.00 |
+| `Mstar_err` blank → 0.16 / 0.3 dex | 7 Leung CIGALE / 2 NED-LVS hosts | Leung's stated uncertainties, now in the repo tables (prompt 7) |
+| Mag −0.002 to −0.010 | 20231011A, 20231123A, 20231201A, 20231229A | Prompt 7 rebuild with the current G23 extinction law |
+| Mag 27.164 → 27.172; Band GTC_r → GTC_OSIRIS_r | 20190208A | Extinction now uses the GTC/OSIRIS r curve (was the SDSS_r stand-in) |
+| Mag 22.278 → 22.255 | 20190417A | Extinction now uses the repo GMOS_N_r curve and the repo EBV (was the GMOS_r stand-in) |
+| SFR_err 0.6372 → 0.6381 | 20190303A | Repo lo/up errors symmetrized, instead of the log-derivative approximation |
+| `Mstar_source` / `Refs` labels (`Michilli+2023` → `Michilli2023`, `Leung+2025(ApJL991,L25)` → `Leung2025b`, ...) | the literature hosts | Labels now come from the repo refs. `z:`/`mag:` refs now say `hostJSON`/`repo` instead of `catalog`. `name:repo_as_...` dropped (renamed in prompt 3) |
+
+The values for 20180814A, 20220912A, 20240114A and 20240209A are unchanged; the repo photometry matches the old catalog/literature magnitudes. 20181119A is still a repeater row with every host column blank.

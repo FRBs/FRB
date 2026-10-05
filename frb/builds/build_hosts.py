@@ -333,6 +333,14 @@ def run(host_input:pandas.core.series.Series,
             if 'NSC' in key:
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
+    # Remove bad photometry (e.g. a shredded survey detection)
+    bad_photom = getattr(host_input, 'Bad_photom', None)
+    if merge_tbl is not None and isinstance(bad_photom, str):
+        for filt in bad_photom.split(','):
+            for key in [filt, filt+'_err', filt+'_ref']:
+                if key in merge_tbl.keys():
+                    merge_tbl.remove_column(key)
+            print(f"Removing bad photometry: {filt}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
