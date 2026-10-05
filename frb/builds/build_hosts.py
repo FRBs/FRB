@@ -168,7 +168,7 @@ def read_lit_table(lit_entry, coord=None):
         if nmatch == 0:
             return None
         elif nmatch == 1:
-            idx = int(np.where(match)[0])
+            idx = int(np.where(match)[0][0])
             return lit_tbl[idx:idx+1]
         else:
             embed(header="Multiple matches in literature table!")

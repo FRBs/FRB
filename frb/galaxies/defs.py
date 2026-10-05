@@ -28,6 +28,7 @@ valid_e = [
 # Photometry
 
 # Upper limits are specified by setting the error to 999.0
+# Lower limits (derived quantities only) are specified by setting the error to -998.0
 # No measurement is specified by -999.0
 
 # Filters
@@ -244,6 +245,10 @@ valid_positional_error = [
 
 ##############################################################
 # Derived quantities
+#   Errors follow the photometry convention above:
+#     _err = 999.0  -- the value is an upper limit
+#     _err = -998.0 -- the value is a lower limit
+#     _err = -999.0 -- no error/measurement
 
 valid_derived_photom = [
     'z_SED',           # Redshift; Prospector-derived
