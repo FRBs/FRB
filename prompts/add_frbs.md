@@ -115,7 +115,53 @@ Reference labels to use:
    - diff the new `CHIME_FRB_hosts.csv` against the previous one. Every change should be explainable (e.g. the magnitude source).
    Log your work below.
 
+## TODO
+
 ## Q&A
+
+**Q1. 20180814A localization ellipse (from Prompt 5).**
+Michilli+2023 Table 1 gives σRA = 18″ and σDec = 20″ ("approximately circular"). Their Fig. 2 1σ ellipse is about **57″ (RA) × 20″ (Dec)**. The host is 51.9″ from the FRB: ≈2.5σ with Table 1, but inside the Fig. 2 2σ ellipse, as the text says. `FRBs_base.csv` currently has Table 1 (20″ × 18″, θ = 0). The host JSON offsets use it too (`ang_best_err` = 17.9″). Keep Table 1, or switch to a = 57″, b = 20″, θ = 90° from the figure (and rebuild the FRB and host JSONs)?
+
+>A.  I will ask Dr. Michilli for the correct value.  Hold on for now and come back to it later.  Record this as a TODO item in the TODO section above
+
+**Q2. P_Ox for 20180814A.**
+Michilli+2023 did not run PATH on 20180814A. The association rests on the host being the only galaxy in the region with z < z_max (they ran PATH only for 20190303A). I left `P_Ox` blank in `public_hosts.csv`, which gives NaN in `build_table_of_hosts`. Leave it blank, or set a value? If `build_host_table.py` cuts on P(O|x) ≥ 0.9, a blank may drop this host.
+
+>A. Same as above.  Add to TODO
+
+**Q3. P_Ox for 20190110C and 20200223B: which prior on P(U)?**
+Ibik+2024a Table 1 gives PATH with P(U) = 0.0 and with P(U) = 0.1: 0.918 / 0.779 (20190110C) and 0.994 / 0.899 (20200223B). I entered the P(U) = 0 values (0.918, 0.994). With P(U) = 0.1, both fall below 0.9. Which do you want?
+
+>A. Use P(U) = 0.1 which means both fall below 0.9
+
+**Q4. P_Ox for 20220912A.**
+Ravi+2023 quote only "a 5% false-association probability" (PATH, standard priors, P(U) = 0.5). I entered `P_Ox = 0.95`. Hewitt+2023 (EVN) gives no PATH value. OK?
+
+>A. Ok
+
+**Q5. Hosts with no or inadequate survey photometry.**
+- 20190417A: no survey match. Moroianu fn. 39 says the host is not in the DECaLS catalog, so the JSON has no photometry and no `EBV`. Moroianu gives GMOS g, r, i, z = 23.45 ± 0.15, 22.42 ± 0.06, 22.42 ± 0.07, 23.32 ± 0.12 (AB, uncorrected, calibrated to PS1). Ibik+2024b Tab 4 gives r = 21.47.
+- 20190208A: r ≈ 27, so no survey photometry, as expected. Hewitt+2024 gives GTC r = 27.32 ± 0.16 (text) vs 27.17 (Tab 2).
+- 20240209A: the PS1 catalog r is 17.34 uncorrected (17.07 corrected). Eftekhari gives GMOS r = 16.79 ± 0.02 (14″ aperture, extinction-corrected). The host is a large elliptical, so the PS1 catalog magnitude probably misses flux.
+
+Should prompt 7 add `*_photom.csv` literature tables (e.g. `moroianu2025_photom.csv` with `GMOS_N_*`, `hewitt2024_photom.csv` with the GTC r, `eftekhari2024_photom.csv`)? Which value should the CHIME table use for 20240209A?
+
+>A.  Yes, add those.  And use the 14'' aperture flux for 20240209A
+
+**Q6. 20190208A has no redshift: NaN in the JSON.**
+`build_hosts.run` calls `Host.set_z(nan)`, so the JSON has `"z": NaN` (and `z_FRB`, `z_spec`) and `physical`/`physical_err` = NaN. The JSON loads fine, and other repo JSONs also contain NaN tokens, but NaN is not strict JSON. Leave it, or strip the NaN entries after the build (an empty `redshift` dict and no `physical`)?
+
+>A. Leave it
+
+**Q7. DELVE `98 ± 99` placeholders (repo-wide).**
+`DELVE_i = 98.0`, `DELVE_i_err = 99` (after the extinction correction) appears in the new 20200223B and 20240114A JSONs. It also appears in 20200430A, 20211127I, 20220105A, 20230222B and 20231223C (7 hosts in all, more for other bands). `surveys/delve.py` (L81) masks only NaN and 99.99, not DELVE's 99 non-detection value. Should I change `delve.py` to set mag = 99 / err = 99 to -999 and rebuild the affected hosts? This may be a separate PR.
+
+>A.  Let's ignore DELVE for now
+
+**Q8. NED-LVS.**
+`$NEDLVS` is not set, and there is no LVS file on this machine. `survey_utils.in_which_survey` asserts on it, so I ran the build with NEDLVS removed from `optical_surveys` in my driver script (no repo change). NED-LVS supplies only z, ebv and Mstar (no `defs` photometry bands), so the photometry is unaffected. If you want the hosts built exactly as on your main machine, set `$NEDLVS` and rerun. Also, `$FRB_GDB` here points to a nonexistent Linux path (`/u/xavier/...`), so no CIGALE, pPXF or Galfit products were found. None exist for these hosts anyway.
+
+>A.  Let's not worry about NEDLVS.  If we thought it were important, I could run on my workstation.
 
 ## Logs
 
@@ -261,3 +307,51 @@ I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in b
 - **Existing JSONs overwritten.** `FRB20190208A.json` (579.4, 3″ ± 0.4″ sys, refs "Astroflash") and `FRB20181119A.json` (190.4799, 65.1119, 0.01″, "Astroflash") were replaced by `build_frbs` output from the new rows. The old sources are unknown. The other seven JSONs are new.
 
 **JSONs.** `build_frbs.main([...9 names...])` wrote all nine. `FRB.by_name` loads each with the ellipse, refs, `repeater = True` and an NE2001 DMISM.
+
+### Prompt 6: Build host JSONs for the new repeaters (2026-10-04, Claude Opus 5.5)
+
+**`public_hosts.csv`.** I appended 8 rows in binary mode with CRLF line endings, each with `Projects = CHIME` and one lowercase reference. (`run()` asserts that `Projects` and `References` have the same number of entries; the ref is only used to look up `$FRB_GDB/<Project>/<ref>/` products.)
+
+| FRB | Host Coord | Source | P_Ox | z | References |
+|---|---|---|---|---|---|
+| 20180814A | 04h22m56.01s +73d39m40.7s | PS1 J042256.01+733940.7 (M23 Tab 2) | — (Q2) | 0.06835 | michilli2023 |
+| 20190110C | 16h37m16.43s +41d26m36.30s | I24a §2.5 | 0.918 (Q3) | 0.12244 | ibik2024a |
+| 20200223B | 00h33m04.68s +28d49m52.60s | I24a §2.5 | 0.994 (Q3) | 0.06024 | ibik2024a |
+| 20190417A | 19h39m05.82s +59d19m36.7s | **Ibik+2024b Tab 4** (Gemini; Moroianu gives no host centroid) | 1.0 (Moroianu, P_PATH) | 0.12817 | moroianu2025 |
+| 20220912A | 23h09m04.848s +48d42m23.760s | PSO J347.2702+48.7066 (Ravi) | 0.95 (Q4) | 0.0771 | ravi2023 |
+| 20240114A | 21h27m39.84s +04d19m45.8s | DESI J212739.84+041945.8 (Bh25 Tab 3) | 0.997 (Tian+24 PATH) | 0.130287 | bhardwaj2025 |
+| 20240209A | 19h19m24.086s +86d03m39.240s | 289.85036 +86.06090 (Eft Tab 2) | 0.99 (Shah) | 0.1384 | eftekhari2024 |
+| 20190208A | 18h54m11.27s +46d55m21.67s | O4 at the EVN position (Hewitt+24) | 0.9995 (Hewitt+24) | — | hewitt2024 |
+
+20190417A: the FRB–host offset is 0.56″ with the Ibik+2024b centroid, which matches Ibik's 0.56 ± 0.06″. (The FRB position is the EVN fit, Dec 36.828″; see Prompt 5.)
+
+**Code fixes (NumPy 2.5 / missing import).** The first build failed for all 8 hosts:
+- `frb/surveys/galex.py`: `u` was used (`self.radius.to(u.deg)`) but never imported. Added `from astropy import units as u`.
+- `frb/surveys/catalog_utils.py:103` (`match_ids`) and `frb/galaxies/ppxf.py:226`: `np.in1d` was removed in NumPy 2.x. Replaced with `np.isin`, which gives the same result for 1-D inputs.
+- `test_frbsurveys.py` with and without the fixes:
+  - `test_galex` now passes;
+  - `test_in_which_survey` now gets past the `in1d` crash, then fails on its assertion (needs `$NEDLVS`);
+  - 7 other survey tests (euclid, nsc, hsc, first, panstarrs, tully, search_all) fail identically either way. They are pre-existing network or version problems.
+- `test_frbhosts`, `test_galaxies` and `test_photom` pass.
+
+**Build.** I ran `build_hosts.main([n])` for each of the 8 FRBs through a driver script that removes NEDLVS from `survey_utils.optical_surveys` (Q8). All 8 wrote `Galaxies/<FRB>/FRB<FRB>_host.json`.
+- `FRBHost.by_frb` loads all 8.
+- `list_of_hosts()` and `build_table_of_hosts()` now give 103 hosts (95 + 8).
+
+**Survey photometry vs the papers.** "Uncorrected" means the JSON value plus A_λ, recomputed with `photom.extinction_correction` and the JSON `EBV`.
+
+| FRB | EBV | Bands | Check |
+|---|---|---|---|
+| 20190110C | 0.0067 | DECaL grz, PS1, SDSS, GALEX, WISE (19) | DECaL r: corrected 17.992 → uncorrected **18.009** = paper 18.009 ✓ |
+| 20200223B | 0.0415 | DECaL, DELVE, PS1, SDSS, GALEX (19) | DECaL r: 15.974 → **16.080** = paper 16.080 ✓ |
+| 20220912A | 0.203 | PS1, WISE (9) | PS1 r: 19.113 → **19.656** vs paper 19.65 ✓ |
+| 20180814A | 0.1176 | PS1, 2MASS, WISE, GALEX NUV (13) | PS1 r uncorrected 17.03 vs M23 Kron rK 17.15. The 0.12 mag difference is plausibly the PS1 magnitude type. |
+| 20240114A | 0.0582 | DECaL, DELVE, PS1, SDSS (16) | SDSS r corrected **21.94** = Bh25 Tab 8 "extinction corrected" 21.94 ± 0.11 ✓. DECaL r corrected 21.69. |
+| 20240209A | 0.1011 | PS1, WISE (9) | PS1 r corrected 17.07 vs Eft GMOS 16.79 (14″ aperture, corrected). Catalog vs large aperture on a big elliptical (Q5). |
+| 20190417A | — | none | Host not in the DECaLS/PS1 catalogs (Moroianu fn. 39). No photometry and no EBV (Q5). |
+| 20190208A | — | none | Expected (r ≈ 27). z is NaN (Q6). |
+
+**Other notes:**
+- `DELVE_i = 98 ± 99` (non-detection placeholder) appears in 20200223B and 20240114A. This is a pre-existing `delve.py` issue (Q7).
+- Offsets: 20180814A `ang_best` 51.9″ ± 17.9″ (Q1); 20240209A 15.7″ = 39.7 ± 4.9 kpc, consistent with Shah's 40 ± 5 kpc ✓.
+- All 8 have an empty `derived` block; prompt 7 adds the literature tables.

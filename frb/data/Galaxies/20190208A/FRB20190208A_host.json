@@ -1,0 +1,21 @@
+{
+    "FRB": "FRB20190208A",
+    "cosmo": "Planck18",
+    "dec": 46.92268611111111,
+    "dec_FRB": 46.9226861,
+    "offsets": {
+        "ang_avg": 0.3258605002835773,
+        "ang_avg_err": 0.1703319014938944,
+        "ang_best": 9.119819993965944e-05,
+        "ang_best_err": 0.36761201673311245,
+        "physical": NaN,
+        "physical_err": NaN
+    },
+    "ra": 283.54695833333324,
+    "ra_FRB": 283.5469583,
+    "redshift": {
+        "z": NaN,
+        "z_FRB": NaN,
+        "z_spec": NaN
+    }
+}

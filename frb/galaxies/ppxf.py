@@ -223,7 +223,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     # also deal with declared good regions of the spectrum
     if 'goodpixels' in kwargs:
         goodpix = kwargs['goodpixels']
-        pixmask = np.in1d(maskidx, goodpix)
+        pixmask = np.isin(maskidx, goodpix)
         newgoodpix = np.where(pixmask)[0]
         kwargs['goodpixels'] = newgoodpix
 
