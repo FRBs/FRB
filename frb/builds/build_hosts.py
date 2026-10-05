@@ -479,6 +479,10 @@ def run(host_input:pandas.core.series.Series,
                 if err_type in key and '_uperr' not in key: 
                     valkey = key.replace(err_type, '')
                     refkey = valkey+'_ref'
+                    # Skip quantities not measured for this host
+                    val = float(lit_tbl[valkey].data[0])
+                    if not np.isfinite(val) or chk_fill(val):
+                        continue
                     # Scrub any existing!
                     if valkey in Host.derived.keys():
                         Host.derived.pop(valkey)

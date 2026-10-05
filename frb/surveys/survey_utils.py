@@ -23,6 +23,7 @@ from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table, join
+from astropy.io.ascii import InconsistentTableError
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
 
@@ -135,6 +136,10 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         cat = None
     except HTTPError:
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
+        cat = None
+    except InconsistentTableError:
+        # e.g. SkyServer returning an HTML error page instead of CSV
+        warnings.warn(f"Unreadable response from {surveyname}.", RuntimeWarning)
         cat = None
     # Are there any objects in the returned catalog?
     if cat is None or len(cat) == 0:

@@ -117,6 +117,9 @@ Reference labels to use:
 
 ## TODO
 
+- [ ] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
+- [ ] **20180814A P_Ox (Q2).** Blank in `public_hosts.csv`, because Michilli+2023 did not run PATH on this host. Set it once Dr. Michilli replies.
+
 ## Q&A
 
 **Q1. 20180814A localization ellipse (from Prompt 5).**
@@ -162,6 +165,24 @@ Should prompt 7 add `*_photom.csv` literature tables (e.g. `moroianu2025_photom.
 `$NEDLVS` is not set, and there is no LVS file on this machine. `survey_utils.in_which_survey` asserts on it, so I ran the build with NEDLVS removed from `optical_surveys` in my driver script (no repo change). NED-LVS supplies only z, ebv and Mstar (no `defs` photometry bands), so the photometry is unaffected. If you want the hosts built exactly as on your main machine, set `$NEDLVS` and rerun. Also, `$FRB_GDB` here points to a nonexistent Linux path (`/u/xavier/...`), so no CIGALE, pPXF or Galfit products were found. None exist for these hosts anyway.
 
 >A.  Let's not worry about NEDLVS.  If we thought it were important, I could run on my workstation.
+
+**Q9. How to record the stellar-mass method (Leung+2025b CIGALE / NED-LVS masses; Michilli's SDSS mass for 20190303A).**
+Since `Mstar_ref` sets the method, a paper that mixes methods breaks that rule. Michilli2023 uses Prospector for 20180814A but quotes an SDSS-collaboration value for 20190303A, and Leung2025b mixes CIGALE and NED-LVS. Options:
+- (a) **Recommended:** add a string key `Mstar_method` (Prospector / CIGALE / NED-LVS / SDSS) to `defs.valid_derived`, set it in each literature table, and fall back to the `Mstar_ref` rule when it is absent.
+- (b) Separate keys (`Mstar_CIGALE`, `Mstar_NEDLVS`, ...), following the `Mstar_spec` precedent.
+- (c) Encode the method in the ref label (e.g. `Leung2025b_CIGALE`).
+
+The Leung masses have no per-object errors, so they would get `Mstar_err = -999`. I have **not** added the Leung masses or the 20190303A row yet. Per Q26, a host that already has an `Mstar` keeps it.
+
+>A. (c)
+
+**Q10. SFR for 20190303A (log SFR = 0.84 ± 0.04, SDSS-collaboration value, method not stated).**
+There is no `defs` key for it: `SFR_SED` is Prospector and `SFR_photom` is CIGALE. Options:
+- (a) Add `SFR_SDSS`.
+- (b) Use the Q9 approach with a generic key plus `_method`.
+- (c) Skip it.
+
+>A. Use SFR_photom.  We will figure it out from the reference
 
 ## Logs
 
@@ -355,3 +376,55 @@ I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in b
 - `DELVE_i = 98 ± 99` (non-detection placeholder) appears in 20200223B and 20240114A. This is a pre-existing `delve.py` issue (Q7).
 - Offsets: 20180814A `ang_best` 51.9″ ± 17.9″ (Q1); 20240209A 15.7″ = 39.7 ± 4.9 kpc, consistent with Shah's 40 ± 5 kpc ✓.
 - All 8 have an empty `derived` block; prompt 7 adds the literature tables.
+
+### Prompt 7: Literature derived-quantity tables (2026-10-04, Claude Opus 5.5). (completed 2026-10-05)
+
+**Answers applied (Q1–Q8):**
+- Q1 and Q2 recorded as TODO items.
+- Q3: `P_Ox` set to 0.779 (20190110C) and 0.899 (20200223B), the P(U) = 0.1 values.
+- Q5: photometry tables added (below).
+- Q4, Q6, Q7 and Q8: no action needed.
+
+**Done:**
+- `build_hosts.run` derived-literature loop: it now **skips** a quantity whose value is NaN or -999. Before, a multi-host table wrote NaN into any host that lacked that quantity.
+- New filter `GTC_OSIRIS_r`: added to `defs.valid_filters`, with the transmission curve from SVO (GTC/OSIRIS.sdss_r) in `data/analysis/CIGALE/GTC_OSIRIS_r.dat`. A_r ≈ GMOS_N_r.
+- `defs.py`: the `Mstar` comment now says the method is set by `Mstar_ref` and lists the Prospector refs.
+- New tables in `Galaxies/Literature/`, appended to `all_refs.csv` in this order (CRLF kept). All values were rechecked against the PDFs. dex values are converted to linear with lo/up errors. Rows use the host-JSON ra/dec.
+  - `michilli2023_derived.csv`: 20180814A. Mstar 10^10.78 (+0.12/−0.18); SFR_SED 0.316, `_err = 999`.
+  - `ibik2024a_derived.csv`:
+    - 20190110C: Mstar 2.5e10 (+0.10/−0.17 e10), SFR_SED 0.54 ± 0.04, SFR_nebular 0.1575 ± 0.0006.
+    - 20200223B: Mstar 5.6e10 (+1.14/−0.93 e10), SFR_SED 0.59 ± 0.04.
+    - 20191106C: SFR_nebular 1.53, `_err = -999` (SDSS fiber, no error given).
+  - `moroianu2025_photom.csv`: 20190417A GMOS_N g, r, i, z = 23.45 ± 0.15, 22.42 ± 0.06, 22.42 ± 0.07, 23.32 ± 0.12 (uncorrected). The text's "23.45 ± 15" is taken as 0.15.
+  - `moroianu2025_derived.csv`: 20190417A Mstar 10^7.88 (+0.12/−0.14), SFR_nebular 0.19 ± 0.01.
+  - `ravi2023_derived.csv`: 20220912A Mstar 10^10.0 ± 0.1, SFR_nebular 0.1, `_err = -998` (lower limit).
+  - `hewitt2024_photom.csv`: 20190208A GTC_OSIRIS_r 27.32 ± 0.16 (§3.3 and abstract; Table 2 gives 27.17).
+  - `bhardwaj2025_derived.csv`: 20240114A Mstar 10^8.55 (+0.12/−0.14), SFR_nebular 0.061 (+0.004/−0.003).
+  - `eftekhari2024_photom.csv`: 20240209A GMOS_N_r, 14″ aperture (Q5). The paper's value is extinction-corrected (16.79), and `build_hosts` corrects again, so the table stores the **uncorrected** value 16.79 + A_r(0.2655) = 17.0555. The build therefore returns 16.79.
+  - `eftekhari2024_derived.csv`: 20240209A Mstar 10^11.34 ± 0.01, SFR_SED 0.36, `_err = 999`.
+- Not added yet: the Leung2025b masses and the 20190303A Mstar/SFR (Q9, Q10).
+- No `ibik2024a_nebular.csv`. Adding the Hα/Hβ fluxes would make the build compute an `AV_nebular` from Ha/Hb (≈7.5), which nobody asked for.
+
+**Q9 (c) and Q10 applied (2026-10-05).** The method is now encoded as a suffix on the ref label. The `defs.py` `Mstar` comment documents this ("A method suffix on the ref overrides this list").
+- `leung2025b_cigale_derived.csv` (`Leung2025b_CIGALE`): 20230926A 10.49, 20231011A 9.59, 20231123A 9.42, 20191106C 9.47, 20231201A 9.47, 20231229A 9.87, 20231230A 10.04.
+  - Leung Table 1 marks 20231229A and 20231230A "bc": both estimates exist, and the printed value is the higher-priority CIGALE (b) one.
+  - Errors are ±0.16 dex, the paper's stated bound for its SED fits ("≤ 0.16 dex"; no per-object values).
+- `leung2025b_nedlvs_derived.csv` (`Leung2025b_NEDLVS`): 20230222B 10.19, 20231223C 10.40, ±0.3 dex (stated in the paper). All values are Chabrier.
+- `michilli2023_sdss_derived.csv` (`Michilli2023_SDSS`): 20190303A. The host is SDSS J135159.87+480714.2, the third column of M23 Table 3, matching the repo host position. Mstar 10^10.75 ± 0.03 dex; `SFR_photom` = 10^(0.84 ± 0.04) = 6.92 (+0.67/−0.61) (Q10).
+- Added to `all_refs.csv`, after the earlier tables.
+- None of these hosts had an `Mstar` before, so Q26 does not apply.
+
+**Rebuild.** I rebuilt 18 hosts with `build_hosts.main([n])`, with NEDLVS dropped from `optical_surveys` in the driver. These are the 9 from above plus 20190303A, 20230926A, 20231011A, 20231123A, 20231201A, 20231229A, 20231230A, 20230222B and 20231223C. All 18 succeeded, after two more code fixes:
+- **`frb/surveys/sdss.py`**: the spectroscopic query requested `instrument` in `spec_fields`, which now makes SkyServer return an HTML error page. That raised `InconsistentTableError` and stopped 20190303A every time (reproduced: the same query without `instrument` works). `instrument` is not used anywhere, so I removed it.
+- **`frb/surveys/survey_utils.is_inside`**: it now also catches `InconsistentTableError` (an unreadable survey response), warns, and treats the survey as not covering the position, as it already does for DALServiceError, ReadTimeout and HTTPError. For 20231011A, SkyServer returned a 403 page for the 1′ footprint query at the FRB position. The git JSON for 20231011A has no SDSS photometry anyway.
+
+**Checks:**
+- `derived` blocks are as tabulated, including 20220912A `SFR_nebular_err = -998`, the 999 limits (20180814A, 20240209A `SFR_SED`) and 20191106C `SFR_nebular_err = -999`. 20190208A has no derived block.
+- 20240209A `GMOS_N_r` = **16.790** after the build's extinction correction ✓ (stored uncorrected value 17.0555).
+- 20190417A: GMOS-N g, r, i, z and `EBV` added. 20190208A: `GTC_OSIRIS_r` 27.32 and `EBV` added.
+- New hosts from prompt 6: all other content is identical to git.
+- **The 10 previously built hosts** (20191106C, 20190303A and the KKO hosts) also changed outside `derived`:
+  - **Magnitude shifts:** −0.0005 to −0.013 mag, bluer bands more. These scale with the unchanged `EBV` (e.g. 20231123A, EBV 0.245: PS1 g −0.013, r −0.010). That is the current G23 extinction law in `photom.extinction_correction`; the hosts were last built 2025-02-27.
+  - **New bands:** GALEX (now working after the prompt 6 `galex.py` fix) or 2MASS. No bands were lost.
+- Tests: `test_frbhosts`, `test_galaxies`, `test_photom`, `test_frbsurveys::test_sdss` and `::test_galex` pass (12).
+- `build_table_of_hosts()`: 103 hosts, 44 with `Mstar`.

@@ -3,6 +3,15 @@
     "cosmo": "Planck18",
     "dec": 86.0609,
     "dec_FRB": 86.0644444,
+    "derived": {
+        "Mstar": 218776162394.95517,
+        "Mstar_loerr": 4979953444.731934,
+        "Mstar_ref": "Eftekhari2024",
+        "Mstar_uperr": 5095951461.878601,
+        "SFR_SED": 0.36,
+        "SFR_SED_err": 999.0,
+        "SFR_SED_ref": "Eftekhari2024"
+    },
     "offsets": {
         "ang_avg": 15.77849941921059,
         "ang_avg_err": 1.9514585598358123,
@@ -13,6 +22,11 @@
     },
     "photom": {
         "EBV": 0.1011,
+        "GMOS_N_r": 16.789960076457316,
+        "GMOS_N_r_err": 0.02,
+        "GMOS_N_r_flux": 0.6982580700385601,
+        "GMOS_N_r_flux_err": 0.012862388985068647,
+        "GMOS_N_r_ref": "Eftekhari2024",
         "Pan-STARRS_g": 18.108955192229285,
         "Pan-STARRS_g_err": 0.010061999782919884,
         "Pan-STARRS_g_flux": 0.20721343846845594,

@@ -73,6 +73,11 @@ for band in GMOS_bands:
 for band in GMOS_bands:
     valid_filters.append('GMOS_N_{:s}'.format(band))
 
+#GTC OSIRIS
+GTC_OSIRIS_bands = ['r']
+for band in GTC_OSIRIS_bands:
+    valid_filters.append('GTC_OSIRIS_{:s}'.format(band))
+
 #NOT
 NOT_bands = ['u', 'g','r','i','z']
 for band in NOT_bands:
@@ -253,7 +258,13 @@ valid_positional_error = [
 valid_derived_photom = [
     'z_SED',           # Redshift; Prospector-derived
     'Mtotal',          # Total mass; linear in Msun; Prospector
-    'Mstar',           # Stellar mass; linear in Msun CIGALE (or Prospector if Gordon2023)
+    'Mstar',           # Stellar mass; linear in Msun. The method is set by Mstar_ref:
+                      #   Prospector -- Gordon2023, Bhardwaj2021b, Michilli2023, Ibik2024a,
+                      #     Moroianu2025, Ravi2023, Bhardwaj2025, Eftekhari2024
+                      #   A method suffix on the ref overrides this list,
+                      #     e.g. Leung2025b_CIGALE, Leung2025b_NEDLVS, Michilli2023_SDSS
+                      #   Other refs (e.g. Mahony2018, Bhardwaj2021): as given in that paper
+                      #   No Mstar_ref: CIGALE run by the repo build
     'Mstar_spec',      # Stellar mass from pPXF; linear in Msun
     'f_AGN',           # Fraction of AGN contribution to light; CIGALE (or Prospector if Gordon2023)
     'agn_tau',         # Optical depth of AGN dust torus; Prospector 

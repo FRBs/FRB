@@ -3,6 +3,15 @@
     "cosmo": "Planck18",
     "dec": 73.66130555555556,
     "dec_FRB": 73.6644444,
+    "derived": {
+        "Mstar": 60255958607.43568,
+        "Mstar_loerr": 20445241552.08599,
+        "Mstar_ref": "Michilli2023",
+        "Mstar_uperr": 19176864864.992203,
+        "SFR_SED": 0.3162277660168379,
+        "SFR_SED_err": 999.0,
+        "SFR_SED_ref": "Michilli2023"
+    },
     "offsets": {
         "ang_avg": 55.80726165948182,
         "ang_avg_err": 17.46700887025145,

@@ -3,6 +3,16 @@
     "cosmo": "Planck18",
     "dec": 4.3293888888888885,
     "dec_FRB": 4.3293522,
+    "derived": {
+        "Mstar": 354813389.23357606,
+        "Mstar_loerr": 97773810.9566896,
+        "Mstar_ref": "Bhardwaj2025",
+        "Mstar_uperr": 112921752.05362208,
+        "SFR_nebular": 0.061,
+        "SFR_nebular_loerr": 0.003,
+        "SFR_nebular_ref": "Bhardwaj2025",
+        "SFR_nebular_uperr": 0.004
+    },
     "offsets": {
         "ang_avg": 0.17227355386671336,
         "ang_avg_err": 0.05267705439146529,

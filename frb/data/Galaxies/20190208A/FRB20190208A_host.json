@@ -11,6 +11,14 @@
         "physical": NaN,
         "physical_err": NaN
     },
+    "photom": {
+        "EBV": 0.058,
+        "GTC_OSIRIS_r": 27.171725620615355,
+        "GTC_OSIRIS_r_err": 0.16,
+        "GTC_OSIRIS_r_flux": 4.912581247018494e-05,
+        "GTC_OSIRIS_r_flux_err": 7.239447262404407e-06,
+        "GTC_OSIRIS_r_ref": "Hewitt2024"
+    },
     "ra": 283.54695833333324,
     "ra_FRB": 283.5469583,
     "redshift": {
