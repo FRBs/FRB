@@ -213,7 +213,7 @@ Should I also screen all hosts for DECaL vs PS1 disagreements > 1 mag?
 **Q13. Leftover files in zdm.**
 `py/lit_host_photom_cache.json` (tracked in git) is no longer read by `build_host_table.py`. I also left the previous output as `CHIME_FRB_hosts.prev.csv` (untracked) for comparison. OK to `git rm` the cache and delete the `.prev.csv`?
 
->A.
+>A. Yes, that is ok
 
 ## Logs
 
