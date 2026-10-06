@@ -117,11 +117,18 @@ Reference labels to use:
    - diff the new `CHIME_FRB_hosts.csv` against the previous one. Every change should be explainable (e.g. the magnitude source).
    Log your work below.
 
+10. **TODO updates.**  I have completed the TODO items and added the answers below it.  Please update the files as need be.  Use Opus 5.5.  Log your work.
+
 ## TODO
 
-- [ ] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
-- [ ] **20180814A P_Ox (Q2).** Blank in `public_hosts.csv`, because Michilli+2023 did not run PATH on this host. Set it once Dr. Michilli replies.
-- [ ] **20191106C stellar mass (Q11).** Waiting on the Leung+2025b authors. Leung Table 1 gives log M* = 9.47 (CIGALE), the same as 20231201A in the next row. The colour-M/L estimate (10.3–10.5) and Chang+2015 (10.65, via Ibik2024a) suggest about 10.6. The repo keeps `Leung2025b_CIGALE` 9.47 for now. If the authors confirm a typo, update `leung2025b_cigale_derived.csv` (or add `chang2015_derived.csv`) and rebuild 20191106C.
+- [x] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
+- [x] **20180814A P_Ox (Q2).** Blank in `public_hosts.csv`, because Michilli+2023 did not run PATH on this host. Set it once Dr. Michilli replies.
+- [x] **20191106C stellar mass (Q11).** Waiting on the Leung+2025b authors. Leung Table 1 gives log M* = 9.47 (CIGALE), the same as 20231201A in the next row. The colour-M/L estimate (10.3–10.5) and Chang+2015 (10.65, via Ibik2024a) suggest about 10.6. The repo keeps `Leung2025b_CIGALE` 9.47 for now. If the authors confirm a typo, update `leung2025b_cigale_derived.csv` (or add `chang2015_derived.csv`) and rebuild 20191106C.
+
+### TODO anaswers
+- Use σRA = 18″ and σDec = 20″ for 20180814A
+- P(O|x) = 0.34 for the primary candidate.  Please use that and update files as need be
+- Here is the answer from Calvin: "FRB 20191106C = FRB 20231128A has M* = 10.43 +- 0.13 as measured by CIGALE. The 20231201A value is correct" 
 
 ## Q&A
 
@@ -537,3 +544,19 @@ I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in b
 | `Mstar_source` / `Refs` labels (`Michilli+2023` → `Michilli2023`, `Leung+2025(ApJL991,L25)` → `Leung2025b`, ...) | the literature hosts | Labels now come from the repo refs. `z:`/`mag:` refs now say `hostJSON`/`repo` instead of `catalog`. `name:repo_as_...` dropped (renamed in prompt 3) |
 
 The values for 20180814A, 20220912A, 20240114A and 20240209A are unchanged; the repo photometry matches the old catalog/literature magnitudes. 20181119A is still a repeater row with every host column blank.
+
+### Prompt 10: TODO updates (2026-10-06, Claude Opus 5.5)
+
+All three TODO items are closed (checked above), per the answers under "TODO answers".
+
+1. **20180814A ellipse.** Keep Michilli+2023 Table 1 (σRA = 18″, σDec = 20″). `FRBs_base.csv`, `FRB20180814A.json` and the host offsets already use it, so nothing changed.
+2. **20180814A P(O|x) = 0.34** (primary candidate, from Dr. Michilli). Set `P_Ox = 0.34` in `public_hosts.csv` (CRLF kept). `FRBs_base.csv` P(O|x) stays blank, as for the other prompt-5 rows; `build_host_table.py` falls back to `public_hosts.csv`. No host rebuild was needed, because `P_Ox` is not stored in the host JSON.
+3. **20191106C stellar mass.** C. Leung (priv. comm.): "FRB 20191106C = FRB 20231128A has M* = 10.43 ± 0.13 as measured by CIGALE. The 20231201A value is correct."
+   - Edited the 20191106C row of `leung2025b_cigale_derived.csv` (text edit, so no other row changed): log M* 10.43 ± 0.13 → Mstar = 2.69e10 (+9.39e9/−6.96e9). The ref stays `Leung2025b_CIGALE`.
+   - 20231201A (9.47) is unchanged.
+   - Rebuilt 20191106C with `build_hosts.main`; only `Mstar`, `Mstar_loerr` and `Mstar_uperr` changed in the JSON.
+   - The new value agrees with the colour-M/L estimate (10.3–10.5) and is 0.2 dex below Chang+2015 (10.65).
+
+**CHIME table (zdm).** In `build_host_table.py`, `NOTES['FRB20191106C']` now records the correction (`Mstar:Leung2025b_Table1_typo_corrected(C.Leung,priv.comm.)`) instead of the old Chang `Mstar_alt` note. I reran it: 97 rows. The diff vs the previous output has exactly 2 rows:
+- **FRB20180814A:** `P_Ox` blank → 0.34. Per Q41 (zdm doc), no P(O|x) cut is applied now, so the host values stay.
+- **FRB20191106C:** `Stellar_Mass` 9.47 → 10.43, `Mstar_err` 0.16 → 0.13, and the Refs note as above.

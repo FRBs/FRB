@@ -4,10 +4,10 @@
     "dec": 42.99971388888889,
     "dec_FRB": 42.992708,
     "derived": {
-        "Mstar": 2951209226.66639,
-        "Mstar_loerr": 909471281.9968584,
+        "Mstar": 26915348039.26914,
+        "Mstar_loerr": 6962724889.580391,
         "Mstar_ref": "Leung2025b_CIGALE",
-        "Mstar_uperr": 1314585961.3495443,
+        "Mstar_uperr": 9392457437.74104,
         "SFR_nebular": 1.53,
         "SFR_nebular_err": -999.0,
         "SFR_nebular_ref": "Ibik2024a"
