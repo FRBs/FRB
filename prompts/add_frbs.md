@@ -119,6 +119,118 @@ Reference labels to use:
 
 10. **TODO updates.**  I have completed the TODO items and added the answers below it.  Please update the files as need be.  Use Opus 5.5.  Log your work.
 
+11. **Database** I am about to open a PR for this work.  But before doing so, I need you to compare the `FRBs_base.csv` against the copy on my Google Drive at:
+`GDrive:Astronomy/Research/FRB/public_frbs`. Describe any differences in the files in the "PR Checklist/FRBs" section below.  
+Similarly, compare the `public_hosts.csv` against the copy on my Google Drive at:
+`GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx`. Describe any differences in the files in the "PR Checklist/Hosts" section below.  
+Use Opus 5.5. Log your work.   
+
+12. **Sync the `public_frbs` Google Sheet with `FRBs_base.csv`.** Use Opus 5.5. Log your work below.
+   - **Before running, choose the FRB20190711A `ee_b` (PR Checklist → FRBs, B6):** `1.281` (user, 2026-10-07) (1.28 as in the repo, or 1.281 as on Drive). If it is 1.281, also change `FRBs_base.csv` (CRLF line endings) and rebuild `FRB20190711A.json` with `build_frbs`.
+   - **Target:** Sheet `public_frbs`, file ID `1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY` (owner xavier@ucolick.org; shared as Editor with jxp@ucsc.edu). Load the `google-workspace` skill before the first edit. Confirm with `get_file_permissions` that jxp@ucsc.edu is a writer; stop if not.
+   - **Back up first:** export the current Sheet with `rclone copy "GDrive:Astronomy/Research/FRB/public_frbs.xlsx" <tmpdir>` and keep the copy until the sync is verified. Drive version history is the second fallback.
+   - **Edits** (see PR Checklist → FRBs for the full lists). Keep the existing rows in place and append the new rows at the end, in the same order as `FRBs_base.csv`:
+     1. Column 19: set the header to `P(O|x)` and fill it from `FRBs_base.csv` (84 CHIME/KKO rows; blank elsewhere).
+     2. Rename FRB20231204A → FRB20190303A and FRB20231128A → FRB20191106C, and set their `refs` to the CSV values (`Leung+2025,burst:FRB2023...`).
+     3. FRB20231201A: `z` = 0.1119.
+     4. Clear `z` for the 12 rows listed in A4.
+     5. Append the 9 new repeater rows (A2) with every column copied from `FRBs_base.csv`.
+     6. FRB20190711A `ee_b`: as chosen above.
+     - Do **not** rewrite the ra/dec values that differ only by rounding (B7). Leave the `repeater` column in the Sheet's existing TRUE/FALSE style.
+   - **Verify:** re-export with rclone and rerun the Prompt 11 comparison (in the `ocean14` env, keyed on `Name`). Expect the same 188 names in the same order and no value differences except the rounding-only ra/dec (B7). Report anything else, then delete the temporary files.
+   - Do not change `public_hosts.csv` or `Public_Hosts.xlsx` in this prompt.
+
+13. **Workstation setup and Sheet sync (finish prompt 12).** Use Opus 5.5. Log your work below.
+   - **State check.** On branch `repeater_updates`, `git pull`, then confirm that the laptop's last changes are present:
+     - `FRBs_base.csv` FRB20190711A `ee_b` = 1.281;
+     - `FRB20190711A.json` `eellipse.b` = 1.281;
+     - this file contains prompts 12–15 and Q14.
+
+     If any of these are missing, stop: the laptop changes were not pushed.
+   - **Tool check.** Use ToolSearch (and ask the user to run `/mcp` if needed) to confirm that a **Google Sheets** editor connector is loaded (`get_spreadsheet`, `get_values`, `update_values` or similar), signed in as an account with write access to Sheet `1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY` (jxp@ucsc.edu is a writer). Load the `google-workspace` skill and read its `references/sheets.md` before the first edit.
+   - **If the Sheets connector is available:** run prompt 12 as written. The `ee_b` choice is already made (1.281), and the repo already has it.
+   - **If it is not:** stop and ask the user to choose between Q14 (b) and (c). Do not fall back on your own.
+     - If (b) is chosen, first check that rclone works on this machine (`rclone listremotes`, `rclone lsf "GDrive:Astronomy/Research/FRB/"`).
+     - Then test on a **copy**: copy the Sheet with Drive `copy_file`, upload `FRBs_base.csv` over the copy with `rclone copyto --drive-import-formats csv`, and confirm that the copy's file ID is unchanged and its contents match.
+     - Only then do the same to the real Sheet, after a backup export.
+   - **Verify** as in prompt 12: rerun the Prompt 11 comparison (any env with pandas + openpyxl; `ocean14` on the laptop). Expect no differences except rounding-only ra/dec (PR Checklist → FRBs, B7).
+   - Then update PR Checklist → FRBs to say the Sheet is in sync.
+
+14. **Sync `Public_Hosts.xlsx` with `public_hosts.csv`.** Use Opus 5.5. Log your work below.
+   - **Target:** `GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx`. This is an uploaded .xlsx file, not a native Google Sheet, so rclone can replace it in place.
+   - **Back up** the current file with `rclone copy` to a temp dir.
+   - Apply PR Checklist → Hosts, A1–A3, by editing a local copy with openpyxl. Keep the sheet name (`Sheet1`), column order and existing cell values:
+     - rename 20231204A → 20190303A and 20231128A → 20191106C;
+     - append the 8 new CHIME rows with every column copied from `public_hosts.csv`;
+     - add the `Bad_photom` column header after `Comments`, with `DECaL_g,DECaL_r,DECaL_z` for 20231230A.
+
+     Do not overwrite the full-precision P_Ox/z values that differ only by rounding (B4).
+   - Upload with `rclone copyto <local> "GDrive:.../Public_Hosts.xlsx"`. Re-download and rerun the Prompt 11 hosts comparison. Expect no differences except B4. Delete the temp files.
+   - Then update PR Checklist → Hosts to say the file is in sync.
+
+15. **Pre-PR checks.** Use Opus 5.5. Log your work below.
+   - Run the tests that touch this work:
+
+     ```
+     pytest frb/tests/test_frbhosts.py frb/tests/test_galaxies.py frb/tests/test_photom.py frb/tests/test_frb.py
+     pytest "frb/tests/test_frbsurveys.py::test_sdss" "frb/tests/test_frbsurveys.py::test_galex"
+     ```
+
+     Plus `test_build.py` if `$FRB_GDB` and `$NEDLVS` are set on the workstation. Report every failure, and say for each whether it predates this branch (compare with `main`).
+   - `git diff --stat main...repeater_updates`: list every file changed and check that each change is covered by a prompt log above. Flag anything unexplained.
+   - Draft (do not open) a PR description for `repeater_updates` → `main`, summarizing:
+     - **data:** 9 new repeaters, 2 renames, base-table fixes, new hosts and literature tables;
+     - **code:** NumPy 2.x fixes, `read_lit_table`, `galex`/`catalog_utils`/`ppxf`/`sdss`/`survey_utils` fixes, `build_hosts` NaN skip and `Bad_photom`, `defs` conventions;
+     - the PR Checklist status.
+
+     Put the draft in a new "PR Draft" section of this file for the user to review.
+
+## PR Checklist
+
+### FRBs
+
+Compared `frb/data/FRBs/FRBs_base.csv` (this branch, 188 rows) with `GDrive:Astronomy/Research/FRB/public_frbs` (Google Sheet, modified 2026-05-30, 179 rows; exported with rclone). Same 26 columns, and the common rows are in the same order.
+
+**A. Changes made in this PR (Drive does not have them yet):**
+1. **Renamed rows (prompt 3):**
+   - FRB20231204A → **FRB20190303A**, `refs` = `"Leung+2025,burst:FRB20231204A"`;
+   - FRB20231128A → **FRB20191106C**, `refs` = `"Leung+2025,burst:FRB20231128A"`.
+2. **9 new repeater rows (prompt 5):** FRB20180814A, 20190110C, 20200223B, 20190417A, 20220912A, 20240114A, 20240209A, 20190208A, 20181119A. All have `repeater = TRUE` and `telescope = CHIME`, with positions, ellipses, DMs and z from the papers. They are appended at the end of the file.
+3. **FRB20231201A** `z`: 0.119 → **0.1119** (prompt 4).
+4. **`z` blanked** (prompt 4) for the 12 rows with P(O|x) < 0.9: 20230410A, 20230616A, 20230702A, 20230828A, 20230918A, 20230923A, 20230924A, 20231006B, 20231102A, 20231223D, 20231224A, 20240210C.
+
+**B. Pre-existing differences (already on `main` before this branch):**
+5. **`P(O|x)` column.** In the Drive sheet, column 19 has **no header** and is **empty** (0 of 179 values). The repo has `P(O|x)` for the 84 CHIME/KKO rows (added in f28709c8, 2025-03-24). The Drive sheet needs the header and the values.
+6. **FRB20190711A `ee_b`:** Drive 1.281, repo 1.28 (changed in d5fbc4b8 "frbs", 2026-02-11, which also updated this row's ra/dec; Drive has the new ra/dec).
+7. **Rounding only:** ra/dec in 41 rows (and `ee_a` of 20181112A) differ by ≤ 3e-8 deg (≈ 0.1 mas). The Drive sheet stores full double precision, and the CSV has 7–9 decimals. Not meaningful.
+
+**To sync the Drive sheet** with this PR: apply A1–A4, add the `P(O|x)` header and values (B5), and decide which `ee_b` is right for FRB20190711A (B6).
+
+### Hosts
+
+Compared `frb/data/Galaxies/public_hosts.csv` (this branch, 103 rows) with `GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx` (uploaded xlsx, modified 2025-08-09, 95 rows, one sheet). The 13 shared columns match by name, and the common rows are in the same order.
+
+**A. Changes made in this PR (Drive does not have them yet):**
+1. **Renamed rows (prompt 3):** 20231204A → **20190303A**, 20231128A → **20191106C**. Coordinates and other fields are unchanged.
+2. **8 new rows (prompt 6)**, all `Projects = CHIME`:
+
+   | FRB | P_Ox | z | References |
+   |---|---|---|---|
+   | 20180814A | 0.34 (prompt 10) | 0.06835 | michilli2023 |
+   | 20190110C | 0.779 | 0.12244 | ibik2024a |
+   | 20200223B | 0.899 | 0.06024 | ibik2024a |
+   | 20190417A | 1.0 | 0.12817 | moroianu2025 |
+   | 20220912A | 0.95 | 0.0771 | ravi2023 |
+   | 20240114A | 0.997 | 0.130287 | bhardwaj2025 |
+   | 20240209A | 0.99 | 0.1384 | eftekhari2024 |
+   | 20190208A | 0.9995 | — | hewitt2024 |
+3. **New column `Bad_photom`** (prompt 9, Q12), read by `build_hosts.run`. It is empty except for 20231230A: `"DECaL_g,DECaL_r,DECaL_z"`.
+
+**B. Pre-existing differences (already on `main`):**
+4. **Rounding only:** in the repo, P_Ox for 20181112A, 20190611B and 20191001A, and z for 20190102C (0.29117 vs 0.291168), are rounded to 5 digits. Drive has full precision. Not meaningful.
+
+**To sync the Drive file** with this PR: apply A1–A3.
+
 ## TODO
 
 - [x] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
@@ -221,6 +333,14 @@ Should I also screen all hosts for DECaL vs PS1 disagreements > 1 mag?
 `py/lit_host_photom_cache.json` (tracked in git) is no longer read by `build_host_table.py`. I also left the previous output as `CHIME_FRB_hosts.prev.csv` (untracked) for comparison. OK to `git rm` the cache and delete the `.prev.csv`?
 
 >A. Yes, that is ok
+
+**Q14. Prompt 12 is blocked: no Google Sheets editor connector in this session.**
+jxp@ucsc.edu is now a writer on `public_frbs` (checked with `get_file_permissions`). But this session has only the Google **Drive** connector (search, read, create, rename, share), not the **Google Sheets** connector that edits cells in place (`update_values` etc.). Options:
+- (a) **Recommended:** turn on (or add) the Google Sheets connector for this chat, then rerun prompt 12. The edits land in the existing Sheet; the link, sharing and formatting are kept.
+- (b) Replace the Sheet's contents by uploading `FRBs_base.csv` with rclone (`--drive-import-formats csv`). This first needs a test on a copy to make sure rclone updates the existing file rather than creating a second one. It replaces everything, including formatting, and the old version stays in version history.
+- (c) You paste `FRBs_base.csv` into the Sheet by hand. The columns are in the same order; also add the `P(O|x)` header in column 19.
+
+>A. (a) (user, in chat, 2026-10-07). Waiting for the Google Sheets connector to be turned on in the chat; as of this answer it is still not available.
 
 ## Logs
 
@@ -560,3 +680,17 @@ All three TODO items are closed (checked above), per the answers under "TODO ans
 **CHIME table (zdm).** In `build_host_table.py`, `NOTES['FRB20191106C']` now records the correction (`Mstar:Leung2025b_Table1_typo_corrected(C.Leung,priv.comm.)`) instead of the old Chang `Mstar_alt` note. I reran it: 97 rows. The diff vs the previous output has exactly 2 rows:
 - **FRB20180814A:** `P_Ox` blank → 0.34. Per Q41 (zdm doc), no P(O|x) cut is applied now, so the host values stay.
 - **FRB20191106C:** `Stellar_Mass` 9.47 → 10.43, `Mstar_err` 0.16 → 0.13, and the Refs note as above.
+
+### Prompt 11: Compare with the Google Drive copies (2026-10-07, Claude Opus 5.5)
+
+- The Google Drive connector (signed in as jxp@ucsc.edu) could not find `Astronomy/Research/FRB` (My Drive › Astronomy › Research contains only DISCO and GitHub). `GDrive:` turned out to be the user's **rclone** remote. I downloaded `public_frbs` (Google Sheet → xlsx) and `Galaxies/Galaxy_DB/Public_Hosts.xlsx` with `rclone copy` into a temporary directory, then deleted them. The download was read-only; nothing on Drive was changed.
+- `astro` has no `openpyxl`, so I used the existing `ocean14` env (pandas + openpyxl) for the comparison and installed nothing.
+- Compared by key (`Name` / `FRB`): rows present only on one side, columns, row order, and every shared cell (strings exactly; numbers exactly, then with a tolerance to separate real changes from rounding). Each difference was checked against `main` with `git log -S` to label it as this PR's change or pre-existing.
+- Results are in **PR Checklist → FRBs / Hosts** above. Every value difference is either a change made in prompts 3–10 or pre-existing. The pre-existing ones are: the empty, unheaded `P(O|x)` column in the Drive sheet; FRB20190711A `ee_b` 1.281 vs 1.28; and sub-mas or 5-digit rounding.
+
+### Prompt 12: Sync the `public_frbs` Sheet (2026-10-07, Claude Opus 5.5). BLOCKED (Q14)
+
+- **FRB20190711A `ee_b` = 1.281** (user's choice). Changed in `FRBs_base.csv` (binary edit, CRLF kept; one field) and rebuilt `FRB20190711A.json` with `build_frbs`. The JSON diff is `eellipse.b` 1.28 → 1.281, plus DMISM in the 15th decimal.
+- `get_file_permissions` on the Sheet (`1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY`) confirms that **jxp@ucsc.edu is a writer**.
+- **Stopped before any Drive change.** This session has no Google Sheets editor tools (`update_values` etc.); a tool search found only Drive, Docs and Calendar tools. Drive alone cannot edit an existing Sheet in place. I did not make the backup copy, because no edit was attempted. See Q14.
+- Once the Sheets connector is on, prompt 12 can run as written. B6 then disappears, since repo and Drive will both have 1.281.
