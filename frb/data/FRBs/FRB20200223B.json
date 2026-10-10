@@ -1,0 +1,30 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 202.268
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 45.8722775210378
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.007
+    },
+    "FRB": "FRB20200223B",
+    "cosmo": "Planck18",
+    "dec": 28.831,
+    "eellipse": {
+        "a": 17.5,
+        "b": 15.3,
+        "cl": 68.0,
+        "theta": 90.0
+    },
+    "ra": 8.265,
+    "refs": [
+        "CHIME2023",
+        "Ibik2024a"
+    ],
+    "repeater": true,
+    "z": 0.06024
+}

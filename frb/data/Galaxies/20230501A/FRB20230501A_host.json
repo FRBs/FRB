@@ -5,15 +5,15 @@
     "dec_FRB": 70.922139,
     "derived": {
         "AV_old": 3.4266,
-        "AV_old_loerr": -0.0224,
+        "AV_old_loerr": 0.0224,
         "AV_old_ref": "Sharma2024",
         "AV_old_uperr": 0.02,
         "Mtotal": 27899729974.08269,
-        "Mtotal_loerr": -630153641.1245766,
+        "Mtotal_loerr": 630153641.1245766,
         "Mtotal_ref": "Sharma2024",
         "Mtotal_uperr": 453334143.524189,
         "SFR_SED": 4.0955,
-        "SFR_SED_loerr": -0.4467,
+        "SFR_SED_loerr": 0.4467,
         "SFR_SED_ref": "Sharma2024",
         "SFR_SED_uperr": 0.604
     },

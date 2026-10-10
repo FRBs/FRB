@@ -2,7 +2,7 @@
     "FRB": "FRB20211203C",
     "cosmo": "Planck18",
     "dec": -31.380060555555556,
-    "dec_FRB": -31.38026619,
+    "dec_FRB": -31.380266667,
     "derived": {
         "AV_old": 0.04,
         "AV_old_loerr": 0.02,
@@ -36,14 +36,6 @@
         "age_mass_loerr": 1.25,
         "age_mass_ref": "Gordon2023",
         "age_mass_uperr": 2.0,
-        "agn_tau": -999.0,
-        "agn_tau_loerr": -999.0,
-        "agn_tau_ref": "Gordon2023",
-        "agn_tau_uperr": -999.0,
-        "f_AGN": -999.0,
-        "f_AGN_loerr": -999.0,
-        "f_AGN_ref": "Gordon2023",
-        "f_AGN_uperr": -999.0,
         "lg_sSFR": -8.64,
         "lg_sSFR_loerr": 0.1,
         "lg_sSFR_ref": "Gordon2023",
@@ -54,12 +46,12 @@
         "z_SED_uperr": 0.0
     },
     "offsets": {
-        "ang_avg": 0.8879494409071583,
-        "ang_avg_err": 0.387993424151424,
-        "ang_best": 0.7428316057653132,
-        "ang_best_err": 0.41424399001192824,
-        "physical": 3.742712529551288,
-        "physical_err": 2.0871435190370557
+        "ang_avg": 0.8892912185853965,
+        "ang_avg_err": 0.38820048361180004,
+        "ang_best": 0.7445429300324655,
+        "ang_best_err": 0.414308680231827,
+        "physical": 3.751050442297025,
+        "physical_err": 2.0873111482817057
     },
     "photom": {
         "DECaL_g": 20.654831898312516,
@@ -67,13 +59,13 @@
         "DECaL_g_flux": 0.01986402416930507,
         "DECaL_g_flux_err": 0.00017395500040628107,
         "DECaL_r": 19.941721163620514,
-        "DECaL_r_err": 0.006604788312065044,
+        "DECaL_r_err": 0.006604788312065045,
         "DECaL_r_flux": 0.03830994503185465,
-        "DECaL_r_flux_err": 0.00023304839248555352,
+        "DECaL_r_flux_err": 0.00023304839248555357,
         "DECaL_z": 19.501286470823977,
-        "DECaL_z_err": 0.011500218837883327,
+        "DECaL_z_err": 0.011500218837883328,
         "DECaL_z_flux": 0.057475850433150906,
-        "DECaL_z_flux_err": 0.0006087895521748166,
+        "DECaL_z_flux_err": 0.0006087895521748167,
         "DELVE_g": 20.76031487159688,
         "DELVE_g_err": 0.026774,
         "DELVE_g_flux": 0.01802494904400058,
@@ -158,8 +150,8 @@
     "ra": 204.56247999999997,
     "ra_FRB": 204.5625,
     "redshift": {
-        "z": 0.3439,
-        "z_FRB": 0.3439,
-        "z_spec": 0.3439
+        "z": 0.34386,
+        "z_FRB": 0.34386,
+        "z_spec": 0.34386
     }
 }

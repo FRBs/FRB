@@ -1,0 +1,30 @@
+{
+    "DM": {
+        "unit": "pc / cm3",
+        "value": 527.723
+    },
+    "DMISM": {
+        "unit": "pc / cm3",
+        "value": 50.48272962847723
+    },
+    "DM_err": {
+        "unit": "pc / cm3",
+        "value": 0.042
+    },
+    "FRB": "FRB20240114A",
+    "cosmo": "Planck18",
+    "dec": 4.3293522,
+    "eellipse": {
+        "a": 0.093,
+        "b": 0.028,
+        "cl": 68.0,
+        "theta": 153.0
+    },
+    "ra": 321.9159792,
+    "refs": [
+        "Bhardwaj2025",
+        "Tian2024"
+    ],
+    "repeater": true,
+    "z": 0.130287
+}

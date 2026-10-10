@@ -64,16 +64,16 @@
         "ra": 299.22010841786425,
         "reff_ang": 2.756416982981451,
         "reff_ang_err": 0.015,
-        "reff_kpc": 6.570510590606893,
-        "reff_kpc_err": 0.03575571456264193
+        "reff_kpc": 6.569209920806961,
+        "reff_kpc_err": 0.03574863651635232
     },
     "offsets": {
-        "ang_avg": 5.012487395883377,
-        "ang_avg_err": 0.49872524288260267,
+        "ang_avg": 5.012487395883376,
+        "ang_avg_err": 0.4987252428826027,
         "ang_best": 4.987360434786424,
         "ang_best_err": 0.4993578196666984,
-        "physical": 11.888442408482476,
-        "physical_err": 1.1903263776417128
+        "physical": 11.886089023947786,
+        "physical_err": 1.1900907457908678
     },
     "photom": {
         "EBV": 0.1897,
@@ -84,8 +84,8 @@
         "Pan-STARRS_g_ref": "Gordon2023",
         "Pan-STARRS_i": 16.7523505226279,
         "Pan-STARRS_i_err": 0.0068,
-        "Pan-STARRS_i_flux": 0.7228693073826138,
-        "Pan-STARRS_i_flux_err": 0.004527353208505013,
+        "Pan-STARRS_i_flux": 0.7228693073826137,
+        "Pan-STARRS_i_flux_err": 0.004527353208505012,
         "Pan-STARRS_i_ref": "Gordon2023",
         "Pan-STARRS_r": 17.161447627178458,
         "Pan-STARRS_r_err": 0.0065,
@@ -109,8 +109,8 @@
         "VISTA_J_ref": "Gordon2023",
         "VISTA_Ks": 15.989059920160447,
         "VISTA_Ks_err": 0.01,
-        "VISTA_Ks_flux": 1.46007789588513,
-        "VISTA_Ks_flux_err": 0.013447814390700853,
+        "VISTA_Ks_flux": 1.4600778958851297,
+        "VISTA_Ks_flux_err": 0.01344781439070085,
         "VISTA_Ks_ref": "Gordon2023",
         "VLT_FORS2_I": 16.13171201993396,
         "VLT_FORS2_I_err": 0.0036298722277761,
@@ -145,8 +145,8 @@
     "ra": 299.22005291666665,
     "ra_FRB": 299.221433,
     "redshift": {
-        "z": 0.1293,
-        "z_FRB": 0.1293,
-        "z_spec": 0.1293
+        "z": 0.12927,
+        "z_FRB": 0.12927,
+        "z_spec": 0.12927
     }
 }

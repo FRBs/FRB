@@ -168,7 +168,7 @@ def read_lit_table(lit_entry, coord=None):
         if nmatch == 0:
             return None
         elif nmatch == 1:
-            idx = int(np.where(match)[0])
+            idx = int(np.where(match)[0][0])
             return lit_tbl[idx:idx+1]
         else:
             embed(header="Multiple matches in literature table!")
@@ -333,6 +333,14 @@ def run(host_input:pandas.core.series.Series,
             if 'NSC' in key:
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
+    # Remove bad photometry (e.g. a shredded survey detection)
+    bad_photom = getattr(host_input, 'Bad_photom', None)
+    if merge_tbl is not None and isinstance(bad_photom, str):
+        for filt in bad_photom.split(','):
+            for key in [filt, filt+'_err', filt+'_ref']:
+                if key in merge_tbl.keys():
+                    merge_tbl.remove_column(key)
+            print(f"Removing bad photometry: {filt}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
@@ -479,6 +487,10 @@ def run(host_input:pandas.core.series.Series,
                 if err_type in key and '_uperr' not in key: 
                     valkey = key.replace(err_type, '')
                     refkey = valkey+'_ref'
+                    # Skip quantities not measured for this host
+                    val = float(lit_tbl[valkey].data[0])
+                    if not np.isfinite(val) or chk_fill(val):
+                        continue
                     # Scrub any existing!
                     if valkey in Host.derived.keys():
                         Host.derived.pop(valkey)
