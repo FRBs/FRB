@@ -2,7 +2,7 @@
     "FRB": "FRB20190711A",
     "cosmo": "Planck18",
     "dec": -80.35806944444444,
-    "dec_FRB": -80.358,
+    "dec_FRB": -80.358028611,
     "derived": {
         "AV_old": 0.28,
         "AV_old_loerr": 0.16,
@@ -42,7 +42,7 @@
         "SFR_SED_loerr": 0.5,
         "SFR_SED_ref": "Gordon2023",
         "SFR_SED_uperr": 0.96,
-        "SFR_nebular": 0.4159134256496358,
+        "SFR_nebular": 0.4153782936954082,
         "SFR_photom": 0.8913675637700837,
         "SFR_photom_err": 0.40953161123472515,
         "SMStar": 4476896.412225556,
@@ -57,13 +57,6 @@
         "UV_global": 25.008000000000003,
         "UV_global_err": 0.121,
         "UV_global_ref": "Mannings2021",
-        "UVff": NaN,
-        "UVff_err": NaN,
-        "UVff_ref": "Mannings2021",
-        "Z_gas": -999.0,
-        "Z_gas_loerr": -999.0,
-        "Z_gas_ref": "Gordon2023",
-        "Z_gas_uperr": -999.0,
         "Z_photom": 0.005804349534818569,
         "Z_photom_err": 0.009274557777466552,
         "Z_stellar": 0.1023292992,
@@ -74,14 +67,8 @@
         "age_mass_loerr": 1.36,
         "age_mass_ref": "Gordon2023",
         "age_mass_uperr": 0.96,
-        "agn_tau": -999.0,
-        "agn_tau_loerr": -999.0,
-        "agn_tau_ref": "Gordon2023",
-        "agn_tau_uperr": -999.0,
-        "f_AGN": -999.0,
-        "f_AGN_loerr": -999.0,
-        "f_AGN_ref": "Gordon2023",
-        "f_AGN_uperr": -999.0,
+        "f_AGN": 0.11832655325268372,
+        "f_AGN_err": 0.07686260779253257,
         "lg_sSFR": -9.27,
         "lg_sSFR_loerr": 0.36,
         "lg_sSFR_ref": "Gordon2023",
@@ -109,8 +96,8 @@
         "ra_err": 0.017933672802638474,
         "reff_ang": 0.3855739652567271,
         "reff_ang_err": 0.020495626060158253,
-        "reff_kpc": 2.4807663985998443,
-        "reff_kpc_err": 0.13186798132092195
+        "reff_kpc": 2.480082384938503,
+        "reff_kpc_err": 0.131831621790751
     },
     "neb_lines": {
         "Hbeta": 2.575e-17,
@@ -118,12 +105,12 @@
         "Hbeta_ref": "Heintz2020"
     },
     "offsets": {
-        "ang_avg": 0.8026173343112285,
-        "ang_avg_err": 0.4182461520828091,
-        "ang_best": 0.25061780950323664,
-        "ang_best_err": 0.692555643338732,
-        "physical": 1.6124642655589125,
-        "physical_err": 4.4558733834933095
+        "ang_avg": 2.5843568396357846,
+        "ang_avg_err": 1.4956864158097214,
+        "ang_best": 1.212365150192472,
+        "ang_best_err": 2.0296401282836443,
+        "physical": 7.79815476157389,
+        "physical_err": 13.055017152335513
     },
     "photom": {
         "DECaL_g": 23.674983328630766,
@@ -175,10 +162,10 @@
         "VLT_FORS2_I_flux": 0.004986739516547532,
         "VLT_FORS2_I_flux_err": 0.0004799824115754326,
         "VLT_FORS2_I_ref": "Shannon2024",
-        "VLT_FORS2_g": 23.414097569365826,
+        "VLT_FORS2_g": 23.41409756936583,
         "VLT_FORS2_g_err": 0.0420685496710349,
-        "VLT_FORS2_g_flux": 0.0015644474025605984,
-        "VLT_FORS2_g_flux_err": 6.061696475987325e-05,
+        "VLT_FORS2_g_flux": 0.0015644474025605921,
+        "VLT_FORS2_g_flux_err": 6.0616964759873e-05,
         "VLT_FORS2_g_ref": "Shannon2024",
         "WFC3_F160W": 22.828741412820303,
         "WFC3_F160W_err": 0.014,
@@ -198,10 +185,10 @@
         "ra_source": 0.00425
     },
     "ra": 329.41922083333327,
-    "ra_FRB": 329.41925,
+    "ra_FRB": 329.417225,
     "redshift": {
-        "z": 0.522,
-        "z_FRB": 0.522,
-        "z_spec": 0.522
+        "z": 0.52172,
+        "z_FRB": 0.52172,
+        "z_spec": 0.52172
     }
 }

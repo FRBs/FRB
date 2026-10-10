@@ -5,15 +5,15 @@
     "dec_FRB": 72.827278,
     "derived": {
         "AV_old": 0.1442,
-        "AV_old_loerr": -0.0445,
+        "AV_old_loerr": 0.0445,
         "AV_old_ref": "Sharma2024",
         "AV_old_uperr": 0.0477,
         "Mtotal": 43381044054.65888,
-        "Mtotal_loerr": -1992217639.1353076,
+        "Mtotal_loerr": 1992217639.1353076,
         "Mtotal_ref": "Sharma2024",
         "Mtotal_uperr": 2275180965.564644,
         "SFR_SED": 1.197,
-        "SFR_SED_loerr": -0.1698,
+        "SFR_SED_loerr": 0.1698,
         "SFR_SED_ref": "Sharma2024",
         "SFR_SED_uperr": 0.1651
     },
@@ -62,7 +62,7 @@
         "WISE_W3_flux_err": -99.0,
         "WISE_W4": 15.195754051208496,
         "WISE_W4_err": 999.0,
-        "WISE_W4_flux": 3.0317859649658203,
+        "WISE_W4_flux": 3.0317862033843994,
         "WISE_W4_flux_err": -99.0
     },
     "ra": 318.0447083333333,

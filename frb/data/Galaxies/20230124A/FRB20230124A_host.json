@@ -5,15 +5,15 @@
     "dec_FRB": 70.968086,
     "derived": {
         "AV_old": 0.028,
-        "AV_old_loerr": -0.005,
+        "AV_old_loerr": 0.005,
         "AV_old_ref": "Sharma2024",
         "AV_old_uperr": 0.0043,
         "Mtotal": 4775292736.576912,
-        "Mtotal_loerr": -70892385.82491207,
+        "Mtotal_loerr": 70892385.82491207,
         "Mtotal_ref": "Sharma2024",
         "Mtotal_uperr": 78709811.76795387,
         "SFR_SED": 0.7524,
-        "SFR_SED_loerr": -0.0381,
+        "SFR_SED_loerr": 0.0381,
         "SFR_SED_ref": "Sharma2024",
         "SFR_SED_uperr": 0.0406
     },
@@ -27,7 +27,7 @@
     },
     "photom": {
         "DECaL_g": 19.07548616640043,
-        "DECaL_g_err": 0.0037438333542333543,
+        "DECaL_g_err": 0.0037438333542333547,
         "DECaL_g_flux": 0.08507569933222489,
         "DECaL_g_flux_err": 0.00029335785193390185,
         "DECaL_r": 18.48814630217429,

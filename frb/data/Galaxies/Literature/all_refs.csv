@@ -39,3 +39,5 @@ eftekhari2024_derived.csv,csv,Eftekhari2024,arXiv:2410.23336
 michilli2023_sdss_derived.csv,csv,Michilli2023_SDSS,arXiv:2212.11941
 leung2025b_cigale_derived.csv,csv,Leung2025b_CIGALE,arXiv:2507.16816
 leung2025b_nedlvs_derived.csv,csv,Leung2025b_NEDLVS,arXiv:2507.16816
+bhardwaj2021b_photom.csv,csv,Bhardwaj2021b,10.3847/2041-8213/ac223b
+bhardwaj2021b_derived.csv,csv,Bhardwaj2021b,10.3847/2041-8213/ac223b

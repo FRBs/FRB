@@ -125,65 +125,111 @@ Similarly, compare the `public_hosts.csv` against the copy on my Google Drive at
 `GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx`. Describe any differences in the files in the "PR Checklist/Hosts" section below.  
 Use Opus 5.5. Log your work.   
 
-12. **Sync the `public_frbs` Google Sheet with `FRBs_base.csv`.** Use Opus 5.5. Log your work below.
-   - **Before running, choose the FRB20190711A `ee_b` (PR Checklist → FRBs, B6):** `1.281` (user, 2026-10-07) (1.28 as in the repo, or 1.281 as on Drive). If it is 1.281, also change `FRBs_base.csv` (CRLF line endings) and rebuild `FRB20190711A.json` with `build_frbs`.
-   - **Target:** Sheet `public_frbs`, file ID `1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY` (owner xavier@ucolick.org; shared as Editor with jxp@ucsc.edu). Load the `google-workspace` skill before the first edit. Confirm with `get_file_permissions` that jxp@ucsc.edu is a writer; stop if not.
-   - **Back up first:** export the current Sheet with `rclone copy "GDrive:Astronomy/Research/FRB/public_frbs.xlsx" <tmpdir>` and keep the copy until the sync is verified. Drive version history is the second fallback.
-   - **Edits** (see PR Checklist → FRBs for the full lists). Keep the existing rows in place and append the new rows at the end, in the same order as `FRBs_base.csv`:
-     1. Column 19: set the header to `P(O|x)` and fill it from `FRBs_base.csv` (84 CHIME/KKO rows; blank elsewhere).
-     2. Rename FRB20231204A → FRB20190303A and FRB20231128A → FRB20191106C, and set their `refs` to the CSV values (`Leung+2025,burst:FRB2023...`).
-     3. FRB20231201A: `z` = 0.1119.
-     4. Clear `z` for the 12 rows listed in A4.
-     5. Append the 9 new repeater rows (A2) with every column copied from `FRBs_base.csv`.
-     6. FRB20190711A `ee_b`: as chosen above.
-     - Do **not** rewrite the ra/dec values that differ only by rounding (B7). Leave the `repeater` column in the Sheet's existing TRUE/FALSE style.
-   - **Verify:** re-export with rclone and rerun the Prompt 11 comparison (in the `ocean14` env, keyed on `Name`). Expect the same 188 names in the same order and no value differences except the rounding-only ra/dec (B7). Report anything else, then delete the temporary files.
-   - Do not change `public_hosts.csv` or `Public_Hosts.xlsx` in this prompt.
+12. **Deprecating the Google Sheets.**  I am deprecating the Google Sheets and wish to only use the CSV files from the Repo in the future.  Please check the CSV files and let me know if there are any updates I need to make to them.  Do not edit them yet.  If you find any issues, describe them in the 
+"Repo CSVs" section below and write a prompt (#13) to update them.
+Use Opus 5.5.  Log your work.
 
-13. **Workstation setup and Sheet sync (finish prompt 12).** Use Opus 5.5. Log your work below.
-   - **State check.** On branch `repeater_updates`, `git pull`, then confirm that the laptop's last changes are present:
-     - `FRBs_base.csv` FRB20190711A `ee_b` = 1.281;
-     - `FRB20190711A.json` `eellipse.b` = 1.281;
-     - this file contains prompts 12–15 and Q14.
+13. **Fix the repo CSVs (Repo CSVs → A–C).** Use Opus 5.5. Log your work below.
+   - **Before running,** answer D1–D7 under "Repo CSVs → Decisions" (or accept the recommended defaults there). If any is unanswered, stop and ask.
+   - **Edit rules:** both CSVs have CRLF line endings, so keep them. Make field-level edits with a short script that rewrites only the changed fields, not a pandas round-trip (that reformats every number, e.g. `1.00E+00`, and the ra/dec digits). Keep the row order. Show the `git diff --stat` and a sample of the diff before moving on.
+   - **`public_hosts.csv`:**
+     - fix the 20230712A `Coord` (A1);
+     - fix the Coord and Projects formatting and fill 20200120E (B5);
+     - apply D5 (20210912A) and D6 (20181030A, 20190614D).
+   - **`FRBs_base.csv`:**
+     - rename FRB20180924A → FRB20180924B (A2);
+     - apply the z values chosen in D1 (A4), and the matching `z` in `public_hosts.csv`;
+     - drop the 7 scratch columns (B1);
+     - apply D2 (5 unlocalized DSA rows), D3 (P(O|x)) and D7 (refs labels).
+   - **JSONs:**
+     - rebuild with `build_frbs`: FRB20180924B, FRB20171020A, and every row whose z changed;
+     - rebuild with `build_hosts`: 20230712A, 20171020A, and every host whose z changed;
+     - `git rm` the stale files in B2 and A3, and the D4 files if deletion is chosen. List them for the user first.
+     - For 20230712A, check that the rebuilt JSON is at RA 167.36, Dec +72.56, has survey photometry, and has the Sharma2024 derived values.
+   - **`sharma2024_derived.csv`** (C1): flip the sign of the 88 negative `_loerr` values (`-999`/`-998` excepted). Then rebuild the 30 Sharma2024 hosts and check that only the `_loerr` values change in their JSONs.
+   - **Verify:**
+     - rerun `python prompts/check_repo_csvs.py`. The only expected output is the 20200120E host offset (M81, see the Prompt 12 log) and the FG181112_13_5 literature row;
+     - `FRB.by_name` should work for every `FRBs_base.csv` row that has a localization;
+     - every `public_hosts.csv` row should have a host JSON whose RA/Dec matches `Coord` to < 0.25″;
+     - no z mismatches between `FRBs_base.csv` and `public_hosts.csv` except those D1 keeps on purpose;
+     - run `pytest frb/tests/test_frb.py frb/tests/test_frbhosts.py`.
+   - Then remove the "Sync" sentences from PR Checklist → FRBs/Hosts and mark Q14 as moot.
 
-     If any of these are missing, stop: the laptop changes were not pushed.
-   - **Tool check.** Use ToolSearch (and ask the user to run `/mcp` if needed) to confirm that a **Google Sheets** editor connector is loaded (`get_spreadsheet`, `get_values`, `update_values` or similar), signed in as an account with write access to Sheet `1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY` (jxp@ucsc.edu is a writer). Load the `google-workspace` skill and read its `references/sheets.md` before the first edit.
-   - **If the Sheets connector is available:** run prompt 12 as written. The `ee_b` choice is already made (1.281), and the repo already has it.
-   - **If it is not:** stop and ask the user to choose between Q14 (b) and (c). Do not fall back on your own.
-     - If (b) is chosen, first check that rclone works on this machine (`rclone listremotes`, `rclone lsf "GDrive:Astronomy/Research/FRB/"`).
-     - Then test on a **copy**: copy the Sheet with Drive `copy_file`, upload `FRBs_base.csv` over the copy with `rclone copyto --drive-import-formats csv`, and confirm that the copy's file ID is unchanged and its contents match.
-     - Only then do the same to the real Sheet, after a backup export.
-   - **Verify** as in prompt 12: rerun the Prompt 11 comparison (any env with pandas + openpyxl; `ocean14` on the laptop). Expect no differences except rounding-only ra/dec (PR Checklist → FRBs, B7).
-   - Then update PR Checklist → FRBs to say the Sheet is in sync.
+## Repo CSVs
 
-14. **Sync `Public_Hosts.xlsx` with `public_hosts.csv`.** Use Opus 5.5. Log your work below.
-   - **Target:** `GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx`. This is an uploaded .xlsx file, not a native Google Sheet, so rclone can replace it in place.
-   - **Back up** the current file with `rclone copy` to a temp dir.
-   - Apply PR Checklist → Hosts, A1–A3, by editing a local copy with openpyxl. Keep the sheet name (`Sheet1`), column order and existing cell values:
-     - rename 20231204A → 20190303A and 20231128A → 20191106C;
-     - append the 8 new CHIME rows with every column copied from `public_hosts.csv`;
-     - add the `Bad_photom` column header after `Comments`, with `DECaL_g,DECaL_r,DECaL_z` for 20231230A.
+Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
 
-     Do not overwrite the full-precision P_Ox/z values that differ only by rounding (B4).
-   - Upload with `rclone copyto <local> "GDrive:.../Public_Hosts.xlsx"`. Re-download and rerun the Prompt 11 hosts comparison. Expect no differences except B4. Delete the temp files.
-   - Then update PR Checklist → Hosts to say the file is in sync.
+What is fine: every FRB JSON matches its `FRBs_base.csv` row (ra, dec, DM, z, repeater). There are no duplicate names. Where both CSVs have a P(O|x), the values agree. Every table in `all_refs.csv` exists, and each of its rows matches a host within 1″ (one exception, A1). The only other unmatched row is a foreground galaxy, FG181112_13_5, as expected.
 
-15. **Pre-PR checks.** Use Opus 5.5. Log your work below.
-   - Run the tests that touch this work:
+### A. Errors
 
-     ```
-     pytest frb/tests/test_frbhosts.py frb/tests/test_galaxies.py frb/tests/test_photom.py frb/tests/test_frb.py
-     pytest "frb/tests/test_frbsurveys.py::test_sdss" "frb/tests/test_frbsurveys.py::test_galex"
-     ```
+1. **20230712A host `Coord` is malformed, and its host JSON is wrong.** `public_hosts.csv` has `11 09 26.4746s +72 33 28.8396s` (spaces instead of `h`/`m` and `d`/`m`). `SkyCoord` parsed it without error, as RA = 0.0031°, Dec = 0.0202°. As a result, `FRB20230712A_host.json` (built 2024-12-13):
+   - is at that position, 107° from the FRB;
+   - has no photometry and no derived values: the Sharma2024 tables match by position, so they were never merged;
+   - has wrong offsets.
 
-     Plus `test_build.py` if `$FRB_GDB` and `$NEDLVS` are set on the workstation. Report every failure, and say for each whether it predates this branch (compare with `main`).
-   - `git diff --stat main...repeater_updates`: list every file changed and check that each change is covered by a prompt log above. Flag anything unexplained.
-   - Draft (do not open) a PR description for `repeater_updates` → `main`, summarizing:
-     - **data:** 9 new repeaters, 2 renames, base-table fixes, new hosts and literature tables;
-     - **code:** NumPy 2.x fixes, `read_lit_table`, `galex`/`catalog_utils`/`ppxf`/`sdss`/`survey_utils` fixes, `build_hosts` NaN skip and `Bad_photom`, `defs` conventions;
-     - the PR Checklist status.
+   Fix: `11h09m26.4746s +72d33m28.8396s` (= 167.360311, +72.558011, as in `sharma2024_*.csv`), then rebuild.
+2. **FRB20180924A should be FRB20180924B.** `FRBs_base.csv` uses the A suffix, but the TNS name is FRB20180924B. B is also what the FRB JSON, the host directory, `public_hosts.csv`, `FRB_pulses.csv`, `associate/frbs.py` and the tests use. `FRB.by_name('FRB20180924A')` fails. As things stand, `build_frbs` would write a second JSON, `FRB20180924A.json`, and never update `FRB20180924B.json`.
+3. **FRB20171020A JSONs are under the old name.** Both CSVs use `20171020A`, but the files are `FRBs/FRB20171020.json` and `Galaxies/20171020/FRB20171020_host.json` (with `FRB = FRB20171020`). `FRB.by_name('FRB20171020A')` fails. Rebuild both under the A name and `git rm` the old files.
+4. **z differs between `FRBs_base.csv` and `public_hosts.csv`/the host JSON in 13 rows.** FRB JSONs follow `FRBs_base.csv`; host JSONs follow `public_hosts.csv`.
 
-     Put the draft in a new "PR Draft" section of this file for the user to review.
+   | FRB | `FRBs_base` z | `public_hosts`/host z | Kind |
+   |---|---|---|---|
+   | 20220610A | 1.015 | 1.016 | real (Ryder+2023 gives 1.016) |
+   | 20230718A | 0.035 | 0.0359 | real |
+   | 20201124A | 0.0982 | 0.0979 | real |
+   | 20231230D | — | 0.506 | missing in base (P_Ox 0.999) |
+   | 20240117B | — | 0.644 | missing in base (P_Ox 0.9999) |
+   | 20231020A | — | 0.0455 | P(O\|x) = 0.57. Base was blanked by the prompt-4 rule, but the host row and JSON keep z |
+   | 20180301A, 20190102C, 20190711A, 20191228A, 20200430A, 20210807D, 20211203C | 0.33044, 0.2912, 0.52172, 0.243, 0.161, 0.12927, 0.34386 | 0.3305, 0.29117, 0.522, 0.2432, 0.1608, 0.1293, 0.3439 | rounding (≤ 5e-4) |
+
+   See D1.
+
+### B. Clean-up (leftovers from the Sheets era)
+
+1. **Scratch columns in `FRBs_base.csv`:** `ra_new, dec_new, eea_new, eeb_new, ee_theta_new, Diff RA, Diff (DEC)`.
+   - They were added with the first version of the file (a7850614, 2024-07-12), are filled only for 12 ASKAP rows, and nothing in the repo reads them.
+   - `ra_new`/`dec_new` are float32-rounded copies of `ra`/`dec` (`Diff` ≤ 0.04″), and `eeb_new` for 20200906A is −0.470.
+   - Drop all seven.
+2. **Stale FRB JSONs with no suffix** (old names, superseded by the suffixed files): `FRB20201123`, `FRB20210320`, `FRB20210410`, `FRB20210807`, `FRB20210912`, `FRB20211127`, `FRB20211203`, `FRB20211212` (each has an `…A/C/D/I.json` twin), plus `FRB20171020` (A3). Delete them. For the 3 that have **no** `FRBs_base.csv` row at all, see D4.
+3. **Host directories with no `public_hosts.csv` row:** `20181030A` (made by script in prompt 1) and `20190614D` (2021 file `FRB20190614_host.json`, with no suffix in the file name). Neither can be regenerated from the CSVs. See D6.
+4. **P(O|x) is stored in two places.** `public_hosts.csv` `P_Ox` is filled for all 103 hosts (0 for 20171020A, 20210912A and 20230718A). `FRBs_base.csv` `P(O|x)` covers only the 84 KKO CHIME rows, and the 9 prompt-5 repeaters are blank there (their values are in `public_hosts.csv`). See D3.
+5. **`public_hosts.csv` formatting:**
+   - 10 more `Coord` values are in non-standard form. They parse, but some lack a trailing `s`, have a single-digit hour, or have double or trailing spaces: 20191001A, 20210410D, 20211127I, 20211203C, 20240210A, 20221113A, 20221116A, 20220726A, 20220310F, 20230216A. Normalize them to `HHhMMmSS.SSSSs ±DDdMMmSS.SSSs` without changing any digits.
+   - `Projects`: `"F4 "` (20210410D) has a trailing space. (Correction, prompt 13: the repeated tokens, e.g. `CRAFT,CRAFT,F4,F4,CRAFT`, are **not** duplicates. `Projects` and `References` are paired lists (`build_hosts` asserts equal length, and `search_for_file` looks in `$FRB_GDB/<project>/<ref>/`), so they stay.)
+   - 20200120E has blank `Projects` and `References`. Fill them: `CHIME,CHIME`; `Bhardwaj2021,Kirsten2021`.
+   - `P_Ox` for 20121102A is written `1.00E+00`. Use `1.0`.
+6. **`refs` labels in `FRBs_base.csv` use three styles:** `Name2023` (107), `Name+2025` (83, all the KKO rows) and `NameYY` (63, e.g. `Sherman23`, `Muller25`, `Connor24`, `Sharma24`). This is only cosmetic. See D7.
+
+### C. Literature tables
+
+1. **`sharma2024_derived.csv` stores `_loerr` as negative numbers** (88 values: `Mtotal`, `SFR_SED`, `AV_old`). Every other table stores them as positive. The negatives are copied into 29 DSA host JSONs (30 once A1 is fixed) (e.g. 20220319D `SFR_SED_loerr = -0.0209`). They could also be confused with the `-998`/`-999` flags. Flip the sign.
+2. Minor, no action: `sharma2024_orig.csv` (the raw source) is not listed in `all_refs.csv`, which is fine. `mahony2018_derived.csv` and `bhardwaj2021_derived.csv` have no `Name` column; matching is by position, so this does not matter.
+
+### Decisions (user)
+
+- **D1. z values (A4).** **Recommended:** the published spectroscopic z goes in **both** CSVs.
+  - Use the host value for 20220610A (1.016), 20230718A (0.0359), 20201124A (0.0979), 20231230D (0.506) and 20240117B (0.644). This needs your confirmation for 20230718A and 20201124A.
+  - For the rounding rows, use whichever has more digits.
+  - For 20231020A (P(O|x) = 0.57), either blank `z` in `public_hosts.csv` to match the prompt-4 rule, or keep it in both.
+  >A. I answer:
+     - I confirm
+     - I confirm
+     - Blank 
+- **D2. Five DSA rows with no localization:** FRB20220121B, 20220424E, 20220801A, 20220926A, 20221002A (`refs = Sherman23`; DM and RM only). They have no JSON, `FRB.by_name` fails, and `build_frbs.main(['all'])` would stop at them. Fill in positions from Sherman+2023/2024 if they exist, or **remove the rows** (recommended if they were never localized).
+  > A. I agree, fill in from Sherman+2023/2024 if they exist or remove the rows.
+- **D3. P(O|x).** **Recommended:** keep `public_hosts.csv` `P_Ox` as the master. Fill `FRBs_base.csv` `P(O|x)` for the 9 prompt-5 repeaters, so that the two CSVs agree for every CHIME row (`build_host_table.py` reads `FRBs_base.csv` first). The alternative is to drop the `FRBs_base.csv` column and change `build_host_table.py`.
+>A. Use your recommended approach.
+- **D4. JSONs with no CSV row:** `FRB20210123.json` (MeerTRAP, DM 750), `FRB20210407.json` (CRAFT, DM 1784) and `FRB20220222.json` (MeerTRAP, DM 1070). Add them to `FRBs_base.csv` (with TNS suffixes), or delete them.
+>A. Delete them
+- **D5. 20210912A host row** (hostless; Marnoch2023): it has no `Coord` (P_Ox = 0, no z), so `build_hosts` would crash on it. **Recommended:** delete the row. The FRB stays in `FRBs_base.csv`.
+>A. Use your recommended approach.
+- **D6. 20181030A and 20190614D hosts (B3).**
+  - **Recommended** for 20181030A: add a `public_hosts.csv` row, and move its prompt-1 values into `bhardwaj2021b_photom.csv`/`_derived.csv` so that a rebuild reproduces the JSON. Alternatively, leave it JSON-only and note that.
+  - For 20190614D (no secure host; Law+2020): delete the directory, or leave it as is.
+>A. Use your recommended for 20181030A and leave 20190614D as is.
+- **D7. `refs` labels (B6).** Normalize to `NameYYYY` (`Leung+2025` → `Leung2025`, `Sherman23` → `Sherman2023`, …), or leave them. **Recommended:** leave them, unless `build_host_table.py` needs to be simplified.
+>A. Leave them as is.
 
 ## PR Checklist
 
@@ -204,7 +250,7 @@ Compared `frb/data/FRBs/FRBs_base.csv` (this branch, 188 rows) with `GDrive:Astr
 6. **FRB20190711A `ee_b`:** Drive 1.281, repo 1.28 (changed in d5fbc4b8 "frbs", 2026-02-11, which also updated this row's ra/dec; Drive has the new ra/dec).
 7. **Rounding only:** ra/dec in 41 rows (and `ee_a` of 20181112A) differ by ≤ 3e-8 deg (≈ 0.1 mas). The Drive sheet stores full double precision, and the CSV has 7–9 decimals. Not meaningful.
 
-**To sync the Drive sheet** with this PR: apply A1–A4, add the `P(O|x)` header and values (B5), and decide which `ee_b` is right for FRB20190711A (B6).
+**Superseded (2026-10-10):** the Google Sheet is deprecated, and `FRBs_base.csv` is the master copy (prompt 12). It has since changed further in prompt 13 (Repo CSVs).
 
 ### Hosts
 
@@ -229,7 +275,7 @@ Compared `frb/data/Galaxies/public_hosts.csv` (this branch, 103 rows) with `GDri
 **B. Pre-existing differences (already on `main`):**
 4. **Rounding only:** in the repo, P_Ox for 20181112A, 20190611B and 20191001A, and z for 20190102C (0.29117 vs 0.291168), are rounded to 5 digits. Drive has full precision. Not meaningful.
 
-**To sync the Drive file** with this PR: apply A1–A3.
+**Superseded (2026-10-10):** `Public_Hosts.xlsx` is deprecated, and `public_hosts.csv` is the master copy (prompt 12). It has since changed further in prompt 13 (Repo CSVs).
 
 ## TODO
 
@@ -341,6 +387,20 @@ jxp@ucsc.edu is now a writer on `public_frbs` (checked with `get_file_permission
 - (c) You paste `FRBs_base.csv` into the Sheet by hand. The columns are in the same order; also add the `P(O|x)` header in column 19.
 
 >A. (a) (user, in chat, 2026-10-07). Waiting for the Google Sheets connector to be turned on in the chat; as of this answer it is still not available.
+
+>Moot (2026-10-09): the Google Sheets are deprecated (new prompt 12), and the repo CSVs are the master copies.
+
+**Q15. FRB20181030A position in `FRBs_base.csv` is the host position (found in prompt 13).**
+`FRBs_base.csv` has had ra, dec = 158.5963, 73.765 (ee 85″ × 29″) since 2023 (e32493f3). That is NGC 3252's position: the rebuilt host JSON puts the FRB 0.09″ from the host. Bhardwaj+2021b Table 2 gives the FRB at **10h34m20.1s ± 30.6s, +73°45′05″ ± 47″** (90%), i.e. 158.5838, +73.7514. The old prompt-1 JSON had 158.574, +73.7478. Options:
+- (a) **Recommended:** set ra/dec to Table 2; convert the 90% errors to the repo's 68% `ee_a`/`ee_b`/`ee_theta`; rerun `build_frbs` and `build_hosts` for 20181030A.
+- (b) Leave it.
+
+>A. (a)
+
+**Q16. P_Ox for 20181030A.**
+I left `P_Ox` blank in `public_hosts.csv` (and `P(O|x)` in `FRBs_base.csv`). Bhardwaj+2021b did not run PATH; they give only a chance-coincidence probability, Pcc < 0.0025. Leave it blank, or set a value?
+
+>A. Leave it blank.
 
 ## Logs
 
@@ -688,9 +748,72 @@ All three TODO items are closed (checked above), per the answers under "TODO ans
 - Compared by key (`Name` / `FRB`): rows present only on one side, columns, row order, and every shared cell (strings exactly; numbers exactly, then with a tolerance to separate real changes from rounding). Each difference was checked against `main` with `git log -S` to label it as this PR's change or pre-existing.
 - Results are in **PR Checklist → FRBs / Hosts** above. Every value difference is either a change made in prompts 3–10 or pre-existing. The pre-existing ones are: the empty, unheaded `P(O|x)` column in the Drive sheet; FRB20190711A `ee_b` 1.281 vs 1.28; and sub-mas or 5-digit rounding.
 
-### Prompt 12: Sync the `public_frbs` Sheet (2026-10-07, Claude Opus 5.5). BLOCKED (Q14)
+### Prompt 12 (original): Sync the `public_frbs` Sheet (2026-10-07, Claude Opus 5.5). BLOCKED (Q14); superseded, as the Sheets are deprecated
 
 - **FRB20190711A `ee_b` = 1.281** (user's choice). Changed in `FRBs_base.csv` (binary edit, CRLF kept; one field) and rebuilt `FRB20190711A.json` with `build_frbs`. The JSON diff is `eellipse.b` 1.28 → 1.281, plus DMISM in the 15th decimal.
 - `get_file_permissions` on the Sheet (`1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY`) confirms that **jxp@ucsc.edu is a writer**.
 - **Stopped before any Drive change.** This session has no Google Sheets editor tools (`update_values` etc.); a tool search found only Drive, Docs and Calendar tools. Drive alone cannot edit an existing Sheet in place. I did not make the backup copy, because no edit was attempted. See Q14.
 - Once the Sheets connector is on, prompt 12 can run as written. B6 then disappears, since repo and Drive will both have 1.281.
+
+### Prompt 12: Deprecating the Google Sheets: check the repo CSVs (2026-10-09, Claude Opus 5.5)
+
+The original prompt 12 (Sheet sync) was replaced by this one; its log is kept above. Q14 is marked moot.
+
+- **Read-only.** No CSV or JSON was changed. The findings, decisions D1–D7 and the fix-up prompt (#13) are in **Repo CSVs** above.
+- **Checks** (`prompts/check_repo_csvs.py`, new and untracked; run it from the repo root in any env with pandas + astropy):
+  - names, duplicates, and missing positions or refs;
+  - every FRB JSON against its `FRBs_base.csv` row;
+  - every host JSON against its `public_hosts.csv` `Coord`, and each host against its FRB position;
+  - z and P(O|x) between the two CSVs;
+  - orphan JSONs and directories;
+  - every `all_refs.csv` table: it exists, each row matches a host within 1″, and the `_loerr` sign.
+- **Main finding:** the 20230712A host JSON is at RA = 0.003°, Dec = 0.02°, because of a malformed `Coord` (A1). Comparing the JSON with `Coord` alone could not catch it, since both are wrong in the same way. The host–FRB separation check does. That check also flags 20200120E (1170″), which is expected: the FRB is in a globular cluster of M81, and `Coord` is the M81 centre.
+- `FRB.by_name` was tested in the `astro` env: it fails for FRB20171020A, FRB20180924A and the 5 unlocalized DSA rows. FRB20180924B loads. (The base env's `ne2001` cannot import with the current SciPy, because `cumtrapz` was removed; this is not related to this work.)
+- Also checked, with no problems found: every FRB JSON agrees with `FRBs_base.csv` (ra, dec, DM, z, repeater); the P(O|x) values agree between the CSVs; both CSVs are CRLF throughout.
+
+### Prompt 13: Fix the repo CSVs (2026-10-10, Claude Opus 5.5)
+
+Applied Repo CSVs A–C with the D1–D7 answers. Run on the workstation (`astro` env, with `$FRB_GDB` and `$NEDLVS` set).
+
+**`FRBs_base.csv`** (field-level script; CRLF kept, and still no newline after the last row; 188 → 183 rows, 26 → 19 columns):
+- FRB20180924A → **FRB20180924B** (A2).
+- z (D1): 20220610A 1.016, 20230718A 0.0359, 20201124A 0.0979, 20231230D 0.506 (was blank), 20240117B 0.644 (was blank), 20190102C 0.29117, 20191228A 0.2432, 20200430A 0.1608.
+- `P(O|x)` (D3), copied from `public_hosts.csv`, for every CHIME row that lacked it: 20180814A 0.34, 20180916B 1.0, 20190110C 0.779, 20190208A 0.9995, 20190417A 1.0, 20200120E 0.99999, 20200223B 0.899, 20220912A 0.95, 20240114A 0.997, 20240209A 0.99. It is still blank for 20181119A (no host) and 20181030A (Q16).
+- **Removed** the 5 DSA rows 20220121B, 20220424E, 20220801A, 20220926A, 20221002A (D2). Sherman+2024 (arXiv:2308.06813) Table 2 gives only the **beam** centres for these, with 0.01° precision; its table note says "coordinates of the beam in which the FRB was detected". There are no localizations to fill in.
+- Dropped the 7 scratch columns (B1).
+
+**`public_hosts.csv`** (same method; 103 rows: −20210912A, +20181030A):
+- 20230712A `Coord` → `11h09m26.4746s +72d33m28.8396s` (A1).
+- 10 other `Coord`s normalized, with no digit changes (B5). `F4 ` → `F4`. 20200120E: `Projects = CHIME,CHIME`, `References = Bhardwaj2021,Kirsten2021`. Four `1.00E+00` → `1.0`.
+- Correction to B5: the repeated `Projects` tokens are **not** duplicates. `Projects` and `References` are paired lists (`build_hosts` asserts equal length), so they were left alone.
+- z (D1): 20180301A 0.33044, 20190711A 0.52172, 20210807D 0.12927, 20211203C 0.34386; 20231020A blanked.
+- **Deleted** the 20210912A row (D5).
+- **Added** 20181030A (D6): `Coord` from the prompt-1 JSON, z = 0.0039, `CHIME`/`bhardwaj2021b`, `P_Ox` blank (Q16). It also has `Bad_photom` = all five Pan-STARRS bands. The PS1 catalog magnitudes of this large, nearby galaxy are about 0.8 mag fainter than Bhardwaj's (r 13.38 vs DECaL r 12.58), and D6 asked for a rebuild that reproduces the prompt-1 JSON.
+
+**Literature:**
+- `sharma2024_derived.csv`: the sign flipped on the 88 negative `_loerr` values (C1). This was a text edit; LF endings are kept.
+- New `bhardwaj2021b_photom.csv` and `bhardwaj2021b_derived.csv`, appended to `all_refs.csv` (DOI 10.3847/2041-8213/ac223b, checked with Crossref).
+  - The photometry is the prompt-1 JSON values with the Galactic extinction added back (EBV = 0.0955, A from `correct_photom_table`), rounded to 3 decimals. The results are round catalog numbers (DECaL g/r/z = 13.602/12.823/12.262).
+  - Derived: Mstar 5.8e9 (−2.0e9/+1.6e9), SFR_photom 0.36 ± 0.08, SFR_nebular 0.033 (−998, lower limit), AV_nebular 1.3 ± 0.2.
+
+**JSON rebuilds:**
+- `build_frbs`: FRB20180924B, FRB20171020A (new file), and the 8 rows with a new z. The only diffs are z and the `FRB` name.
+- `build_hosts` (37 hosts: 20171020A, 20181030A, the 5 hosts with a new z, and the 30 Sharma2024 hosts; 20220509G was rerun after a NOIRLab Data Lab timeout). Each JSON was diffed against its previous version, and no host lost a photometry band:
+  - **Sharma2024 hosts:** only the 3 `_loerr` signs changed, plus float32 noise (≤ 1e-6 mag) in a few WISE/2MASS values.
+  - **20230712A:** now at 167.3603, +72.5580, with DECaL, DECam, PS1 and WISE photometry, the Sharma2024 derived values, and an `ang_best` of 2.09″.
+  - **20171020A:** identical to the old `20171020/FRB20171020_host.json` apart from the name (sub-µas float noise in the offsets).
+  - **20181030A:** the photometry matches prompt 1 to ≤ 0.0005 mag (the 3-decimal rounding), and the derived values are identical. Offsets are new. They are computed from the `FRBs_base.csv` FRB position, which is the host position (Q15).
+  - **Side effects of current branch code** (the G23 extinction law, and skipping `-999` literature values) on the older hosts:
+    - 20180301A: optical/NIR magnitudes shift by 0.01–0.04 mag. The Gordon2023 `-999` placeholders for `agn_tau`, `f_AGN` and `Z_gas` are dropped (also in 20190711A and 20211203C).
+    - 20190711A: `f_AGN` is now 0.118 ± 0.077 from the Heintz2020 CIGALE file in `$FRB_GDB` (with no `_ref`, as for all CIGALE values). Before, the Gordon2023 `-999` overrode it. `SFR_nebular` 0.4159 → 0.4154. Offsets now follow the 2026-02 FRB position (`ang_best` 0.25″ → 1.21″); this host had last been built in 2024-11.
+    - Every host printed an "HTTP 500" from one survey query (non-fatal; no bands were lost relative to the old JSONs). MAST/PS1 was intermittently unreachable at the start.
+
+**Files removed** (`git rm`; still in history): FRB JSONs `FRB20171020`, `FRB20201123`, `FRB20210320`, `FRB20210410`, `FRB20210807`, `FRB20210912`, `FRB20211127`, `FRB20211203`, `FRB20211212` (B2/A3), `FRB20210123`, `FRB20210407`, `FRB20220222` (D4); host directory `Galaxies/20171020/`. Kept: `Galaxies/20190614D/` (D6).
+
+**Verification:**
+- `python prompts/check_repo_csvs.py` reports only the expected items: 20190614D (kept), the 20200120E/M81 offset, and the FG181112_13_5 foreground row.
+- `FRB.by_name` loads all 183 `FRBs_base.csv` rows, and `FRBHost.by_frb` loads all 103 hosts.
+- `pytest frb/tests/test_frb.py frb/tests/test_frbhosts.py`: 8 passed.
+- The zdm `Mo_Repeaters` directory is not on this machine (no zdm branch has it), so `build_host_table.py` was **not** rerun. Rerun it on the laptop. Expected changes: 20181030A (offsets; and the position if Q15 is applied), 20230712A, and any host whose z changed.
+
+**Open:** Q15 (20181030A FRB position) and Q16 (20181030A P_Ox).

@@ -5,25 +5,25 @@
     "dec_FRB": 3.436825,
     "derived": {
         "AV_old": 0.8106,
-        "AV_old_loerr": -0.0073,
+        "AV_old_loerr": 0.0073,
         "AV_old_ref": "Sharma2024",
         "AV_old_uperr": 0.007,
         "Mtotal": 9317512842.019571,
-        "Mtotal_loerr": -136147617.56008148,
+        "Mtotal_loerr": 136147617.56008148,
         "Mtotal_ref": "Sharma2024",
         "Mtotal_uperr": 123095920.83965492,
         "SFR_SED": 20.8078,
-        "SFR_SED_loerr": -0.1683,
+        "SFR_SED_loerr": 0.1683,
         "SFR_SED_ref": "Sharma2024",
         "SFR_SED_uperr": 0.1975
     },
     "offsets": {
-        "ang_avg": 3.6881284805071357,
-        "ang_avg_err": 1.172098086577493,
+        "ang_avg": 3.688128480507136,
+        "ang_avg_err": 1.1720980865774933,
         "ang_best": 3.6119432392839594,
-        "ang_best_err": 1.1745714603798492,
+        "ang_best_err": 1.1745714603798494,
         "physical": 23.442842206213864,
-        "physical_err": 7.623401471576183
+        "physical_err": 7.623401471576185
     },
     "photom": {
         "DECaL_g": 22.092351089868483,
@@ -134,9 +134,9 @@
         "WISE_W3_err": 999.0,
         "WISE_W3_flux": 0.38734936714172363,
         "WISE_W3_flux_err": -99.0,
-        "WISE_W4": 14.725907325744629,
+        "WISE_W4": 14.725906372070312,
         "WISE_W4_err": 999.0,
-        "WISE_W4_flux": 4.673446178436279,
+        "WISE_W4_flux": 4.6734466552734375,
         "WISE_W4_flux_err": -99.0
     },
     "ra": 156.4731720833333,
