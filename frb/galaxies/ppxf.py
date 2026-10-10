@@ -1,11 +1,13 @@
 """ Module for running pPXF analyses"""
 
-import importlib_resources 
+import importlib_resources
 import warnings
 
 import numpy as np
 if not hasattr(np, "string_"):
     np.string_ = np.bytes_  # NumPy 2.0 compatibility for old code
+
+from scipy import optimize as _sp_optimize
 
 from matplotlib import pyplot as plt
 #from goodies import closest
@@ -31,11 +33,68 @@ except ImportError:
 else:
     from ppxf import ppxf_util as util
     from ppxf import miles_util as lib
+
+    # ppxf's nnls_flags() (ppxf/ppxf.py, called once per nonlinear-fit
+    # iteration via linear_fit -> bvls_solve) calls scipy.optimize.nnls with
+    # no explicit maxiter, so scipy defaults to 3 * n_cols. Our fits solve for
+    # weights across MILES's full 50-age x 6-metallicity template grid (~300
+    # templates) with 2nd-order regularization enabled (regul=1/regul_err),
+    # a large, near-degenerate NNLS problem that occasionally needs more than
+    # 3*n_cols active-set iterations, raising "Maximum number of iterations
+    # reached." NNLS iterations are cheap, so raise the cap here rather than
+    # editing the vendored ppxf fork.
+    if hasattr(ppxf, 'nnls_flags'):
+        def _nnls_flags_higher_maxiter(A, b, npoly):
+            m, n = A.shape
+            AA = np.hstack([A, -A[:, :npoly]])
+            maxiter = max(3 * AA.shape[1], 5000)
+            x = _sp_optimize.nnls(AA, b, maxiter=maxiter)[0]
+            x[:npoly] -= x[n:]
+            return x[:n]
+        ppxf.nnls_flags = _nnls_flags_higher_maxiter
+    else:
+        warnings.warn(
+            "ppxf.nnls_flags not found; skipping NNLS maxiter patch. If "
+            "pPXF fits fail with 'Maximum number of iterations reached', "
+            "this patch needs updating for the installed ppxf version.")
 import time
 
-from frb.defs import frb_cosmo as cosmo 
+from frb.defs import frb_cosmo as cosmo
 
 from IPython import embed
+
+
+# ---------------------------------------------------------------------------
+# Named constants for all fixed fit/model parameters.
+# Used directly in run() and fit_spectrum() so the values appear in exactly
+# one place and are importable for provenance recording.
+# ---------------------------------------------------------------------------
+
+# Fixed values passed by run() to fit_spectrum()
+_DEGREE_ADD  = 3      # degree of additive Legendre polynomial
+_DEGREE_MULT = 0      # degree of multiplicative Legendre polynomial
+_REDDENING   = 1.0    # Calzetti reddening parameter
+
+# Hardcoded inside fit_spectrum() body
+_TEMPLATE_WAVE_REST_MIN = 3540   # Å — blue edge of MILES template coverage
+_TEMPLATE_WAVE_REST_MAX = 7409   # Å — red edge of MILES template coverage
+_REGUL_ERR              = 0.01   # desired regularisation error
+
+# Exported summary dict — import this in HostPipeline to record provenance.
+# tie_balmer / limit_doublets are fit_spectrum() signature defaults, never
+# overridden by run(), so they are recorded here as their default values.
+PPXF_MODEL_PARAMS = {
+    'degree_add':               _DEGREE_ADD,
+    'degree_mult':              _DEGREE_MULT,
+    'reddening':                _REDDENING,
+    'tie_balmer':               False,
+    'limit_doublets':           False,
+    'template_library':         'miles_padova_chabrier',
+    'template_file_pattern':    'Mch1.30*.fits',
+    'template_wave_rest_range': [_TEMPLATE_WAVE_REST_MIN, _TEMPLATE_WAVE_REST_MAX],
+    'regul_err':                _REGUL_ERR,
+}
+
 
 def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         flux_scale=1., atmos=[], gaps=[], wvmnx=(0.,1e9)):
@@ -107,26 +166,54 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
 
     # Run it
     ppfit, miles, star_weights = fit_spectrum(
-        newspec, zgal, R, degree_mult=0, degree_add=3,
-        goodpixels=goodpixels, reddening=1., rebin=False)
+        newspec, zgal, R, degree_mult=_DEGREE_MULT, degree_add=_DEGREE_ADD,
+        goodpixels=goodpixels, reddening=_REDDENING, rebin=False)
 
     # Age
     age, metals = miles.mean_age_metal(star_weights)
     print('Age = {} Gyr'.format(age))
     print('Metals = {}'.format(metals))
 
-    # Mass -- This is a bit approximate as Dwv is a guess for now
-    actualflux = ppfit.bestfit * constants.L_sun.cgs / units.angstrom / (
-            4 * np.pi * (cosmo.luminosity_distance(zgal).to(units.cm)) ** 2 / (1 + zgal))
-    # When fitting, the routine thought our data and model spectra had same units...
-    Dwv = 1700.  # Ang, width of the band pass
-    scfactor = np.median(ppfit.bestfit * (units.erg / units.s / units.cm ** 2 / units.angstrom) / actualflux) * Dwv
-    # To get the actual model mass required to fit spectrum, scale by this ratio
+    # Mass
+    # OLD (WRONG) approach: bestfit cancels in the ratio, leaving a purely geometric
+    # factor 4*pi*D_L^2 * Dwv / ((1+z)*L_sun) ~ 1e25-1e26 that has no dependence on
+    # the actual spectrum, yielding log(M*) ~ 25-26 regardless of galaxy brightness.
+    # actualflux = ppfit.bestfit * constants.L_sun.cgs / units.angstrom / (
+    #         4 * np.pi * (cosmo.luminosity_distance(zgal).to(units.cm)) ** 2 / (1 + zgal))
+    # Dwv = 1700.  # Ang, width of the band pass (arbitrary -- this was the bug)
+    # scfactor = np.median(ppfit.bestfit * (units.erg / units.s / units.cm ** 2 / units.angstrom) / actualflux) * Dwv
+    #
+    # CORRECT approach:
+    # The ppxf weights (w_j) scale with the input galaxy spectrum.  PyPeit stores
+    # flux-calibrated spectra in units of 1e-17 erg/s/cm^2/Ang (PYPEIT_FLUX_SCALE),
+    # so the physical flux = stored_value * 1e-17.  The MILES templates were divided
+    # by their overall median before being passed to ppxf (normfactor = 1/median),
+    # making them ~O(1) dimensionless.  To convert the ppxf weights back to solar
+    # masses we must undo both normalizations:
+    #   M* = total_mass(w) * normfactor * flux_unit * 4*pi*D_L^2 / ((1+z) * L_sun)
+    PYPEIT_FLUX_UNIT = 1e-17  # erg/s/cm^2/Ang per stored flux value
+    D_L = cosmo.luminosity_distance(zgal).to(units.cm)
+    scfactor = (miles.normfactor * PYPEIT_FLUX_UNIT
+                * 4 * np.pi * D_L.value**2
+                / ((1 + zgal) * constants.L_sun.cgs.value))
     massmodels = scfactor * miles.total_mass(star_weights)
     print('log10 M* = {}'.format(np.log10(massmodels)))
 
     # Reddening
     print('E(B-V) = {}'.format(ppfit.reddening))
+
+    # Summarize the pPXF fit parameters actually used, for provenance
+    # (recorded into HostCAT's params.ppxf JSON section by the caller).
+    fit_diagnostics = {
+        'moments':     np.atleast_1d(ppfit.moments).tolist(),
+        'regul':       float(ppfit.regul),
+        'reg_ord':     int(ppfit.reg_ord),
+        'reg_dim':     [int(d) for d in ppfit.reg_dim],
+        'n_templates': int(ppfit.ntemp),
+        'gas_names':   [str(g) for g in ppfit.gas_names] if ppfit.gas_names is not None else [],
+        'chi2':        float(ppfit.chi2),
+        'nfev':        int(ppfit.nfev),
+    }
 
     # Write?
     if results_file is not None:
@@ -141,6 +228,8 @@ def run(spec_file, R, zgal, results_file=None, spec_fit='tmp.fits', chk=True,
         plt.plot(newspec.wavelength, newspec.flux)
         plt.plot(bestfit.wavelength, bestfit.flux)
         plt.show()
+
+    return fit_diagnostics
 
 
 def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
@@ -217,7 +306,7 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     wave *= np.median(util.vac_to_air(wave) / wave)
 
     # use only wavelength range covered by templates
-    mask = (wave > 3540) & (wave < 7409)
+    mask = (wave > _TEMPLATE_WAVE_REST_MIN) & (wave < _TEMPLATE_WAVE_REST_MAX)
     #mask = (wave > 1682) & (wave < 10000.)
     maskidx = np.where(mask)[0]
     # also deal with declared good regions of the spectrum
@@ -257,12 +346,22 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
     path4libcall = str(miles_dir / 'Mch1.30*.fits')
     miles = lib.miles(path4libcall, velscale, FWHM_gal, wave_gal=wave)
 
+    # When wave_gal is supplied, newer ppxf builds the template log-lambda grid
+    # to match the galaxy range.  Floating-point differences in log_rebin can
+    # leave templates 1-2 pixels shorter than the galaxy, tripping pPXF's
+    # npix_temp >= npix_galaxy assertion.  Trim the red end of the galaxy to match.
+    if galaxy.shape[0] > miles.templates.shape[0]:
+        n = miles.templates.shape[0]
+        galaxy = galaxy[:n]
+        noise  = noise[:n]
+        logLam = logLam[:n]
+
     ### Stuff for regularization dimensions
     reg_dim = miles.templates.shape[1:]
     stars_templates = miles.templates.reshape(miles.templates.shape[0], -1)
 
     # See the pPXF documentation for the keyword REGUL
-    regul_err = 0.01  # Desired regularization error
+    regul_err = _REGUL_ERR
 
     ### Now the emission lines!  Only include lines in fit region.
     if 'goodpixels' in kwargs:
@@ -270,8 +369,9 @@ def fit_spectrum(spec, zgal, specresolution, tie_balmer=False,
         # Also, log rebinning the spectrum change which pixels are 'goodpixels'
         newnewgoodpix = np.searchsorted(np.exp(logLam),gal_lam,side='left')
         uqnewnewgoodpix = np.unique(newnewgoodpix)
-        if uqnewnewgoodpix[-1] == len(wave):
-            uqnewnewgoodpix =uqnewnewgoodpix[:-1]
+        # Drop any indices at or beyond the log-rebinned array length; searchsorted
+        # returns len(logLam) for gal_lam values past the red edge of logLam.
+        uqnewnewgoodpix = uqnewnewgoodpix[uqnewnewgoodpix < len(logLam)]
         kwargs['goodpixels'] = uqnewnewgoodpix
 
     else:
@@ -487,16 +587,32 @@ def dump_ppxf_results(ppfit, miles, z, outfile):
     meta['AGE'] = age
     meta['METALS'] = metals
 
-    # Mass -- Approximate
-    # Mass -- This is a bit approximate as Dwv is a guess for now
-    actualflux = ppfit.bestfit * constants.L_sun.cgs / units.angstrom / (
-            4 * np.pi * (cosmo.luminosity_distance(z).to(units.cm)) ** 2 / (1 + z))
-    # When fitting, the routine thought our data and model spectra had same units...
-    Dwv = 1700.  # Ang, width of the band pass
-    scfactor = np.median(ppfit.bestfit * (units.erg / units.s / units.cm ** 2 / units.angstrom) / actualflux) * Dwv
-    # To get the actual model mass required to fit spectrum, scale by this ratio
+    # Mass
+    # OLD (WRONG) approach -- bestfit cancels in the ratio leaving a purely geometric
+    # factor 4*pi*D_L^2 * Dwv / ((1+z)*L_sun) ~ 1e25-1e26 with no dependence on
+    # actual galaxy flux, yielding log(M*) ~ 25-26 for any galaxy at any redshift.
+    # actualflux = ppfit.bestfit * constants.L_sun.cgs / units.angstrom / (
+    #         4 * np.pi * (cosmo.luminosity_distance(z).to(units.cm)) ** 2 / (1 + z))
+    # Dwv = 1700.  # Ang -- arbitrary bandpass width used as a proxy, this was the bug
+    # scfactor = np.median(ppfit.bestfit * (units.erg / units.s / units.cm ** 2 / units.angstrom) / actualflux) * Dwv
+    # massmodels = scfactor * miles.total_mass(star_weights)
+    #
+    # CORRECT approach:
+    # The ppxf weights w_j satisfy sum(w_j * T_j_norm) ≈ galaxy_flux, where the MILES
+    # templates T_j_norm have been divided by their global median (normfactor ≈ 4921)
+    # to make them O(1).  PyPeit stores flux-calibrated spectra in units of
+    # PYPEIT_FLUX_SCALE = 1e-17 erg/s/cm^2/Ang, so the stored values are the physical
+    # flux divided by 1e-17.  Undoing both normalizations:
+    #   M* = total_mass(w) * normfactor * flux_unit * 4*pi*D_L^2 / ((1+z) * L_sun)
+    # where total_mass(w) = sum(w_j * Mtotal_j) carries units of stored-flux (the
+    # physical Mtotal fraction times the weight amplitude in PyPeit units).
+    PYPEIT_FLUX_UNIT = 1e-17  # erg/s/cm^2/Ang per stored value (PyPeit convention)
+    D_L = cosmo.luminosity_distance(z).to(units.cm)
+    scfactor = (miles.normfactor * PYPEIT_FLUX_UNIT
+                * 4 * np.pi * D_L.value**2
+                / ((1 + z) * constants.L_sun.cgs.value))
     massmodels = scfactor * miles.total_mass(star_weights)
-    meta['LOGMSTAR'] = np.log10(massmodels.value)
+    meta['LOGMSTAR'] = np.log10(massmodels)
 
     gas_tbl.meta = meta
 
@@ -504,8 +620,13 @@ def dump_ppxf_results(ppfit, miles, z, outfile):
     comp = ppfit.component[gas]
     gas_tbl['comp'] = comp
     gas_tbl['name'] = ppfit.gas_names
-    gas_tbl['flux'] = ppfit.gas_flux
-    gas_tbl['err'] = ppfit.gas_flux_error
+    # ppxf returns gas_flux in the same units as integrating the input spectrum over
+    # the line (ppxf docs: "same units as erg/(cm^2 s) if spectrum is in erg/(cm^2 s A)").
+    # Because PyPeit stores flux as stored_value = physical / 1e-17, gas_flux is also
+    # 1e17x too large relative to physical erg/s/cm^2.  Multiply by PYPEIT_FLUX_UNIT
+    # so that neb_lines values downstream (calc_lum, calc_SFR) receive erg/s/cm^2.
+    gas_tbl['flux'] = ppfit.gas_flux * PYPEIT_FLUX_UNIT
+    gas_tbl['err'] = ppfit.gas_flux_error * PYPEIT_FLUX_UNIT
 
     # Wavelengths
     waves = []

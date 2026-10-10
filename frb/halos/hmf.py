@@ -49,8 +49,8 @@ def init_hmf():
 #  Needs to come after def init_hmf()
 try:
     import hmf_emulator
-except:
-    print("If you wish to use the halos modules, you need the Aemulus HMF emulator. Please install it: github.com/AemulusProject/hmf_emulator")
+except ImportError:
+    warnings.warn("If you wish to use the halos modules, you need the Aemulus HMF emulator. Please install it: github.com/AemulusProject/hmf_emulator", ImportWarning, stacklevel=2)
 else:
     hmfe = init_hmf()
 

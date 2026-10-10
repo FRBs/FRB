@@ -1,6 +1,6 @@
 """ utils related to SurveyCoord objects"""
 
-from urllib.error import HTTPError
+from urllib.error import HTTPError as URLHTTPError
 from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
@@ -18,16 +18,30 @@ from frb.surveys.twomass import TwoMASS_Survey
 from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.euclid import Euclid_Survey
-from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
+from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates, _detect_mag_cols
 
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table, join
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
+import requests
 
 import numpy as np
+import traceback
 import warnings
+
+# Remote services that are down, slow, rate-limiting, or returning an error
+# status.  Expected in a multi-survey sweep and not a defect in this repo.
+# Note requests.ConnectionError is NOT a subclass of the builtin ConnectionError,
+# so both have to be listed.
+SURVEY_QUERY_ERRORS = (
+    requests.RequestException,      # ConnectionError, HTTPError, ReadTimeout, Timeout, ...
+    URLHTTPError,                   # astroquery paths still on urllib
+    DALServiceError,                # pyvo/DataLab: DELVE, NSC, DES
+    QueryError,                     # HSC
+    ConnectionError, TimeoutError,  # builtins, raised by some backends
+)
 
 optical_surveys = ['Pan-STARRS', 'WISE', 'SDSS', 'DES', 'DESI', 'DELVE', 'DECaL', 'Euclid', 'VISTA', 'NSC', 'HSC', 'NEDLVS', '2MASS', 'GALEX']
 group_catalogs = ['TullyGroupCat']
@@ -192,7 +206,7 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
 
 
 def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=False,
-                       seed_cat:Table=None):
+                       seed_cat:Table=None, strict:bool=False):
     """
     A method to query all allowed surveys and combine
     the results into one table.
@@ -205,7 +219,10 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
             Include at your own risk. Untested. Might break in unexpected ways.
         seed_cat (Table, optional): If you'd like to merge the survey results
             with another photometry table that you already have.
-
+        strict (bool, optional): By default a survey that fails to return a
+            catalog is warned about and skipped, so one flaky service doesn't
+            abort the whole sweep. Set True to re-raise instead -- useful in
+            tests and when debugging a survey backend.
 
 
     Returns:
@@ -234,8 +251,23 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-        except (ConnectionError, HTTPError, QueryError):
-            warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
+        except SURVEY_QUERY_ERRORS as e:
+            if strict:
+                raise
+            warnings.warn("Couldn't query {:s} ({:s}). Skipping this for now.".format(
+                surveyname, type(e).__name__), RuntimeWarning)
+            continue
+        except Exception as e:
+            # Not a connection problem: a bug here, or an upstream schema change.
+            # Still don't abort the whole sweep, but say so loudly and keep the
+            # traceback -- a bare warning here is how a real bug hides for months.
+            if strict:
+                raise
+            warnings.warn("{:s} query raised {:s}: {:s}. Skipping. This is not a "
+                          "connection error; please report it.".format(
+                              surveyname, type(e).__name__, e), RuntimeWarning)
+            traceback.print_exc()
+            continue
 
         # Did the survey return something?
         if (survey.catalog is not None):
@@ -261,8 +293,8 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
 
                     # Now merge
 
-                    if surveyname in ['GALEX', 'WISE', 'VISTA']:
-                        tol = 3*u.arcsec # Just worse PSFs
+                    if surveyname in ['GALEX', 'WISE', 'VISTA', '2MASS']:
+                        tol = 3*u.arcsec # Lower astrometric precision vs optical
                     else:
                         tol = 1*u.arcsec
                     combined_cat = xmatch_and_merge_cats(combined_cat, survey.catalog, tol=tol)
@@ -273,13 +305,80 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
         # Fill in any empty separations and sort them.
         combined_cat['separation'] = coord.separation(SkyCoord(combined_cat['ra'], combined_cat['dec'], unit='deg')).to(u.arcmin)
         combined_cat.sort('separation')
-
+        # Every row in the cone is returned. Callers that want a single best
+        # match call pick_best_row_by_phot() on the result themselves.
         # Make the ra, dec, separation the first columns
         colnames = combined_cat.colnames
         other_cols = np.setdiff1d(colnames, ['ra', 'dec', 'separation'])
         combined_cat = combined_cat[['ra', 'dec', 'separation']+other_cols.tolist()]
     
     return combined_cat
+
+def pick_best_row_by_phot(cat, mag_cols=None, max_sep=None):
+    """
+    From a catalog sorted by separation, pick the nearest row that has
+    any good photometry.
+
+    Not applied by search_all_surveys(), which returns every row in the
+    cone; callers wanting a single best match invoke this themselves.
+
+    The returned table is masked, with each magnitude column masked where
+    its photometry is unusable, so callers can see which filters carried
+    the row rather than just that something did.
+
+    Args:
+        cat (Table): Astropy table sorted by separation.
+        mag_cols (list, optional): List of magnitude column names
+            to consider for "good photometry". If None, the magnitude
+            columns actually present are detected with
+            catalog_utils._detect_mag_cols.
+        max_sep (Quantity, optional): Maximum separation
+            to consider. If None, no maximum separation
+            is applied.
+
+    Returns:
+        best_row (Table): A 1-row masked table with the best row. The input
+            is returned unchanged if it is empty or has no 'separation'.
+    """
+    if len(cat) == 0:
+        return cat
+
+    if 'separation' not in cat.colnames:
+        warnings.warn("No 'separation' column to rank rows by; returning the "
+                      "catalog unchanged.", RuntimeWarning)
+        return cat
+
+    cat = Table(cat, masked=True)
+
+    if mag_cols is None:
+        mag_cols, _ = _detect_mag_cols(cat)
+
+    sep = cat['separation']
+    if max_sep is not None:
+        inrad = sep <= max_sep
+    else:
+        inrad = np.ones(len(cat), dtype=bool)
+
+    # Mask each magnitude column where its photometry is unusable, then OR the
+    # per-column results together. Keeping the per-filter masks preserves the
+    # granularity for callers who want to know *which* bands were good.
+    has_good = np.zeros(len(cat), dtype=bool)
+    for col in mag_cols:
+        m = np.asarray(cat[col], dtype=float)
+        good = np.isfinite(m) & (m < 900.) & (m > -10.)
+        cat[col].mask = ~good   # astropy: mask=True means "not usable"
+        has_good |= good
+
+    ok = inrad & has_good
+    if not np.any(ok):
+        # fall back: just nearest, but you'll know it's junk
+        i = np.argmin(sep)
+    else:
+        # nearest among rows with any good photometry
+        i = np.where(ok)[0][np.argmin(sep[ok])]
+
+    return cat[i:i+1]  # returns a 1-row table
+
            
 def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
     """

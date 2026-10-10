@@ -187,7 +187,7 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     
     source_flux = 1.
     #calculate linear correction
-    delta = np.trapezoid(throughput * source_flux * 
+    delta = np.trapezoid(throughput * source_flux *
                      10 ** (-0.4 * Alambda), x=wave) / np.trapezoid(
                          throughput * source_flux, x=wave)
 
@@ -196,13 +196,26 @@ def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
     return correction
 
 
-def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
+def _valid_extinction_value(val):
+    """True if *val* is a usable (non-masked, finite, non-sentinel) extinction value."""
+    if val is None:
+        return False
+    if hasattr(val, 'mask') and val.mask:
+        return False
+    try:
+        return np.isfinite(float(val)) and float(val) > -999.
+    except (TypeError, ValueError):
+        return False
+
+
+def correct_photom_table(photom, EBV, name, max_wave=None, required=True, ext_methods=None):
     """
     Correct the input photometry table for Galactic extinction
     Table is modified in place
 
     If there is SDSS photometry, we look for the extinction values
-    provided by the Survey itself.
+    provided by the Survey itself and prefer those over the general
+    reddening-law correction.
 
     Uses extinction_correction()
 
@@ -212,10 +225,13 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
             Required keys: 'Name', filters
         EBV (float):
             E(B-V) (can get from frb.galaxies.nebular.get_ebv which uses IRSA Dust extinction query
-        name (str):\
+        name (str):
             Name of the object to correct
         required (bool, optional):
             Crash out if the transmission curve is not present
+        ext_methods (dict, optional):
+            If provided, filled in-place with {filter: 'SDSS'|'Gordon24'} for every
+            filter actually corrected, recording which extinction correction was used.
 
 
     Returns:
@@ -227,7 +243,11 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
     # Cut the table
     mt_name = photom['Name'] == name
     if not np.any(mt_name):
-        print("No matches to input name={}.  Returning".format(name))
+        msg = ("Extinction correction NOT applied: no row in the photometry table matches "
+               "name='{}'. Table Name values present: {}. All photometry for this object "
+               "remains uncorrected for Galactic extinction.").format(name, list(photom['Name']))
+        warnings.warn(msg, RuntimeWarning)
+        print(f"⚠️  {msg}")
         return -1
     elif np.sum(mt_name) > 1:
         raise ValueError("More than 1 match to input name={}.  Bad idea!!".format(name))
@@ -248,14 +268,26 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         try:
             if cut_photom[filt] <= -999.:
                 continue
-        except:
-            embed(header='187 in photom')
-        # SDSS
-        if 'SDSS' in filt:
-            if 'extinction_{}'.format(filt[-1]) in photom.keys():
-                print("Appying SDSS-provided extinction correction")
-                cut_photom[key] -= cut_photom['extinction_{}'.format(filt[-1])]
-                continue
+        except Exception as _exc:
+            msg = ("Could not evaluate photometry value for filter '{}' on object '{}' "
+                   "against the -999 'not measured' sentinel ({}: {}). Treating as not "
+                   "measured and skipping extinction correction for this filter.").format(
+                       filt, name, type(_exc).__name__, _exc)
+            warnings.warn(msg, RuntimeWarning)
+            print(f"⚠️  {msg}")
+            continue
+
+        # Prefer the SDSS pipeline's own extinction value when available -- it
+        # can be more accurate than a general reddening-law correction.
+        sdss_col = 'extinction_{}'.format(filt[-1])
+        if 'SDSS' in filt and sdss_col in photom.keys() and _valid_extinction_value(cut_photom[sdss_col]):
+            print('Correcting filter {} for Galactic extinction using SDSS-provided value'.format(filt))
+            cut_photom[key] -= cut_photom[sdss_col]
+            if ext_methods is not None:
+                ext_methods[filt] = 'SDSS'
+            continue
+
+        print('Correcting filter {} for Galactic extinction (Gordon 2024)'.format(filt))
         # Hack for LRIS
         if 'LRIS' in filt:
             _filter = 'LRIS_{}'.format(filt[-1])
@@ -264,10 +296,13 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
         else:
             _filter = filt
         # Do it
-        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave, 
+        dust_correct = extinction_correction(_filter, EBV, max_wave=max_wave,
                                              required=required)
         mag_dust = 2.5 * np.log10(1. / dust_correct)
         cut_photom[key] += mag_dust
+        if ext_methods is not None:
+            ext_methods[filt] = 'Gordon24'
+
     # Add it back in
     photom[idx] = cut_photom
 

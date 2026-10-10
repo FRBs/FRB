@@ -237,11 +237,12 @@ class FRBGalaxy(object):
         # Checks
         assert len(self.neb_lines) > 0
         # Do it
-        AV = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
+        AV, AV_err = nebular.calc_dust_extinct(self.neb_lines, method, **kwargs)
         if min_AV is not None:
             AV = max(AV, min_AV)
         # Set
         self.derived['AV_nebular'] = AV
+        self.derived['AV_nebular_err'] = AV_err
 
     def calc_nebular_SFR(self, method='Ha', **kwargs):
         """
@@ -266,13 +267,17 @@ class FRBGalaxy(object):
         # Dust?
         if 'AV_nebular' in self.derived.keys():
             AV = self.derived['AV_nebular']
+            AV_err = self.derived.get('AV_nebular_err')
             print("Using AV={} for a dust correction of the SFR".format(AV))
         else:
             print("Not making a dust correction of the SFR.  Set AV_nebular to do so or input AV to this method")
             AV = None
+            AV_err = None
         # Calculate
-        SFR = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'], self.cosmo, AV=AV)
+        SFR, SFR_err = nebular.calc_SFR(self.neb_lines, method, self.redshift['z'],
+                                          self.cosmo, AV=AV, AV_err=AV_err)
         self.derived['SFR_nebular'] = SFR.to('Msun/yr').value
+        self.derived['SFR_nebular_err'] = SFR_err.to('Msun/yr').value
     
     def calc_tot_uncert(self):
         """Calculate total uncertainty in arcsec of 

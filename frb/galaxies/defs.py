@@ -181,6 +181,10 @@ SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
 for band in SOAR_bands:
     valid_filters.append("SOAR_{:s}".format(band))
 
+MOSFIRE_bands = ['Y', 'J', 'H', 'K', 'Ks', 'J2', 'J3', 'H1', 'H2']
+for band in MOSFIRE_bands:
+    valid_filters.append("MOSFIRE_{:s}".format(band))
+
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
 valid_flux = [entry+'_flux' for entry in valid_filters]
@@ -255,6 +259,7 @@ valid_derived_photom = [
     'u-r',             # Rest-frame; CIGALE
     'Lnu_r',           # Specific luminosity (J/s/Hz); CIGALE; cosmology dependent
     'M_r',             # Absolute magnitude, r-band rest-frame; CIGALE+
+    'L_r',             # Luminosity in r-band rest-frame; cosmology dependent
     'AV_young',        # Dust attenuation of young stellar light; magnitudes; Prospector
     'AV_old',          # Dust attenuation of old stellar light; magnitudes; Prospector
     'age_mass',        # Mass-weighted age (Gyr) from CIGALE (or Prospector if Gordon2023)

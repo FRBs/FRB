@@ -34,6 +34,7 @@ dependencies = [
     "IPython>=7.2.0",
     "pandas>=2.2",
     "photutils>=1.1",
+    "reproject>=0.14",
     "requests>=2.18",
     "dust_extinction>=1.4",
     "matplotlib>=3.7",

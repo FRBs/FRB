@@ -6,8 +6,11 @@ from astropy.table import Table
 from astropy.coordinates import SkyCoord
 from astropy import units
 
+import warnings
 try:
-    from pulsars import io as pio
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=UserWarning, message="pkg_resources")
+        from pulsars import io as pio
 except ImportError:
     print("Warning:  You need FRB/pulsars installed to use PSRCat")
 
