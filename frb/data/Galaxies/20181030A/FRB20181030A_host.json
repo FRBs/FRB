@@ -2,7 +2,7 @@
     "FRB": "FRB20181030A",
     "cosmo": "Planck18",
     "dec": 73.76497777777777,
-    "dec_FRB": 73.765,
+    "dec_FRB": 73.751389,
     "derived": {
         "AV_nebular": 1.3,
         "AV_nebular_err": 0.2,
@@ -19,12 +19,12 @@
         "SFR_photom_ref": "Bhardwaj2021b"
     },
     "offsets": {
-        "ang_avg": 75.81766025311455,
-        "ang_avg_err": 48.14116154271948,
-        "ang_best": 0.08674997610180181,
-        "ang_best_err": 89.73707264039311,
-        "physical": 0.007232880839917701,
-        "physical_err": 7.481933511651091
+        "ang_avg": 87.6082677883078,
+        "ang_avg_err": 42.35824055286746,
+        "ang_best": 50.51693520479773,
+        "ang_best_err": 56.30264199444939,
+        "physical": 4.211908626987581,
+        "physical_err": 4.69429870551792
     },
     "photom": {
         "2MASS_h": 11.869760189703223,
@@ -90,7 +90,7 @@
         "WISE_W4_ref": "Bhardwaj2021b"
     },
     "ra": 158.59626666666662,
-    "ra_FRB": 158.5963,
+    "ra_FRB": 158.58375,
     "redshift": {
         "z": 0.0039,
         "z_FRB": 0.0039,

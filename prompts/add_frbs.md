@@ -817,3 +817,14 @@ Applied Repo CSVs A–C with the D1–D7 answers. Run on the workstation (`astro
 - The zdm `Mo_Repeaters` directory is not on this machine (no zdm branch has it), so `build_host_table.py` was **not** rerun. Rerun it on the laptop. Expected changes: 20181030A (offsets; and the position if Q15 is applied), 20230712A, and any host whose z changed.
 
 **Open:** Q15 (20181030A FRB position) and Q16 (20181030A P_Ox).
+
+### Q15 / Q16 follow-up (2026-10-10, Claude Opus 5.5)
+
+- **Q15 (a).** FRB20181030A in `FRBs_base.csv` (field edit, CRLF kept):
+  - ra, dec 158.5963, 73.765 → **158.58375, 73.751389** (Bhardwaj+2021b Table 2: 10h34m20.1s, +73°45′05″).
+  - `ee_a`/`ee_b`/`ee_theta` 85/29/0 → **78.1/28.6/90**.
+  - Table 2 gives the semi-axes of the 90% ellipse: ±30.6 s of RA = 128.4″ on the sky, and ±47″ in Dec. π·128.4″·47″ = 5.3 arcmin², which matches the stated area. I converted them to 1σ with ÷1.645, as for the Ibik2024a baseband positions in prompt 5. θ = 90° because the major axis is along RA (E of N; cf. 20180814A, where θ = 0 is Dec-major).
+  - Reran `build_frbs` and `build_hosts` for 20181030A. The FRB JSON changes only in position, ellipse and DMISM (40.45 → 40.44). The host JSON changes only in its offsets: `ang_best` 0.09″ → **50.5″ ± 56.3″**, physical 4.2 ± 4.7 kpc. Photometry and derived values are unchanged.
+- **Q16.** `P_Ox` stays blank. No change.
+- `prompts/check_repo_csvs.py` reports only the expected items (20190614D, the 20200120E/M81 offset, FG181112_13_5).
+
