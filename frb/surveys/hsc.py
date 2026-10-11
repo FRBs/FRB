@@ -5,7 +5,11 @@ import time
 import sys
 import csv
 import os
+import warnings
 from io import StringIO
+from http.client import HTTPResponse
+from typing import TextIO
+from astropy.coordinates import Angle, SkyCoord
 from . import surveycoord
 from . import catalog_utils
 from pandas import read_csv
@@ -37,49 +41,66 @@ class HSC_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the HSC database
 
-
     Args:
-        coord (SkyCoord): CoordinAte for surveying around
-        radius (Angle): Search radius around the coordinate
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
 
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
         self.survey = 'HSC'
         self.data_release = 'pdr3'
 
 
-    def get_catalog(self, query_fields=None, query=None, max_time=120,
-                    print_query=False, query_table='pdr3_wide.summary',
-                    photoz_table = 'mizuki'):
+    def get_catalog(self, query_fields: list[str] | None = None,
+                    query: str | None = None, timeout: int | float = 120,
+                    print_query: bool = False,
+                    query_table: str = 'pdr3_wide.summary',
+                    photoz_table: str = 'mizuki', **kwargs) -> Table:
         """
         Query HSC for all objects within a given
         radius of the input coordinates.
 
-
         Args:
-            query_fields: list, optional
-              Column names to be queried. Default values are
-              list(photom['HSC'].values()) if None is passed.
-            query: str, optional
-              Full query as a string to be passed to the database.
-              Overrides the default query.
-            max_time: float, optional
-              The maximum time interval to wait between query status checks. Defaults to 120s.
-            print_query: bool, optional
-              Print the SQL query for the photo-z values
-            query_table: str, optional
-              The table to query. Defaults to 'pdr3_wide.forced'
-
+            query_fields (list of str, optional): Column names to be
+                queried. Default values are
+                list(photom['HSC'].values()) if None is passed.
+            query (str, optional): Full query as a string to be passed to
+                the database. Overrides the default query.
+            timeout (int or float, optional): The maximum time interval to
+                wait between query status checks. Defaults to 120s.
+            print_query (bool, optional): Print the SQL query
+            query_table (str, optional): The table to query. Defaults to
+                'pdr3_wide.summary'
+            photoz_table (str, optional): Photo-z table joined to the
+                query table if it belongs to the 'wide' release.
+            **kwargs: Only the deprecated ``max_time`` (use ``timeout``) is
+                accepted.
 
         Returns:
-            catalog: astropy.table.Table
-              Contains all measurements retieved
-              *WARNING* :: The SDSS photometry table frequently has multiple entries for a given
-              source, with unique objid values
+            astropy.table.Table: Contains all measurements retrieved
+
+        Raises:
+            TypeError: If an unexpected keyword argument is given, or both
+                ``timeout`` and the deprecated ``max_time`` are specified.
+            QueryError: If the HSC credentials are not set or the query fails.
 
         """
+        if 'max_time' in kwargs:
+            warnings.warn(
+                "'max_time' is deprecated; use 'timeout' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if timeout != 120:
+                raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+            timeout = kwargs.pop('max_time')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
         if query_fields is None:
             query_fields = list(photom['HSC'].values())
         # Call
@@ -99,10 +120,12 @@ class HSC_Survey(surveycoord.SurveyCoord):
             print(query)
 
         # SQL command
-        query_cat = run_query(query, max_time=max_time,
+        query_cat = run_query(query, timeout=timeout,
                               release_version=self.data_release, delete_job=True)
+        if query_cat is None:
+            raise QueryError("The HSC query failed; see the error printed above.")
 
-        catalog = catalog_utils.clean_cat(query_cat, photom['HSC'])
+        catalog = catalog_utils.clean_cat(query_cat, photom['HSC'], mask_photometry=True)
 
         self.catalog = catalog_utils.sort_by_separation(catalog, self.coord, radec=('ra','dec'), add_sep=True)
 
@@ -117,56 +140,71 @@ class HSC_Survey(surveycoord.SurveyCoord):
         return self.catalog.copy()
         
 class QueryError(Exception):
+    """Raised when there is an error in a query to the HSC database
+    (or the HSC credentials are missing)."""
     pass
     
-def run_query(query:str,
-              user:str=None,
-              release_version:str='pdr3',
-              preview:bool=False,
-              out_format:str='csv',
-              delete_job:bool=False,
-              max_time:int=120
-              ):
+def run_query(query: str,
+              user: str | None = None,
+              release_version: str = 'pdr3',
+              preview: bool = False,
+              out_format: str = 'csv',
+              delete_job: bool = False,
+              timeout: int | float = 120,
+              max_time: int | float | None = None
+              ) -> Table | None:
     """
     Submits a query to the HSC database and downloads the results in the specified format.
 
 
     Args:
         query (str): The SQL query to submit to the HSC database.
-        user (str, optional): The account name to use for authentication. Defaults to None.
-        release (str, optional): The release version of the HSC database to query. Defaults to 'pdr3'.
+        user (str, optional): Not used; the credentials are read from the
+            environment by :func:`getCredentials`. Defaults to None.
+        release_version (str, optional): The release version of the HSC database to query. Defaults to 'pdr3'.
         preview (bool, optional): Whether to use quick mode (short timeout). Defaults to False.
         out_format (str, optional): The format in which to download the query results. Defaults to 'csv'.
         delete_job (bool, optional): Whether to delete the job after downloading the results. Defaults to False.
-        max_time (int, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
-
+        timeout (int or float, optional): The maximum time interval to wait for checking query status. Defaults to 120s.
+        max_time (int or float, optional): Deprecated; use ``timeout``.
 
     Raises:
-        urllib.error.HTTPError: If there is an HTTP error while submitting the query.
-        QueryError: If there is an error with the query itself.
-
+        QueryError: If the HSC credentials are not set in the environment.
+        TypeError: If both ``timeout`` and the deprecated ``max_time`` are specified.
 
     Returns:
-        None
+        astropy.table.Table or None: The query results, with missing values filled
+        with -99. None if the query fails with an HTTP or query error (the
+        error is printed to stderr) or ``preview`` is True.
     """
     user, password = getCredentials()
     credential = {'account_name': user, 'password': password}
     sql = query
 
+    if max_time is not None:
+        warnings.warn(
+            "'max_time' is deprecated; use 'timeout' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if timeout != 120:
+            raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+        timeout = max_time
+
     job = None
 
     try:
         if preview:
-            preview(credential, sql, sys.stdout)
+            _preview(credential, sql, sys.stdout, release_version=release_version)
         else:
             job = submitJob(credential, sql,
                             out_format=out_format,
                             release_version=release_version)
             blockUntilJobFinishes(credential, job['id'],
-                                  max_time=max_time)
+                                  timeout=timeout)
             res = download(credential, job['id'])
             pseudo_file = StringIO(res.read().decode('utf-8').split("# ")[1])
-            table = Table.from_pandas(read_csv(pseudo_file)).filled(-99.)
+            table = catalog_utils.fill_masked(Table.from_pandas(read_csv(pseudo_file)), -99.)
             if delete_job:
                 deleteJob(credential, job['id'])
             return table
@@ -185,20 +223,56 @@ def run_query(query:str,
         raise
 
 
-def httpJsonPost(url, data):
+def httpJsonPost(url: str, data: dict) -> HTTPResponse:
+    """
+    POST a JSON payload to the HSC API.
+
+    Args:
+        url (str): URL of the API endpoint.
+        data (dict): Payload; the client version is added to it in place.
+
+    Returns:
+        http.client.HTTPResponse: The response of the server.
+
+    """
     data['clientVersion'] = version
     postData = json.dumps(data)
     return httpPost(url, postData, {'Content-type': 'application/json'})
 
 
-def httpPost(url, postData, headers):
+def httpPost(url: str, postData: str, headers: dict) -> HTTPResponse:
+    """
+    POST data to the HSC API.
+
+    Args:
+        url (str): URL of the API endpoint.
+        postData (str): Payload, which is UTF-8 encoded before sending.
+        headers (dict): HTTP headers of the request.
+
+    Returns:
+        http.client.HTTPResponse: The response of the server.
+
+    """
     req = urllib.request.Request(url, postData.encode('utf-8'), headers)
     res = urllib.request.urlopen(req)
     return res
 
 
-def submitJob(credential, sql,
-              out_format:str="csv", release_version:str="pdr3"):
+def submitJob(credential: dict, sql: str,
+              out_format: str = "csv", release_version: str = "pdr3") -> dict:
+    """
+    Submit a query job to the HSC database.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        sql (str): The SQL query.
+        out_format (str, optional): Format of the query results.
+        release_version (str, optional): Release of the HSC database to query.
+
+    Returns:
+        dict: The job description returned by the server, including its 'id'.
+
+    """
     url = api_url + 'submit'
     catalog_job = {
         'sql'                     : sql,
@@ -212,7 +286,18 @@ def submitJob(credential, sql,
     return job
 
 
-def jobStatus(credential, job_id):
+def jobStatus(credential: dict, job_id: str) -> dict:
+    """
+    Get the status of a job on the HSC database.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        job_id (str): ID of the job, as returned by :func:`submitJob`.
+
+    Returns:
+        dict: The job description returned by the server, including its 'status'.
+
+    """
     url = api_url + 'status'
     postData = {'credential': credential, 'id': job_id}
     res = httpJsonPost(url, postData)
@@ -220,13 +305,34 @@ def jobStatus(credential, job_id):
     return job
 
 
-def jobCancel(credential, job_id):
+def jobCancel(credential: dict, job_id: str) -> None:
+    """
+    Cancel a job on the HSC database.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        job_id (str): ID of the job, as returned by :func:`submitJob`.
+
+    """
     url = api_url + 'cancel'
     postData = {'credential': credential, 'id': job_id}
     httpJsonPost(url, postData)
 
 
-def preview(credential, sql, out, release_version:str="pdr3"):
+def preview(credential: dict, sql: str, out: TextIO, release_version: str = "pdr3") -> None:
+    """
+    Run a query in preview mode and write the returned rows as CSV.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        sql (str): The SQL query.
+        out (file-like): Writable text stream the CSV rows are written to.
+        release_version (str, optional): Release of the HSC database to query.
+
+    Raises:
+        QueryError: If the preview holds only the top rows of the results.
+
+    """
     url = api_url + 'preview'
     catalog_job = {
         'sql'             : sql,
@@ -245,7 +351,38 @@ def preview(credential, sql, out, release_version:str="pdr3"):
         raise QueryError('only top %d records are displayed !' % len(result['result']['rows']))
 
 
-def blockUntilJobFinishes(credential, job_id, max_time=120):
+# run_query has an argument named preview
+_preview = preview
+
+
+def blockUntilJobFinishes(credential: dict, job_id: str,
+                          timeout: int | float = 120,
+                          max_time: int | float | None = None) -> None:
+    """
+    Wait until a job on the HSC database is done.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        job_id (str): ID of the job, as returned by :func:`submitJob`.
+        timeout (int or float, optional): The maximum time interval, in seconds,
+            to wait between status checks.
+        max_time (int or float, optional): Deprecated; use ``timeout``.
+
+    Raises:
+        QueryError: If the job ends in an error.
+        TypeError: If both ``timeout`` and the deprecated ``max_time`` are specified.
+
+    """
+    if max_time is not None:
+        warnings.warn(
+            "'max_time' is deprecated; use 'timeout' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if timeout != 120:
+            raise TypeError("Specify only one of 'timeout' or deprecated 'max_time'.")
+        timeout = max_time
+
     interval = 1
     while True:
         time.sleep(interval)
@@ -255,24 +392,55 @@ def blockUntilJobFinishes(credential, job_id, max_time=120):
         if job['status'] == 'done':
             break
         interval *= 2
-        if interval > max_time:
-            interval = max_time
+        if interval > timeout:
+            interval = timeout
 
 
-def download(credential, job_id):
+def download(credential: dict, job_id: str) -> HTTPResponse:
+    """
+    Download the results of a job on the HSC database.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        job_id (str): ID of the job, as returned by :func:`submitJob`.
+
+    Returns:
+        http.client.HTTPResponse: The response of the server, holding the results.
+
+    """
     url = api_url + 'download'
     postData = {'credential': credential, 'id': job_id}
     res = httpJsonPost(url, postData)
     return res
 
 
-def deleteJob(credential, job_id):
+def deleteJob(credential: dict, job_id: str) -> None:
+    """
+    Delete a job on the HSC database.
+
+    Args:
+        credential (dict): ``account_name`` and ``password`` for the HSC database.
+        job_id (str): ID of the job, as returned by :func:`submitJob`.
+
+    """
     url = api_url + 'delete'
     postData = {'credential': credential, 'id': job_id}
     httpJsonPost(url, postData)
 
 
-def getCredentials():
+def getCredentials() -> tuple[str, str]:
+    """
+    Read the HSC credentials from the environment.
+
+    Uses the environment variables HSC_SSP_CAS_USER and HSC_SSP_CAS_PASSWORD.
+
+    Returns:
+        tuple of str: The user name and the password.
+
+    Raises:
+        QueryError: If either environment variable is not set.
+
+    """
     password_from_envvar = os.environ.get("HSC_SSP_CAS_PASSWORD")
     user_from_envvar = os.environ.get("HSC_SSP_CAS_USER")
     if isinstance(user_from_envvar, str) & isinstance(password_from_envvar, str):
