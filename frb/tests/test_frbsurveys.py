@@ -296,6 +296,11 @@ def _assert_empty_catalog(survey_name, catalog_kwargs=None):
             assert isinstance(empty_tbl, Table)
             assert len(empty_tbl) == 0
             assert len(empty_tbl.colnames) > 2
+            # The catalog stored in the survey object is the one returned,
+            # and it has the separation column even if empty
+            assert survey.catalog is not None
+            assert survey.catalog.colnames == empty_tbl.colnames
+            assert 'separation' in empty_tbl.colnames
             # Non-float columns (IDs, strings) have their proper dtype even if empty
             module = importlib.import_module(type(survey).__module__)
             for col, dtype in getattr(module, 'schema_dtypes', {}).get(survey.survey, {}).items():
@@ -435,14 +440,15 @@ def test_euclid():
     image, image_hdr = euclid_srvy.get_image(imsize=2*units.arcmin, timeout=30)
     assert isinstance(image, np.ndarray)
     assert isinstance(image_hdr, fits.Header)
-    assert image.shape == (1207, 1207)
+    # The archive pixel grid can shift the cutout size by a pixel or two
+    assert np.all(np.abs(np.array(image.shape) - 1207) <= 3)
 
     # Deprecated compatibility alias
     with pytest.warns(DeprecationWarning):
         cutout, cutout_hdr = euclid_srvy.get_cutout(imsize=2*units.arcmin, timeout=30)
     assert isinstance(cutout, np.ndarray)
     assert isinstance(cutout_hdr, fits.Header)
-    assert cutout.shape == (1207, 1207)
+    assert np.all(np.abs(np.array(cutout.shape) - 1207) <= 3)
 
 
 @remote_data
@@ -631,7 +637,7 @@ def test_nedlvs():
     nedlvs_tbl = nedlvs_srvy.get_catalog()
     assert isinstance(nedlvs_tbl, Table)
     # Remote NEDLVS content can grow over time; require at least the historical matches.
-    assert len(nedlvs_tbl) == 3
+    assert len(nedlvs_tbl) >= 3
     _assert_empty_catalog('NEDLVS')
 
 @remote_data
