@@ -4,8 +4,9 @@ import warnings
 import numpy as np
 
 from astropy import units
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import Angle, SkyCoord
 from astropy.coordinates import match_coordinates_sky
+from astropy.io.fits import PrimaryHDU
 from astropy.table import Table
 
 try:
@@ -30,27 +31,32 @@ photom['SDSS']['ra'] = 'ra'
 photom['SDSS']['dec'] = 'dec'
 photom['SDSS']['SDSS_field'] = 'field'
 
+# Columns of the catalog that are not floats; used for the schema of empty catalogs
+schema_dtypes = {}
+schema_dtypes['SDSS'] = {'SDSS_ID': 'uint64', 'SDSS_field': int}
+
 class SDSS_Survey(SkyView_Survey):
     """
     Class to handle queries on the SDSS database
 
-
     Args:
-        coord (SkyCoord): Coordiante for surveying around
-        radius (Angle): Search radius around the coordinate
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.skyview.SkyView_Survey`
+            (e.g. ``verbose``)
 
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         SkyView_Survey.__init__(self, coord, radius, 'sdss', **kwargs)
         #
         self.survey = 'SDSS'
 
-    def get_image(self, imsize, band='r'):
+    def get_image(self, imsize: units.Quantity, band: str = 'r') -> PrimaryHDU | None:
         """
         Retrieve a SkyView FITS image for SDSS.
 
         Args:
-            imsize (Quantity): Angular size of desired image.
+            imsize (astropy.units.Quantity): Angular size of desired image.
             band (str, optional): One of ``u``, ``g``, ``r``, ``i``, ``z``.
 
         Returns:
@@ -58,34 +64,35 @@ class SDSS_Survey(SkyView_Survey):
         """
         return SkyView_Survey.get_image(self, imsize=imsize, band=band)
 
-    def get_catalog(self, photoobj_fields=None, timeout=120, print_query=False):
+    def get_catalog(self, photoobj_fields: list[str] | None = None,
+                    timeout: int | float = 120, print_query: bool = False) -> Table:
         """
-        Query SDSS for all objects within a given
-        radius of the input coordinates.
+        Query SDSS for all objects within ``self.radius``
+        of ``self.coord``.
 
         Merges photometry with photo-z
 
         TODO -- Expand to include spectroscopy
         TODO -- Consider grabbing all of the photometry fields
 
-
         Args:
-            coord: astropy.coordiantes.SkyCoord
-            radius: Angle, optional
-              Search radius
-            photoobj_fields: list
-              Fields for querying
-            timeout: float, optional
-              Default value - 120 s.
-            print_query: bool, optional
-              Print the SQL query for the photo-z values
-
+            photoobj_fields (list of str, optional): Fields for querying.
+                If None, the position, IDs, type, model magnitudes (and
+                errors) and extinctions are queried.
+            timeout (int or float, optional): Time to wait in seconds
+                before timing out the queries. Default value - 120 s.
+            print_query (bool, optional): Print the SQL query for the photo-z values
 
         Returns:
-            catalog: astropy.table.Table
-              Contains all measurements retieved
-              *WARNING* :: The SDSS photometry table frequently has multiple entries for a given
-              source, with unique objid values
+            astropy.table.Table: Contains all measurements retrieved.
+            Empty if SDSS has no sources in the cone.
+            *WARNING* :: The SDSS photometry table frequently has multiple entries for a given
+            source, with unique objid values
+
+        Raises:
+            RuntimeError: If the SDSS photometry query fails.
+            ValueError: If the SDSS spectroscopic sources cannot be matched
+                to the photometric ones within 1.5 arcsec.
 
         """
         if photoobj_fields is None:
@@ -100,7 +107,7 @@ class SDSS_Survey(SkyView_Survey):
                                            photoobj_fields=photoobj_fields)
         if photom_catalog is None:
             self.catalog = catalog_utils.ensure_empty_schema(
-                Table(), list(photom['SDSS'].keys())
+                Table(), list(photom['SDSS'].keys()), dtypes=schema_dtypes['SDSS']
             )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
@@ -198,18 +205,18 @@ class SDSS_Survey(SkyView_Survey):
         # Return
         return self.catalog.copy()
 
-    def get_cutout(self, imsize, scale=0.396127):
+    def get_cutout(self, imsize: units.Quantity, scale: float = 0.396127) -> tuple:
         """
         Grab a cutout from SDSS
 
-
         Args:
-            imsize (Quantity):  Size of image desired
-
+            imsize (astropy.units.Quantity):  Size of image desired
+            scale (float, optional): Pixel scale in arcsec/pixel
 
         Returns:
-            PNG image, None: self.cutout and a None to match the image header (not provided by SDSS)
-
+            tuple: ``(cutout, None)``: the image (numpy.ndarray, from the JPEG
+            served by SDSS), stored in ``self.cutout``, and a None to match the
+            image header (not provided by SDSS)
 
         """
         # URL
@@ -223,20 +230,18 @@ class SDSS_Survey(SkyView_Survey):
         return self.cutout, None
 
 
-def get_url(coord, imsize=30., scale=0.396127, grid=False, label=False, invert=False):
+def get_url(coord: SkyCoord, imsize: float = 30., scale: float = 0.396127,
+            grid: bool = False, label: bool = False, invert: bool = False) -> str:
     """
     Generate the SDSS URL for an image retrieval
 
-
     Args:
-        coord (astropy.coordiantes.SkyCoord): Center of image
-        imsize: float, optional
-          Image size (rectangular) in arcsec and without units
-        scale (float, optional):
-        grid (bool, optional):
-        label (bool, optional):
-        invert (bool, optional):
-
+        coord (astropy.coordinates.SkyCoord): Center of image
+        imsize (float, optional): Image size (rectangular) in arcsec and without units
+        scale (float, optional): Pixel scale in arcsec/pixel
+        grid (bool, optional): Overlay a grid on the image
+        label (bool, optional): Label the image
+        invert (bool, optional): Invert the colors of the image
 
     Returns:
         str:  URL for the image
@@ -280,16 +285,16 @@ def get_url(coord, imsize=30., scale=0.396127, grid=False, label=False, invert=F
     return url
 
 
-def trim_down_catalog(catalog, keep_photoz=False, cut_within=1.5*units.arcsec):
+def trim_down_catalog(catalog: Table, keep_photoz: bool = False,
+                      cut_within: Angle | units.Quantity = 1.5*units.arcsec) -> Table:
     """
     Cut down a catalog to keep only 1 source within cut_within
 
-
     Args:
         catalog (astropy.table.Table):  Input source catalog
-        keep_photoz (bool, optional):
-        cut_within (Angle or Quantity):  Cut radius
-
+        keep_photoz (bool, optional): Prefer sources with a photo-z (which
+            must be in the 'photo_z' column) when choosing which to keep
+        cut_within (astropy.coordinates.Angle or astropy.units.Quantity, optional):  Cut radius
 
     Returns:
         astropy.table.Table:  Catalog trimmed down

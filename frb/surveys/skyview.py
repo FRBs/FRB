@@ -29,8 +29,11 @@ request a coarser (downsampled) grid.
 
 import warnings
 
+import numpy as np
 from astropy import units as u
 from astropy import wcs
+from astropy.coordinates import Angle, SkyCoord
+from astropy.io.fits import PrimaryHDU
 
 try:
     from astroquery.skyview import SkyView
@@ -45,9 +48,14 @@ class SkyView_Survey(surveycoord.SurveyCoord):
     Class to handle queries to the SkyView service of `astroquery`.
 
     Args:
-        coord (SkyCoord): Coordinate for surveying around.
-        radius (Angle): Search radius around the coordinate.
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around.
+        radius (astropy.coordinates.Angle): Search radius around the coordinate.
         mission (str): Mission served by SkyView for image searches.
+            One of 'first', 'nvss', 'wenss', 'gleam', 'tgss', 'sdss',
+            'galex' or '2mass' (case-insensitive).
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
 
     SDSS_SURVEYS = {'u': 'SDSSu', 'g': 'SDSSg', 'r': 'SDSSr', 'i': 'SDSSi', 'z': 'SDSSz'}
@@ -77,14 +85,31 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         '2MASS-K':              1.0,
     }
 
-    def __init__(self, coord, radius, mission, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, mission: str, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         self.survey = None
         self.mission = mission
         self.skyview = SkyView()
 
     @staticmethod
-    def _coerce_imsize(imsize=None, radius=None):
+    def _coerce_imsize(imsize: u.Quantity | None = None,
+                       radius: u.Quantity | None = None) -> u.Quantity:
+        """
+        Resolve the image size from the ``imsize`` and deprecated ``radius`` arguments.
+
+        Args:
+            imsize (astropy.units.Quantity, optional): Angular size (full side
+                length) of the image.
+            radius (astropy.units.Quantity, optional): Deprecated. Radius of
+                the image; used (as ``2*radius``) only if ``imsize`` is None.
+
+        Returns:
+            astropy.units.Quantity: Angular size of the image.
+
+        Raises:
+            TypeError: If neither ``imsize`` nor ``radius`` is given.
+
+        """
         if imsize is None and radius is None:
             raise TypeError("get_image() requires imsize")
         if radius is not None:
@@ -97,17 +122,24 @@ class SkyView_Survey(surveycoord.SurveyCoord):
                 imsize = 2 * radius
         return imsize
 
-    def _skyview_fetch(self, skyview_name, imsize, pixels=None):
-        """Fetch a FITS image from SkyView.
+    def _skyview_fetch(self, skyview_name: str, imsize: Angle,
+                       pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Fetch a FITS image from SkyView.
 
         Args:
             skyview_name (str): SkyView survey identifier.
-            imsize (Angle): Angular size of the image (full side length).
+            imsize (astropy.coordinates.Angle): Angular size of the image (full side length).
             pixels (int, optional): Output image side length in pixels.  If
                 ``None`` (default), the side length is computed from ``imsize``
                 and the survey's native SkyView pixel scale so the image is
                 returned at full resolution.  Provide an integer smaller than
                 the native value to request a coarser, downsampled grid.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None (with a
+            warning) if SkyView returned no image.
+
         """
         radius = imsize / 2
         if pixels is None:
@@ -123,7 +155,36 @@ class SkyView_Survey(surveycoord.SurveyCoord):
             return None
         return images[0][0]
 
-    def get_image(self, imsize=None, band=None, radius=None, pixels=None):
+    def get_image(self, imsize: u.Quantity | None = None, band: str | None = None,
+                  radius: u.Quantity | None = None,
+                  pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a FITS image from SkyView for the mission of this survey.
+
+        The image data and header are also stored in ``self.cutout`` and
+        ``self.cutout_hdr``, and ``imsize`` in ``self.cutout_size``.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of
+                the image. Required unless the deprecated ``radius`` is given.
+            band (str, optional): Filter/band for missions that have several
+                (SDSS: u/g/r/i/z, GALEX: NUV/FUV, 2MASS: J/H/K, or the
+                frequency range of GLEAM, e.g. '170-231 MHz').
+                Ignored by the other missions. If None, the mission default is used.
+            radius (astropy.units.Quantity, optional): Deprecated; use ``imsize``.
+            pixels (int, optional): Output image side length in pixels. If None,
+                the native resolution is used. See :meth:`_skyview_fetch`.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None
+            if SkyView returned none.
+
+        Raises:
+            NotImplementedError: If the mission is not supported.
+            TypeError: If ``band`` is not valid for the mission, or no image
+                size is given.
+
+        """
         imsize = self._coerce_imsize(imsize=imsize, radius=radius)
         self.cutout_size = imsize
 
@@ -162,7 +223,24 @@ class SkyView_Survey(surveycoord.SurveyCoord):
 
         return img_hdu
 
-    def get_cutout(self, imsize=None, band=None, radius=None, pixels=None):
+    def get_cutout(self, imsize: u.Quantity | None = None, band: str | None = None,
+                   radius: u.Quantity | None = None,
+                   pixels: int | None = None) -> np.ndarray | None:
+        """
+        Deprecated alias of :meth:`get_image` that returns only the image array.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of
+                the image.
+            band (str, optional): Filter/band; see :meth:`get_image`.
+            radius (astropy.units.Quantity, optional): Deprecated; use ``imsize``.
+            pixels (int, optional): Output image side length in pixels.
+
+        Returns:
+            numpy.ndarray or None: The image data, or None if no image was
+            retrieved. The header is stored in ``self.cutout_hdr``.
+
+        """
         warnings.warn(
             "get_cutout() returns FITS products for this survey and is deprecated; use get_image() instead.",
             DeprecationWarning,
@@ -177,34 +255,148 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         self.cutout_hdr = img_hdu.header
         return self.cutout
 
-    def get_first(self, imsize, pixels=None):
+    def get_first(self, imsize: u.Quantity, pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a VLA FIRST (1.4 GHz) FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        """
         return self._skyview_fetch('VLA FIRST (1.4 GHz)', imsize, pixels=pixels)
 
-    def get_nvss(self, imsize, pixels=None):
+    def get_nvss(self, imsize: u.Quantity, pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a NVSS FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        """
         return self._skyview_fetch('NVSS', imsize, pixels=pixels)
 
-    def get_wenss(self, imsize, pixels=None):
+    def get_wenss(self, imsize: u.Quantity, pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a WENSS FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        """
         return self._skyview_fetch('WENSS', imsize, pixels=pixels)
 
-    def get_gleam(self, imsize, band='170-231 MHz', pixels=None):
+    def get_gleam(self, imsize: u.Quantity, band: str = '170-231 MHz',
+                  pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a GLEAM FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            band (str, optional): Frequency range, one of '72-103 MHz',
+                '103-134 MHz', '139-170 MHz' or '170-231 MHz'.
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        """
         return self._skyview_fetch(f'GLEAM {band}', imsize, pixels=pixels)
 
-    def get_tgss(self, imsize, pixels=None):
+    def get_tgss(self, imsize: u.Quantity, pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a TGSS ADR1 FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        """
         return self._skyview_fetch('TGSS ADR1', imsize, pixels=pixels)
 
-    def get_sdss(self, imsize, band=None, pixels=None):
+    def get_sdss(self, imsize: u.Quantity, band: str | None = None,
+             pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a SDSS FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            band (str, optional): Band, u, g, r, i or z (default r).
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        Raises:
+            TypeError: If ``band`` is not allowed for SDSS.
+
+        """
         band = 'r' if band is None else band.lower()
         if band not in self.SDSS_SURVEYS:
             raise TypeError(f"Allowed filters for SDSS are {list(self.SDSS_SURVEYS)}")
         return self._skyview_fetch(self.SDSS_SURVEYS[band], imsize, pixels=pixels)
 
-    def get_galex(self, imsize, band=None, pixels=None):
+    def get_galex(self, imsize: u.Quantity, band: str | None = None,
+              pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a GALEX FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            band (str, optional): Band, NUV or FUV (default NUV).
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        Raises:
+            TypeError: If ``band`` is not allowed for GALEX.
+
+        """
         band = 'NUV' if band is None else band.upper()
         if band not in self.GALEX_SURVEYS:
             raise TypeError(f"Allowed filters for GALEX are {list(self.GALEX_SURVEYS)}")
         return self._skyview_fetch(self.GALEX_SURVEYS[band], imsize, pixels=pixels)
 
-    def get_twomass(self, imsize, band=None, pixels=None):
+    def get_twomass(self, imsize: u.Quantity, band: str | None = None,
+                pixels: int | None = None) -> PrimaryHDU | None:
+        """
+        Retrieve a 2MASS FITS image from SkyView.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size (full side length) of the image.
+            band (str, optional): Band, J, H or K (default J).
+            pixels (int, optional): Output image side length in pixels.
+                If None, the native resolution is used.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None if SkyView returned none.
+
+        Raises:
+            TypeError: If ``band`` is not allowed for 2MASS.
+
+        """
         band = 'J' if band is None else band.upper()
         if band not in self.TWOMASS_SURVEYS:
             raise TypeError(f"Allowed filters for 2MASS are {list(self.TWOMASS_SURVEYS)}")

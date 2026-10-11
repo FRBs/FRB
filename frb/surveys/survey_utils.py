@@ -18,6 +18,7 @@ from frb.surveys.twomass import TwoMASS_Survey
 from frb.surveys.desi import DESI_Survey
 from frb.surveys.hsc import HSC_Survey, QueryError
 from frb.surveys.euclid import Euclid_Survey
+from frb.surveys.surveycoord import SurveyCoord
 from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 
 from astropy.coordinates import SkyCoord
@@ -39,7 +40,8 @@ radio_surveys = ['NVSS', 'FIRST', 'WENSS', 'PSRCAT']
 allowed_surveys = optical_surveys+radio_surveys+group_catalogs
 
 
-def load_survey_by_name(name, coord, radius, **kwargs):
+def load_survey_by_name(name: str, coord: SkyCoord, radius: u.Quantity,
+                        **kwargs) -> SurveyCoord:
     """
     Load up a Survey class object for the named survey
     allowed_surveys = ['SDSS', 'DES', 'DESI', 'NVSS', 'FIRST', 'WENSS', 'DECaL', 
@@ -48,15 +50,16 @@ def load_survey_by_name(name, coord, radius, **kwargs):
 
 
     Args:
-        name (str): Name of the survey 
-        coord (astropy.coordiantes.SkyCoord): Coordinate to define survey around 
-        radius (astropy.units.Quanity): Outer radius of the survey
+        name (str): Name of the survey; must be one of ``allowed_surveys``
+        coord (astropy.coordinates.SkyCoord): Coordinate to define survey around 
+        radius (astropy.units.Quantity): Outer radius of the survey
         **kwargs: Passed the Survey object
 
-
-
     Returns:
-        frb.surveys.SurveyCoord: Child of this parent given by input survey name
+        frb.surveys.surveycoord.SurveyCoord: Child of this parent given by input survey name
+
+    Raises:
+        IOError: If ``name`` is not an allowed survey.
 
     """
 
@@ -112,12 +115,13 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
 
 
     Args:
-        surveyname (str): Name of the survey
-        coord (astropy.coordiantes.SkyCoord): Coordinate to check
-
+        surveyname (str): Name of the survey; must be one of ``allowed_surveys``
+        coord (astropy.coordinates.SkyCoord): Coordinate to check
 
     Returns:
-        inside (bool): True if coord is within the footprint.
+        bool: True if coord is within the footprint.
+        False if it is not, or if the survey could not be reached.
+
     """
 
     # Instantiate survey and run a cone search with 1 arcmin radius
@@ -179,12 +183,14 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
 
 
     Args:
-        coord (astropy.coordiantes.SkyCoord): Coordinate to check
-
+        coord (astropy.coordinates.SkyCoord): Coordinate to check
+        optical_only (bool, optional): Only check the optical surveys,
+            as opposed to the optical and radio ones.
 
     Returns:
-        inside (dict): A dict which tells which surveys the coordinate
-            is inside.
+        dict: Maps each survey name (str) to a bool, which is True if the
+        coordinate is inside that survey.
+
     """
     # Loop through known surveys and check them one by one.
     inside = {}
@@ -201,25 +207,28 @@ def in_which_survey(coord:SkyCoord, optical_only:bool=True)->dict:
     return inside
 
 
-def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=False,
-                       seed_cat:Table=None):
+def search_all_surveys(coord: SkyCoord, radius: u.Quantity,
+                       include_radio: bool = False,
+                       seed_cat: Table | None = None) -> Table:
     """
     A method to query all allowed surveys and combine
     the results into one table.
 
 
     Args:
-        coord (SkyCoord): Central coordinates of cone search.
-        radius (Quantity): Search radius in angular units.
+        coord (astropy.coordinates.SkyCoord): Central coordinates of cone search.
+        radius (astropy.units.Quantity): Search radius in angular units.
         include_radio (bool, optional): Want to include results from the HEASARC surveys?
             Include at your own risk. Untested. Might break in unexpected ways.
-        seed_cat (Table, optional): If you'd like to merge the survey results
+        seed_cat (astropy.table.Table, optional): If you'd like to merge the survey results
             with another photometry table that you already have.
-
-
+            Must have 'ra' and 'dec' columns.
 
     Returns:
-        combined_cat (Table): Table of merged query results.
+        astropy.table.Table: Table of merged query results, sorted by
+        separation from ``coord``. Empty if no survey returned any sources
+        (and no ``seed_cat`` was given).
+
     """
 
     # Start with the seed table
@@ -299,7 +308,7 @@ def search_all_surveys(coord:SkyCoord, radius:u.Quantity, include_radio:bool=Fal
     
     return combined_cat
            
-def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
+def PS1_tile(coord: SkyCoord, side: u.Quantity = 1*u.deg, **kwargs) -> Table:
     """
     Tile multiple 20' cone searches of 
     the Pan-STARRS catalog to cover a larger
@@ -310,16 +319,17 @@ def PS1_tile(coord:SkyCoord, side:u.Quantity=1*u.deg, **kwargs)->Table:
 
 
     Args:
-        coord (SkyCoord): Center of search region.
-        side (astropy Quantity): Angular size
-            of the square region to be searched.
-        kwargs: Additional keyword arguments
+        coord (astropy.coordinates.SkyCoord): Center of search region.
+        side (astropy.units.Quantity, optional): Angular size
+            of the square region to be searched. Must be at least 30 arcmin.
+        **kwargs: Additional keyword arguments
             to be passed onto the Pan-STARRS_Survey
             get_catalog method.
 
-
     Returns:
-        combined_tab (Table): A PS1 catalog.
+        astropy.table.Table: A PS1 catalog with duplicate
+        sources removed.
+
     """
     assert side>=30*u.arcmin, "Use a regular Pan-STARRS search for this radius."
     RA0, DEC0 = coord.ra, coord.dec

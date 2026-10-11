@@ -5,6 +5,9 @@ available through astro-datalab. Inherits from SurveyCoord. See surveycoord.py f
 import numpy as np
 import warnings
 from astropy import units, io, utils
+from astropy.coordinates import Angle, SkyCoord
+from astropy.io.fits import PrimaryHDU
+from astropy.table import Table
 import warnings
 
 from frb.surveys import catalog_utils
@@ -29,8 +32,15 @@ class DL_Survey(surveycoord.SurveyCoord):
     """
     A survey class for all databases hosted
     by NOIR's DataLab. Inherits from SurveyCoord
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         
         #Define photmetric band names.
@@ -43,7 +53,7 @@ class DL_Survey(surveycoord.SurveyCoord):
         self.qc_profile = None
         self.default_query_fields = None
     
-    def _parse_cat_band(self,band):
+    def _parse_cat_band(self, band: str) -> tuple[list[str], list[str], str]:
         """
         Internal method to generate the bands for grabbing
         a cutout image
@@ -56,7 +66,11 @@ class DL_Survey(surveycoord.SurveyCoord):
 
 
         Returns:
-            list, list, str:  Table columns, Column values, band string for cutout
+            tuple: Three items:
+
+                - list of str: Names of the image table columns to select on
+                - list of str: Values the columns must have
+                - str: Band string for cutout
 
         """
         table_cols = ['proctype','prodtype']
@@ -64,7 +78,9 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         return table_cols, col_vals, band
 
-    def _gen_cat_query(self,query_fields=None, qtype='main', ra_col=None, dec_col=None):
+    def _gen_cat_query(self, query_fields: list[str] | None = None,
+                       qtype: str = 'main', ra_col: str | None = None,
+                       dec_col: str | None = None) -> str:
         """
         Generate SQL Query for catalog search
 
@@ -72,10 +88,21 @@ class DL_Survey(surveycoord.SurveyCoord):
 
 
         Args:
-            query_fields (list):  Override the default list for the SQL query
-            qtype (str):  Type of query to generate.  Currently only 'main' is supported
-            ra_col (str):  Name of the RA column in the database
-            dec_col (str):  Name of the Dec column in the database
+            query_fields (list of str, optional):  Additional fields to
+                query on top of ``self.default_query_fields``
+            qtype (str, optional):  Type of query to generate.  Currently only 'main' is supported
+            ra_col (str, optional):  Name of the RA column in the database.
+                Defaults to 'ra'
+            dec_col (str, optional):  Name of the Dec column in the database.
+                Defaults to 'dec'
+
+        Returns:
+            str: The SQL query (also stored in ``self.query``)
+
+        Raises:
+            IOError: If ``default_query_fields`` is not set or ``qtype`` is
+                not 'main'.
+
         """
         if self.default_query_fields is None:
             raise IOError("DLSurvey child incorrectly instantiated.  Missing default_query_fields")
@@ -100,19 +127,22 @@ class DL_Survey(surveycoord.SurveyCoord):
         # Return
         return self.query
     
-    def _select_best_img(self,imgTable,verbose,timeout=120):
+    def _select_best_img(self, imgTable: Table, verbose: bool,
+                         timeout: int | float = 120) -> io.fits.HDUList:
         """
         Select the best band for a cutout
 
 
         Args:
-            imgTable: Table of images
+            imgTable (astropy.table.Table): Table of images, from the
+                survey's image service. Must have 'magzero' and
+                'access_url' columns
             verbose (bool):  Print status
-            timeout (int or float):  How long to wait before timing out, in seconds
-
+            timeout (int or float, optional):  How long to wait before timing out, in seconds
 
         Returns:
-            HDU: header data unit for the downloaded image
+            astropy.io.fits.HDUList: The downloaded image of the entry with the
+            largest zero point
 
         """
         # Get one with maximum zero point.
@@ -124,7 +154,10 @@ class DL_Survey(surveycoord.SurveyCoord):
         imagedat = io.fits.open(utils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))
         return imagedat
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,timeout=120, photomdict=None):
+    def get_catalog(self, query: str | None = None,
+                    query_fields: list[str] | None = None,
+                    print_query: bool = False, timeout: int | float = 120,
+                    photomdict: dict | None = None) -> Table:
         """
         Get catalog sources around the given coordinates
         within self.radius.
@@ -132,8 +165,14 @@ class DL_Survey(surveycoord.SurveyCoord):
         
         Args:
             query (str, optional): SQL query to generate the catalog
-            query_fields (list, optional): Over-ride list of items to query
-            print_query (bool): Print the SQL query generated 
+            query_fields (list of str, optional): Additional items to query
+                on top of the default fields
+            print_query (bool, optional): Print the SQL query generated 
+            timeout (int or float, optional): How long to wait for the query
+                before timing out, in seconds
+            photomdict (dict, optional): Maps the desired (FRB) column names
+                to the survey's column names; used to rename columns
+                with :func:`frb.surveys.catalog_utils.clean_cat`
         
         Returns:
             astropy.table.Table:  Catalog of sources obtained from the SQL query.
@@ -159,21 +198,29 @@ class DL_Survey(surveycoord.SurveyCoord):
         # Return
         return self.catalog.copy()
     
-    def get_image(self, imsize, band, timeout=120, verbose=False):
+    def get_image(self, imsize: units.Quantity, band: str | None,
+                  timeout: int | float = 120, verbose: bool = False
+                  ) -> PrimaryHDU | None:
         """
         Get images from the catalog if available
             for a given fov and band.
 
 
         Args:
-            imsize (Quantity): FOV for the desired image
-            band (str): Band for the image (e.g. 'r')
-            timeout (int, optional): Time to wait in seconds before timing out
-            verbose (bool, optional):
-
+            imsize (astropy.units.Quantity): FOV for the desired image
+            band (str or None): Band for the image (e.g. 'r'). If None,
+                'r' is used if available, otherwise the first band of the survey.
+            timeout (int or float, optional): Time to wait in seconds before timing out
+            verbose (bool, optional): Print status
 
         Returns:
-            HDU: Image header data unit
+            astropy.io.fits.PrimaryHDU or None: Image header data unit;
+            None if the image service fails or no image is available.
+
+        Raises:
+            RuntimeError: If the image service (``self.svc``) is not set,
+                e.g. because pyvo is not installed.
+            TypeError: If ``band`` is not one of ``self.bands``.
 
         """
         if self.svc is None:
@@ -221,18 +268,21 @@ class DL_Survey(surveycoord.SurveyCoord):
             img_hdu = None
         return img_hdu
     
-    def get_cutout(self, imsize, band=None):
+    def get_cutout(self, imsize: units.Quantity, band: str | None = None
+                   ) -> tuple[np.ndarray | None, io.fits.Header | None]:
         """
         Get cutout (and header)
 
+        Deprecated: this returns FITS products; use :meth:`get_image` instead.
 
         Args:
-            imsize (Quantity): e.g 10*units.arcsec
-            band (str): e.g. 'r'
-
+            imsize (astropy.units.Quantity): e.g 10*units.arcsec
+            band (str, optional): e.g. 'r'
 
         Returns:
-            ndarray, Header: cutout image, cutout image header
+            tuple: ``(cutout, header)``, the cutout image (numpy.ndarray) and
+            its header (astropy.io.fits.Header); both None if no image
+            is available.
 
         """
         warnings.warn(
@@ -253,7 +303,10 @@ class DL_Survey(surveycoord.SurveyCoord):
         return self.cutout, self.cutout_hdr
 
 
-def _default_query_str(query_fields, database, coord, radius, ra_col=None, dec_col=None):
+def _default_query_str(query_fields: list[str], database: str,
+                       coord: SkyCoord, radius: units.Quantity | Angle,
+                       ra_col: str | None = None,
+                       dec_col: str | None = None) -> str:
     """
     Generates default query string for a catalog search.
 
@@ -263,11 +316,12 @@ def _default_query_str(query_fields, database, coord, radius, ra_col=None, dec_c
             retrieve from the database
         database (str): Name of the database
         coord (astropy.coordinates.SkyCoord): Central coordinate of the search
-        radius (astropy.units.Quantity or Angle): Search radius
-        ra_col, dec_col (str, optional): Name of the RA and Dec columns in the database
-            If None, defaults to 'ra' and 'dec'
+        radius (astropy.units.Quantity or astropy.coordinates.Angle): Search radius
+        ra_col (str, optional): Name of the RA column in the database.
+            If None, defaults to 'ra'
+        dec_col (str, optional): Name of the Dec column in the database.
+            If None, defaults to 'dec'
 
-        
     Returns:
         str: A query to be fed to datalab's SQL client
         

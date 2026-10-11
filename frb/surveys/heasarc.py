@@ -1,5 +1,6 @@
 """ Surveys to be accessed through the HEASARC interface (via astroquery"""
 
+from astropy.coordinates import Angle, SkyCoord
 from astropy.table import Table
 from astropy import units
 
@@ -18,14 +19,15 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         Class to handle queries on the HEASARC survey.
         Uses `astroquery` for searching the Heasarc SQL database.
 
-    
     Args:
-        coord (SkyCoord): Coordiante for surveying around
-        radius (Angle): Search radius around the coordinate
-        mission (str): Mission served by HEASAR for the data searches
-    
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        mission (str): Mission served by HEASARC for the data searches
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self, coord, radius, mission, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, mission: str, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
         self.survey = None
@@ -33,13 +35,13 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
         # Instantiate astroquery object
         self.heasarc = Heasarc()
 
-    def get_catalog(self):
+    def get_catalog(self) -> Table:
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
-        
         Returns:
-            astropy.table.Table:  Catalog of sources returned
+            astropy.table.Table:  Catalog of sources returned, sorted by separation.
+            Empty (with 'ra' and 'dec' columns) if the mission has no sources in the cone.
         """
         try:
             catalog = self.heasarc.query_region(self.coord,
@@ -75,9 +77,16 @@ class HEASARC_Survey(surveycoord.SurveyCoord):
 
 class NVSS_Survey(HEASARC_Survey, SkyView_Survey):
     """ Uses SkyView an HEASARC to get both images and catalogs for the VLA NVSS survey at 1.4 GHz.
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
 
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'nvss', **kwargs)
         self.survey = 'NVSS'
@@ -85,8 +94,15 @@ class NVSS_Survey(HEASARC_Survey, SkyView_Survey):
 
 class FIRST_Survey(HEASARC_Survey, SkyView_Survey):
     """ Uses SkyView an HEASARC to get both images and catalogs for the VLA FIRST survey at 1.4 GHz.
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'first', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'first', **kwargs)
         self.survey = 'FIRST'
@@ -94,8 +110,15 @@ class FIRST_Survey(HEASARC_Survey, SkyView_Survey):
 
 class WENSS_Survey(HEASARC_Survey, SkyView_Survey):
     """ Uses SkyView an HEASARC to get both images and catalogs for the WSRT northern sky survey at 325 MHz.
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         HEASARC_Survey.__init__(self, coord, radius, 'wenss', **kwargs)
         SkyView_Survey.__init__(self, coord, radius, 'wenss', **kwargs)
         self.survey = 'WENSS'

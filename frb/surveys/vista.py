@@ -7,6 +7,8 @@ from urllib.parse import urljoin
 import numpy as np
 from astropy import io, utils
 from astropy import units
+from astropy.coordinates import Angle, SkyCoord
+from astropy.table import Table
 
 from frb.surveys import dlsurvey
 from frb.surveys import catalog_utils
@@ -50,22 +52,28 @@ for band in VISTA_bands:
     photom['VISTA']['VISTA_{:s}'.format(band)] = '{:s}petromag'.format(band.lower())
     photom['VISTA']['VISTA_{:s}_err'.format(band)] = '{:s}petromagerr'.format(band.lower())
 
+# Columns of the catalog that are not floats; used for the schema of empty catalogs
+schema_dtypes = {}
+schema_dtypes['VISTA'] = {'VISTA_ID': int, 'VISTA_CLASS': int}
+
 
 
 class VISTA_Survey(dlsurvey.DL_Survey):
     """
-    Class to handle queries on the DECaL survey
+    Class to handle queries on the VISTA (VHS) survey
 
-    Child of DL_Survey which uses datalab to access NOAO
-
+    Child of DL_Survey which uses datalab to access NOAO for catalogs.
+    Images are retrieved from the VISTA Science Archive (VSA).
 
     Args:
-        coord (SkyCoord): Coordiante for surveying around
-        radius (Angle): Search radius around the coordinate
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.dlsurvey.DL_Survey`
+            (e.g. ``verbose``)
 
     """
 
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'VISTA'
         self.bands = VISTA_bands
@@ -73,20 +81,22 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         self.qc_profile = "default"
         self.database = "vhs_dr5.vhs_cat_v3"
 
-    def _parse_cat_band(self,band):
+    def _parse_cat_band(self, band: str) -> tuple[list[str], list[str], str]:
         """
         Internal method to generate the bands for grabbing
         a cutout image
 
-        For DES, nothing much is necessary.
-
+        For VISTA, nothing much is necessary.
 
         Args:
             band (str): Band desired
 
-
         Returns:
-            list, list, str:  Table columns, Column values, band string for cutout
+            tuple: Three items:
+
+                - list of str: Names of the image table columns to select on
+                - list of str: Values the columns must have
+                - str: Band string for cutout
 
         """
         table_cols = ['proctype','prodtype']
@@ -94,15 +104,22 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
         return table_cols, col_vals, band
 
-    def _gen_cat_query(self,query_fields=None, qtype='main'):
+    def _gen_cat_query(self, query_fields: list[str] | None = None,
+                       qtype: str = 'main') -> str:
         """
         Generate SQL Query for catalog search
 
         self.query is modified in place
 
-
         Args:
-            query_fields (list):  Override the default list for the SQL query
+            query_fields (list of str, optional):  Override the default list for the SQL query
+            qtype (str, optional):  Type of query to generate.  Currently only 'main' is supported
+
+        Returns:
+            str: The SQL query (also stored in ``self.query``)
+
+        Raises:
+            IOError: If ``qtype`` is not 'main' and ``query_fields`` is None.
 
         """
         if query_fields is None:
@@ -122,21 +139,29 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         # Return
         return self.query
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False, system='AB', **kwargs):
+    def get_catalog(self, query: str | None = None,
+                    query_fields: list[str] | None = None,
+                    print_query: bool = False, system: str = 'AB',
+                    **kwargs) -> Table:
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
-
         Args:
-            query: Not used
-            query_fields (list, optional): Over-ride list of items to query
-            print_query (bool): Print the SQL query generated
-            system (str): Magnitude system ['AB', 'Vega']
-
+            query (str, optional): SQL query. If None, it is generated
+                from ``query_fields``.
+            query_fields (list of str, optional): Over-ride list of items to query
+            print_query (bool, optional): Print the SQL query generated
+            system (str, optional): Magnitude system ['AB', 'Vega']
+            **kwargs: Passed to :meth:`frb.surveys.dlsurvey.DL_Survey.get_catalog`
+                (e.g. ``timeout``)
 
         Returns:
-            astropy.table.Table:  Catalog of sources returned.  Includes WISE
-            photometry for matched sources.
+            astropy.table.Table:  Catalog of sources returned, with VISTA
+            photometry in AB magnitudes by default.  Can be empty.
+
+        Raises:
+            RuntimeError: If ``system`` is not 'AB' or 'Vega'.
+
         """
         # Main DES query
         if query==None:
@@ -147,7 +172,8 @@ class VISTA_Survey(dlsurvey.DL_Survey):
                                                          photomdict=photom['VISTA'],**kwargs)
         if len(main_cat) == 0:
             main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()))
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()),
+                                                       dtypes=schema_dtypes['VISTA'])
             return main_cat
         # Convert to AB mag
         if system == 'AB':
@@ -170,19 +196,19 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return self.catalog
 
 
-    def _select_best_img(self,imgTable,verbose,timeout=120):
+    def _select_best_img(self, imgTable: Table, verbose: bool,
+                         timeout: int | float = 120) -> io.fits.HDUList:
         """
         Select the best band for a cutout
 
-
         Args:
-            imgTable: Table of images
+            imgTable (astropy.table.Table): Table of images, with 'exptime'
+                and 'access_url' columns
             verbose (bool):  Print status
-            timeout (int or float):  How long to wait before timing out, in seconds
-
+            timeout (int or float, optional):  How long to wait before timing out, in seconds
 
         Returns:
-            HDU: header data unit for the downloaded image
+            astropy.io.fits.HDUList: The downloaded image with the longest exposure time
 
         """
         row = imgTable[np.argmax(imgTable['exptime'].data.data.astype('float'))] # pick image with longest exposure time
@@ -194,8 +220,18 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return imagedat
 
     @staticmethod
-    def _extract_select_map(html):
-        """Extract select names and their option values from a form page."""
+    def _extract_select_map(html: str) -> dict[str, list[str]]:
+        """
+        Extract select names and their option values from a form page.
+
+        Args:
+            html (str): HTML of the form page.
+
+        Returns:
+            dict: Maps the name of each select element with options to the
+            list of str option values (or labels, if they have no values).
+
+        """
         select_map = {}
         select_pattern = re.compile(r'<select[^>]*name=["\']([^"\']+)["\'][^>]*>(.*?)</select>',
                                     re.IGNORECASE | re.DOTALL)
@@ -213,8 +249,19 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return select_map
 
     @staticmethod
-    def _extract_form_action_method(html):
-        """Extract form action and method from the first form in page HTML."""
+    def _extract_form_action_method(html: str) -> tuple[str | None, str]:
+        """
+        Extract form action and method from the first form in page HTML.
+
+        Args:
+            html (str): HTML of the form page.
+
+        Returns:
+            tuple: ``(action, method)``: the form action (str, None if the
+            form has none) and the lower-case method (str, 'post' if the form
+            has none).
+
+        """
         action = None
         method = "post"
         form_match = re.search(r'<form[^>]*>', html, flags=re.IGNORECASE)
@@ -229,14 +276,34 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return action, method
 
     @staticmethod
-    def _extract_input_names(html):
-        """Extract all input names from a form page."""
+    def _extract_input_names(html: str) -> list[str]:
+        """
+        Extract all input names from a form page.
+
+        Args:
+            html (str): HTML of the form page.
+
+        Returns:
+            list of str: The unique names of the input elements, in order.
+
+        """
         input_pattern = re.compile(r'<input[^>]*name=["\']([^"\']+)["\']', re.IGNORECASE)
         return list(dict.fromkeys(input_pattern.findall(html)))
 
     @staticmethod
-    def _extract_select_options(html, select_name):
-        """Extract option values and labels for a named select element."""
+    def _extract_select_options(html: str, select_name: str) -> list[tuple[str, str]]:
+        """
+        Extract option values and labels for a named select element.
+
+        Args:
+            html (str): HTML of the form page.
+            select_name (str): Name of the select element.
+
+        Returns:
+            list of tuple: ``(value, label)`` of str for each option;
+            empty if there is no such select element.
+
+        """
         pattern = re.compile(
             rf'<select[^>]*name=["\']{re.escape(select_name)}["\'][^>]*>(.*?)</select>',
             re.IGNORECASE | re.DOTALL,
@@ -255,8 +322,19 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return options
 
     @staticmethod
-    def _extract_fits_links(html, base_url):
-        """Extract absolute FITS links from an HTML response."""
+    def _extract_fits_links(html: str, base_url: str) -> list[str]:
+        """
+        Extract absolute FITS links from an HTML response.
+
+        Args:
+            html (str): HTML of the response.
+            base_url (str): URL against which relative links are resolved.
+
+        Returns:
+            list of str: The unique absolute URLs of FITS files (or of the
+            VSA wrappers of them).
+
+        """
         links = []
         href_pattern = re.compile(r'href=["\']([^"\']+)["\']', re.IGNORECASE)
         text_url_pattern = re.compile(r'https?://[^\s"\'<>]+', re.IGNORECASE)
@@ -274,8 +352,24 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
         return list(dict.fromkeys(links))
 
-    def _resolve_vsa_download_link(self, session, link, timeout=120, verbose=False):
-        """Resolve getImage.cgi wrapper links to direct FITS download links."""
+    def _resolve_vsa_download_link(self, session: "requests.Session", link: str,
+                                   timeout: int | float = 120,
+                                   verbose: bool = False) -> str:
+        """
+        Resolve getImage.cgi wrapper links to direct FITS download links.
+
+        Args:
+            session (requests.Session): Session used to fetch the wrapper page.
+            link (str): URL returned by the VSA.
+            timeout (int or float, optional): Seconds to wait for the server.
+            verbose (bool, optional): Print status.
+
+        Returns:
+            str: The direct download link, or ``link`` itself if it is
+            not a wrapper or could not be resolved (a warning is issued
+            in the latter case).
+
+        """
         lower = link.lower()
         if "getfimage.cgi" in lower:
             return link
@@ -300,8 +394,19 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             return link
 
     @staticmethod
-    def _pick_vhs_database(database_options):
-        """Pick latest VHS release value from VSA database options."""
+    def _pick_vhs_database(database_options: list[tuple[str, str]]) -> str:
+        """
+        Pick latest VHS release value from VSA database options.
+
+        Args:
+            database_options (list of tuple): ``(value, label)`` of str of the
+                database options of the VSA form.
+
+        Returns:
+            str: Value of the latest VHS data release, or 'VHSDR7' if there
+            are no options.
+
+        """
         if not database_options:
             return "VHSDR7"
 
@@ -330,23 +435,56 @@ class VISTA_Survey(dlsurvey.DL_Survey):
         return "VHSDR7"
 
     @staticmethod
-    def _to_sexagesimal_strings(coord):
-        """Convert ICRS coordinates to VSA-friendly sexagesimal strings."""
+    def _to_sexagesimal_strings(coord: SkyCoord) -> tuple[str, str]:
+        """
+        Convert ICRS coordinates to VSA-friendly sexagesimal strings.
+
+        Args:
+            coord (astropy.coordinates.SkyCoord): The coordinate.
+
+        Returns:
+            tuple of str: RA (hh:mm:ss.ss) and Dec (+dd:mm:ss.ss).
+
+        """
         ra_str = coord.ra.to_string(unit=units.hourangle, sep=':', precision=2, pad=True)
         dec_str = coord.dec.to_string(unit=units.deg, sep=':', precision=2, pad=True, alwayssign=True)
         return ra_str, dec_str
 
     @staticmethod
-    def _choose_option(values, contains):
-        """Choose first value containing token, case-insensitive."""
+    def _choose_option(values: list[str], contains: str) -> str | None:
+        """
+        Choose first value containing token, case-insensitive.
+
+        Args:
+            values (list of str): Candidate values.
+            contains (str): Token to look for.
+
+        Returns:
+            str or None: The first value that contains the token, or None
+            if there is none.
+
+        """
         token = contains.lower()
         for value in values:
             if token in value.lower():
                 return value
         return None
 
-    def _build_vsa_payload(self, html, coord, size_arcmin, band):
-        """Build a permissive form payload from parsed fields and heuristics."""
+    def _build_vsa_payload(self, html: str, coord: SkyCoord, size_arcmin: float,
+                           band: str) -> dict[str, str]:
+        """
+        Build a permissive form payload from parsed fields and heuristics.
+
+        Args:
+            html (str): HTML of the VSA form page.
+            coord (astropy.coordinates.SkyCoord): Center of the image.
+            size_arcmin (float): Size of the image in arcmin.
+            band (str): VISTA band.
+
+        Returns:
+            dict: The form fields and their values.
+
+        """
         select_map = self._extract_select_map(html)
         input_names = self._extract_input_names(html)
         payload = {}
@@ -412,8 +550,23 @@ class VISTA_Survey(dlsurvey.DL_Survey):
 
         return payload
 
-    def _query_vsa_cutout_links(self, imsize, band, timeout=120, verbose=False):
-        """Query the VSA getImage form and extract candidate FITS links."""
+    def _query_vsa_cutout_links(self, imsize: units.Quantity, band: str,
+                                timeout: int | float = 120,
+                                verbose: bool = False) -> list[str]:
+        """
+        Query the VSA getImage form and extract candidate FITS links.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size of the image.
+            band (str): VISTA band.
+            timeout (int or float, optional): Seconds to wait for the server.
+            verbose (bool, optional): Print status.
+
+        Returns:
+            list of str: URLs of candidate FITS images; empty (with a warning)
+            if the query fails or the band is unknown.
+
+        """
         if requests is None:
             warnings.warn("requests is required for VSA image retrieval but is not installed.")
             return []
@@ -481,16 +634,46 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             return []
 
     @staticmethod
-    def _select_best_vsa_link(links, band):
-        """Select a deterministic best link, preferring URLs that mention band."""
+    def _select_best_vsa_link(links: list[str], band: str) -> str | None:
+        """
+        Select a deterministic best link, preferring URLs that mention band.
+
+        Args:
+            links (list of str): Candidate URLs.
+            band (str): VISTA band.
+
+        Returns:
+            str or None: The first link that mentions the band, otherwise
+            the first link; None if there are no links.
+
+        """
         if not links:
             return None
         band_lower = band.lower()
         preferred = [link for link in links if band_lower in link.lower()]
         return preferred[0] if preferred else links[0]
 
-    def get_image(self, imsize, band=None, timeout=120, verbose=False):
-        """Retrieve a VISTA FITS image through the VSA getImage service."""
+    def get_image(self, imsize: units.Quantity, band: str | None = None,
+                  timeout: int | float = 120, verbose: bool = False
+                  ) -> io.fits.PrimaryHDU | None:
+        """
+        Retrieve a VISTA FITS image through the VSA getImage service.
+
+        Args:
+            imsize (astropy.units.Quantity): Angular size of the image.
+            band (str, optional): VISTA band (case-insensitive). If None,
+                the first band of the survey is used.
+            timeout (int or float, optional): Seconds to wait for the server.
+            verbose (bool, optional): Print status.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU or None: The image, or None (with a
+            warning) if none could be retrieved.
+
+        Raises:
+            TypeError: If ``band`` is not one of the VISTA bands.
+
+        """
         if band is None:
             band = self.bands[0]
             warnings.warn(f"Retrieving VISTA image in default {band} band.")
