@@ -90,19 +90,17 @@ class DESI_Survey(dlsurvey.DL_Survey):
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
             main_cat = catalog_utils.clean_cat(main_cat, spectrom['DESI'])
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(spectrom['DESI'].keys()),
-                                                       dtypes=schema_dtypes['DESI'])
-            return main_cat 
+            self.catalog = catalog_utils.ensure_empty_schema(main_cat, list(spectrom['DESI'].keys()),
+                                                             dtypes=schema_dtypes['DESI'])
+            self.validate_catalog()
+            return self.catalog
         #
         for col in main_cat.colnames:
             # Skip strings
             if main_cat[col].dtype not in [float, int]:
                 continue
             else:
-                try:
-                    main_cat[col].mask = np.isnan(main_cat[col])
-                except:
-                    import pdb; pdb.set_trace()
+                main_cat[col].mask = np.isnan(main_cat[col])
         
         main_cat = catalog_utils.fill_masked(main_cat, -99.0)
         #Remove gaia objects if necessary
@@ -137,4 +135,4 @@ class DESI_Survey(dlsurvey.DL_Survey):
             NotImplementedError: Always.
 
         """
-        raise NotImplementedError("Cutout retrieval not implemented for DESI. This class is meant to purely retreive spectroscopic data. For imaging, use the DeCAL_Survey class instead.")
+        raise NotImplementedError("Cutout retrieval not implemented for DESI. This class is meant to purely retrieve spectroscopic data. For imaging, use the DeCAL_Survey class instead.")

@@ -1,5 +1,7 @@
 """DECaLS"""
 
+import warnings
+
 import numpy as np
 from astropy.coordinates import Angle, SkyCoord
 from astropy.table import Table
@@ -99,35 +101,31 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
             main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DECaL'].keys()),
-                                                       dtypes=schema_dtypes['DECaL'])
-            return main_cat 
+            self.catalog = catalog_utils.ensure_empty_schema(main_cat, list(photom['DECaL'].keys()),
+                                                             dtypes=schema_dtypes['DECaL'])
+            self.validate_catalog()
+            return self.catalog
         #
         for col in main_cat.colnames:
             # Skip strings
             if main_cat[col].dtype not in [float, int]:
                 continue
             else:
-                try:
-                    main_cat[col].mask = np.isnan(main_cat[col])
-                except:
-                    import pdb; pdb.set_trace()
+                main_cat[col].mask = np.isnan(main_cat[col])
         
         #Convert SNR to mag error values.
         snr_cols = [colname for colname in main_cat.colnames if "snr" in colname]
         for col in snr_cols:
             main_cat[col].mask = main_cat[col]<0
             main_cat[col] = 2.5*np.log10(1+1/main_cat[col])
-        #Remove gaia objects if necessary
-        if exclude_stars and 'type' in main_cat.colnames:
-            self.catalog = main_cat[main_cat['DECaL_type']=='PSF']
-        elif exclude_stars and 'type' not in main_cat.colnames:
-            print("Warning: 'type' not found in catalog, cannot exclude stars.")
-            self.catalog = main_cat
-        else:
-            self.catalog = main_cat
         # Clean
         main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'], mask_photometry=True)
+        # Remove point sources if necessary
+        if exclude_stars and 'DECaL_type' in main_cat.colnames:
+            main_cat = main_cat[main_cat['DECaL_type'] != 'PSF']
+        elif exclude_stars:
+            warnings.warn("'DECaL_type' not found in catalog, cannot exclude stars.")
+        self.catalog = main_cat
         self.validate_catalog()
         # Return
         return self.catalog

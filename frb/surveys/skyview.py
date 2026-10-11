@@ -145,7 +145,8 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         if pixels is None:
             pixel_scale = self.SKYVIEW_PIXEL_SCALES.get(skyview_name)
             if pixel_scale is not None:
-                pixels = int(round(imsize.to(u.arcsec).value / pixel_scale))
+                # At least one pixel, however small the requested image is
+                pixels = max(1, int(round(imsize.to(u.arcsec).value / pixel_scale)))
         images = SkyView.get_images(
             position=self.coord, survey=skyview_name, radius=radius,
             pixels=str(pixels) if pixels is not None else None,
@@ -196,7 +197,10 @@ class SkyView_Survey(surveycoord.SurveyCoord):
         elif mission == 'wenss':
             img_hdu = self.get_wenss(imsize, pixels=pixels)
         elif mission == 'gleam':
-            img_hdu = self.get_gleam(imsize, pixels=pixels)
+            if band is None:
+                img_hdu = self.get_gleam(imsize, pixels=pixels)
+            else:
+                img_hdu = self.get_gleam(imsize, band=band, pixels=pixels)
         elif mission == 'tgss':
             img_hdu = self.get_tgss(imsize, pixels=pixels)
         elif mission == 'sdss':

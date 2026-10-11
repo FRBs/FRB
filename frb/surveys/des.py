@@ -81,12 +81,10 @@ class DES_Survey(dlsurvey.DL_Survey):
         main_cat = super(DES_Survey, self).get_catalog(query=query,
                                                        query_fields=query_fields,
                                                        print_query=print_query,**kwargs)
-        if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat, photom['DES'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DES'].keys()),
-                                                       dtypes=schema_dtypes['DES'])
-            return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DES'], mask_photometry=True)
+        # Empty catalogs get the standard columns (no-op otherwise)
+        main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DES'].keys()),
+                                                     dtypes=schema_dtypes['DES'])
         ## Finish
         self.catalog = main_cat
         self.validate_catalog()

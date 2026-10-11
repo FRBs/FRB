@@ -26,8 +26,7 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
         coord (astropy.coordinates.SkyCoord): Location around which to
             perform the search.
         radius (astropy.coordinates.Angle or astropy.units.Quantity, optional):
-            Radius of the cone search. Note that it is stored in
-            ``self.radius`` as a float in degrees.
+            Radius of the cone search.
         survey (str, optional): Name of the survey.
         viziercatalog (str, optional): Name of the Vizier table to draw from.
         cosmo (astropy.cosmology.Cosmology, optional): Cosmology used for
@@ -46,7 +45,6 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
         self.survey = survey # Name
         self.viziercatalog = viziercatalog # Name of the Vizier table to draw from.
         self.coord = coord # Location around which to perform the search
-        self.radius = radius.to('deg').value # Radius of cone search
         if cosmo is None: # Use the same cosmology as elsewhere in this repository unless specified.
             self.cosmo = frb_cosmo
         else:
@@ -114,7 +112,7 @@ class VizierCatalogSearch(surveycoord.SurveyCoord):
 
         # Query Vizier
         v = Vizier(catalog = self.viziercatalog, columns=query_fields, row_limit= -1, **kwargs) # No row limit
-        result = v.query_region(self.coord, radius=self.radius*u.deg)
+        result = v.query_region(self.coord, radius=self.radius)
         if len(result) == 0:
             print("No objects found within the given radius.")
             return Table(names = ('ra','dec','z'))
@@ -287,7 +285,7 @@ class WenGroupCat(VizierCatalogSearch):
 
             # Apply a transverse distance cut
             if transverse_distance_cut<np.inf*u.Mpc:
-                result = super(TullyGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+                result = super(WenGroupCat, self)._transverse_distance_cut(result, transverse_distance_cut)
             result = result[result['Ngal']>=richness_cut]
         self.catalog = result
         
@@ -367,9 +365,9 @@ class UPClusterSZCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(UPClusterSZCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(UPClusterSZCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -444,9 +442,9 @@ class ROSATXClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(ROSATXClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(ROSATXClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -521,9 +519,9 @@ class TempelClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(TempelClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(TempelClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -599,9 +597,9 @@ class RASSClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(RASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(RASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -679,9 +677,9 @@ class RedMapperClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(RedMapperClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(RedMapperClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -758,9 +756,9 @@ class ACTDR5ClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(ACTDR5ClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(ACTDR5ClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate
@@ -837,9 +835,9 @@ class ERASSClusterCat(VizierCatalogSearch):
         if len(result) > 0:
             result = self.clean_catalog(result)
 
-        # Apply a transverse distance cut
-        if transverse_distance_cut<np.inf*u.Mpc:
-            result = super(ERASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
+            # Apply a transverse distance cut
+            if transverse_distance_cut<np.inf*u.Mpc:
+                result = super(ERASSClusterCat, self)._transverse_distance_cut(result, transverse_distance_cut)
         self.catalog = result
         
         # Normalize and validate

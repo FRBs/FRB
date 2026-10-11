@@ -63,15 +63,16 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.database = "allwise_p3as_psd"
 
     def get_catalog(self, query: str | None = None,
-                    query_fields: list[str] = _DEFAULT_query_fields,
+                    query_fields: list[str] | None = None,
                     print_query: bool = False, system: str = 'AB') -> Table:
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
         Args:
-            query (str, optional): If None, the ADQL query is generated from
-                ``query_fields``. Otherwise ``self.query`` is used as is.
-            query_fields (list of str, optional): Over-ride list of items to query
+            query (str, optional): ADQL query to run. If None, it is
+                generated from ``query_fields``.
+            query_fields (list of str, optional): Over-ride list of items to query.
+                Defaults to the WISE magnitudes, their errors and the positions.
             print_query (bool, optional): Print the SQL query generated
             system (str, optional): Magnitude system ['AB', 'Vega']
 
@@ -88,6 +89,8 @@ class WISE_Survey(surveycoord.SurveyCoord):
         # Main WISE query
         if query is None:
             self._gen_cat_query(query_fields)
+        else:
+            self.query = query
         if print_query:
             print(self.query)
         main_cat = self.service.run_async(self.query).to_table()
@@ -95,8 +98,9 @@ class WISE_Survey(surveycoord.SurveyCoord):
         main_cat.meta['survey'] = self.survey
         main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], mask_photometry=True)
         if len(main_cat) == 0:
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['WISE'].keys()))
-            return main_cat
+            self.catalog = catalog_utils.ensure_empty_schema(main_cat, list(photom['WISE'].keys()))
+            self.validate_catalog()
+            return self.catalog.copy()
         
         # Convert to AB mag
         if system == 'AB':
@@ -167,19 +171,21 @@ class WISE_Survey(surveycoord.SurveyCoord):
         )
         return self.get_image(imsize=imsize, band=band, timeout=timeout)
         
-    def _gen_cat_query(self, query_fields: list[str] = _DEFAULT_query_fields) -> str:
+    def _gen_cat_query(self, query_fields: list[str] | None = None) -> str:
         """
         Generate ADQL query for catalog search
 
         self.query is modified in place
 
         Args:
-            query_fields (list of str):  Override the default list for the SQL query
+            query_fields (list of str, optional):  Override the default list for the SQL query
 
         Returns:
             str: The ADQL query (also stored in ``self.query``)
 
         """
+        if query_fields is None:
+            query_fields = _DEFAULT_query_fields
         query_field_str = ""
         for field in query_fields:
             query_field_str += " {:s},".format(field)

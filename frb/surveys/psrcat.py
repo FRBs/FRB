@@ -10,6 +10,7 @@ try:
     from pulsars import io as pio
 except ImportError:
     print("Warning:  You need FRB/pulsars installed to use PSRCat")
+    pio = None
 
 from frb.surveys import surveycoord
 from frb.surveys import catalog_utils
@@ -39,7 +40,12 @@ class PSRCAT_Survey(surveycoord.SurveyCoord):
             astropy.table.Table:  Catalog of sources returned.
             Empty (with 'ra' and 'dec' columns) if there are no pulsars in the cone.
 
+        Raises:
+            ImportError: If the FRB/pulsars package is not installed.
+
         """
+        if pio is None:
+            raise ImportError("You need FRB/pulsars installed to use PSRCat")
         # Load em
         pulsars = pio.load_pulsars()
 
