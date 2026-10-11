@@ -8,6 +8,7 @@ http://ps1images.stsci.edu/ps1_dr2_api.html
 import numpy as np
 
 from astropy import units as u,utils as astroutils
+from astropy.coordinates import Angle, SkyCoord
 from astropy.io import fits
 from astropy.table import Table, join
 from ..galaxies.defs import PanSTARRS_bands
@@ -38,6 +39,10 @@ photom["Pan-STARRS"]['ra'] = 'raStack'
 photom["Pan-STARRS"]['dec'] = 'decStack'
 photom["Pan-STARRS"]["Pan-STARRS_field"] = 'field'
 
+# Columns of the catalog that are not floats; used for the schema of empty catalogs
+schema_dtypes = {}
+schema_dtypes['Pan-STARRS'] = {'Pan-STARRS_ID': int}
+
 # Define the default set of query fields
 # See: https://outerspace.stsci.edu/display/PANSTARRS/PS1+StackObjectView+table+fields
 # for additional Fields
@@ -50,47 +55,52 @@ _DEFAULT_query_fields +=['{:s}KronMagErr'.format(band) for band in PanSTARRS_ban
 
 class Pan_STARRS_Survey(surveycoord.SurveyCoord):
     """
-    A class to access all the catalogs hosted on the
-    MAST database. Inherits from SurveyCoord. This
-    is a super class not meant for use by itself and
-    instead meant to instantiate specific children
-    classes like PAN-STARRS_Survey
+    A class to access the Pan-STARRS catalogs hosted on the
+    MAST database. Inherits from SurveyCoord.
+
+    Args:
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self,coord,radius,**kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self,coord,radius,**kwargs)
 
         self.Survey = "Pan_STARRS"
+        self.survey = 'Pan-STARRS'
     
-    def get_catalog(self,query_fields=None,release="dr2",
-                    table="stack",print_query=False,
-                    use_psf=False, photoz=True):
+    def get_catalog(self, query_fields: list[str] | None = None,
+                    release: str = "dr2", table: str = "stack",
+                    print_query: bool = False, use_psf: bool = False,
+                    photoz: bool = True) -> Table:
         """
         Query a catalog in the MAST Pan-STARRS database for
         photometry.
 
-
         Args:
-            query_fields: list, optional
-                A list of query fields to
-                get in addition to the
-                default fields.
-            release: str, optional
-                "dr1" or "dr2" (default: "dr2").
+            query_fields (list of str, optional): A list of query fields to
+                get in addition to the default fields.
+            release (str, optional): "dr1" or "dr2" (default: "dr2").
                 Data release version.
-            table: str, optional
-                "mean","stack" or "detection"
+            table (str, optional): "mean","stack" or "detection"
                 (default: "stack"). The data table to
                 search within.
-            use_psf: bool, optional
-                If True, use PSFmag instead of KronMag
-            photoz: bool, optional
-                If True, also download photometric redshifts
+            print_query (bool, optional): Print the URL of the query
+            use_psf (bool, optional): If True, use PSFmag instead of KronMag
+            photoz (bool, optional): If True, also download photometric redshifts
                 using the Mast CasJobs API.
 
-        
         Returns:
-            catalog: astropy.table.Table
-                Contains all query results
+            astropy.table.Table: Contains all query results
+
+        Raises:
+            ValueError: If the ``release``/``table`` combination is not
+                allowed, or a requested field is not in the table.
+            IOError: If ``photoz`` is True and the MAST_CASJOBS_USER and
+                MAST_CASJOBS_PWD environment variables are not set.
+
         """
         #assert self.radius <= 0.5*u.deg, "Cone serches have a maximum radius"
         #Validate table and release input
@@ -114,7 +124,10 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         ret = requests.get(url,params=data)
         ret.raise_for_status()
         if len(ret.text)==0:
-            self.catalog = Table()
+            self.catalog = catalog_utils.ensure_empty_schema(
+                Table(), list(photom['Pan-STARRS'].keys()),
+                dtypes=schema_dtypes['Pan-STARRS']
+            )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
             # Validate
@@ -129,7 +142,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
                 pdict["Pan-STARRS"+'_{:s}'.format(band)] = '{:s}PSFmag'.format(band.lower())
                 pdict["Pan-STARRS"+'_{:s}_err'.format(band)] = '{:s}PSFmagErr'.format(band.lower())
         
-        photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
+        photom_catalog = catalog_utils.clean_cat(photom_catalog, pdict, mask_photometry=True)
 
         #Remove bad positions because Pan-STARRS apparently decided
         #to flag some positions with large negative numbers. Why even keep
@@ -180,76 +193,135 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         #Return
         return self.catalog.copy()
 
-    def get_cutout(self,imsize=30*u.arcsec,filt="irg",output_size=None):
+    def get_cutout(self, imsize: u.Quantity = 30*u.arcsec, band: str = "irg",
+                   output_size: int | None = None, **kwargs) -> tuple:
         """
         Grab a color cutout (PNG) from Pan-STARRS
 
-
         Args:
-            imsize (Quantity):  Angular size of image desired
-            filt (str): A string with the three filters to be used
-            output_size (int): Output image size in pixels. Defaults
-                                to the original cutout size.
+            imsize (astropy.units.Quantity):  Angular size of image desired
+            band (str, optional): A string with the three filters to be used
+            output_size (int, optional): Output image size in pixels. Defaults
+                to the original cutout size.
+            **kwargs: Only the deprecated ``filt`` (use ``band``) is accepted.
 
         Returns:
-            PNG image, None (None for the header).
+            tuple: A 1-tuple holding the RGB image (numpy.ndarray).
+
+        Raises:
+            TypeError: If an unexpected keyword argument is given, or both
+                ``band`` and the deprecated ``filt`` are specified.
+
         """
-        assert len(filt)==3, "Need three filters for a cutout."
+        if 'filt' in kwargs:
+            warnings.warn(
+                "'filt' is deprecated; use 'band' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if band != "irg":
+                raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+            band = kwargs.pop('filt')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
+        assert len(band) == 3, "Need three filters for a cutout."
         #Sort filters from red to blue
-        filt = filt.lower() #Just in case the user is cheeky about the filter case.
+        band = band.lower() #Just in case the user is cheeky about the filter case.
         reffilt = "yzirg"
-        idx = np.argsort([reffilt.find(f) for f in filt])
-        newfilt = ""
+        idx = np.argsort([reffilt.find(f) for f in band])
+        newband = ""
         for i in idx:
-            newfilt += filt[i]
+            newband += band[i]
         #Get image url
-        url = _get_url(self.coord,imsize=imsize,filt=newfilt,output_size=output_size,color=True,imgformat='png')
+        url = _get_url(self.coord, imsize=imsize, band=newband, output_size=output_size,
+                       color=True, imgformat='png')
         self.cutout = images.grab_from_url(url)
         self.cutout_size = imsize
         return  self.cutout.copy(), 
     
-    def get_image(self,imsize=30*u.arcsec,filt="i",timeout=120):
+    def get_image(self, imsize: u.Quantity = 30*u.arcsec, band: str = "i",
+                  timeout: int | float = 120, **kwargs) -> fits.PrimaryHDU:
         """
         Grab a fits image from Pan-STARRS in a
         specific band.
 
-
         Args:
-            imsize (Quantity): Angular size of the image desired
-            filt (str): One of 'g','r','i','z','y' (default: 'i')
-            timeout (int): Number of seconds to timout the query (default: 120 s)
+            imsize (astropy.units.Quantity): Angular size of the image desired
+            band (str, optional): One of 'g','r','i','z','y' (default: 'i')
+            timeout (int or float, optional): Number of seconds to timout the query (default: 120 s)
+            **kwargs: Only the deprecated ``filt`` (use ``band``) is accepted.
 
         Returns:
-            hdu: fits header data unit for the downloaded image
+            astropy.io.fits.PrimaryHDU: fits header data unit for the downloaded image
+
+        Raises:
+            TypeError: If an unexpected keyword argument is given, or both
+                ``band`` and the deprecated ``filt`` are specified.
+
         """
-        assert len(filt)==1 and filt in "grizy", "Filter name must be one of 'g','r','i','z','y'"
-        url = _get_url(self.coord,imsize=imsize,filt=filt,imgformat='fits')[0]
+        if 'filt' in kwargs:
+            warnings.warn(
+                "'filt' is deprecated; use 'band' instead.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+            if band != "i":
+                raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+            band = kwargs.pop('filt')
+        if kwargs:
+            raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
+        assert len(band) == 1 and band in "grizy", "Filter name must be one of 'g','r','i','z','y'"
+        url = _get_url(self.coord, imsize=imsize, band=band, imgformat='fits')[0]
         imagedat = fits.open(astroutils.data.download_file(url,cache=True,show_progress=False,timeout=timeout))[0]
         return imagedat
 
 
 
-def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits",color=False):
+def _get_url(coord: SkyCoord, imsize: u.Quantity = 30*u.arcsec, band: str = "i",
+             output_size: int | None = None, imgformat: str = "fits",
+             color: bool = False, **kwargs) -> str | list[str]:
     """
     Returns the url corresponding to the requested image cutout
 
     Args:
-        coord (astropy SkyCoord): Center of the search area.
-        imsize (astropy Angle): Length and breadth of the search area.
-        filt (str): 'g','r','i','z','y'
-        output_size (int): display image size (length) in pixels
-        imgformat (str): "fits","png" or "jpg"
+        coord (astropy.coordinates.SkyCoord): Center of the search area.
+        imsize (astropy.units.Quantity): Length and breadth of the search area.
+        band (str, optional): 'g','r','i','z','y'; three of them for a color image
+        output_size (int, optional): display image size (length) in pixels
+        imgformat (str, optional): "fits","png" or "jpg"
+        color (bool, optional): Request a color image (needs three filters in ``band``
+            and a "png" or "jpg" ``imgformat``).
+        **kwargs: Only the deprecated ``filt`` (use ``band``) is accepted.
+
+    Returns:
+        str or list of str: The URL of the color image if ``color`` is True,
+        otherwise a list of URLs, one for each image of the requested band.
+
     """
     assert imgformat in ['jpg','png','fits'], "Image file can be only in the formats 'jpg', 'png' and 'fits'."
+    if 'filt' in kwargs:
+        warnings.warn(
+            "'filt' is deprecated; use 'band' instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        if band != "i":
+            raise TypeError("Specify only one of 'band' or deprecated 'filt'.")
+        band = kwargs.pop('filt')
+    if kwargs:
+        raise TypeError(f"Unexpected keyword arguments: {list(kwargs.keys())}")
+
     if color:
-        assert len(filt)==3,"Three filters are necessary for a color image"
+        assert len(band) == 3,"Three filters are necessary for a color image"
         assert imgformat in ['jpg','png'], "Color image not available in fits format"
     
     pixsize = int(imsize.to(u.arcsec).value/0.25) #0.25 arcsec per pixel
     service = "https://ps1images.stsci.edu/cgi-bin/ps1filenames.py"
     filetaburl = ("{:s}?ra={:f}&dec={:f}&size={:d}&format=fits"
-           "&filters={:s}").format(service,coord.ra.value,
-                                        coord.dec.value, pixsize,filt)
+            "&filters={:s}").format(service,coord.ra.value,
+                             coord.dec.value, pixsize,band)
     file_extensions = Table.read(filetaburl, format='ascii')['filename']
 
     url = "https://ps1images.stsci.edu/cgi-bin/fitscut.cgi?ra={:f}&dec={:f}&size={:d}&format={:s}".format(coord.ra.value,coord.dec.value,
@@ -267,7 +339,7 @@ def _get_url(coord,imsize=30*u.arcsec,filt="i",output_size=None,imgformat="fits"
             url.append(urlbase+extensions)
     return url
  
-def _check_columns(columns,table,release):
+def _check_columns(columns: list[str], table: str, release: str) -> None:
     """
     Checks if the requested columns are present in the
     table from which data is to be pulled. Raises an error
@@ -277,6 +349,10 @@ def _check_columns(columns,table,release):
         columns (list of str): column names to retrieve
         table (str): "mean","stack" or "detection"
         release (str): "dr1" or "dr2"
+
+    Raises:
+        ValueError: If any of the columns is not in the table.
+
     """
     dcols = {}
     for col in _ps1metadata(table,release)['name']:
@@ -288,15 +364,20 @@ def _check_columns(columns,table,release):
     if badcols:
         raise ValueError('Some columns not found in table: {}'.format(', '.join(badcols)))
 
-def _check_legal(table,release):
+def _check_legal(table: str, release: str) -> None:
     """
     Checks if this combination of table and release is acceptable
-    Raises a VelueError exception if there is problem.
+    Raises a ValueError exception if there is problem.
     Taken from http://ps1images.stsci.edu/ps1_dr2_api.html
 
     Args:
         table (str): "mean","stack" or "detection"
         release (str): "dr1" or "dr2"
+
+    Raises:
+        ValueError: If ``release`` is not allowed, or ``table`` is not
+            available for it.
+
     """
     
     releaselist = ("dr1", "dr2")
@@ -309,17 +390,23 @@ def _check_legal(table,release):
     if table not in tablelist:
         raise ValueError("Bad value for table (for {} must be one of {})".format(release, ", ".join(tablelist)))
 
-def _ps1metadata(table="stack",release="dr2",
-                 baseurl="https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"):
-    """Return metadata for the specified catalog and table
+def _ps1metadata(table: str = "stack", release: str = "dr2",
+                 baseurl: str = "https://catalogs.mast.stsci.edu/api/v0.1/panstarrs"
+                 ) -> Table:
+    """
+    Return metadata for the specified catalog and table
 
-    
     Args:
-        table (string): mean, stack, or detection
-        release (string): dr1 or dr2
-        baseurl: base URL for the request
-    
-    Returns an astropy table with columns name, type, description
+        table (str, optional): mean, stack, or detection
+        release (str, optional): dr1 or dr2
+        baseurl (str, optional): base URL for the request
+
+    Returns:
+        astropy.table.Table: Table with columns name, datatype, description
+
+    Raises:
+        IOError: If the server has no metadata and there is no local copy.
+
     """
     
     _check_legal(table,release)
@@ -332,11 +419,15 @@ def _ps1metadata(table="stack",release="dr2",
     try:
         tab = Table(rows=[(x['name'],x['datatype'],x['description']) for x in v],
                     names=('name','datatype','description'))
-        # Cache locally
-        # Create directory if it doesn't exist
-        if not os.path.isfile(local_metadata_path):
-            os.makedirs(os.path.dirname(local_metadata_path), exist_ok=True)
-        tab.write(local_metadata_path, overwrite=True)
+        # Cache locally. This is only a convenience: carry on if the
+        # package directory is not writable.
+        try:
+            # Create directory if it doesn't exist
+            if not os.path.isfile(local_metadata_path):
+                os.makedirs(os.path.dirname(local_metadata_path), exist_ok=True)
+            tab.write(local_metadata_path, overwrite=True)
+        except OSError:
+            pass
 
     # The following catches the case when there is a server issue
     # and we have a local copy of the metadata.

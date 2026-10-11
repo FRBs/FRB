@@ -4,7 +4,7 @@ the NEDLVS and Tully 2015 catalogs.
 """
 from frb.halos.models import ModifiedNFW, ICM, halomass_from_stellarmass_kravtsov #, YF17
 from frb.defs import frb_cosmo
-from frb.surveys.catalog_utils import xmatch_catalogs
+from frb.surveys.catalog_utils import xmatch_catalogs, fill_masked
 
 from astropy import units as u
 from astropy.table import Table, setdiff
@@ -120,7 +120,7 @@ def lvs_avg_dm_halos(frb_name, frb_coord, frb_z, nedlvs_tab, tully_clusters, rma
     
     logmhalo = halomass_from_stellarmass_kravtsov(logmstar) # Convert to Mhalo
     close_by_withmass['log_mhalo'] = logmhalo 
-    close_by_withmass = close_by_withmass.filled(-99.)
+    close_by_withmass = fill_masked(close_by_withmass, -99.)
     
     rvirs = []
     halo_dms = []
