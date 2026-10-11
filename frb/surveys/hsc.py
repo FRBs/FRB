@@ -86,6 +86,7 @@ class HSC_Survey(surveycoord.SurveyCoord):
         Raises:
             TypeError: If an unexpected keyword argument is given, or both
                 ``timeout`` and the deprecated ``max_time`` are specified.
+            QueryError: If the HSC credentials are not set or the query fails.
 
         """
         if 'max_time' in kwargs:
@@ -121,6 +122,8 @@ class HSC_Survey(surveycoord.SurveyCoord):
         # SQL command
         query_cat = run_query(query, timeout=timeout,
                               release_version=self.data_release, delete_job=True)
+        if query_cat is None:
+            raise QueryError("The HSC query failed; see the error printed above.")
 
         catalog = catalog_utils.clean_cat(query_cat, photom['HSC'], mask_photometry=True)
 
@@ -192,7 +195,7 @@ def run_query(query: str,
 
     try:
         if preview:
-            preview(credential, sql, sys.stdout)
+            _preview(credential, sql, sys.stdout, release_version=release_version)
         else:
             job = submitJob(credential, sql,
                             out_format=out_format,
@@ -346,6 +349,10 @@ def preview(credential: dict, sql: str, out: TextIO, release_version: str = "pdr
 
     if result['result']['count'] > len(result['result']['rows']):
         raise QueryError('only top %d records are displayed !' % len(result['result']['rows']))
+
+
+# run_query has an argument named preview
+_preview = preview
 
 
 def blockUntilJobFinishes(credential: dict, job_id: str,

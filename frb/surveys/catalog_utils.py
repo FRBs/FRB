@@ -61,23 +61,6 @@ def _column_values(column: Column) -> np.ndarray:
     return np.ma.filled(np.ma.asarray(column).astype(float), np.nan)
 
 
-def _masked_copy_if_needed(catalog: Table) -> Table:
-    """
-    Return a copy of a table that supports masked values.
-
-    Args:
-        catalog (astropy.table.Table): Input table.
-
-    Returns:
-        astropy.table.Table: A copy of ``catalog``. It is a masked table,
-        converted from an unmasked one if necessary.
-
-    """
-    if getattr(catalog, 'masked', False):
-        return catalog.copy()
-    return Table(catalog, masked=True, copy=True)
-
-
 def _photom_key_pairs(pdict: dict) -> dict[str, str | None]:
     """
     Map photometric columns to paired error columns using renamed keys.
@@ -120,7 +103,7 @@ def _mask_bad_photometry(catalog: Table, pdict: dict,
 
     A magnitude is bad if it is non-finite, negative or greater than
     ``MAX_VALID_MAG`` (35).
-    An error is bad if it is non-finite, negative or greater than 5.
+    An error is bad if it is non-finite, zero, negative or greater than 5.
     Bad magnitudes and bad errors are replaced by ``fill_mask``, as are the
     errors paired with bad magnitudes. The table is modified in place.
 
@@ -171,8 +154,8 @@ def _mask_bad_photometry(catalog: Table, pdict: dict,
             err_values = _column_values(catalog[err_key])
             err_bad = ~np.isfinite(err_values)
 
-            # This is key
-            err_bad |= (err_values < 0) | (err_values > 5)
+            # This is key. A zero error is unphysical and is bad too.
+            err_bad |= (err_values <= 0) | (err_values > 5)
         combined_bad = phot_bad | err_bad
 
         # No bad values? Skip to next key.
@@ -547,7 +530,7 @@ def summarize_catalog(frbc: dict, catalog: Table, summary_radius: Angle,
         summary_list += ['{:s}: The closest source is at separation {:0.2f} arcsec and has {:s} of {:0.2f}'.format(
             catalog.meta['survey'],
             seps[in_radius][closest].to('arcsec').value,
-            photom_column, catalog[photom_column][in_radius][brightest])]
+            photom_column, catalog[photom_column][in_radius][closest])]
     # Return
     return summary_list
 
@@ -596,7 +579,7 @@ def xmatch_catalogs(cat1: Table, cat2: Table,
         to go with them.
 
     """
-    assert isinstance(cat1, (Table, QTable))&isinstance(cat1, (Table, QTable)), "Catalogs must be astropy Table instances."
+    assert isinstance(cat1, (Table, QTable))&isinstance(cat2, (Table, QTable)), "Catalogs must be astropy Table instances."
     assert (RACol1 in cat1.colnames)&(DecCol1 in cat1.colnames), " Could not find either {:s} or {:s} in cat1".format(RACol1, DecCol1)
     assert (RACol2 in cat2.colnames)&(DecCol2 in cat2.colnames), " Could not find either {:s} or {:s} in cat2".format(RACol2, DecCol2)
     do_3d = (distcol1 is not None)&(distcol2 is not None)
@@ -722,7 +705,7 @@ def _mags_to_flux(mag: Column, zpt_flux: units.Quantity = 3630.7805*units.Jy,
     """
     Convert a magnitude to flux (in the same units as ``zpt_flux.value``)
 
-    Bad magnitudes (<0 or >``MAX_VALID_MAG``, i.e. 35) and bad magnitude errors (<0 or >5) are
+    Bad magnitudes (<0 or >``MAX_VALID_MAG``, i.e. 35) and bad magnitude errors (<=0 or >5) are
     set to -99. in the output. The error of a bad magnitude is also set to -99.
     An error of 999 (the upper limit flag of the host photometry) is a bad
     error, so the flux of an upper limit is kept and its error set to -99.
@@ -758,7 +741,7 @@ def _mags_to_flux(mag: Column, zpt_flux: units.Quantity = 3630.7805*units.Jy,
         flux_err = mag_err.copy()
         # An error is bad if it is itself bad (this includes the 999 upper
         # limit flag) or if the magnitude it belongs to is bad.
-        baderrs = (mag_err < 0) | (mag_err > 5) | badmags
+        baderrs = (mag_err <= 0) | (mag_err > 5) | badmags
         flux_err[baderrs] = -99.
         if exact_mag_err:
             flux_err[~baderrs] = flux[~baderrs]*(10**(mag_err[~baderrs]/2.5)-1) # exact error
@@ -790,7 +773,8 @@ def convert_mags_to_flux(photometry_table: Table, fluxunits: str = 'mJy',
 
     Returns:
         astropy.table.Table: `photometry_table` but the magnitudes
-        are converted to fluxes.
+        are converted to fluxes. A magnitude without an error column
+        (``<filter>_err``) is converted on its own.
         For upper limits, the flux is the 3sigma value and
         the error is set to -99.
 
@@ -800,10 +784,16 @@ def convert_mags_to_flux(photometry_table: Table, fluxunits: str = 'mJy',
     mag_cols, mag_errcols = _detect_mag_cols(fluxtable)
     convert = units.Jy.to(fluxunits)
 
-    for mag, err in zip(mag_cols, mag_errcols):
-        flux, flux_err = _mags_to_flux(photometry_table[mag], 
-                                       mag_err=photometry_table[err],
-                                       exact_mag_err=exact_mag_err)
+    for mag in mag_cols:
+        # Pair the magnitude with its own error column, if it has one.
+        # (The two lists are not aligned when a magnitude lacks an error.)
+        err = mag+"_err" if mag+"_err" in mag_errcols else None
+        if err is None:
+            flux = _mags_to_flux(photometry_table[mag])
+        else:
+            flux, flux_err = _mags_to_flux(photometry_table[mag],
+                                           mag_err=photometry_table[err],
+                                           exact_mag_err=exact_mag_err)
 
         # Allow for bad flux values
         badflux = flux == -99.0
@@ -811,9 +801,10 @@ def convert_mags_to_flux(photometry_table: Table, fluxunits: str = 'mJy',
         fluxtable[mag][~badflux] = flux[~badflux]*convert
 
         # Allow for bad errors
-        baderr = flux_err == -99.0
-        fluxtable[err][baderr] = flux_err[baderr]
-        fluxtable[err][~baderr] = flux_err[~baderr]*convert
+        if err is not None:
+            baderr = flux_err == -99.0
+            fluxtable[err][baderr] = flux_err[baderr]
+            fluxtable[err][~baderr] = flux_err[~baderr]*convert
 
     return fluxtable
 

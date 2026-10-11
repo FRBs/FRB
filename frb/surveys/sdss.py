@@ -145,7 +145,7 @@ class SDSS_Survey(SkyView_Survey):
                 matches = catalog_utils.match_ids(photz_cat['objid'], photom_catalog['objid'], require_in_match=False)
         else:
             matches = np.full(len(photom_catalog), fill_value=-1, dtype=int)
-        gdz = matches > 0
+        gdz = matches >= 0  # -1 flags no match; 0 is a valid row
         # Init
         photom_catalog['photo_z'] = -9999.
         photom_catalog['photo_zerr'] = -9999.

@@ -88,20 +88,20 @@ class TwoMASS_Survey(SkyView_Survey):
                                 catalog="fp_xsc")
         isempty = len(ret) == 0
 
+        # Column names depend on the catalog; work on a copy of the data model
+        pdict = photom['2MASS'].copy()
         if isempty:
             # If fp_xsc is empty, query the psc catalog
             ret = Irsa.query_region(self.coord, radius=self.radius, spatial='Cone',
                                     catalog="fp_psc")
             for band in MASS_bands: # Rename columns for mags for PSC
-                photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band.lower())
-                photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msigcom'.format(band.lower())
+                pdict["2MASS"+'_{:s}'.format(band)] = '{:s}_m'.format(band.lower())
+                pdict["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msigcom'.format(band.lower())
         else: # if XSC is not empty, rename columns for mags for XSC
             # Instead of _m and _msig, it's _m_fe and _msig_fe for fiducial elliptical Kron
             for band in MASS_bands:
-                photom["2MASS"]["2MASS"+'_{:s}'.format(band)] = '{:s}_m_fe'.format(band.lower())
-                photom["2MASS"]["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig_fe'.format(band.lower())
-
-        pdict = photom['2MASS'].copy()
+                pdict["2MASS"+'_{:s}'.format(band)] = '{:s}_m_fe'.format(band.lower())
+                pdict["2MASS"+'_{:s}_err'.format(band)] = '{:s}_msig_fe'.format(band.lower())
         
         photom_catalog = catalog_utils.clean_cat(ret, pdict, mask_photometry=True) # rename columns
 

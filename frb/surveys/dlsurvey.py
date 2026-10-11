@@ -18,6 +18,7 @@ try:
     from dl.helpers.utils import convert
 except:
     print("Warning:  astro-datalab is not installed or will not properly connect")
+    qc, ac, convert = None, None, None
 
 
 try:
@@ -39,9 +40,15 @@ class DL_Survey(surveycoord.SurveyCoord):
         **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
             (e.g. ``verbose``)
 
+    Raises:
+        ImportError: If astro-datalab is not installed or could not be loaded.
+
     """
     def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
+        if ac is None:
+            raise ImportError("astro-datalab is not installed or could not be loaded; "
+                              "it is required for the surveys hosted by NOIRLab's DataLab.")
         
         #Define photmetric band names.
         self.token = ac.login('anonymous')
@@ -240,13 +247,13 @@ class DL_Survey(surveycoord.SurveyCoord):
 
         table_cols, col_vals, bandstr = self._parse_cat_band(band)
         
-        with warnings.catch_warnings():
-            warnings.simplefilter("ignore")
         try:
-            imgTable = self.svc.search(self.coord, imsize, verbosity=2).to_table()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                imgTable = self.svc.search(self.coord, imsize, verbosity=2).to_table()
         except DALFormatError:
-            warnings.warn_explicit(f"Image cannot be retrieved. Invalid base URL?: {self.svc._baseurl}.",
-                               category=RuntimeWarning, filename="FRB/frb/surveys/dlsurvey.py", lineno=114)
+            warnings.warn(f"Image cannot be retrieved. Invalid base URL?: {self.svc._baseurl}.",
+                          RuntimeWarning)
             return None
         if verbose:
             print("The full image list contains", len(imgTable), "entries")

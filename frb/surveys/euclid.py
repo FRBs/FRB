@@ -291,8 +291,8 @@ class Euclid_Survey(surveycoord.SurveyCoord):
 
         # Run a get_datalink query
         result = Euclid.get_datalinks(ids = euclid_ids)
-        
 
+        unique_ids = []
         if result is not None and len(result) > 0:
             unique_ids = np.unique(result['ID'])
             unique_ids = [uid.replace('sedm ', '') for uid in unique_ids]  # Clean up IDs
@@ -301,21 +301,21 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         return has_spec
 
     def get_spectrum(self, euclid_id: int, output_folder: str | None = None,
-                     timeout: int | float = 120) -> tuple[None, None] | None:
+                     timeout: int | float = 120) -> list[str]:
         """
         Retrieve the spectrum for a given Euclid object ID.
 
         Args:
             euclid_id (int): The Euclid object ID to retrieve the spectrum for.
-            output_folder (str, optional): Output folder for the spectrum FITS
-                (written as ``spectrum.fits``). If None, a folder named after
+            output_folder (str, optional): Output folder for the spectrum
+                files. It is created if needed. If None, a folder named after
                 ``euclid_id`` is used.
             timeout (int or float, optional): Query timeout in seconds. Default: 120 s.
 
         Returns:
-            tuple or None: ``(None, None)`` if no spectrum was found or the
-            retrieval failed. If a spectrum was found it is written to disk
-            and nothing (None) is returned.
+            list of str: Paths of the spectrum FITS files written to
+            ``output_folder``. Empty if no spectrum was found or the
+            retrieval failed.
 
         """
 
@@ -329,21 +329,23 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             if not has_spec:
                 if self.verbose:
                     print(f"No datalinks found for Euclid ID {euclid_id}")
-                return None, None
-            else:
-                if self.verbose:
-                    print(f"Datalinks found for Euclid ID {euclid_id}.")
+                return []
+            if self.verbose:
+                print(f"Datalinks found for Euclid ID {euclid_id}.")
 
-                # Download spectra
-                if output_folder is None:
-                    output_folder = str(euclid_id) # Use ID as folder name to avoid collisions
-                with _query_timeout(timeout):
-                    
-                    Euclid.get_spectrum(source_id=euclid_id, output_file=f'{output_folder}/spectrum.fits', verbose=False)
+            # Download spectra
+            if output_folder is None:
+                output_folder = str(euclid_id) # Use ID as folder name to avoid collisions
+            os.makedirs(output_folder, exist_ok=True)
+            with _query_timeout(timeout):
+                files = Euclid.get_spectrum(source_id=euclid_id,
+                                            output_file=os.path.join(output_folder, 'spectrum.fits'),
+                                            verbose=False)
+            return [] if files is None else list(files)
         except Exception as e:
             if self.verbose:
                 print(f"Spectrum retrieval failed for Euclid ID {euclid_id}: {e}")
-            return None, None
+            return []
                 
     def get_image(self, imsize: u.Quantity | None = None,
                   output_file: str | None = None, verbose: bool | None = None,

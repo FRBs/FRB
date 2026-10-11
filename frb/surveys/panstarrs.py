@@ -69,6 +69,7 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         surveycoord.SurveyCoord.__init__(self,coord,radius,**kwargs)
 
         self.Survey = "Pan_STARRS"
+        self.survey = 'Pan-STARRS'
     
     def get_catalog(self, query_fields: list[str] | None = None,
                     release: str = "dr2", table: str = "stack",
@@ -418,11 +419,15 @@ def _ps1metadata(table: str = "stack", release: str = "dr2",
     try:
         tab = Table(rows=[(x['name'],x['datatype'],x['description']) for x in v],
                     names=('name','datatype','description'))
-        # Cache locally
-        # Create directory if it doesn't exist
-        if not os.path.isfile(local_metadata_path):
-            os.makedirs(os.path.dirname(local_metadata_path), exist_ok=True)
-        tab.write(local_metadata_path, overwrite=True)
+        # Cache locally. This is only a convenience: carry on if the
+        # package directory is not writable.
+        try:
+            # Create directory if it doesn't exist
+            if not os.path.isfile(local_metadata_path):
+                os.makedirs(os.path.dirname(local_metadata_path), exist_ok=True)
+            tab.write(local_metadata_path, overwrite=True)
+        except OSError:
+            pass
 
     # The following catches the case when there is a server issue
     # and we have a local copy of the metadata.

@@ -119,18 +119,15 @@ class VISTA_Survey(dlsurvey.DL_Survey):
             str: The SQL query (also stored in ``self.query``)
 
         Raises:
-            IOError: If ``qtype`` is not 'main' and ``query_fields`` is None.
+            IOError: If ``qtype`` is not 'main'.
 
         """
+        if qtype != 'main':
+            raise IOError("Bad qtype")
+        database = self.database
         if query_fields is None:
-            query_fields = []
             # Main query
-            if qtype == 'main':
-                for key,value in photom['VISTA'].items():
-                    query_fields += [value]
-                database = self.database
-            else:
-                raise IOError("Bad qtype")
+            query_fields = list(photom['VISTA'].values())
 
         self.query = dlsurvey._default_query_str(query_fields, database,self.coord,self.radius)
 
@@ -172,9 +169,10 @@ class VISTA_Survey(dlsurvey.DL_Survey):
                                                          photomdict=photom['VISTA'],**kwargs)
         if len(main_cat) == 0:
             main_cat = catalog_utils.clean_cat(main_cat, photom['VISTA'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()),
-                                                       dtypes=schema_dtypes['VISTA'])
-            return main_cat
+            self.catalog = catalog_utils.ensure_empty_schema(main_cat, list(photom['VISTA'].keys()),
+                                                             dtypes=schema_dtypes['VISTA'])
+            self.validate_catalog()
+            return self.catalog
         # Convert to AB mag
         if system == 'AB':
             #http://svo2.cab.inta-csic.es/svo/theory/fps3/index.php?mode=browse&gname=Paranal&gname2=VISTA

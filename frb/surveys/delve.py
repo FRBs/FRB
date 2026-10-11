@@ -13,7 +13,7 @@ except ImportError:
     print("Warning:  You need to install pyvo to retrieve DELVE images")
     _svc = None
 else:
-    _svc = sia.SIAService(defs.NOIR_DEF_ACCESS_URL+'delve_dr1')
+    _svc = sia.SIAService("https://datalab.noao.edu/sia/delve_dr2")
 
 # Define the data model for DELVE data
 # See https://datalab.noirlab.edu/query.php?name=delve_dr2.objects for
@@ -53,7 +53,7 @@ class DELVE_Survey(dlsurvey.DL_Survey):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'DELVE'
         self.bands = DELVE_bands
-        self.svc = sia.SIAService("https://datalab.noao.edu/sia/delve_dr2")
+        self.svc = _svc
         self.qc_profile = "default"
         self.database = "delve_dr2.objects"
         self.default_query_fields = list(photom['DELVE'].values())
@@ -81,12 +81,10 @@ class DELVE_Survey(dlsurvey.DL_Survey):
         main_cat = super(DELVE_Survey, self).get_catalog(query=query,
                                                          query_fields=query_fields,
                                                          print_query=print_query,**kwargs)
-        if len(main_cat) == 0:
-            main_cat = catalog_utils.clean_cat(main_cat, photom['DELVE'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DELVE'].keys()),
-                                                       dtypes=schema_dtypes['DELVE'])
-            return main_cat
         main_cat = catalog_utils.clean_cat(main_cat, photom['DELVE'], mask_photometry=True)
+        # Empty catalogs get the standard columns (no-op otherwise)
+        main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DELVE'].keys()),
+                                                     dtypes=schema_dtypes['DELVE'])
         
         # Finish
         self.catalog = main_cat

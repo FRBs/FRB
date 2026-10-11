@@ -1,6 +1,6 @@
 """ utils related to SurveyCoord objects"""
 
-from urllib.error import HTTPError
+from urllib.error import HTTPError as URLHTTPError
 from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
@@ -26,6 +26,7 @@ from astropy import units as u
 from astropy.table import Table, join
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
+from requests import ConnectionError as RequestsConnectionError
 try:
     from dl.queryClient import queryClientError
 except Exception:
@@ -141,7 +142,7 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except QueryError:
         warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
         cat = None
-    except HTTPError:
+    except (HTTPError, URLHTTPError):
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
         cat = None
     except Exception as e:
@@ -253,7 +254,7 @@ def search_all_surveys(coord: SkyCoord, radius: u.Quantity,
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-        except (ConnectionError, HTTPError, QueryError):
+        except (ConnectionError, RequestsConnectionError, HTTPError, URLHTTPError, QueryError):
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except Exception as e:
             if queryClientError is not None and isinstance(e, queryClientError):
@@ -283,7 +284,7 @@ def search_all_surveys(coord: SkyCoord, radius: u.Quantity,
                         renamed_duplicates = [colname+"_"+surveyname for colname in duplicate_colnames]
                         survey.catalog.rename_columns(duplicate_colnames.tolist(), renamed_duplicates)
 
-                    # Remov ethe 'survey' entry in the table meta data
+                    # Remove the 'survey' entry in the table meta data
                     if 'survey' in survey.catalog.meta:
                         del survey.catalog.meta['survey'] 
                     
