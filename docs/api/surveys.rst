@@ -27,8 +27,10 @@ General Usage
 
 All survey classes are instantiated with a sky coordinate and a search radius.
 The primary methods are `get_catalog()` to retrieve a source catalog as an
-`astropy.table.Table` and `get_image()` to download a FITS image as an
-`astropy.io.fits.HDUList`.
+`astropy.table.Table` and `get_image()` to download a FITS image. Most surveys
+return the image as an `astropy.io.fits.PrimaryHDU`; Euclid returns the pair
+`(numpy.ndarray, astropy.io.fits.Header)`. `None` is returned when no image is
+available.
 
 Here is a typical example using Pan-STARRS:
 
