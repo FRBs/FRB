@@ -18,6 +18,7 @@ from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 from frb.frb import FRB
 from frb import mw
 from frb.dm.igm import average_DM
+from frb.surveys.catalog_utils import fill_masked
 
 from scipy.stats import binned_statistic
 
@@ -152,7 +153,7 @@ def process_watchlist_tables(table_loc:str, outfile:str)->Table:
         tabs.append(tab)
         
     # Stack the tables
-    frb_tab = vstack(tabs).filled(-99.)
+    frb_tab = fill_masked(vstack(tabs), -99.)
     # Remove bad redshift entries and convert to floats
     frb_tab = frb_tab[~np.isin(frb_tab['z'], ['','TBD', None])]
     frb_tab['z'] = frb_tab['z'].astype(float)
