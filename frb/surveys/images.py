@@ -1,6 +1,8 @@
 """ Module for image routines"""
 
 from io import BytesIO
+from types import ModuleType
+from astropy import units
 try:
     from PIL import Image
 except ImportError:
@@ -13,17 +15,15 @@ except ImportError:
 
 from matplotlib import pyplot as plt
 
-def grab_from_url(url):
+def grab_from_url(url: str) -> "Image.Image":
     """
     Grab a PIL Image from a URL
-
 
     Args:
         url (str): URL
 
-
     Returns:
-        PIL.Image: Image retrieved from the URL
+        PIL.Image.Image: Image retrieved from the URL
 
     """
     # Simple calls
@@ -33,21 +33,20 @@ def grab_from_url(url):
     return img
 
 
-def gen_snapshot_plt(img, imsize, show=False):
+def gen_snapshot_plt(img: "Image.Image", imsize: units.Quantity,
+                     show: bool = False) -> ModuleType:
     """
     Generate a simple figure from an input PIL.Image
 
-
     Args:
-        img (PIL.Image): Image to plot
-        imsize: Angle
-          Angular dimension of the image
+        img (PIL.Image.Image): Image to plot
+        imsize (astropy.coordinates.Angle or astropy.units.Quantity):
+            Angular dimension of the image
         show (bool, optional): Show to the screen?  
            If done, will need to regenerate to then save to disk
 
-
     Returns:
-        matplotlib.pyplot:  Allows one to further modify the plot
+        module: ``matplotlib.pyplot``, which allows one to further modify the plot
 
     """
     # Convert to arcsec and float

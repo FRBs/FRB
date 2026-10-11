@@ -1,8 +1,11 @@
 """WISE Survey"""
 
 import numpy as np
+import warnings
 
 from astropy import units, io, utils
+from astropy.coordinates import Angle, SkyCoord
+from astropy.io.fits import PrimaryHDU
 from astropy.table import Table
 
 from frb.surveys import surveycoord
@@ -40,17 +43,18 @@ class WISE_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the WISE survey
 
-    Child of DL_Survey which uses datalab to access NOAO
-
-
+    Child of SurveyCoord which uses the IRSA TAP service for catalogs
+    and the IRSA SIA service for images.
 
     Args:
-        coord (SkyCoord): Coordiante for surveying around
-        radius (Angle): Search radius around the coordinate
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
 
     """
 
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         self.survey = 'WISE'
         self.bands = WISE_bands
@@ -58,38 +62,45 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.query = None
         self.database = "allwise_p3as_psd"
 
-    def get_catalog(self, query=None, query_fields=_DEFAULT_query_fields, 
-                    print_query=False, system='AB'):
+    def get_catalog(self, query: str | None = None,
+                    query_fields: list[str] | None = None,
+                    print_query: bool = False, system: str = 'AB') -> Table:
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
-
-
         Args:
-            query: Not used
-            query_fields (list, optional): Over-ride list of items to query
-            print_query (bool): Print the SQL query generated
-            system (str): Magnitude system ['AB', 'Vega']
-
-
+            query (str, optional): ADQL query to run. If None, it is
+                generated from ``query_fields``.
+            query_fields (list of str, optional): Over-ride list of items to query.
+                Defaults to the WISE magnitudes, their errors and the positions.
+            print_query (bool, optional): Print the SQL query generated
+            system (str, optional): Magnitude system ['AB', 'Vega']
 
         Returns:
             astropy.table.Table:  Catalog of sources returned.  Includes WISE
             photometry for matched sources.
 
             Magnitudes are in AB by default
+
+        Raises:
+            RuntimeError: If ``system`` is not 'AB' or 'Vega'.
+
         """
         # Main WISE query
         if query is None:
             self._gen_cat_query(query_fields)
+        else:
+            self.query = query
         if print_query:
             print(self.query)
         main_cat = self.service.run_async(self.query).to_table()
         main_cat.meta['radius'] = self.radius
         main_cat.meta['survey'] = self.survey
-        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], fill_mask=999.)
+        main_cat = catalog_utils.clean_cat(main_cat, photom['WISE'], mask_photometry=True)
         if len(main_cat) == 0:
-            return main_cat
+            self.catalog = catalog_utils.ensure_empty_schema(main_cat, list(photom['WISE'].keys()))
+            self.validate_catalog()
+            return self.catalog.copy()
         
         # Convert to AB mag
         if system == 'AB':
@@ -110,20 +121,19 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.validate_catalog()
         return self.catalog.copy()
     
-    def get_cutout(self, imsize, band, timeout=120):
+    def get_image(self, imsize: units.Quantity, band: str,
+                  timeout: int | float = 120) -> PrimaryHDU:
         """
-        Download an image from IRSA
-
+        Download a FITS image from IRSA
 
         Args:
-            imsize(Quantity): Size of the cutout in angular units.
-            band(str): One of "W1", "W2", "W3" or "W4"
-            timeout(float): Number of seconds to wait to hear a response from
+            imsize (astropy.units.Quantity): Size of the cutout in angular units.
+            band (str): One of "W1", "W2", "W3" or "W4"
+            timeout (int or float, optional): Number of seconds to wait to hear a response from
                 the IRSA SIA server.
 
-
         Returns:
-            imghdu(fits.HDU): Fits HDU with image
+            astropy.io.fits.PrimaryHDU: Fits HDU with image
         """
         assert band.upper() in self.bands, "Invalid filter name "+band
         # First get a table with the image coadd_id
@@ -137,19 +147,45 @@ class WISE_Survey(surveycoord.SurveyCoord):
         self.cutout = io.fits.open(utils.data.download_file(img_url,cache=True,show_progress=False,timeout=timeout))[0]
         self.cutout_size = imsize
         return self.cutout.copy()
+
+    def get_cutout(self, imsize: units.Quantity, band: str,
+                   timeout: int | float = 120) -> PrimaryHDU:
+        """
+        Deprecated alias for get_image().
+
+        Args:
+            imsize (astropy.units.Quantity): Size of the cutout in angular units.
+            band (str): One of "W1", "W2", "W3" or "W4"
+            timeout (int or float, optional): Number of seconds to wait to hear a response from
+                the IRSA SIA server.
+
+        Returns:
+            astropy.io.fits.PrimaryHDU: See :meth:`get_image`.
+
+        """
+        warnings.warn(
+            "get_cutout() returns FITS products for this survey and is deprecated; "
+            "use get_image() instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return self.get_image(imsize=imsize, band=band, timeout=timeout)
         
-    def _gen_cat_query(self,query_fields=_DEFAULT_query_fields):
+    def _gen_cat_query(self, query_fields: list[str] | None = None) -> str:
         """
         Generate ADQL query for catalog search
 
         self.query is modified in place
 
-
-
         Args:
-            query_fields (list):  Override the default list for the SQL query
+            query_fields (list of str, optional):  Override the default list for the SQL query
+
+        Returns:
+            str: The ADQL query (also stored in ``self.query``)
 
         """
+        if query_fields is None:
+            query_fields = _DEFAULT_query_fields
         query_field_str = ""
         for field in query_fields:
             query_field_str += " {:s},".format(field)

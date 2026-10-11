@@ -1,24 +1,22 @@
 """ I/O related to surveys """
 import os
+from types import ModuleType
 
 
-def save_plt(plt, out_dir, root, verbose=False, ftype='png'):
+def save_plt(plt: ModuleType, out_dir: str, root: str, verbose: bool = False,
+             ftype: str = 'png') -> None:
     """
     Save a matplotlib object to disk
 
-
     Args:
-        plt: matplotlib.pyplot
-        out_dir: str
-          Folder for output
-        root: str
-          Root name of the output file
-        verbose: bool, optional
-        ftype: str
-          File type, e.g.  png, pdf
-
+        plt (module): ``matplotlib.pyplot`` holding the figure to save
+        out_dir (str): Folder for output
+        root (str): Root name of the output file
+        verbose (bool, optional): Print the name of the output file
+        ftype (str, optional): File type, e.g.  png, pdf
 
     Returns:
+        None
 
     """
     # Prep

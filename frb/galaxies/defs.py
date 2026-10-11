@@ -29,7 +29,17 @@ valid_e = [
 
 # Upper limits are specified by setting the error to 999.0
 # Lower limits (derived quantities only) are specified by setting the error to -998.0
-# No measurement is specified by -999.0
+
+# Upper limits are specified by setting the error to 999.0 in the host
+# photometry tables.  The catalogs from frb.surveys instead flag them with an
+# error of -99. (the magnitude is kept).  Both are understood by
+# frb.surveys.catalog_utils.convert_mags_to_flux.
+# No measurement is specified by -999.0 in the host photometry tables.
+# The catalogs from frb.surveys instead mask bad or missing magnitudes
+# with -99.
+# No real magnitude is anywhere near these, so a magnitude at or below
+# PHOTOM_MISSING_MAX is treated as no measurement.
+PHOTOM_MISSING_MAX = -90.
 
 # Filters
 valid_filters = []

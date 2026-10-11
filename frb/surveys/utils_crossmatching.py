@@ -3,26 +3,25 @@
 last edited: May 13, 2025 """
 
 import numpy as np
+from numpy.typing import ArrayLike
 from scipy.stats import chi2
 from astropy import units as u
+from astropy.coordinates import SkyCoord
 import matplotlib.pyplot as plt
 import matplotlib
 
 
-def cov_matrix(a, b, theta):
-
+def cov_matrix(a: float, b: float, theta: float) -> np.ndarray:
     """
     Calculate the covariance matrix for a 2D ellipse.
 
-    
-    Parameters:
-    a (float): Semi-major axis of the ellipse
-    b (float): Semi-minor axis of the ellipse
-    theta (float): Position angle of the ellipse in degrees
+    Args:
+        a (float): Semi-major axis of the ellipse
+        b (float): Semi-minor axis of the ellipse
+        theta (float): Position angle of the ellipse in degrees
 
-    
     Returns:
-    np.ndarray: 2x2 covariance matrix
+        numpy.ndarray: 2x2 covariance matrix
     """
 
     # Convert theta to radians
@@ -37,20 +36,19 @@ def cov_matrix(a, b, theta):
     return covariance_matrix
 
 
-def mahalanobis_distance(point, frbcenter, cov_matrix):
+def mahalanobis_distance(point: ArrayLike, frbcenter: ArrayLike,
+                         cov_matrix: ArrayLike) -> float:
     """
     Calculate the Mahalanobis distance between a given point and the center.
     effectively the Z-score in 1D, and it can be a proxy for how many sigma away you are from the mean.
 
-
-    Parameters:
-    point (array-like): The point for which to calculate the distance (should be [RA, Dec]).
-    frbcenter (array-like): The center point, usually the mean [RA, Dec].
-    cov_matrix (array-like): The covariance matrix of the data.
-
+    Args:
+        point (array-like): The point for which to calculate the distance (should be [RA, Dec]) in degrees.
+        frbcenter (array-like): The center point, usually the mean [RA, Dec], in degrees.
+        cov_matrix (array-like): The covariance matrix of the data.
 
     Returns:
-    float: The Mahalanobis distance.
+        float: The Mahalanobis distance.
     """
 
     # the frbcenter in this case is the 'mean'
@@ -65,14 +63,27 @@ def mahalanobis_distance(point, frbcenter, cov_matrix):
     return md
 
 
-def percentile(mahalanobis_distance, df=2):
+def percentile(mahalanobis_distance: float, df: int = 2) -> float:
+    """
+    Convert a Mahalanobis distance into the cumulative probability of a chi-squared distribution.
+
+    Args:
+        mahalanobis_distance (float): The Mahalanobis distance.
+        df (int, optional): Degrees of freedom of the chi-squared distribution.
+
+    Returns:
+        float: Probability that a point drawn from the distribution lies within
+        ``mahalanobis_distance`` of the center.
+    """
     p_value = chi2.cdf(mahalanobis_distance**2, df)
     return p_value
 
 
-def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
-                  transient_position=None, levels=[0.68, 0.95, 0.99],
-                  save_fig=False):
+def gauss_contour(frbcenter: SkyCoord, cov_matrix: ArrayLike,
+                  semi_major: float, transient_name: str,
+                  transient_position: SkyCoord | None = None,
+                  levels: list[float] = [0.68, 0.95, 0.99],
+                  save_fig: bool = False) -> None:
     
     """
     Plot Gaussian contours around a given FRB center based on its covariance matrix.
@@ -82,15 +93,19 @@ def gauss_contour(frbcenter, cov_matrix, semi_major, transient_name,
     its covariance matrix. Then, it plots the position of the transient along with 
     the Mahalanobis distance from the FRB center.
 
-    
-    Parameters:
-    frbcenter (Astropy SkyCoord): The central position of the FRB.
-    cov_matrix (array-like): The covariance matrix representing the uncertainties in the FRB's position.
-    semi_major (float): The semi-major axis of the Gaussian ellipse in degrees.
-    transient_name (str): The name of the transient source.
-    transient_position (Astropy SkyCoord): Transient position.
-    levels: List of confidence levels for the contours (default: [0.68, 0.95, 0.99]).
-    save_fig (optional; bool): set flag to true to save the figure.
+    Args:
+        frbcenter (astropy.coordinates.SkyCoord): The central position of the FRB.
+        cov_matrix (array-like): The covariance matrix representing the uncertainties in the FRB's position.
+        semi_major (float): The semi-major axis of the Gaussian ellipse in degrees.
+            Currently not used.
+        transient_name (str): The name of the transient source.
+        transient_position (astropy.coordinates.SkyCoord, optional): Transient position.
+        levels (list of float, optional): Confidence levels for the contours (default: [0.68, 0.95, 0.99]).
+        save_fig (bool, optional): set flag to true to save the figure
+            as ``<transient_name>_gaussian_map.png``.
+
+    Returns:
+        None
     """
     
     eigvals, eigvecs = np.linalg.eigh(cov_matrix)

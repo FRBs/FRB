@@ -21,6 +21,7 @@ from astropy import stats
 from photutils.aperture import aperture_photometry, SkyCircularAperture
 
 from frb.galaxies import defs
+from frb.surveys.catalog_utils import fill_masked
 
 try:
     import dust_extinction
@@ -73,12 +74,12 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
         new_tbl['ra'] = old_tbl['ra'][idx[0]]
         new_tbl['dec'] = old_tbl['dec'][idx[0]]
         # Join
-        merge_tbl = hstack([old_tbl.filled(-999.), new_tbl.filled(-999.)])
+        merge_tbl = hstack([fill_masked(old_tbl, -999.), fill_masked(new_tbl, -999.)])
         merge_tbl.remove_columns(['ra_2', 'dec_2'])
         merge_tbl.rename_columns(['ra_1', 'dec_1'], ['ra', 'dec'])
         #merge_tbl = join(old_tbl.filled(-999.), new_tbl, join_type='left').filled(-999.)
     elif np.sum(match) == 0:
-        merge_tbl = vstack([old_tbl, new_tbl]).filled(-999.)
+        merge_tbl = fill_masked(vstack([old_tbl, new_tbl]), -999.)
     else:
         embed(header='50 of photom')  # Best to avoid!!  Use photom_by_name
     # Return
@@ -115,7 +116,7 @@ def photom_by_name(name, filelist):
                     if sub_tbl[key].mask != True:  # Cannot use "is"
                         final_tbl[key] = sub_tbl[key]
     # Return
-    return final_tbl.filled(fill_value)
+    return fill_masked(final_tbl, fill_value)
 
 
 def extinction_correction(filt, EBV, RV=3.1, max_wave=None, required=True):
@@ -244,9 +245,9 @@ def correct_photom_table(photom, EBV, name, max_wave=None, required=True):
             print("Assumed filter {} is not in our valid list.  Skipping extinction".format(
                 filt))
             continue
-        # -999? -- Not even measured
+        # -999. or -99.? -- Not even measured
         try:
-            if cut_photom[filt] <= -999.:
+            if cut_photom[filt] <= defs.PHOTOM_MISSING_MAX:
                 continue
         except:
             embed(header='187 in photom')
