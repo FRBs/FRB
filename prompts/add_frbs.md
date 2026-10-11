@@ -155,6 +155,10 @@ Use Opus 5.5.  Log your work.
      - run `pytest frb/tests/test_frb.py frb/tests/test_frbhosts.py`.
    - Then remove the "Sync" sentences from PR Checklist → FRBs/Hosts and mark Q14 as moot.
 
+## PR
+
+1. I have issued 
+
 ## Repo CSVs
 
 Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
