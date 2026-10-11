@@ -5,7 +5,7 @@
 import numpy as np
 import astropy
 import pytest
-import os, warnings
+import os, warnings, importlib
 
 from astropy.table import Table
 from astropy.coordinates import SkyCoord
@@ -35,11 +35,239 @@ def _assert_masked_photometry(table):
             assert np.all(table[err_col][masked] == -99.0)
 
         good_photom = table[mag_col][~masked]
-        assert np.all((good_photom > 0) & (good_photom < 30))
+        assert np.all((good_photom > 0) & (good_photom < cu.MAX_VALID_MAG))
 
         if err_col in table.colnames:
             good_err = table[err_col][table[err_col] != -99.0]
             assert np.all((good_err > 0) & (good_err < 5))
+
+
+def test_mask_bad_photometry_honors_mask():
+    """Masked photometry is filled with the sentinel whatever data is under the mask"""
+    for under in [np.nan, 0., 12., 99.99]:
+        tab = Table(masked=True)
+        tab['ra'] = [1., 2., 3.]
+        tab['dec'] = [1., 2., 3.]
+        tab['w4mag'] = np.ma.MaskedArray([12., under, 13.], mask=[False, True, False])
+        tab['w4sigm'] = np.ma.MaskedArray([0.2, under, 9.0], mask=[False, True, False])
+        pdict = {'WISE_W4': 'w4mag', 'WISE_W4_err': 'w4sigm', 'ra': 'ra', 'dec': 'dec'}
+        out = cu.clean_cat(tab, pdict, mask_photometry=True)
+        # Good measurement untouched
+        assert out['WISE_W4'][0] == 12. and out['WISE_W4_err'][0] == 0.2
+        # Masked entries are sentinels and not masked
+        assert out['WISE_W4'][1] == -99. and out['WISE_W4_err'][1] == -99.
+        assert not np.ma.is_masked(out['WISE_W4'][1])
+        # Good magnitude with bad error: magnitude kept (upper limit), error flagged
+        assert out['WISE_W4'][2] == 13. and out['WISE_W4_err'][2] == -99.
+
+
+def _masked_survey_table():
+    # An ID and a photometry column with masked entries, and metadata
+    tab = Table(masked=True)
+    tab['ra'] = [1., 2., 3.]
+    tab['dec'] = [1., 2., 3.]
+    tab['id'] = np.ma.MaskedArray([10, 11, 12], mask=[False, True, False])
+    tab['mag'] = np.ma.MaskedArray([20., 21., 22.], mask=[False, True, False])
+    tab['mag_err'] = np.ma.MaskedArray([0.1, 0.2, 0.3], mask=[False, True, False])
+    tab.meta['survey'] = 'TEST'
+    pdict = {'T_ID': 'id', 'T_g': 'mag', 'T_g_err': 'mag_err', 'ra': 'ra', 'dec': 'dec'}
+    return tab, pdict
+
+
+def test_clean_cat_fill_mask():
+    """fill_mask and mask_photometry combine as documented in clean_cat"""
+    # Rename only: masks are kept
+    tab, pdict = _masked_survey_table()
+    out = cu.clean_cat(tab, pdict)
+    assert out['T_ID'].mask[1] and out['T_g'].mask[1]
+
+    # fill_mask alone fills every masked entry (the main behavior)
+    tab, pdict = _masked_survey_table()
+    out = cu.clean_cat(tab, pdict, fill_mask=-99.)
+    assert not out.has_masked_values
+    assert out['T_ID'][1] == -99 and out['T_g'][1] == -99. and out['T_g_err'][1] == -99.
+    assert out['T_g'][0] == 20.
+    assert out.meta['survey'] == 'TEST'
+
+    # mask_photometry alone: photometry gets -99, other masked entries stay masked
+    tab, pdict = _masked_survey_table()
+    out = cu.clean_cat(tab, pdict, mask_photometry=True)
+    assert out['T_g'][1] == -99. and out['T_g_err'][1] == -99.
+    assert not np.ma.is_masked(out['T_g'][1])
+    assert out['T_ID'].mask[1]
+
+    # Both, with a non-default value: used for the photometry and everything else
+    tab, pdict = _masked_survey_table()
+    out = cu.clean_cat(tab, pdict, fill_mask=-999., mask_photometry=True)
+    assert not out.has_masked_values
+    assert out['T_g'][1] == -999. and out['T_g_err'][1] == -999. and out['T_ID'][1] == -999
+
+    # An unmasked table is untouched
+    tab = Table({'ra': [1., 2.], 'dec': [1., 2.], 'mag': [20., 21.]})
+    out = cu.clean_cat(tab, {'T_g': 'mag'}, fill_mask=-99.)
+    assert np.all(out['T_g'] == [20., 21.])
+
+
+def _masked_col_table(values, mask, **kwargs):
+    tab = Table(masked=True)
+    tab['c'] = np.ma.MaskedArray(values, mask=mask)
+    return tab
+
+
+def test_fill_masked_strings():
+    """String columns are widened, not truncated, when filled with a number"""
+    # Widths narrower than, equal to and wider than the text '-99.0'
+    for values, expected in [(['t', 'f'], '-99.0'), (['ab', 'cd'], '-99.0'),
+                             (['STAR', 'QSO'], '-99.0'), (['GALAXY', 'x'], '-99.0'),
+                             (['DESI J123456.7+012345', 'x'], '-99.0')]:
+        tab = _masked_col_table(values, [False, True])
+        out = cu.fill_masked(tab, -99.)
+        assert out['c'][0] == values[0]
+        assert out['c'][1] == expected
+        assert not out.has_masked_values
+        assert tab.has_masked_values  # Input is untouched
+    # The sentinel survives a round trip through float() (what chk_fill relies on)
+    out = cu.fill_masked(_masked_col_table(['abc', 'def'], [False, True]), -999.)
+    assert float(out['c'][1]) == -999.
+    # Bytes and object columns
+    out = cu.fill_masked(_masked_col_table(np.array([b'STAR', b'QSO']), [False, True]), -99.)
+    assert out['c'].dtype.kind == 'S'  # Still bytes (astropy shows the items as str)
+    assert out['c'][1] == '-99.0' and out['c'][0] == 'STAR'
+    out = cu.fill_masked(_masked_col_table(np.array(['a', 'bcd'], dtype=object), [False, True]), -99.)
+    assert out['c'][1] == '-99.0' and isinstance(out['c'][1], str)
+    # Override the text
+    out = cu.fill_masked(_masked_col_table(['ab', 'cd'], [False, True]), -99., str_fill='')
+    assert out['c'][1] == ''
+
+
+def test_fill_masked_other_dtypes():
+    # Numeric columns: filled, with units and metadata kept
+    tab = Table(masked=True)
+    tab['f'] = np.ma.MaskedArray([1., 2.], mask=[False, True])
+    tab['i'] = np.ma.MaskedArray([1, 2], mask=[False, True])
+    tab['f'].unit = units.mag
+    tab.meta['survey'] = 'TEST'
+    out = cu.fill_masked(tab, -99.)
+    assert out['f'][1] == -99. and out['i'][1] == -99
+    assert out['f'].unit == units.mag and out.meta['survey'] == 'TEST'
+    assert not out.has_masked_values
+    # Columns that cannot hold the sentinel stay masked, without errors or fake values
+    tab = Table(masked=True)
+    tab['b'] = np.ma.MaskedArray([True, False], mask=[False, True])
+    tab['u'] = np.ma.MaskedArray(np.array([1, 2], dtype=np.uint8), mask=[False, True])
+    tab['f'] = np.ma.MaskedArray([1., 2.], mask=[False, True])
+    out = cu.fill_masked(tab, -99.)
+    assert out['b'].mask[1] and out['u'].mask[1]
+    assert out['f'][1] == -99. and not np.ma.is_masked(out['f'][1])
+    # An unmasked table is returned as is
+    tab = Table({'a': [1., 2.], 's': ['x', 'y']})
+    out = cu.fill_masked(tab, -99.)
+    assert np.all(out['a'] == [1., 2.]) and list(out['s']) == ['x', 'y']
+
+
+def test_clean_cat_fill_mask_strings():
+    tab = Table(masked=True)
+    tab['ra'] = [1., 2.]
+    tab['dec'] = [1., 2.]
+    tab['type'] = np.ma.MaskedArray(['PSF', 'DEV'], mask=[False, True])
+    out = cu.clean_cat(tab, {'T_type': 'type', 'ra': 'ra', 'dec': 'dec'}, fill_mask=-99.)
+    assert out['T_type'][0] == 'PSF' and out['T_type'][1] == '-99.0'
+
+
+def test_xmatch_and_merge_fill_value_strings():
+    # A string column that is missing for one of the sources (and is narrow)
+    des = Table({'ra': [10.0000, 10.0100], 'dec': [20.0000, 20.0100],
+                 'DES_r': [21., 22.], 'DES_type': ['PSF', 'DEV']})
+    wise = Table({'ra': [10.00001, 10.0200], 'dec': [20.00001, 20.0200],
+                  'WISE_W1': [18., 19.]})
+    merged = cu.xmatch_and_merge_cats(des, wise, tol=1*units.arcsec, fill_value=-999.)
+    assert not merged.has_masked_values
+    assert sorted(merged['DES_type']) == ['-999.0', 'DEV', 'PSF']
+    assert np.sum(merged['DES_r'] == -999.) == 1
+
+
+def test_ensure_empty_schema_dtypes():
+    columns = ['ra', 'dec', 'ID', 'type', 'mag']
+    out = cu.ensure_empty_schema(Table(), columns, dtypes={'ID': int, 'type': str})
+    assert len(out) == 0 and out.colnames == columns
+    assert out['ra'].dtype.kind == 'f' and out['mag'].dtype.kind == 'f'
+    assert out['ID'].dtype.kind == 'i' and out['type'].dtype.kind == 'U'
+    # Without dtypes everything is a float, as before
+    out = cu.ensure_empty_schema(Table(), columns)
+    assert all(out[col].dtype.kind == 'f' for col in columns)
+    # Existing columns of the wrong kind are converted, others are kept, extras are dropped
+    tab = Table({'ra': np.array([], dtype=float), 'ID': np.array([], dtype=float),
+                 'type': np.array([], dtype=object), 'extra': np.array([], dtype=float)})
+    tab['ra'].unit = units.deg
+    out = cu.ensure_empty_schema(tab, columns, dtypes={'ID': 'uint64', 'type': str})
+    assert out['ID'].dtype == np.dtype('uint64') and out['type'].dtype.kind == 'U'
+    assert out['ra'].unit == units.deg and 'extra' not in out.colnames
+    # A catalog with rows is left alone
+    tab = Table({'ra': [1.], 'ID': [1.5]})
+    out = cu.ensure_empty_schema(tab, ['ra', 'ID'], dtypes={'ID': int})
+    assert out['ID'].dtype.kind == 'f' and len(out) == 1
+
+
+@pytest.mark.parametrize('survey,modname', [
+    ('DECaL', 'decals'), ('DES', 'des'), ('DELVE', 'delve'), ('NSC', 'nsc'),
+    ('VISTA', 'vista'), ('SDSS', 'sdss'), ('GALEX', 'galex'),
+    ('Pan-STARRS', 'panstarrs'), ('Euclid', 'euclid'), ('DESI', 'desi')])
+def test_survey_schema_dtypes(survey, modname):
+    """The declared dtypes of every survey refer to columns of its schema and are honored"""
+    module = importlib.import_module(f'frb.surveys.{modname}')
+    schema = getattr(module, 'photom', {}).get(survey) or module.spectrom[survey]
+    dtypes = module.schema_dtypes[survey]
+    assert len(dtypes) > 0 and set(dtypes) <= set(schema)
+    empty = cu.ensure_empty_schema(Table(), list(schema), dtypes=dtypes)
+    for col in schema:
+        kind = np.dtype(dtypes[col]).kind if col in dtypes else 'f'
+        assert empty[col].dtype.kind == kind, col
+
+
+def test_mask_bad_photometry_deep():
+    """Deep (HST/JWST) magnitudes survive the masking, placeholders do not"""
+    tab = Table()
+    tab['ra'] = [1., 2., 3., 4.]
+    tab['dec'] = [1., 2., 3., 4.]
+    tab['mag'] = [31., 34.9, 35.1, 99.99]
+    tab['mag_err'] = [0.3, 0.2, 0.2, 99.99]
+    pdict = {'F_x': 'mag', 'F_x_err': 'mag_err', 'ra': 'ra', 'dec': 'dec'}
+    out = cu.clean_cat(tab, pdict, mask_photometry=True)
+    assert np.allclose(out['F_x'], [31., 34.9, -99., -99.])
+    assert np.allclose(out['F_x_err'], [0.3, 0.2, -99., -99.])
+
+
+def _merge_tables():
+    # One source in both tables, one in each table only
+    des = Table({'ra': [10.0000, 10.0100], 'dec': [20.0000, 20.0100],
+                 'DES_r': [21., 22.], 'DES_r_err': [0.1, 0.2]})
+    wise = Table({'ra': [10.00001, 10.0200], 'dec': [20.00001, 20.0200],
+                  'WISE_W1': [18., 19.], 'WISE_W1_err': [0.05, 0.06]})
+    return des, wise
+
+
+def test_xmatch_and_merge_masks_by_default():
+    des, wise = _merge_tables()
+    merged = cu.xmatch_and_merge_cats(des, wise, tol=1*units.arcsec)
+    assert len(merged) == 3
+    # Sources missing from one of the tables are masked, not given fake values
+    assert np.sum(merged['DES_r'].mask) == 1
+    assert np.sum(merged['WISE_W1'].mask) == 1
+    # and they stay masked through the flux conversion
+    flux = cu.convert_mags_to_flux(merged)
+    assert np.sum(flux['DES_r'].mask) == 1 and np.sum(flux['WISE_W1_err'].mask) == 1
+
+
+def test_xmatch_and_merge_fill_value():
+    des, wise = _merge_tables()
+    merged = cu.xmatch_and_merge_cats(des, wise, tol=1*units.arcsec, fill_value=-999.)
+    assert not np.ma.is_masked(merged['DES_r'])
+    assert np.sum(merged['DES_r'] == -999.) == 1
+    assert np.sum(merged['WISE_W1_err'] == -999.) == 1
+    # -999. is "no measurement": both flux and error are flagged
+    flux = cu.convert_mags_to_flux(merged)
+    missing = merged['DES_r'] == -999.
+    assert np.all(flux['DES_r'][missing] == -99.) and np.all(flux['DES_r_err'][missing] == -99.)
 
 
 def _assert_empty_catalog(survey_name, catalog_kwargs=None):
@@ -59,7 +287,8 @@ def _assert_empty_catalog(survey_name, catalog_kwargs=None):
 
     for coord, radius in candidates:
         try:
-            empty_tbl = survey_utils.load_survey_by_name(survey_name, coord, radius).get_catalog(**catalog_kwargs)
+            survey = survey_utils.load_survey_by_name(survey_name, coord, radius)
+            empty_tbl = survey.get_catalog(**catalog_kwargs)
         except Exception:
             continue
 
@@ -67,6 +296,10 @@ def _assert_empty_catalog(survey_name, catalog_kwargs=None):
             assert isinstance(empty_tbl, Table)
             assert len(empty_tbl) == 0
             assert len(empty_tbl.colnames) > 2
+            # Non-float columns (IDs, strings) have their proper dtype even if empty
+            module = importlib.import_module(type(survey).__module__)
+            for col, dtype in getattr(module, 'schema_dtypes', {}).get(survey.survey, {}).items():
+                assert empty_tbl[col].dtype.kind == np.dtype(dtype).kind, col
             return empty_tbl
 
     pytest.fail(f'Could not find an empty catalog for {survey_name}')

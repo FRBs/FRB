@@ -1,6 +1,7 @@
 """DECaLS"""
 
 import numpy as np
+from astropy.coordinates import Angle, SkyCoord
 from astropy.table import Table
 
 from frb.surveys import dlsurvey
@@ -33,20 +34,25 @@ photom['DECaL']['dec'] = 'dec'
 photom['DECaL']['DECaL_brick'] = 'brickid'
 photom['DECaL']['DECaL_type'] = 'type' # Replaces `gaia_pointsource` from DR8.
 
+# Columns of the catalog that are not floats; used for the schema of empty catalogs
+schema_dtypes = {}
+schema_dtypes['DECaL'] = {'DECaL_ID': int, 'DECaL_brick': int, 'DECaL_type': str}
+
 class DECaL_Survey(dlsurvey.DL_Survey):
     """
     Class to handle queries on the DECaL survey
-    
+
     Child of DL_Survey which uses datalab to access NOAO
 
-    
     Args:
-        coord (SkyCoord): Coordinate for surveying around
-        radius (Angle): Search radius around the coordinate
-        
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.dlsurvey.DL_Survey`
+            (e.g. ``verbose``)
+
     """
 
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         dlsurvey.DL_Survey.__init__(self, coord, radius, **kwargs)
         self.survey = 'DECaL'
         self.bands = ['g', 'r', 'z']
@@ -55,21 +61,28 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         self.database = "ls_dr10.tractor"
         self.default_query_fields = list(photom['DECaL'].values())
 
-    def get_catalog(self, query=None, query_fields=None, print_query=False,exclude_stars=False,**kwargs):
+    def get_catalog(self, query: str | None = None,
+                    query_fields: list[str] | None = None,
+                    print_query: bool = False, exclude_stars: bool = False,
+                    **kwargs) -> Table:
         """
         Grab a catalog of sources around the input coordinate to the search radius
 
-        
         Args:
-            query: SQL query
-            query_fields (list, optional): Over-ride list of items to query
-            exclude_gaia (bool,optional): If the field 'type' is present and is 'PSF',
-                                         remove those objects from the output catalog.
-            print_query (bool): Print the SQL query generated 
+            query (str, optional): SQL query. If None, it is generated
+                from the default fields and ``query_fields``, and joined
+                with the DECaLS photo-z table.
+            query_fields (list of str, optional): Additional items to query
+                on top of the default fields
+            print_query (bool, optional): Print the SQL query generated
+            exclude_stars (bool, optional): If the field 'type' is present and is 'PSF',
+                remove those objects from the output catalog.
+            **kwargs: Passed to :meth:`frb.surveys.dlsurvey.DL_Survey.get_catalog`
+                (e.g. ``timeout``)
 
         Returns:
             astropy.table.Table:  Catalog of sources returned
-                Can be empty
+            Can be empty
 
         """
         # Query
@@ -86,7 +99,8 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         main_cat = Table(main_cat,masked=True)
         if len(main_cat)==0:
             main_cat = catalog_utils.clean_cat(main_cat, photom['DECaL'], mask_photometry=True)
-            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DECaL'].keys()))
+            main_cat = catalog_utils.ensure_empty_schema(main_cat, list(photom['DECaL'].keys()),
+                                                       dtypes=schema_dtypes['DECaL'])
             return main_cat 
         #
         for col in main_cat.colnames:
@@ -118,17 +132,20 @@ class DECaL_Survey(dlsurvey.DL_Survey):
         # Return
         return self.catalog
 
-    def _parse_cat_band(self, band):
+    def _parse_cat_band(self, band: str) -> tuple[list[str], list[str], str]:
         """
         Internal method to generate the bands for grabbing
         a cutout image
 
-        
         Args:
-            band (str): Band desired 
+            band (str): Band desired; 'g', 'r' or 'z'
 
         Returns:
-            list, list, str:  Table columns, Column values, band string for cutout
+            tuple: Three items:
+
+                - list of str: Names of the image table columns to select on
+                - list of str: Values the columns must have
+                - str: Band string for cutout
 
         """
         if band == 'g':

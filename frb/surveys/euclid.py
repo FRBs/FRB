@@ -9,9 +9,12 @@ import warnings
 import signal
 import os
 import shutil
+from collections.abc import Iterator
 from contextlib import contextmanager
+from types import FrameType
 import numpy as np
 from astropy import units as u
+from astropy.coordinates import Angle, SkyCoord
 from astropy.io import fits
 from astropy.table import Table
 
@@ -26,13 +29,35 @@ from frb.surveys import catalog_utils
 
 
 @contextmanager
-def _query_timeout(timeout_seconds):
-    """Context manager to enforce a hard timeout on blocking archive queries."""
+def _query_timeout(timeout_seconds: int | float | None) -> Iterator[None]:
+    """
+    Context manager to enforce a hard timeout on blocking archive queries.
+
+    Uses SIGALRM, so it only works in the main thread on Unix.
+
+    Args:
+        timeout_seconds (int or float or None): Seconds after which a
+            ``TimeoutError`` is raised. No timeout is enforced if it is None
+            or not positive.
+
+    Raises:
+        TimeoutError: If the body of the ``with`` block takes longer than
+            ``timeout_seconds``.
+
+    """
     if timeout_seconds is None or timeout_seconds <= 0:
         yield
         return
 
-    def _handler(signum, frame):
+    def _handler(signum: int, frame: FrameType | None) -> None:
+        """
+        SIGALRM handler that raises a ``TimeoutError``.
+
+        Args:
+            signum (int): Signal number.
+            frame (types.FrameType or None): Current stack frame.
+
+        """
         raise TimeoutError(f"Euclid query timed out after {timeout_seconds} seconds")
 
     previous_handler = signal.getsignal(signal.SIGALRM)
@@ -68,11 +93,28 @@ photom['Euclid']['Euclid_ellipticity'] = 'ellipticity'
 photom['Euclid']['Euclid_kron_radius'] = 'kron_radius'
 photom['Euclid']['Euclid_segmentation_area'] = 'segmentation_area'
 
+# Columns of the catalog that are not floats; used for the schema of empty catalogs
+schema_dtypes = {}
+schema_dtypes['Euclid'] = {'Euclid_ID': int, 'Euclid_segmentation_area': int}
+
 _EUCLID_FLUX_SCALE = 1e-6 / 3630.7805
 
 
-def _euclid_flux_to_abmag(flux_microjy, fluxerr_microjy):
-    """Convert Euclid microJy fluxes and errors to AB magnitudes."""
+def _euclid_flux_to_abmag(flux_microjy: np.ndarray,
+                          fluxerr_microjy: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """
+    Convert Euclid microJy fluxes and errors to AB magnitudes.
+
+    Args:
+        flux_microjy (array-like): Fluxes in microJy.
+        fluxerr_microjy (array-like): Flux errors in microJy.
+
+    Returns:
+        tuple of numpy.ndarray: The AB magnitudes and their errors.
+        Both are NaN where the flux is not finite and positive; the error
+        is also NaN where the flux error is not finite and positive.
+
+    """
     flux = np.asarray(flux_microjy, dtype=float)
     fluxerr = np.asarray(fluxerr_microjy, dtype=float)
     mag = np.full(flux.shape, np.nan, dtype=float)
@@ -103,9 +145,10 @@ class Euclid_Survey(surveycoord.SurveyCoord):
     mer_catalogue table which contains VIS+NIR photometry and morphology.
 
     Args:
-        coord (SkyCoord): Coordinate for surveying around
-        radius (Angle): Search radius around the coordinate
-        verbose (bool, optional): Verbosity flag
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
 
     Examples:
         >>> from astropy.coordinates import SkyCoord
@@ -117,11 +160,12 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         >>> catalog = survey.get_catalog()
     """
 
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         self.survey = 'Euclid'
 
-    def get_catalog(self, query_fields=None, timeout=120, check_spectra=False):
+    def get_catalog(self, query_fields: list[str] | None = None,
+                    timeout: int | float = 120, check_spectra: bool = False) -> Table:
         """
         Query Euclid for all objects within a given radius of input coordinates.
 
@@ -129,22 +173,26 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         Optionally searches for associated spectroscopy if photometry is found.
 
         Args:
-            query_fields (list, optional):
+            query_fields (list of str, optional):
                 List of column names to retrieve from database.
                 If None, uses default set: object_id, right_ascension, declination,
                 plus all photometric and morphological columns.
-            timeout (float, optional):
+            timeout (int or float, optional):
                 Query timeout in seconds. Default: 120 s.
-            print_query (bool, optional):
-                If True, print the ADQL query. Default: False.
             check_spectra (bool, optional):
-                If True, check for associated spectra for photometric sources.
-                Default: False.
+                If True, check for associated spectra for photometric sources
+                (see :meth:`spectra_exist`) and add the boolean column
+                'Euclid_has_spectrum'. Default: False.
+
         Returns:
             astropy.table.Table:
                 Catalog of sources with standardized FRB column names.
                 Includes ra, dec, and Euclid_{VIS,J,H,Y} magnitudes.
                 Empty table if no sources found.
+
+        Raises:
+            TimeoutError: If the archive does not respond within ``timeout``.
+
         """
 
         # Default fields to query
@@ -181,7 +229,7 @@ class Euclid_Survey(surveycoord.SurveyCoord):
 
         if photom_catalog is None or len(photom_catalog) == 0:
             self.catalog = catalog_utils.ensure_empty_schema(
-                Table(), list(photom['Euclid'].keys())
+                Table(), list(photom['Euclid'].keys()), dtypes=schema_dtypes['Euclid']
             )
             self.catalog.meta['radius'] = self.radius
             self.catalog.meta['survey'] = self.survey
@@ -220,19 +268,20 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         self.validate_catalog()
         return self.catalog.copy()
 
-    def spectra_exist(self, euclid_ids: list | np.ndarray | int):
+    def spectra_exist(self, euclid_ids: list | np.ndarray | int) -> np.ndarray:
         """
         Check if spectroscopic data exists for photometric sources.
 
-        Queries the spectra_source table and attempts to match with
-        photometric catalog. Only adds spectrum if found.
+        This method queries Euclid datalinks using the Euclid object IDs.
 
-        Adds two columns to self.catalog:
-            - Euclid_has_spectrum (bool)
-            - Euclid_n_datalinks (int)
+        Args:
+            euclid_ids (list or numpy.ndarray or int): Euclid object ID(s)
+                to check.
 
-        This method queries Euclid datalinks using the Euclid object IDs
-        in the catalog.
+        Returns:
+            numpy.ndarray: Boolean array, True where there is
+            a spectrum for the corresponding ID in ``euclid_ids``.
+
         """
         euclid_ids = np.atleast_1d(euclid_ids)
         ncat = len(euclid_ids)
@@ -251,16 +300,23 @@ class Euclid_Survey(surveycoord.SurveyCoord):
         has_spec = np.isin(euclid_ids, unique_ids)
         return has_spec
 
-    def get_spectrum(self, euclid_id, output_folder=None, timeout=120):
+    def get_spectrum(self, euclid_id: int, output_folder: str | None = None,
+                     timeout: int | float = 120) -> tuple[None, None] | None:
         """
         Retrieve the spectrum for a given Euclid object ID.
 
         Args:
             euclid_id (int): The Euclid object ID to retrieve the spectrum for.
-            output_folder (str, optional): Output folder for spectrum FITS. If None, uses temporary location.
-            timeout (float, optional): Query timeout in seconds. Default: 120 s.
+            output_folder (str, optional): Output folder for the spectrum FITS
+                (written as ``spectrum.fits``). If None, a folder named after
+                ``euclid_id`` is used.
+            timeout (int or float, optional): Query timeout in seconds. Default: 120 s.
+
         Returns:
-            tuple: (spectrum_data, spectrum_header) if spectrum found, (None, None) otherwise.
+            tuple or None: ``(None, None)`` if no spectrum was found or the
+            retrieval failed. If a spectrum was found it is written to disk
+            and nothing (None) is returned.
+
         """
 
         try:
@@ -289,24 +345,32 @@ class Euclid_Survey(surveycoord.SurveyCoord):
                 print(f"Spectrum retrieval failed for Euclid ID {euclid_id}: {e}")
             return None, None
                 
-    def get_image(self, imsize=None, output_file=None, verbose=None, timeout=120):
+    def get_image(self, imsize: u.Quantity | None = None,
+                  output_file: str | None = None, verbose: bool | None = None,
+                  timeout: int | float = 120
+                  ) -> tuple[np.ndarray, fits.Header] | tuple[None, None]:
         """
         Get a FITS image cutout of a Euclid MER background-subtracted mosaic image.
 
         Queries the mosaic_product table to find MER background-subtracted
         mosaics covering the target region, then retrieves a cutout.
+        The cutout and its header are also stored in ``self.cutout`` and
+        ``self.cutout_hdr``.
 
         Args:
-            imsize (Angle, optional):
+            imsize (astropy.units.Quantity, optional):
                 Size of cutout image. Default: 2 arcmin.
             output_file (str, optional):
                 Output filename for cutout FITS. If None, uses temporary location.
             verbose (bool, optional):
                 Verbosity. If None, uses self.verbose.
+            timeout (int or float, optional):
+                Query timeout in seconds. Default: 120 s.
 
         Returns:
             tuple:
-                (data_array, fits_header) if cutout successful,
+                (data_array, fits_header) of types (numpy.ndarray,
+                astropy.io.fits.Header) if cutout successful,
                 (None, None) otherwise.
 
         Note:
@@ -391,8 +455,23 @@ class Euclid_Survey(surveycoord.SurveyCoord):
             
         return self.cutout, self.cutout_hdr
 
-    def get_cutout(self, imsize=None, output_file=None, verbose=None, timeout=120):
-        """Deprecated alias for get_image()."""
+    def get_cutout(self, imsize: u.Quantity | None = None,
+                   output_file: str | None = None, verbose: bool | None = None,
+                   timeout: int | float = 120
+                   ) -> tuple[np.ndarray, fits.Header] | tuple[None, None]:
+        """
+        Deprecated alias for get_image().
+
+        Args:
+            imsize (astropy.units.Quantity, optional): Size of cutout image.
+            output_file (str, optional): Output filename for cutout FITS.
+            verbose (bool, optional): Verbosity. If None, uses self.verbose.
+            timeout (int or float, optional): Query timeout in seconds.
+
+        Returns:
+            tuple: See :meth:`get_image`.
+
+        """
         warnings.warn(
             "get_cutout() returns FITS products for this survey and is deprecated; "
             "use get_image() instead.",

@@ -20,7 +20,21 @@ api_key="fc32024eaf71cad9e5b3880c833e8b83c676996f"
 
 
 
-def parse_coord(ra, dec):
+def parse_coord(ra: str | float, dec: str | float) -> SkyCoord | None:
+    """
+    Parse an RA/Dec pair into a SkyCoord.
+
+    Args:
+        ra (str or float): Right ascension; either in degrees or
+            sexagesimal (hh:mm:ss) if ``dec`` is sexagesimal too.
+        dec (str or float): Declination; either in degrees or
+            sexagesimal (dd:mm:ss) if ``ra`` is sexagesimal too.
+
+    Returns:
+        astropy.coordinates.SkyCoord or None: The ICRS coordinate, or None
+        (after printing an error) if the input cannot be interpreted.
+
+    """
     if (not (is_number(ra) and is_number(dec)) and
         (':' not in ra and ':' not in dec)):
         error = 'ERROR: cannot interpret: {ra} {dec}'
@@ -41,7 +55,17 @@ def parse_coord(ra, dec):
         print(error.format(ra=ra,dec=dec))
         return(None)
     
-def is_number(num):
+def is_number(num: str | float) -> bool:
+    """
+    Check whether a value can be converted to a float.
+
+    Args:
+        num (str or float): Value to check.
+
+    Returns:
+        bool: True if ``float(num)`` works, False if it raises a ValueError.
+
+    """
     try:
         num = float(num)
     except ValueError:
@@ -52,8 +76,17 @@ def is_number(num):
 ### sarching for matching transients using TNS API and a specified radius ###
 
 # function for changing data to json format
-def format_to_json(source):
-    
+def format_to_json(source: str) -> list | dict:
+    """
+    Extract the reply from the JSON text of a TNS API response.
+
+    Args:
+        source (str): JSON text of the response (e.g. ``response.text``).
+
+    Returns:
+        list or dict: The ``reply`` entry of the ``data`` of the response.
+
+    """
     # change data to json format and return
     parsed = json.loads(source)   
     result = parsed['data']
@@ -64,7 +97,19 @@ def format_to_json(source):
 
 
 # function for search obj from tutorial
-def search(json_list):
+def search(json_list: dict | list) -> "requests.Response | list":
+  """
+  Search the TNS for objects matching the given search parameters.
+
+  Args:
+      json_list (dict or list of tuple): Search parameters of the TNS API
+          (e.g. ra, dec, radius, units), which are sent as JSON.
+
+  Returns:
+      requests.Response or list: The response of the TNS server. If the request
+      fails, a list ``[None, <error message>]`` instead.
+
+  """
   try:
     search_url='https://www.wis-tns.org/api/get/search'
     # url for search obj

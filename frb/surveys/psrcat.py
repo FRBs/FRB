@@ -3,7 +3,7 @@
 import numpy as np
 
 from astropy.table import Table
-from astropy.coordinates import SkyCoord
+from astropy.coordinates import Angle, SkyCoord
 from astropy import units
 
 try:
@@ -19,24 +19,25 @@ class PSRCAT_Survey(surveycoord.SurveyCoord):
     """
     Class to handle queries on the PSRCAT catalog
 
-    
     Args:
-        coord (SkyCoord): Coordiante for surveying around
-        radius (Angle): Search radius around the coordinate
-        
+        coord (astropy.coordinates.SkyCoord): Coordinate for surveying around
+        radius (astropy.coordinates.Angle): Search radius around the coordinate
+        **kwargs: Passed to :class:`frb.surveys.surveycoord.SurveyCoord`
+            (e.g. ``verbose``)
+
     """
-    def __init__(self, coord, radius, **kwargs):
+    def __init__(self, coord: SkyCoord, radius: Angle, **kwargs):
         surveycoord.SurveyCoord.__init__(self, coord, radius, **kwargs)
         #
         self.survey = 'PSRCAT'
 
-    def get_catalog(self):
+    def get_catalog(self) -> Table:
         """
         Grab the catalog of pulsars around the input coordinate to the search radius
 
-        
         Returns:
-            astropy.table.Table:  Catalog of sources returned
+            astropy.table.Table:  Catalog of sources returned.
+            Empty (with 'ra' and 'dec' columns) if there are no pulsars in the cone.
 
         """
         # Load em
