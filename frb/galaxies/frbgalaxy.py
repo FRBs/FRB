@@ -347,8 +347,9 @@ class FRBGalaxy(object):
                 if (filter in self.photom.keys()) and (not overwrite):
                     pass
                 else:
-                    # -999. is used as empty fill value
-                    if phot_tbl[filter][row] < -990:
+                    # -999. (host tables) and -99. (frb.surveys catalogs)
+                    #   are used as empty fill values
+                    if phot_tbl[filter][row] <= defs.PHOTOM_MISSING_MAX:
                         pass
                     else:
                         self.photom[filter] = phot_tbl[filter][row]
