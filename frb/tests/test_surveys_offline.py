@@ -2,6 +2,7 @@
 #  Remote queries are replaced by stubs returning small tables.
 
 import os
+from urllib.error import URLError
 
 import numpy as np
 import pytest
@@ -14,7 +15,7 @@ from astropy.wcs import WCS
 
 from frb.galaxies.defs import MASS_bands
 from frb.surveys import catalog_utils as cu
-from frb.surveys import surveycoord, dlsurvey
+from frb.surveys import surveycoord, dlsurvey, survey_utils
 from frb.surveys import des, delve, nsc, vista, decals, desi, wise
 from frb.surveys import sdss, hsc, euclid, skyview, twomass, panstarrs, psrcat
 from frb.surveys import cluster_search
@@ -460,6 +461,45 @@ def test_psrcat_missing_dependency(monkeypatch):
     with pytest.raises(ImportError):
         psrcat.PSRCAT_Survey(COORD, RADIUS).get_catalog()
 
+
+# ---------------------------------------------------------------------
+# Multi-survey searches
+
+class _FakeSurvey:
+    """A survey that is either unreachable or returns a fixed catalog"""
+    def __init__(self, error=None, catalog=None):
+        self.error = error
+        self.catalog = None
+        self._result = catalog
+
+    def get_catalog(self, **kwargs):
+        if self.error is not None:
+            raise self.error
+        self.catalog = self._result
+        return self._result
+
+
+@pytest.mark.parametrize('error', [URLError('timed out'), TimeoutError('timed out'),
+                                   ConnectionError('refused')])
+def test_search_all_skips_unreachable_survey(monkeypatch, error):
+    """A survey whose server is down is skipped with a warning, not fatal"""
+    good = Table({'ra': [10.0001], 'dec': [20.0001], 'DES_r': [21.], 'DES_r_err': [0.1]})
+
+    def fake_load(name, coord, radius, **kwargs):
+        if name == 'HSC':
+            return _FakeSurvey(error=error)
+        if name == 'DES':
+            return _FakeSurvey(catalog=good.copy())
+        return _FakeSurvey(catalog=Table())
+    monkeypatch.setattr(survey_utils, 'load_survey_by_name', fake_load)
+
+    with pytest.warns(RuntimeWarning, match="Couldn't connect to HSC"):
+        combined = survey_utils.search_all_surveys(COORD, RADIUS)
+    assert len(combined) == 1 and combined['DES_r'][0] == 21.
+
+    # is_inside reports the survey as not covering the position
+    with pytest.warns(RuntimeWarning, match="Couldn't reach the HSC server"):
+        assert survey_utils.is_inside('HSC', COORD) is False
 
 # ---------------------------------------------------------------------
 # catalog_utils

@@ -1,6 +1,6 @@
 """ utils related to SurveyCoord objects"""
 
-from urllib.error import HTTPError as URLHTTPError
+from urllib.error import URLError, HTTPError as URLHTTPError
 from frb.surveys.nedlvs import NEDLVS
 from frb.surveys.sdss import SDSS_Survey
 from frb.surveys.des import DES_Survey
@@ -145,6 +145,10 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
     except (HTTPError, URLHTTPError):
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
         cat = None
+    except (URLError, TimeoutError, ConnectionError, RequestsConnectionError):
+        # The server of the survey is down or unreachable
+        warnings.warn("Couldn't reach the {:s} server.".format(surveyname), RuntimeWarning)
+        cat = None
     except Exception as e:
         if queryClientError is not None and isinstance(e, queryClientError):
             warnings.warn("Couldn't reach NOIRLAB DataLab.", RuntimeWarning)
@@ -254,7 +258,7 @@ def search_all_surveys(coord: SkyCoord, radius: u.Quantity,
         survey = load_survey_by_name(name=surveyname, coord=coord, radius=radius)
         try:
             survey.get_catalog()
-        except (ConnectionError, RequestsConnectionError, HTTPError, URLHTTPError, QueryError):
+        except (ConnectionError, RequestsConnectionError, HTTPError, URLError, TimeoutError, QueryError):
             warnings.warn("Couldn't connect to {:s}. Skipping this for now.".format(surveyname), RuntimeWarning)
         except Exception as e:
             if queryClientError is not None and isinstance(e, queryClientError):
