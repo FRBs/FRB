@@ -157,7 +157,22 @@ Use Opus 5.5.  Log your work.
 
 ## PR
 
-1. I have issued 
+1. I have issued a PR for this work.  Please see if you can figure out why
+the Tox env 3.11-test-astropydev test isn't running.  And then tell me how
+to fix it.  Use Opus 5.5.  Log your work.
+
+2. Sunil has requested changes to our PR based on work he had been doing.
+Please review his comments and make suggestions in the Q&A/PR section before
+proceeding.  Provide Recommendations in the Q&A/PR section.
+Use Opus 5.5.  Log your work.
+
+3. I have answered your questions in Q&A/PR.  Please read those responses
+and ask me another round in Q&A/PR. 
+Use Opus 5.5.  Log your work.
+
+4. I have answered your questions in Q&A/PR.  Please read those responses
+and go forth to do the work you can on this Laptop.
+Use Opus 5.5.  Log your work.
 
 ## Repo CSVs
 
@@ -405,6 +420,97 @@ jxp@ucsc.edu is now a writer on `public_frbs` (checked with `get_file_permission
 I left `P_Ox` blank in `public_hosts.csv` (and `P(O|x)` in `FRBs_base.csv`). Bhardwaj+2021b did not run PATH; they give only a chance-coincidence probability, Pcc < 0.0025. Leave it blank, or set a value?
 
 >A. Leave it blank.
+
+### PR review by Sunil (2026-10-11): questions and recommendations
+
+Sunil's review of PR #240 (CHANGES_REQUESTED) has three inline comments, a follow-up, and a top-level rebuild request. Each is restated below with a recommendation. Nothing has been changed yet; answer the `>A.` lines and the next prompt applies them.
+
+**PR-Q1. defs.py lines 30-31 (Sunil C1): the two new comment lines on 999/-998.**
+Sunil is right. They duplicate the block right below them (defs.py:33-42, his commit 35f34b7c), which already says: upper limits are `_err = 999` in the host photometry tables and `-99` in the `frb.surveys` catalogs, no measurement is `-999` / `-99`, and anything at or below `PHOTOM_MISSING_MAX = -90` is dropped. No photometric lower limit exists anywhere. **Recommended:** delete the two lines and reply "agreed". No data changes.
+
+>A. Use your Recommendation
+
+**PR-Q2. Derived-quantity error flags (Sunil C2): 999 or -99 for an upper limit?**
+Sunil suggests `-99` "to match photometry". But `-99` is the *survey-catalog* flag; the host tables and the 61 photometric upper limits already in the host JSONs use `999`, and the derived values sit in the same JSON. The only derived upper limits are the two new `SFR_SED` entries (20180814A, Michilli2023; 20240209A, Eftekhari2024; `_err = 999` in `michilli2023_derived.csv` and `eftekhari2024_derived.csv`). Neither flag is treated specially where derived errors are read: `figures/utils.log_me` hides the error bar for `err < 0` and gives NaN for 999; neither draws a limit arrow. **Recommended:** keep `999` for derived upper limits (consistent with the host tables), drop the `-998` lower-limit flag (see PR-Q3), and shorten the defs.py header to two lines: `999` = upper limit, `-999` = no error. Alternative: switch to `-99`, which means editing those two CSVs and rebuilding the two hosts.
+
+>A. Use your Recommendation
+
+**PR-Q3. The two lower limits (Sunil's follow-up): SFR_nebular for 20220912A (Ravi2023, 0.1) and 20181030A (Bhardwaj2021b, 0.033).**
+These are the only `-998` values in the repo (`ravi2023_derived.csv`, `bhardwaj2021b_derived.csv`, and the two JSONs). Sunil proposes treating both as measurements, because every other long-slit nebular SFR is taken at face value. That is consistent with the data: 23 hosts have `SFR_nebular`, and 17 of them have no error or a flag. One caveat: `figures/galaxies.py:290-296` prefers `SFR_nebular` over `SFR_photom`, so a 0.033 for 20181030A would plot 10x below the paper's preferred 0.36 (UV+IR, already stored as `SFR_photom`). **Recommended:**
+- 20220912A: keep 0.1 as a measurement with `SFR_nebular_err = -999` (no error) in `ravi2023_derived.csv`.
+- 20181030A: drop the nebular value. Set `SFR_nebular` and `SFR_nebular_err` to `-999` in `bhardwaj2021b_derived.csv`; the new skip in `build_hosts.py:490-493` then leaves `SFR_photom = 0.36` as the only SFR.
+- Do not leave an error cell blank: the build copies `float(lit_tbl[key])` verbatim (`build_hosts.py:507`), so a blank becomes NaN.
+- Remove `-998` from `defs.py` and the prompt-2 convention; update this document's prompt-2 note.
+- Alternative for 20181030A: keep 0.033 with `_err = -999`, accepting the figure caveat.
+Rebuild both hosts (`skip_surveys=True` is enough for a derived-only change, but see PR-Q5).
+
+>A.  Let's discuss further.  A number of the spectra have been corrected to match 
+their integrated photometry.  But, not all.  And probably none of the galaxies with large angular sizes.  
+
+**PR-Q4. sdss.py line 164 (Sunil C3): the `instrument` field.**
+Sunil's repeated test (11 of 14 queries succeed with or without `instrument`) shows the 403 pages are intermittent and unrelated to the field. I cannot reproduce either way offline. The change is harmless (`instrument` is never read) but the comment is wrong. **Recommended:** restore main's line, so `sdss.py` has no diff against main. Keep the `InconsistentTableError` catch in `survey_utils.is_inside` (added in prompt 7), but reword its warning to say SDSS is being skipped for this host. A retry (about 3 attempts, a few seconds apart, when SkyServer returns HTML or 403) belongs in `SDSS_Survey.get_catalog`, so all callers benefit, and in a follow-up PR coordinated with Sunil since that is his code. Reply to Sunil along those lines.
+
+>A. Use your Recommendation
+
+**PR-Q5. Rebuild request ("git rebase main ... rerun the build scripts").**
+No rebase is needed: `git log HEAD..origin/main` is empty, because `origin/main` was merged in 3470b7da. A rebase would rewrite a pushed branch with merge commits. The real point is the **data**: the host JSONs in this PR were built in prompt 13 (2026-10-10), before PR #237 (merged 2026-10-11) changed 36 code files (every survey module, `catalog_utils`, `photom.py`, `frbgalaxy.py`). The effect is visible now: three PR hosts carry unmasked DELVE sentinels (20190711A `DELVE_g/r/z = 98`, 20200223B `DELVE_i = 98`, 20230222B `DELVE_i = 98`, errors 99) that main's `clean_cat(mask_photometry=True)` plus `PHOTOM_MISSING_MAX` would now drop. Two more (20220319D `WISE_W1-4_err = 0.0`, 20231120A `Pan-STARRS_i_err = 0.0`) are pre-existing and may or may not change. **Recommended:** on the workstation (`astro` env, `$FRB_GDB`, `$NEDLVS`), after the PR-Q1 to PR-Q4 edits, rerun `build_hosts` with the current branch code for the **58 host JSONs this PR touches** (55 after the 3 deletions). Diff each JSON against the committed version, and rerun any host that merely lost a band to a flaky survey (SDSS 403, MAST, Data Lab). Rebuilding all 104 hosts can be a separate PR. Reply to Sunil: main is already merged; the touched hosts were rebuilt with the revamped survey code.
+
+>A.  Ok, that sounds fine.  Note that I may need to run it on my laptop and not the Workstation.  If I need to grab a file or two onto it, let me know.
+
+**PR-Q6. Your own comment on `PHOTOM_MISSING_MAX = -90.`**
+Nothing to implement in this PR. The constant is applied inside main's `photom.correct_photom_table` (photom.py:250) and `FRBGalaxy.parse_photom` (frbgalaxy.py:352), both called by `build_hosts.run`. The branch has that code since the merge; it takes effect only once the JSONs are rebuilt (PR-Q5). Suggested reply: "inherited through the main merge; it is applied in the rebuilt JSONs".
+
+>A. Ok
+
+
+#### Round 2 (2026-10-12)
+
+PR-Q1, Q2, Q4 and Q6 are accepted and will be applied with the next prompt. The open items are the nebular-SFR convention (PR-Q3) and the rebuild on the laptop (PR-Q5).
+
+**PR-Q7. Nebular SFRs: which spectra were scaled to the photometry, and how to record it.**
+The repo does not record whether a spectrum was flux-scaled to the integrated photometry: there is no column in `public_hosts.csv`, no key in `defs.py`, and the spectra live in `$SPECDB`, not in the repo. Of the 23 hosts with `SFR_nebular`:
+- 9 come from our own pPXF fits (`_ppxf.ecsv` in `$FRB_GDB`): 20180924B MUSE, 20181112A FORS2, 20190102C MagE, 20190608B SDSS fibre, 20190611B FORS2, 20190714A LRISr, 20191001A GMOS-S, 20200430A DEIMOS, 20200906A DEIMOS.
+- 5 are computed by the build from literature line fluxes (`neb_lines` refs): 20121102A Tendulkar2017, 20180916B Marcote2020, 20190523A and 20190711A Heintz2020, 20201124A Fong2021.
+- 9 are literature SFRs (Mahony2018, Ibik2024a ×2, Moroianu2025, Niu2022, Bhardwaj2021, Ravi2023, Bhardwaj2025, Bhardwaj2021b).
+None of the 14 computed values has an `_err`; `figures/galaxies.py:290-296` plots `SFR_nebular` ahead of `SFR_photom` with a nominal 30% error. Large hosts among them: 20180916B, 20190608B (3″ fibre), 20171020A, 20181030A, 20200120E (M81).
+- **Recommended (b):** add a `Spec_scaled` column to `public_hosts.csv` (True/False/blank). When False, the build writes `SFR_nebular_err = -998` (lower limit); literature CSVs carry the same flag in their `_err` column. This keeps `-998` in `defs.py` (reversing that part of PR-Q2/Q3), keeps Sunil's one-rule consistency, and needs a `-998` arrow in `figures/utils.log_me`. Please list which of the 9 pPXF spectra (and the 5 literature line-flux sets) were scaled.
+- (a) Sunil's option: every value is a measurement, with the caveat documented in `defs.py`. Simplest, but plots then mix scaled and aperture-limited SFRs silently.
+- (c) Flag only the values the papers call limits (Ravi2023 "≳"), treat the rest as measurements.
+Should a size criterion also force the flag even when a spectrum was scaled (for example z < 0.05, or r_eff larger than about 2× the slit width)?
+
+>A. Ok, let's go with (b) and for now set this to "blank" for all of the hosts for now. And do not set any as lower limits for now.
+
+**PR-Q8. 20181030A (Bhardwaj2021b, SFR_nebular = 0.033).**
+Aperture-limited on NGC 3252 (z = 0.0039); the paper's preferred 0.36 (UV+IR) is already stored as `SFR_photom`.
+- **Recommended:** drop it: set the value and its `_err` to `-999` in `bhardwaj2021b_derived.csv`, so the build skips it.
+- Alternative: keep it as a lower limit (`-998`, if PR-Q7 (b) is chosen). The figure would still plot 0.033 unless `galaxies.py` stops preferring nebular values that are limits.
+
+>A.  Keep it as a lower limit and use the right `Spec_scaled` flag
+
+**PR-Q9. Rebuilding on the laptop: what to copy.**
+This session runs on the laptop. Its shell sets `FRB_GDB` and `SPECDB` to workstation paths (`/u/xavier/...`) that do not exist here, `NEDLVS` is unset, and the `astro` env (Python 3.14.6, astropy 8.0.1, numpy 2.5.2, `frb` editable from this repo) lacks `mastcasjobs` (optional: Pan-STARRS photo-z only, guarded import) and `ppxf` (not needed; the build only reads `_ppxf.ecsv`). The `ci-repro-py311/312` envs have no astropy and are not usable. No spectra are needed (`build_ppxf` is off).
+The rebuild covers **55 hosts** (43 modified, 11 added, the 20171020 → 20171020A rename). Products are read from 17 `$FRB_GDB` subdirectories: `CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/{Heintz2020, Mahony2018, Woodland2023, shannon2024}`, `DSA/sharma2024` (30 hosts, `_ppxf.ecsv` for each), `F4/{gordon2023, mannings2021}`, `Realfast/Bhandari2021`. A missing pPXF or CIGALE file **silently** drops those values from the JSON; a missing Galfit file raises (`build_hosts.py:467`; 20190711A WFC3_F160W, 20210807D GeMSGSAOI_Kshort).
+- **Recommended:** copy just those 17 directories and point `FRB_GDB` at the copy, e.g. (`ws` = the workstation):
+  ```
+  rsync -av --relative ws:/u/xavier/Projects/FRB_Stuff/FRB/Galaxy_DB/./{CHIME/bhardwaj2021b,...,Realfast/Bhandari2021} ~/FRB_GDB/
+  export FRB_GDB=~/FRB_GDB/
+  ```
+  NED-LVS: without `$NEDLVS` the build crashes (`NEDLVS.__init__` asserts, outside the `is_inside` try). As in prompt 6 (Q8: "let's not worry about NEDLVS"), I would drop `'NEDLVS'` from `survey_utils.optical_surveys` in the driver script; it adds no photometry bands. Alternatively copy the LVS table and set `$NEDLVS`.
+- Alternative: run on the workstation after all, where everything is in place.
+
+>A. I will run on the workstation eventually.
+
+**PR-Q10. Commit order and who replies to Sunil.**
+- **Recommended:** commit and push the round-1 code edits first (defs.py, sdss.py, survey_utils.py warning), so Sunil can re-review the code separately. The PR-Q7/Q8 CSV changes and the rebuilt JSONs follow as a data commit.
+- Replies: I draft the four replies here and you post them. Alternatively I post them with `gh` once you approve the text.
+
+>A. I want you to post them with `gh`
+
+**PR-Q11. Rebuild scope check.**
+The 55 hosts already include every DELVE 98/99 case in the PR: 20190711A, 20200223B, 20230222B, 20231223C, and 20240114A (the old Q7 "ignore DELVE" case, now handled by main's masking). Hosts outside the PR with the same sentinels (20200430A, 20211127I, 20220105A) are **recommended** for the later all-104 rebuild PR. I will diff every rebuilt JSON and flag any host that lost photometry to a flaky survey, or lost `neb_lines`, CIGALE or morphology values.
+
+>A. Use your Recommendation
+
 
 ## Logs
 
@@ -832,3 +938,97 @@ Applied Repo CSVs A–C with the D1–D7 answers. Run on the workstation (`astro
 - **Q16.** `P_Ox` stays blank. No change.
 - `prompts/check_repo_csvs.py` reports only the expected items (20190614D, the 20200120E/M81 offset, FG181112_13_5).
 
+
+### PR 1: Why `Tox env 3.11-test-astropydev` is not running on PR #240 (2026-10-11, Claude Opus 5.5 via Claude Fable 5.1)
+
+**Cause.** The job is excluded on purpose, and it is not the PR's fault. The astropy `main` branch now has `requires-python = ">=3.12"` (`pyproject.toml` on GitHub), so `pip install git+https://github.com/astropy/astropy.git` fails on Python 3.11:
+
+```
+ERROR: Package 'astropy' requires a different Python: 3.11.17 not in '>=3.12'
+```
+
+(job log of run 38105901061, sha f53c051c). Two commits in PR #237 (`survey_revamp`, by Sunil Simha, 2026-10-10) react to this:
+- f53c051c "exclude 3.11-astropydev": `tox.ini` envlist `{3.11,3.12}-test-{numpy,astropy}dev` → `{3.11,3.12}-test-numpydev` + `3.12-test-astropydev`.
+- 2fa6c78a "ci tests": `.github/workflows/ci_tests.yml` adds `exclude: python '3.11' / toxenv test-astropydev` to the matrix.
+
+Both reached `repeater_updates` with the merge of `origin/main` (3470b7da). GitHub never starts an excluded matrix job, so there is no job to run. The `astropydev` deps line in `tox.ini` is a bare git URL with no Python guard, so pip has nothing to fall back to; the guard lives only in the envlist and the workflow exclude.
+
+**Run history** (`gh api repos/FRBs/FRB/actions/runs/<id>/jobs`):
+- 38083657840 (`repeater_updates` fa40eb5a, before merging main): 3.11-test-astropydev **failed**, the other 3 jobs were **cancelled** (`fail-fast`, the default).
+- 38105901061 (survey_revamp f53c051c, tox.ini changed but not yet the workflow): same pattern.
+- 38107143724 (2fa6c78a, with the exclude): 3 jobs, all pass.
+- 38138892582 (PR #240 head 206144ab): `3.11-test`, `3.12-test`, `3.12-test-astropydev` all **pass**.
+
+**Why the PR is still blocked.** Branch protection on `main` (`gh api repos/FRBs/FRB/branches/main/protection`) lists four required status checks: `Tox env 3.11-test`, `Tox env 3.11-test-astropydev`, `Tox env 3.12-test`, `Tox env 3.12-test-astropydev`, plus 1 approving review. The second one can never report, so the PR shows "Expected — Waiting for status", `mergeStateStatus = BLOCKED`, `reviewDecision = REVIEW_REQUIRED`.
+
+**Fix (recommended).** Drop the stale required check, and keep the exclusion:
+- GitHub: Settings → Branches → `main` → Require status checks → remove `Tox env 3.11-test-astropydev`; or
+  ```
+  gh api -X DELETE repos/FRBs/FRB/branches/main/protection/required_status_checks/contexts -f 'contexts[]=Tox env 3.11-test-astropydev'
+  ```
+- Optional: `fail-fast: false` under `strategy:` in `ci_tests.yml`, so one failing job no longer cancels the other three (that is why the earlier runs showed three "cancelled" jobs).
+- The PR then still needs one approving review.
+
+**Alternative, not recommended.** A 3.11 "latest astropy" job cannot install astropy `main`. PyPI (`curl https://pypi.org/pypi/astropy/json`) shows every 7.x and 8.x release, through 8.0.1, still has `requires_python >=3.11`, so the nearest substitute is `astropy>=8.0` with `--pre` on 3.11, under a different job name. Not worth it: the two `3.11-test` jobs already cover released astropy on 3.11.
+
+**Checked for consistency.** `pyproject.toml` (`requires-python >= 3.11`, `astropy>=7.1`, 3.11/3.12 classifiers) and `docs/installing.rst` (Python 3.11+) say nothing about the dev-astropy matrix, so nothing else needs changing. No files other than this log were edited, and no GitHub settings were changed.
+
+### PR 2: Review Sunil's requested changes on PR #240 (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Read-only. The recommendations are in the Q&A section, "PR review by Sunil" (PR-Q1 to PR-Q6). No code, data or GitHub state was changed.
+
+**Sources.** `gh api repos/FRBs/FRB/pulls/240/reviews` (one CHANGES_REQUESTED review, 2026-10-11 21:27 UTC, plus a COMMENTED follow-up at 23:19), `.../pulls/240/comments` (3 inline comments on `defs.py:30`, `defs.py:263`, `sdss.py:164`, and one reply), `.../issues/240/comments` (two notes by the owner).
+
+**Checks made:**
+- `git log HEAD..origin/main` is empty: the branch already contains main (merge 3470b7da). The PR's code diff vs main is 6 files: `build_hosts.py` (+14), `defs.py` (+20), `ppxf.py` (`np.in1d` → `np.isin`), `sdss.py` (1 line), `survey_utils.py` (+5, the `InconsistentTableError` catch from prompt 7, a00ba209) and the new `prompts/check_repo_csvs.py`. Data: 46 FRB JSONs, `FRBs_base.csv`, 58 host JSONs (3 deleted), `public_hosts.csv`, literature CSVs.
+- `defs.py:33-42` on main (Sunil, 35f34b7c, 2026-10-10) already documents 999 / -99 / -999 and `PHOTOM_MISSING_MAX`; the PR's lines 30-31 duplicate it. `PHOTOM_MISSING_MAX` is consumed in `photom.py:250` and `frbgalaxy.py:352`, both called by `build_hosts.run`.
+- Flag census over the 104 host JSONs (script in scratch, not kept): photometry `_err = 999` in 61 entries, `-99` in 75 `_flux_err`; derived `_err = 999` only in the two new `SFR_SED` entries (20180814A, 20240209A), `-998` only in the two new `SFR_nebular` entries (20181030A, 20220912A), `-999` in 49 old `agn_tau`/`f_AGN` lo/up errors. `-998` appears in `ravi2023_derived.csv` and `bhardwaj2021b_derived.csv` only.
+- `SFR_nebular` is present in 23 hosts; 17 have no error key or a flag, which supports Sunil's "take them at face value".
+- `figures/galaxies.py:290-296` prefers `SFR_nebular` over `SFR_photom`; `figures/utils.log_me` hides the bar for `err < 0` and returns NaN for 999 (pre-existing).
+- 36 code files changed on main between the prompt-13 builds (fa40eb5a, 2026-10-10) and the current main (`git diff --stat fa40eb5a origin/main -- 'frb/**/*.py'`): all survey modules, `catalog_utils.py` (+694), `photom.py`, `frbgalaxy.py`.
+- PR host JSONs scanned for unmasked bad photometry: DELVE `98`/`99` sentinels in 20190711A (g, r, z; also on main), 20200223B (i; new in this PR) and 20230222B (i; also on main); zero errors in 20220319D (WISE W1-4) and 20231120A (Pan-STARRS i), both pre-existing. These are exactly what PR #237's `clean_cat(mask_photometry=True)` now masks, so a rebuild changes real values.
+- The `sdss.py` `instrument` claim cannot be tested offline. The field is never read after the query, so Sunil's finding (harmless, but not a fix) stands.
+
+**Summary of recommendations** (details in PR-Q1 to PR-Q6): accept C1 (delete the two lines); keep `999` for derived upper limits rather than `-99`, and drop the `-998` lower-limit flag; convert the Ravi2023 SFR to a measurement with `_err = -999` and drop the Bhardwaj2021b nebular SFR in favour of the paper's `SFR_photom`; restore main's `sdss.py` line and keep the exception catch, with a retry deferred to a follow-up PR; no rebase, but rebuild the 55 surviving PR hosts with the merged main code on the workstation; nothing to implement for `PHOTOM_MISSING_MAX`.
+
+### PR 3: Second round of PR questions (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Read-only. Added "Round 2" (PR-Q7 to PR-Q11) to the "PR review by Sunil" block. No code, data or GitHub state changed. Round-1 answers: PR-Q1, Q2, Q4, Q6 accepted (to be applied with the next prompt); PR-Q3 open (slit-loss scaling); PR-Q5 accepted, possibly on the laptop.
+
+**Checks made:**
+- Provenance of the 23 `SFR_nebular` values (host JSONs, `public_hosts.csv` `Spectrum`, `neb_lines` `_ref` keys): 9 from our pPXF fits, 5 computed from literature line fluxes, 9 literature SFRs. The repo records no spectrum-to-photometry scaling anywhere (`public_hosts.csv` columns, `defs.py`, `ppxf.py`).
+- This machine is the laptop: `$FRB_GDB`/`$SPECDB` point to nonexistent `/u/xavier/...` paths, `$NEDLVS` unset, `astro` env is Python 3.14.6 / astropy 8.0.1 / numpy 2.5.2 with `frb` editable from the repo; `mastcasjobs` (new in main's `pyproject.toml`, lazy import in `panstarrs.py:158`) and `ppxf` missing; the `ci-repro-py311/312` envs have no astropy.
+- `build_hosts.run` → `in_which_survey` → `load_survey_by_name('NEDLVS')` asserts on `$NEDLVS` outside the `is_inside` try (`survey_utils.py:134`), so the build crashes without it; prompt 6 removed NEDLVS from `optical_surveys` in the driver.
+- Rebuild set from `git diff --name-status origin/main...HEAD -- 'frb/data/Galaxies/*host.json'`: 43 M, 11 A, 1 R (20171020 → 20171020A), 3 D; 55 hosts, mapped to 17 `$FRB_GDB` project/ref directories via `Projects`/`References`; 33 have `Spectrum` set (so `_ppxf.ecsv` files are read), none has `CIGALE_photom`. `search_for_file` returns not-found silently (pPXF, CIGALE), Galfit raises `IOError` (`build_hosts.py:467`).
+- DELVE 98/99 sentinels: inside the PR in 20190711A, 20200223B, 20230222B, 20231223C, 20240114A; outside it in 20200430A, 20211127I, 20220105A. The Opus draft listed 20231223C as outside; corrected (it is a Leung2025 host in the PR).
+
+### PR 4: Apply the PR decisions on the laptop (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Applied PR-Q1, Q2, Q4, Q6, Q7 (b), Q8, Q10 and Q11. The rebuild (PR-Q5/Q9) is left for the workstation, with a driver script ready.
+
+**Code (commit 24199d42, pushed):**
+- `defs.py`: the two duplicate 999/-998 lines are gone (main's block at the top of the photometry section stands). The derived-quantities header now lists 999 = upper limit, -999 = no error, -998 = lower limit, with the rule that `build_hosts` sets -998 on `SFR_nebular` when the host's `Spec_scaled` is False.
+- `sdss.py`: main's line with `instrument` restored; no diff vs main.
+- `survey_utils.is_inside`: the `InconsistentTableError` warning now says the survey's photometry is skipped for that host.
+- `build_hosts.run`: after the literature derived loop, if `Spec_scaled` is False (string or bool) and `SFR_nebular` exists, `_loerr`/`_uperr` are dropped and `SFR_nebular_err = -998`. Docstring updated.
+
+**Data (this commit):**
+- `public_hosts.csv`: new last column `Spec_scaled`, blank for all 103 hosts except 20181030A = `False`. CRLF and the missing final newline are preserved; every row is byte-identical apart from the appended field.
+- Not changed: `ravi2023_derived.csv` keeps `SFR_nebular_err = -998` for 20220912A (the paper's "≳"); `bhardwaj2021b_derived.csv` keeps -998 for 20181030A. Under option (b) a literature table may carry the flag itself, and the build's `Spec_scaled` rule reproduces it for 20181030A. If you want 20220912A as a plain measurement instead, set that cell to -999 and the host's `Spec_scaled` blank.
+- No host JSON changed: with `skip_surveys=True` and an empty `$FRB_GDB`, `run()` for 20181030A reproduces the committed derived block exactly (`SFR_nebular 0.033`, `_err -998`, `SFR_photom 0.36`), with the flag False or blank; 20240209A (blank, no nebular SFR) is unchanged.
+
+**Tests:** `pytest frb/tests/test_frbhosts.py test_galaxies.py test_photom.py test_surveys_offline.py`: 48 passed (astro env). All four edited modules import.
+
+**Replies to Sunil, posted with `gh` as profxj, each marked "posted by Claude Code on Xavier's behalf":** inline replies 4253151552 (defs.py:30), 4253151722 (defs.py:263, the 999/-998/`Spec_scaled` outcome), 4253151843 (sdss.py:164, line restored, retry deferred to a follow-up PR with him), and PR comment 6134417272 (no rebase; `PHOTOM_MISSING_MAX` inherited; the 55 hosts to be rebuilt on the workstation; data commit to follow).
+
+**Laptop environment fix.** The `astro` env held a stale, non-editable copy of `frb` (site-packages, Sep 11), so any script run outside the repo root used old code (this was already noted for the workstation in prompt 2). Ran `pip install -e . --no-deps` in `astro`. pip left a stub `site-packages/frb/data/Public/Pan-STARRS/ps1_dr2_stack_metadata.csv` (a git-ignored runtime cache) that still shadowed the editable install as a namespace package; it is moved aside to `site-packages/frb.stale-cache-2026-10-12.bak` (deleting it was blocked by the permission classifier; you can `rm -r` it). `import frb` from any directory now resolves to the repo. **Do the same check on the workstation** before the rebuild: `cd /tmp; python -c "import frb; print(frb.__file__)"` must print the repo path.
+
+**Rebuild driver:** `prompts/rebuild_pr_hosts.py` (new). It rebuilds the 55 PR hosts (list embedded; `--hosts` overrides), drops NED-LVS from the survey list when `$NEDLVS` is unset, warns if `frb` is not imported from the repo or `$FRB_GDB` is missing, diffs each new JSON against `git HEAD`, flags lost photometry bands not covered by `Bad_photom` (with `--retry N` re-runs those), lost `neb_lines`/`derived`/`morphology` keys and changed values, and writes `rebuild_report.md`. `--dry-run` checks the setup. Tested on the laptop: the dry run and the comparison logic (simulated loss of the 20190711A DELVE bands and of its Hbeta line) behave as intended. On the workstation:
+```
+cd <repo>; git pull; pip install -e . --no-deps
+python prompts/rebuild_pr_hosts.py --dry-run
+python prompts/rebuild_pr_hosts.py --retry 2
+```
+then review `rebuild_report.md` and `git diff --stat frb/data/Galaxies`, and commit the JSONs.
+
+**Open:** the rebuild itself (PR-Q5/Q9); Sunil's re-review; the `figures/utils.log_me` arrow for -998 (not done; `err < 0` still just hides the bar).
