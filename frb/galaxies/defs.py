@@ -27,9 +27,6 @@ valid_e = [
 ##############################################################
 # Photometry
 
-# Upper limits are specified by setting the error to 999.0
-# Lower limits (derived quantities only) are specified by setting the error to -998.0
-
 # Upper limits are specified by setting the error to 999.0 in the host
 # photometry tables.  The catalogs from frb.surveys instead flag them with an
 # error of -99. (the magnitude is kept).  Both are understood by
@@ -260,10 +257,13 @@ valid_positional_error = [
 
 ##############################################################
 # Derived quantities
-#   Errors follow the photometry convention above:
+#   Errors follow the host-table photometry convention above:
 #     _err = 999.0  -- the value is an upper limit
-#     _err = -998.0 -- the value is a lower limit
 #     _err = -999.0 -- no error/measurement
+#     _err = -998.0 -- the value is a lower limit.  For SFR_nebular this is
+#       set by build_hosts when the host's Spec_scaled flag (public_hosts.csv)
+#       is False, i.e. the spectrum was not scaled to the integrated photometry
+#       (slit/fibre losses).  A literature table may also carry -998.
 
 valid_derived_photom = [
     'z_SED',           # Redshift; Prospector-derived

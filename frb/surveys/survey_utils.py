@@ -147,8 +147,8 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
         cat = None
     except InconsistentTableError:
-        # e.g. SkyServer returning an HTML error page instead of CSV
-        warnings.warn(f"Unreadable response from {surveyname}.", RuntimeWarning)
+        # e.g. SkyServer returning an HTML error page (often a 403) instead of CSV
+        warnings.warn(f"Unreadable response from {surveyname}; treating the position as outside it, so its photometry is skipped. Re-run if this persists.", RuntimeWarning)
         cat = None
     except (URLError, TimeoutError, ConnectionError, RequestsConnectionError):
         # The server of the survey is down or unreachable

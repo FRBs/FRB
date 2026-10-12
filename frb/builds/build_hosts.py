@@ -189,7 +189,9 @@ def run(host_input:pandas.core.series.Series,
 
     Args:
         host_input (pandas.core.series.Series): Row of the CVS file
-            providing the host inputs
+            providing the host inputs.  If its Spec_scaled column is False
+            (the spectrum was not scaled to the integrated photometry),
+            SFR_nebular is written as a lower limit (SFR_nebular_err = -998).
         build_ppxf (bool, optional): Run pPXF?. Defaults to False.
         lit_refs (str, optional): File of literature references. Defaults to None.
         build_cigale (bool, optional): Run CIGALE?. Defaults to False.
@@ -508,6 +510,14 @@ def run(host_input:pandas.core.series.Series,
                     if '_loerr' in key:
                         hikey = key.replace('lo', 'up')
                         Host.derived[hikey] = float(lit_tbl[hikey].data[0])
+
+    # Nebular SFR lower limit: the spectrum was not scaled to the photometry
+    spec_scaled = getattr(host_input, 'Spec_scaled', None)
+    if str(spec_scaled).strip().lower() in ['false', '0', 'no'] and 'SFR_nebular' in Host.derived.keys():
+        print("Spec_scaled is False: flagging SFR_nebular as a lower limit (_err = -998)")
+        for key in ['SFR_nebular_loerr', 'SFR_nebular_uperr']:
+            Host.derived.pop(key, None)
+        Host.derived['SFR_nebular_err'] = -998.
 
     # Vet all
     assert Host.vet_all()

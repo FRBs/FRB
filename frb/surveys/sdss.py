@@ -161,7 +161,7 @@ class SDSS_Survey(SkyView_Survey):
         trim_catalog = catalog_utils.clean_cat(trim_catalog, photom['SDSS'], mask_photometry=True)
 
         # Spectral info
-        spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd']  # 'instrument' now makes SkyServer return an error page
+        spec_fields = ['ra', 'dec', 'z', 'run2d', 'plate', 'fiberID', 'mjd', 'instrument']
         spec_catalog = SDSS.query_region(self.coord,spectro=True, radius=self.radius,
                                          timeout=timeout, specobj_fields=spec_fields) # Duplicates may exist
         
