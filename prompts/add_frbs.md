@@ -174,6 +174,39 @@ Use Opus 5.5.  Log your work.
 and go forth to do the work you can on this Laptop.
 Use Opus 5.5.  Log your work.
 
+5. **Workstation setup check (run on the workstation, `astro` env, before PR 6).** Use Opus 5.5. Log your work.
+   - `git fetch` and check out `repeater_updates` at origin (commits 24199d42 and 9c32917f must be present). Stop if there are local changes you did not expect.
+   - **Editable install:** from a directory outside the repo, `python -c "import frb; print(frb.__file__)"` must print this repo's path. If it prints a site-packages path, run `pip install -e . --no-deps` in the repo, rerun the check, and if a stub `site-packages/frb/` directory still shadows the package (see the PR 4 log), move it aside. Do not continue until the import resolves to the repo.
+   - **Environment:** `$FRB_GDB` must be a directory that contains the 17 product directories listed in PR-Q9 (`CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/{Heintz2020, Mahony2018, Woodland2023, shannon2024}`, `DSA/sharma2024`, `F4/{gordon2023, mannings2021}`, `Realfast/Bhandari2021`). List any that are missing. Check that `$NEDLVS` points to an existing file; if not, say so (the driver drops NED-LVS, which adds no photometry).
+   - Check the pPXF products exist for the 33 hosts with a `Spectrum` in `public_hosts.csv` (`<FRB_GDB>/<project>/<ref>/<host>_<Spectrum>_ppxf.ecsv`) and the Galfit files for 20190711A (WFC3_F160W) and 20210807D (GeMSGSAOI_Kshort). A missing pPXF file silently drops the nebular values, so list every missing one before building.
+   - `python prompts/rebuild_pr_hosts.py --dry-run` must list 55 hosts with no warnings.
+   - Run `pytest frb/tests/test_frbhosts.py frb/tests/test_galaxies.py frb/tests/test_photom.py frb/tests/test_surveys_offline.py`.
+   - Record the Python, astropy, numpy and astroquery versions in the log. Do not build anything yet.
+
+6. **Rebuild the 55 PR hosts (PR-Q5, Q9, Q11).** Use Opus 5.5. Log your work.
+   - Run `python prompts/rebuild_pr_hosts.py --retry 2` from the repo root (expect well over an hour; survey queries are slow and flaky). Keep the console output in a file.
+   - Read `rebuild_report.md` and `git diff --stat frb/data/Galaxies`. **Expected changes:**
+     - the DELVE `98`/`99` sentinels disappear from 20190711A (g, r, z), 20200223B (i), 20230222B (i), 20231223C (i, z) and 20240114A (i), because main's `clean_cat` now masks them. These show as "lost bands" and are fine;
+     - the zero errors in 20220319D (WISE W1-4) and 20231120A (Pan-STARRS i) may change or be masked;
+     - small float differences in survey magnitudes and fluxes;
+     - 20181030A keeps `SFR_nebular = 0.033` with `_err = -998` (from `Spec_scaled = False` and `bhardwaj2021b_derived.csv`), and 20220912A keeps `SFR_nebular_err = -998`;
+     - the `Bad_photom` bands stay absent (20231230A DECaL g/r/z; 20181030A Pan-STARRS).
+   - **Not acceptable:** any other lost photometry band, any lost `neb_lines`, `derived` or `morphology` key, a failed host, or a host at the wrong position. For each such host, rerun it alone (`--hosts <name> --retry 3`); if a survey keeps failing (SDSS 403, MAST, Data Lab), say which, and leave the old JSON in place by `git checkout -- <file>`.
+   - Diff two hosts by hand as a spot check, one Sharma2024 host and 20190711A, and explain every changed key.
+   - **Verify:** `FRBHost.by_frb(FRB.by_name(...))` loads all 103 hosts; `python prompts/check_repo_csvs.py` reports only the known items (20190614D, the 20200120E/M81 offset, FG181112_13_5); `pytest frb/tests/test_frbhosts.py`.
+   - Commit only the host JSONs (not `rebuild_report.md` or the console log; copy their summary into the log below), with a message that names the number of hosts rebuilt and the hosts left at the old JSON, and push. Add a short "Rebuild" entry to the PR Checklist → Hosts section.
+
+7. **Close out the review (PR-Q10).** Use Opus 5.5. Log your work.
+   - After PR 6 is pushed and CI is green (`gh pr checks 240`), post a PR comment, marked "posted by Claude Code on Xavier's behalf", that summarizes the rebuild: the number of hosts rebuilt, what changed (the DELVE sentinels, and anything unexpected), the hosts left unrebuilt and why, and that `Spec_scaled` is in `public_hosts.csv`.
+   - Re-request Sunil's review: `gh api -X POST repos/FRBs/FRB/pulls/240/requested_reviewers -f 'reviewers[]=SunilSimha'`.
+   - Check whether the stale required status check `Tox env 3.11-test-astropydev` is still in the branch protection (PR 1 log). If it is, remind me; it blocks the merge and only I can remove it.
+   - If `zdm/papers/Mo_Repeaters/` is present on this machine, rerun `py/build_host_table.py` and diff `CHIME_FRB_hosts.csv` against the previous version (prompt 9 rules: every change must be explainable, e.g. the 20181030A offsets, 20230712A, and any host whose photometry changed in PR 6). If it is not present, say so; I will run it on the laptop.
+
+8. **Rebuild the remaining hosts (after PR #240 is merged; new branch `rebuild_hosts`).** Use Opus 5.5. Log your work in a new prompts file, `prompts/rebuild_hosts.md`.
+   - Rebuild the 49 hosts not touched by PR #240 with the revamped survey code, using `prompts/rebuild_pr_hosts.py --hosts <list> --retry 2` (compute the list as all `public_hosts.csv` hosts minus `PR_HOSTS` in the script). The known cases are the DELVE sentinels in 20200430A, 20211127I and 20220105A.
+   - Same acceptance rules and verification as PR 6. Watch especially the Gordon2023 hosts (prompt 13 log: the G23 extinction law shifts optical/NIR magnitudes by 0.01-0.04 mag, and `-999` literature placeholders are dropped) and the hosts last built before 2024, whose offsets may follow updated FRB positions.
+   - Open a PR with a summary table of hosts rebuilt, bands lost or gained, and unrebuilt hosts.
+
 ## Repo CSVs
 
 Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
