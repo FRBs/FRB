@@ -133,6 +133,39 @@ class Pan_STARRS_Survey(surveycoord.SurveyCoord):
         
         photom_catalog = catalog_utils.clean_cat(photom_catalog,pdict)
 
+        # PS1 DR2 StackObjectView returns -999 (null) for the forced photometry
+        # of some objects -- notably faint and/or high-declination sources --
+        # that DR1 measured cleanly.  If every PS1 magnitude at this position is
+        # null, re-query the same cone in DR1 and use that so real photometry
+        # (e.g. an r~21 host) isn't silently dropped.
+        _ps1_mag_cols = ["Pan-STARRS_{:s}".format(b) for b in PanSTARRS_bands
+                         if "Pan-STARRS_{:s}".format(b) in photom_catalog.colnames]
+        def _ps1_all_null(tbl):
+            if len(tbl) == 0 or not _ps1_mag_cols:
+                return True
+            for c in _ps1_mag_cols:
+                col = tbl[c]
+                for i in range(len(tbl)):
+                    v = col[i]
+                    if v is np.ma.masked or v is None:
+                        continue
+                    try:
+                        fv = float(v)
+                    except (TypeError, ValueError):
+                        continue
+                    if np.isfinite(fv) and fv > -999:
+                        return False   # at least one real magnitude present
+            return True
+        if release == "dr2" and _ps1_all_null(photom_catalog):
+            _dr1_ret = requests.get(url.replace("/dr2/", "/dr1/"), params=data)
+            if _dr1_ret.ok and len(_dr1_ret.text) > 0:
+                _dr1_cat = catalog_utils.clean_cat(
+                    Table.read(_dr1_ret.text, format="ascii.csv"), pdict)
+                if not _ps1_all_null(_dr1_cat):
+                    warnings.warn("Pan-STARRS DR2 photometry was all null at this "
+                                  "position; falling back to DR1.", RuntimeWarning)
+                    photom_catalog = _dr1_cat
+
         #Remove bad positions because Pan-STARRS apparently decided
         #to flag some positions with large negative numbers. Why even keep
         #them?
