@@ -16,12 +16,12 @@
         "SFR_nebular_ref": "Ibik2024a"
     },
     "offsets": {
-        "ang_avg": 39.14169732406594,
-        "ang_avg_err": 18.389457657139793,
-        "ang_best": 31.66318632601899,
-        "ang_best_err": 19.851959089007977,
-        "physical": 72.0317478080256,
-        "physical_err": 45.161952302304954
+        "ang_avg": 39.141697324067536,
+        "ang_avg_err": 18.38945765713998,
+        "ang_best": 31.66318632602105,
+        "ang_best_err": 19.85195908900796,
+        "physical": 72.03174780803029,
+        "physical_err": 45.16195230230492
     },
     "photom": {
         "DECaL_g": 18.50802955477808,
@@ -47,8 +47,8 @@
         "GALEX_NUV_flux_err": 0.00029024971025511125,
         "Pan-STARRS_g": 18.58708319932738,
         "Pan-STARRS_g_err": 0.009544000029563904,
-        "Pan-STARRS_g_flux": 0.13340334352601785,
-        "Pan-STARRS_g_flux_err": 0.0011726619311178542,
+        "Pan-STARRS_g_flux": 0.13340334352601782,
+        "Pan-STARRS_g_flux_err": 0.0011726619311178538,
         "Pan-STARRS_i": 17.94010765520482,
         "Pan-STARRS_i_err": 0.006701999809592962,
         "Pan-STARRS_i_flux": 0.24207889718574188,
@@ -98,7 +98,7 @@
         "WISE_W3_flux": 0.6226661205291748,
         "WISE_W3_flux_err": 0.16459354758262634,
         "WISE_W4": 15.443291664123535,
-        "WISE_W4_err": 999.0,
+        "WISE_W4_err": -99.0,
         "WISE_W4_flux": 2.4137001037597656,
         "WISE_W4_flux_err": -99.0
     },

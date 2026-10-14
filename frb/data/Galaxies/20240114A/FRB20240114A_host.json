@@ -14,12 +14,12 @@
         "SFR_nebular_uperr": 0.004
     },
     "offsets": {
-        "ang_avg": 0.17227355386671336,
-        "ang_avg_err": 0.05267705439146529,
+        "ang_avg": 0.1722735538667132,
+        "ang_avg_err": 0.05267705439146526,
         "ang_best": 0.15172405210197976,
-        "ang_best_err": 0.056543382301912054,
+        "ang_best_err": 0.056543382301912075,
         "physical": 0.3640194055501994,
-        "physical_err": 0.13566002310236952
+        "physical_err": 0.13566002310236958
     },
     "photom": {
         "DECaL_g": 22.120600244508708,
@@ -38,10 +38,6 @@
         "DELVE_g_err": 0.056495,
         "DELVE_g_flux": 0.0045750803124626985,
         "DELVE_g_flux_err": 0.00023805889600058016,
-        "DELVE_i": 98,
-        "DELVE_i_err": 99,
-        "DELVE_i_flux": 0,
-        "DELVE_i_flux_err": 0,
         "DELVE_r": 21.70460400449205,
         "DELVE_r_err": 0.07677,
         "DELVE_r_flux": 0.007553676692409905,

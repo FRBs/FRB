@@ -7,18 +7,18 @@
         "Mstar": 75857757.50291836,
         "Mstar_loerr": 20903670.11715588,
         "Mstar_ref": "Moroianu2025",
-        "Mstar_uperr": 24142242.497081637,
+        "Mstar_uperr": 24142242.49708164,
         "SFR_nebular": 0.19,
         "SFR_nebular_err": 0.01,
         "SFR_nebular_ref": "Moroianu2025"
     },
     "offsets": {
-        "ang_avg": 0.5649595657795017,
-        "ang_avg_err": 0.004915747707186112,
-        "ang_best": 0.5649357718282471,
-        "ang_best_err": 0.004915805292403455,
-        "physical": 1.336591374252154,
-        "physical_err": 0.011630389291983265
+        "ang_avg": 0.564959565779502,
+        "ang_avg_err": 0.00491574770718611,
+        "ang_best": 0.564935771828247,
+        "ang_best_err": 0.0049158052924034535,
+        "physical": 1.3365913742521538,
+        "physical_err": 0.011630389291983262
     },
     "photom": {
         "EBV": 0.0627,
@@ -34,8 +34,8 @@
         "GMOS_N_i_ref": "Moroianu2025",
         "GMOS_N_r": 22.25526398399957,
         "GMOS_N_r_err": 0.06,
-        "GMOS_N_r_flux": 0.004548774426211803,
-        "GMOS_N_r_flux_err": 0.00025137456444450823,
+        "GMOS_N_r_flux": 0.004548774426211802,
+        "GMOS_N_r_flux_err": 0.0002513745644445082,
         "GMOS_N_r_ref": "Moroianu2025",
         "GMOS_N_z": 23.23751317046312,
         "GMOS_N_z_err": 0.12,

@@ -13,12 +13,12 @@
         "SFR_SED_ref": "Ibik2024a"
     },
     "offsets": {
-        "ang_avg": 24.168915994488604,
-        "ang_avg_err": 12.593898780710482,
+        "ang_avg": 24.168915994488614,
+        "ang_avg_err": 12.593898780710479,
         "ang_best": 14.227112290004586,
-        "ang_best_err": 16.045115998249226,
-        "physical": 17.117613559458817,
-        "physical_err": 19.30497838044631
+        "ang_best_err": 16.04511599824923,
+        "physical": 17.11761355945882,
+        "physical_err": 19.30497838044632
     },
     "photom": {
         "DECaL_g": 16.54287823282273,
@@ -37,10 +37,6 @@
         "DELVE_g_err": 0.003835,
         "DELVE_g_flux": 0.8081855083777265,
         "DELVE_g_flux_err": 0.00285464499668134,
-        "DELVE_i": 98,
-        "DELVE_i_err": 99,
-        "DELVE_i_flux": 0,
-        "DELVE_i_flux_err": 0,
         "DELVE_r": 16.084312792574,
         "DELVE_r_err": 0.00328,
         "DELVE_r_flux": 1.3374417534392244,
