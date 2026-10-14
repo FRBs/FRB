@@ -1106,7 +1106,7 @@ Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, as
 
 **Bug fixed: survey merge (main's code).** The first run failed 7 of its first 16 hosts on all three tries with `TableMergeError: ... duplicates: ['separation_1', 'separation_2']`. Since PR #237, `catalog_utils.clean_cat` adds a `separation` column to every survey catalog. `photom.merge_photom_tables` stacks the survey tables side by side with `hstack`, which renames the second `separation` to `separation_1`/`separation_2`; any host found in three or more surveys then hits a name clash. `build_hosts.run` now drops `separation` from each survey table before the merge. The column is not photometry, so no host data changes. The fix was tested on 20190110C, then the run was restarted from scratch with the old JSONs restored.
 
-**Result (`rebuild_report.md`, not committed).** 55 of 55 hosts built (`Failed: none`). 54 JSONs changed; 20171020A, 20190208A, 20190303A, 20190417A, 20191106C, 20230926A, 20231123A, 20231229A and 20231230A had no changes above the report's tolerance (only float noise); 20171020A is byte-identical. The 5 flagged hosts each needed all 3 tries, because the driver retries any lost band and the DELVE sentinels never come back:
+**Result (`rebuild_report.md`; committed in PR 7 as `rebuild_report_2026-10-14.md`).** 55 of 55 hosts built (`Failed: none`). 54 JSONs changed; 20171020A, 20190208A, 20190303A, 20190417A, 20191106C, 20230926A, 20231123A, 20231229A and 20231230A had no changes above the report's tolerance (only float noise); 20171020A is byte-identical. The 5 flagged hosts each needed all 3 tries, because the driver retries any lost band and the DELVE sentinels never come back:
 
 | Host | Lost bands | Why |
 |---|---|---|
@@ -1148,3 +1148,18 @@ Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, as
 2. The misleading MAST/PS1 message for any `HTTPError` (Euclid here).
 3. `999` vs `-99` upper-limit flags now mixed in host JSONs.
 4. Tighten the `dust_extinction>=1.4` pin; 1.5 gives a different G23 curve and fails `test_dust_correct`.
+
+### PR 7: Close out the review (2026-10-14, Claude Opus 5.5)
+
+- **CI:** `gh pr checks 240` is green on 9295c844 (Tox 3.11-test, 3.12-test, 3.12-test-astropydev). The merge state is CLEAN.
+- **Review status:** Sunil approved at 9c32917f (2026-10-12, "Approving with the latest changes."), before the rebuild and the `build_hosts` merge fix (08d8adf2).
+- **PR comment** 6173372450, marked "Posted by Claude Code on Xavier's behalf". It summarizes:
+  - the 55 hosts rebuilt (54 changed, none left at the old JSON) and the DELVE sentinels dropped;
+  - the 0.001 to 0.04 mag extinction shift from `dust_extinction` 1.7 vs 1.5, with the suggestion to tighten the pin;
+  - the `-99` survey flags, asking whether host JSONs should mix `999`/`-99`;
+  - the `separation` merge bug and its fix, and the Euclid HTTP 500 that `is_inside` reports as MAST/PS1;
+  - the `Spec_scaled` column.
+- **Re-requested Sunil's review** (`gh api ... requested_reviewers`; SunilSimha is now listed), for the `build_hosts` change.
+- **Branch protection:** the stale `Tox env 3.11-test-astropydev` is **gone**. The required checks on `main` are now `Tox env 3.11-test`, `Tox env 3.12-test` and `Tox env 3.12-test-astropydev`, all passing, so nothing blocks the merge.
+- **CHIME table:** `zdm/papers/Mo_Repeaters/` is not on `profx`; the `zdm` clone is on `NewQinLF`, last commit 2026-09-09, and has no `Mo_Repeaters` on any branch. Run `py/build_host_table.py` on the laptop and diff `CHIME_FRB_hosts.csv` (prompt 9 rules). Expected changes include photometry-derived columns for the rebuilt hosts (0.001 to 0.04 mag), the 20181030A offsets and 20230712A.
+- **Housekeeping:** `rebuild_report.md` renamed to `rebuild_report_2026-10-14.md` (`git mv`; Xavier had staged it).
