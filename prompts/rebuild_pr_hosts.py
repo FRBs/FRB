@@ -113,8 +113,8 @@ def main():
 
     # ---- Setup checks
     import frb
-    repo = os.path.abspath('.')
-    frb_file = os.path.abspath(frb.__file__)
+    repo = os.path.realpath('.')
+    frb_file = os.path.realpath(frb.__file__)
     if not frb_file.startswith(repo):
         print(f"WARNING: frb is imported from {frb_file}, not from this repo. "
               "Run `pip install -e .` in this env.")

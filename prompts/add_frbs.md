@@ -329,6 +329,13 @@ Compared `frb/data/Galaxies/public_hosts.csv` (this branch, 103 rows) with `GDri
 
 **Superseded (2026-10-10):** `Public_Hosts.xlsx` is deprecated, and `public_hosts.csv` is the master copy (prompt 12). It has since changed further in prompt 13 (Repo CSVs).
 
+**Rebuild (PR 6, 2026-10-14):** all 55 PR hosts were rebuilt on `profx` with the branch code (main merged) and `dust_extinction` 1.7; 54 JSONs changed and none was left at the old version. The changes:
+- the DELVE `98`/`99` sentinels are gone;
+- the WISE/2MASS error flags are now `-99`;
+- extinction-corrected magnitudes are 0.001 to 0.04 mag brighter, from the G23 curve in `dust_extinction` 1.7 vs 1.5.
+
+`build_hosts.run` now drops each survey's `separation` column before merging.
+
 ## TODO
 
 - [x] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
@@ -1065,3 +1072,79 @@ python prompts/rebuild_pr_hosts.py --retry 2
 then review `rebuild_report.md` and `git diff --stat frb/data/Galaxies`, and commit the JSONs.
 
 **Open:** the rebuild itself (PR-Q5/Q9); Sunil's re-review; the `figures/utils.log_me` arrow for -998 (not done; `err < 0` still just hides the bar).
+
+### PR 5: Workstation setup check (2026-10-13, Claude Opus 5.5)
+
+Run on host `profx`, `astro` env. **Result: not ready to build.** The import, git state, dry run and NED-LVS are fine, but most `$FRB_GDB` products are missing and `dust_extinction` is too old. Nothing was built.
+
+**Git.** `git fetch`: `repeater_updates` = `origin/repeater_updates` = 204c4c37, with 24199d42 and 9c32917f present. The only local change is an untracked `frb/data/Galaxies/PATH/tmp.csv` (a PATH scratch table from March 2026). It does not affect the rebuild; it was left in place.
+
+**Editable install.** From `/tmp`, `import frb` resolves to `/home/xavier/Projects/FRBs/FRB/frb/`. That is this repo: `~/Projects/FRBs` is a symlink to `/mnt/tank/Astronomy/FRBs`. pip shows it as an editable install, and no stub `site-packages/frb/` exists. The driver's repo check compared `abspath`s, so it warned falsely through the symlink. It now uses `realpath` (`prompts/rebuild_pr_hosts.py:116-117`).
+
+**Versions (astro env).** Python 3.13.2, astropy 7.0.1, numpy 2.2.5, astroquery 0.4.10, dust_extinction 1.5. ppxf, pcigale, EAZY and the Aemulus emulator are absent; none is needed for the rebuild.
+
+**Environment.**
+- `$NEDLVS` = `/mnt/tank/Astronomy/FRBs/NEDLVS_20210922_v2.fits`. The file exists, so the driver keeps NED-LVS.
+- `$FRB_GDB` = `/home/xavier/Projects/FRBs/FRB/Galaxy_DB/`. This is a git-ignored copy inside the repo, last touched June 2025, and it holds mostly images. `$SPECDB` = `/u/xavier/SPECDB/`, but `/u` does not exist on this machine.
+- Of the 17 PR-Q9 product directories, **12 are missing**: `CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/Mahony2018`, `CRAFT/shannon2024`, and `DSA/sharma2024`. There is a `CRAFT/Shannon2024` (capital S), but it holds images and `_outputs.yaml` files, not the products, and paths are case-sensitive here. Present: `CRAFT/{Heintz2020, Woodland2023}`, `F4/{gordon2023, mannings2021}` and `Realfast/Bhandari2021`.
+
+**pPXF and Galfit.** These were checked with the same path logic as `build_hosts.search_for_file`. **All 33 PR hosts that have a `Spectrum` are missing their `_ppxf.ecsv`:** 20180301A (DEIMOS), 20210807D (LRIS), 20211203C (Goodman), and the 30 Sharma2024 hosts. Galfit: 20190711A WFC3_F160W is present; **20210807D GeMSGSAOI_Kshort is missing**, so `build_hosts.py:470` would raise for that host. A build here would therefore silently drop the nebular values of 33 hosts and crash on 20210807D.
+
+**Dry run.** `python prompts/rebuild_pr_hosts.py --dry-run` lists 55 hosts with no warnings, once the `realpath` fix is in. It does not check the product directories.
+
+**Tests.** `pytest frb/tests/test_frbhosts.py test_galaxies.py test_photom.py test_surveys_offline.py` gives 47 passed and **1 failed**: `test_photom.py::test_dust_correct` returns 1.38692 instead of 1.39365. The cause is `dust_extinction` 1.5, whose G23 curve differs from later releases. With 1.7 (installed to a scratch directory, not the env), `extinction_correction('GMOS_S_r', 0.138)` gives exactly 1.3936491887210187. Every rebuilt magnitude would carry this roughly 0.5% (about 0.005 mag) offset, so upgrade before building. The `>=1.4` pin in `pyproject.toml` and `requirements.txt` is too loose; it should probably be `>=1.6` or `>=1.7` (not changed; 1.6 not tested).
+
+**To do before PR 6:**
+1. `conda activate astro; pip install -U "dust_extinction==1.7"`, then rerun `pytest frb/tests/test_photom.py`.
+2. Point `$FRB_GDB` at a full Galaxy_DB that has the 17 directories. If none exists on `profx`, rsync them from the machine that has `/u/xavier/Projects/FRB_Stuff/FRB/Galaxy_DB/` (the PR-Q9 command). Then rerun the pPXF/Galfit check: all 33 `_ppxf.ecsv` files and both Galfit files must be found.
+
+**Correction (2026-10-14).** The "not ready" verdict above was wrong about the products. The 17-directory list in PR-Q9 was taken from the `Projects`/`References` columns: it says where `build_hosts` *would look*, not what exists. Most of those references (the CHIME papers, Sharma2024) reach the JSONs only through `frb/data/Galaxies/Literature/` tables. The committed JSONs of all 33 hosts with a `Spectrum` have no `neb_lines` and no nebular-derived values, so no pPXF file was ever read for them; `Spectrum` just names the instrument. Nothing is lost when the build doesn't find them. 20210807D has no `_galfit.fits`, but the build falls back to `CRAFT/Woodland2023/HG20210807D_GeMSGSAOI_Kshort_galight.json`, which exists; the check above missed that fallback. Galaxy_DB has since moved out of the repo, to `/mnt/tank/Astronomy/Galaxy_DB/`. Its contents are unchanged, apart from `F4/mannings2024`, which nothing references. `~/.bashrc` still sets the old path, so PR 6 sets `FRB_GDB` explicitly. `dust_extinction` was upgraded to 1.7, and Xavier reports that the tests pass.
+
+### PR 6: Rebuild the 55 PR hosts (2026-10-14, Claude Opus 5.5)
+
+Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, astroquery 0.4.10, dust_extinction 1.7), with `FRB_GDB=/mnt/tank/Astronomy/Galaxy_DB/` set explicitly because `~/.bashrc` line 30 still has the old in-repo path, and with `$NEDLVS` set. Command: `python prompts/rebuild_pr_hosts.py --retry 2`.
+
+**Bug fixed: survey merge (main's code).** The first run failed 7 of its first 16 hosts on all three tries with `TableMergeError: ... duplicates: ['separation_1', 'separation_2']`. Since PR #237, `catalog_utils.clean_cat` adds a `separation` column to every survey catalog. `photom.merge_photom_tables` stacks the survey tables side by side with `hstack`, which renames the second `separation` to `separation_1`/`separation_2`; any host found in three or more surveys then hits a name clash. `build_hosts.run` now drops `separation` from each survey table before the merge. The column is not photometry, so no host data changes. The fix was tested on 20190110C, then the run was restarted from scratch with the old JSONs restored.
+
+**Result (`rebuild_report.md`, not committed).** 55 of 55 hosts built (`Failed: none`). 54 JSONs changed; 20171020A, 20190208A, 20190303A, 20190417A, 20191106C, 20230926A, 20231123A, 20231229A and 20231230A had no changes above the report's tolerance (only float noise); 20171020A is byte-identical. The 5 flagged hosts each needed all 3 tries, because the driver retries any lost band and the DELVE sentinels never come back:
+
+| Host | Lost bands | Why |
+|---|---|---|
+| 20190711A | DELVE_g, DELVE_r, DELVE_z | `98`/`99` sentinels, now masked by `clean_cat` |
+| 20200223B | DELVE_i | same |
+| 20230222B | DELVE_i | same |
+| 20231223C | DELVE_i, DELVE_z | same |
+| 20240114A | DELVE_i | same |
+
+**Full key-level check of all 54 JSONs:**
+- Outside `photom` there are no changes: no `neb_lines`, `derived`, `morphology`, `offsets` or `redshift` change beyond about 1e-6 relative float noise (12 apparent differences are NaN vs NaN).
+- In `photom`:
+  - No band was added. The only removed keys are the 32 DELVE sentinel keys above.
+  - Flags:
+    - `WISE_W2/W3/W4_err` changed from `999` to `-99` (36 cases);
+    - 20221101B `2MASS_h_err` changed from `-999` to `-99`;
+    - the zero flux errors (20220319D WISE W1-4, 20231120A Pan-STARRS i) are now `-99`.
+    This is main's survey convention (`defs.py`: the `frb.surveys` catalogs flag upper limits with `-99`, and `convert_mags_to_flux` understands both flags), and the matching `_flux_err` was already `-99` in the committed JSONs. Host JSONs now mix `999` (literature tables) and `-99` (surveys) for upper limits; I'll raise this with Sunil.
+  - No magnitude moved by more than 0.05 mag. The systematic shifts (0.001 to 0.036 mag brighter, larger in the blue and at high EBV) are exactly the change in the G23 extinction curve between `dust_extinction` 1.5 (the version prompt 13 used) and 1.7. Example: 20220319D, EBV = 0.696, Pan-STARRS_g correction −2.4701 → −2.5063 mag, a difference of −0.0362; the observed shift is −0.0362. EBV values are unchanged.
+- Expected items kept:
+  - 20181030A: `SFR_nebular = 0.033`, `_err = -998`, `SFR_photom = 0.36`.
+  - 20220912A: `SFR_nebular_err = -998`.
+  - The `Bad_photom` bands are still absent (20231230A DECaL; 20181030A Pan-STARRS).
+
+**Spot checks by hand:**
+- 20190711A (EBV 0.121): the DELVE g/r/z sentinels are gone; DELVE_i, DECaL, GMOS-S, FORS2 and WFC3 shift by −0.001 (F160W) to −0.011 (F300X) mag, scaling with wavelength as G23 does.
+- 20230712A (Sharma2024, EBV 0.037): DECaL, DECam and Pan-STARRS shift by −0.001 to −0.002 mag and WISE by −0.0001 mag; `WISE_W3/W4_err` changed from 999 to −99.
+- Every changed key is accounted for.
+
+**Survey errors.** Every host logged `500 Error` and "Couldn't reach MAST for PS1." (65 of 65 attempts). Testing each survey's `is_inside` on 20210807D shows the 500 comes from **Euclid**: `is_inside` catches every `HTTPError` under the MAST/PS1 message. Pan-STARRS itself worked, and no JSON has Euclid photometry, before or after. HSC has no credentials (no HSC bands before either). No SDSS 403s and no Data Lab failures.
+
+**Verification:**
+- `FRBHost.by_frb(FRB.by_name(...))` loads all 103 hosts.
+- `prompts/check_repo_csvs.py` reports only the known items: 20190614D, the 20200120E/M81 1170″ offset, and the prochaska2019 row FG181112_13_5.
+- `pytest frb/tests/test_frbhosts.py`: 6 passed.
+
+**For Sunil (main's code, follow-up):**
+1. The `separation` merge bug fixed above.
+2. The misleading MAST/PS1 message for any `HTTPError` (Euclid here).
+3. `999` vs `-99` upper-limit flags now mixed in host JSONs.
+4. Tighten the `dust_extinction>=1.4` pin; 1.5 gives a different G23 curve and fails `test_dust_correct`.

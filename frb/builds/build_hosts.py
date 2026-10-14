@@ -289,6 +289,10 @@ def run(host_input:pandas.core.series.Series,
                 #embed(header='277 of build')
                 #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
+        # clean_cat adds a separation column to every survey; it is not
+        # photometry, and hstack-ing it from 3+ surveys raises TableMergeError
+        if 'separation' in srvy_tbl.colnames:
+            srvy_tbl.remove_column('separation')
         # Merge
         if merge_tbl is None:
             merge_tbl = srvy_tbl
