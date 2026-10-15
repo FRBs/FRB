@@ -24,6 +24,7 @@ from frb.surveys.catalog_utils import xmatch_and_merge_cats, remove_duplicates
 from astropy.coordinates import SkyCoord
 from astropy import units as u
 from astropy.table import Table, join
+from astropy.io.ascii import InconsistentTableError
 from pyvo.dal import DALServiceError
 from requests import ReadTimeout, HTTPError
 from requests import ConnectionError as RequestsConnectionError
@@ -144,6 +145,10 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         cat = None
     except (HTTPError, URLHTTPError):
         warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
+        cat = None
+    except InconsistentTableError:
+        # e.g. SkyServer returning an HTML error page (often a 403) instead of CSV
+        warnings.warn(f"Unreadable response from {surveyname}; treating the position as outside it, so its photometry is skipped. Re-run if this persists.", RuntimeWarning)
         cat = None
     except (URLError, TimeoutError, ConnectionError, RequestsConnectionError):
         # The server of the survey is down or unreachable

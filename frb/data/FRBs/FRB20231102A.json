@@ -5,7 +5,7 @@
     },
     "DMISM": {
         "unit": "pc / cm3",
-        "value": 33.329444491465956
+        "value": 33.32944449146598
     },
     "DM_err": {
         "unit": "pc / cm3",
@@ -32,6 +32,5 @@
     "refs": [
         "Leung+2025"
     ],
-    "repeater": false,
-    "z": 0.6878
+    "repeater": false
 }

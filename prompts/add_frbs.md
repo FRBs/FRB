@@ -1,0 +1,1177 @@
+# Add CHIME Repeaters and Hosts to the FRB Repo
+
+## Goals
+
+Bring the FRB repo up to date with the localized CHIME repeaters and their host galaxies, so that `zdm/papers/Mo_Repeaters/CHIME_FRB_hosts.csv` (built by `zdm/papers/Mo_Repeaters/py/build_host_table.py`) can be regenerated from the repo alone, without the literature values hard-coded in that script.
+
+All decisions behind this doc are recorded in `zdm/papers/Mo_Repeaters/claude_prompts/frb_host_table.md` (Q&A Q1–Q40, and the "Missing Repeaters" table). The literature values there were verified against the paper PDFs in `zdm/papers/Mo_Repeaters/papers/`.
+
+## Context
+
+- `frb/data/FRBs/FRBs_base.csv`: one row per FRB, with `repeater`, `telescope`, `z`, `refs` and `P(O|x)`.
+- `frb/data/FRBs/FRB*.json`: per-FRB JSON files.
+- `frb/data/Galaxies/public_hosts.csv`: the input list of hosts, read by `frb/builds/build_hosts.py` (`main(frbs, ...)` → `run(host_row)`). `run()` queries the public surveys (DECaL, Pan-STARRS, WISE, ...), merges any literature tables, corrects for Galactic extinction (`photom.correct_photom_table`, with EBV from `nebular.get_ebv`), and writes `frb/data/Galaxies/<FRB>/FRB<FRB>_host.json`.
+- `frb/data/Galaxies/Literature/all_refs.csv`: an ordered list of literature tables (`Table, Format, Reference, DOI`). Order matters: the last measurement of a quantity wins. Each table has `Name` (`HG<FRB>`), `ra`, `dec` and quantity columns, with `_err` or `_loerr`/`_uperr` (see `gordon2023_derived.csv`).
+- `frb/galaxies/defs.py`: the valid keys. Upper limits use `_err = 999`; "no measurement" uses `-999`.
+- Papers (PDFs): `zdm/papers/Mo_Repeaters/papers/`.
+
+Reference labels to use:
+- `Michilli2023` (arXiv:2212.11941)
+- `Ibik2024a` (arXiv:2304.02638)
+- `Ibik2024b` (arXiv:2409.11533)
+- `Moroianu2025` (arXiv:2509.05174)
+- `Ravi2023` (arXiv:2211.09049)
+- `Hewitt2024` (arXiv:2410.17044)
+- `Bhardwaj2025` (arXiv:2506.11915)
+- `Eftekhari2024` (arXiv:2410.23336)
+- `Shah2024` (arXiv:2410.23374)
+- `Leung2025` (KKO catalog, ApJS 280, 6; arXiv:2502.11217)
+- `Leung2025b` (ApJL 991, L25; arXiv:2507.16816)
+
+## Prompts
+
+1. **FRB20181030A host.**
+   (a) Run `python zdm/papers/Mo_Repeaters/py/fix_frb20181030A_host.py` in the `astro` env. Then `git rm frb/data/Galaxies/FRB20181030A_host.json` and `git add frb/data/Galaxies/20181030A/` (the user does the git steps).
+   (b) Check that `FRBHost.by_frb(FRB.by_name('FRB20181030A'))` loads it.
+   (c) `Literature/bhardwaj2021_derived_FRB20181030A.csv` actually holds the FRB20201124A values (HG20201124A). Rename it or remove it, and check `all_refs.csv`.
+   Log your work below.
+
+2. **Lower-limit convention.** In `frb/galaxies/defs.py` (next to line 30), document `_err = -998` as a **lower limit** for derived quantities (agreed in Q37). Search the repo for anything that treats negative errors specially (e.g. `chk_fill` in `build_hosts.py`, and the table builders in `frb/galaxies/utils.py`), and make sure -998 survives a build. Log your work below.
+
+3. **Rename the two repeaters listed under later bursts (Q32).** FRB20231204A is the same source as **FRB20190303A**, and FRB20231128A is the same source as **FRB20191106C** (KKO §6.1, §6.6). For each:
+   - rename the `FRBs_base.csv` row, keeping the localization of the later burst (it is the better one) and noting the burst name in `refs`;
+   - rename `Galaxies/<old>/` to `Galaxies/<new>/` and the `FRB` field in the host JSON;
+   - update `public_hosts.csv`;
+   - check whether an `FRB*.json` exists under either name.
+   Ask the user before deleting anything. Log your work below.
+
+4. **Base-table fixes.**
+   - FRB20231201A: `z` = 0.119 should be 0.1119 (host JSON and KKO Table 2; Leung+2025b Table 1 repeats the typo).
+   - The 12 CHIME rows with a `z` but P(O|x) < 0.9 have no published redshift in the KKO paper: 20230410A, 20230616A, 20230702A, 20230828A, 20230918A, 20230923A, 20230924A, 20231006B, 20231102A, 20231223D, 20231224A, 20240210C. Ask the user where these z values came from, and whether to blank them.
+   - FRB20181119A: the `FRB20181119A.json` z = 0.26064 has no literature support (no host is proposed; Ibik+2024b App. A.4). Remove it.
+   - Consider cross-matching the CHIME rows against `CHIME_catalog-2021-1-27.json` (`repeater_of`) to flag any other repeaters.
+   Log your work below.
+
+5. **Add the missing CHIME repeaters to `FRBs_base.csv`.** Use the localizations in the papers, set `repeater=TRUE`, and record the papers in `refs`. Read coordinates, DM, z and the localization ellipse from the PDFs, not from memory.
+
+   | FRB | Loc. telescope | z | Source |
+   |---|---|---|---|
+   | FRB20180814A | CHIME | 0.06835 | Michilli2023 |
+   | FRB20190110C | CHIME | 0.12244 | Ibik2024a |
+   | FRB20200223B | CHIME | 0.06024 | Ibik2024a |
+   | FRB20190417A | EVN | 0.12817 | Moroianu2025; Ibik2024b |
+   | FRB20220912A | DSA (+EVN) | 0.0771 | Ravi2023; Hewitt2023 (arXiv:2312.14490) |
+   | FRB20240114A | MeerKAT / EVN | 0.130287 | Bhardwaj2025; Tian2024 (arXiv:2408.10988) |
+   | FRB20240209A | CHIME (+KKO) | 0.1384 | Shah2024; Eftekhari2024 |
+   | FRB20190208A | EVN | — | Hewitt2024 |
+   | FRB20181119A | CHIME | — | Michilli2023 |
+
+   Also create or update the `FRB*.json` files with `frb/builds/build_frbs.py`. Log your work below.
+
+6. **Build host JSONs for the new repeaters.** Add rows to `public_hosts.csv` (FRB, host `Coord`, `P_Ox`, `z`, `Projects=CHIME`, `References`). Host coordinates:
+   - 20180814A: PanSTARRS-DR1 J042256.01+733940.7
+   - 20190110C: 16h37m16.43s +41d26m36.30s (Ibik2024a Table 3)
+   - 20200223B: 00h33m04.68s +28d49m52.60s (Ibik2024a Table 3)
+   - 20190417A: take the host centroid from Moroianu2025. The FRB is at 19h39m05.8919s +59d19m36.99s.
+   - 20220912A: PSO J347.2702+48.7066
+   - 20240114A: DESI J212739.84+041945.8 (Bhardwaj2025 Table 3)
+   - 20240209A: 289.85036 +86.06090 (Eftekhari2024 Table 2)
+   - 20190208A: host O4 at the EVN position 18h54m11.27s +46d55m21.67s (Hewitt2024); r ≈ 27, so there is no survey photometry.
+
+   Then run `build_hosts.main([...])`. Check each JSON's survey photometry against the papers. The papers quote these uncorrected catalog values, so they should agree before the extinction correction:
+   - 20190110C: DECaL r = 18.009
+   - 20200223B: DECaL r = 16.080
+   - 20220912A: PS1 r = 19.65
+   Log your work below.
+
+7. **Literature derived-quantity tables.** Create one table per paper in `Galaxies/Literature/` (e.g. `ibik2024a_derived.csv`, `ibik2024a_nebular.csv`), add each to `all_refs.csv`, and rebuild the hosts. Values (verified; see `frb_host_table.md`):
+
+   | Host | Mstar [Msun] (method) | SFR [Msun/yr] |
+   |---|---|---|
+   | 20180814A | 10^10.78 +0.12/−0.18 dex (Prospector; Michilli2023 Tab 3) | `SFR_SED` < 10^-0.5 (upper limit: `_err=999`) |
+   | 20190110C | 2.5 +0.10/−0.17 e10 (Prospector; Ibik2024a Tab 3) | `SFR_nebular` 0.1575(6); `SFR_SED` 0.54 ± 0.04 |
+   | 20200223B | 5.6 +1.14/−0.93 e10 (Prospector) | `SFR_SED` 0.59 ± 0.04 (no Hα: AGN) |
+   | 20191106C | — (see prompt 8) | `SFR_nebular` 1.53 (SDSS fiber; Ibik2024a) |
+   | 20190303A | 10^10.75(3) (SDSS-collaboration value; Michilli2023 Tab 3) | log SFR 0.84(4) (SDSS-collaboration value). There is no `defs` key for an SDSS-pipeline SFR; ask the user |
+   | 20190417A | 10^7.88 +0.12/−0.14 (Prospector; Moroianu2025) | `SFR_nebular` 0.19 ± 0.01 |
+   | 20220912A | 10^10.0 ± 0.1 (Prospector; Ravi2023 Tab 2) | `SFR_nebular` 0.1 lower limit (`_err=-998`) |
+   | 20240114A | 10^8.55 +0.12/−0.14 (Prospector, Kroupa; Bhardwaj2025 Tab 3) | `SFR_nebular` 0.061 +0.004/−0.003 |
+   | 20240209A | 10^11.34 ± 0.01 (Prospector, Kroupa; Eftekhari2024 Tab 2) | `SFR_SED` < 0.36 (upper limit) |
+
+   Notes:
+   - `Mstar` is documented in `defs.py` as "CIGALE (or Prospector if Gordon2023)". Update that comment to say the method is set by `Mstar_ref`, and list the Prospector refs.
+   - Leung2025b (Table 1) CIGALE / NED-LVS masses for the KKO hosts lacking `Mstar`: 20230926A 10.49, 20231011A 9.59, 20231123A 9.42, 20191106C 9.47, 20231201A 9.47, 20231229A 9.87, 20231230A 10.04 (CIGALE); 20230222B 10.19 and 20231223C 10.40 (NED-LVS). All are Chabrier, with no per-object errors. These need a way to record the method (CIGALE vs NED-LVS). Propose one to the user.
+   Log your work below.
+
+8. **Stellar-mass conflicts and non-Prospector masses (Q26, Q38).** We cannot run Prospector (and will not), so there are no new SED fits. Instead:
+   - Keep the literature masses as recorded. The method is set by `Mstar_ref` and its suffix (Q9).
+   - FRB20191106C: Leung2025b CIGALE (10^9.47) stays, per the Q38 tiers. Record the Chang+2015 value (4.5 ± 1.2 e10, via Ibik2024a) so that the CHIME table can cite it.
+   - Sanity-check every non-Prospector mass (CIGALE, NED-LVS, SDSS) with a colour-based M/L estimate from the repo photometry, calibrated on the Gordon2023 Prospector masses. Flag outliers in the Q&A. This is a check only; the estimates are not stored as masses.
+   - FRB20181030A: keep the Bhardwaj2021b Prospector value (no refit).
+   - Look in `papers/` for any published Prospector mass for these hosts. If there is one, add it per Q26.
+   Log your work below.
+
+9. **Regenerate the CHIME table.** Once prompts 1–7 are done:
+   - remove the corresponding entries from `LIT_HOSTS`, `LIT_SUPPLEMENT`, `RENAME` and `FIX_181030A` in `zdm/papers/Mo_Repeaters/py/build_host_table.py`;
+   - rerun it;
+   - diff the new `CHIME_FRB_hosts.csv` against the previous one. Every change should be explainable (e.g. the magnitude source).
+   Log your work below.
+
+10. **TODO updates.**  I have completed the TODO items and added the answers below it.  Please update the files as need be.  Use Opus 5.5.  Log your work.
+
+11. **Database** I am about to open a PR for this work.  But before doing so, I need you to compare the `FRBs_base.csv` against the copy on my Google Drive at:
+`GDrive:Astronomy/Research/FRB/public_frbs`. Describe any differences in the files in the "PR Checklist/FRBs" section below.  
+Similarly, compare the `public_hosts.csv` against the copy on my Google Drive at:
+`GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx`. Describe any differences in the files in the "PR Checklist/Hosts" section below.  
+Use Opus 5.5. Log your work.   
+
+12. **Deprecating the Google Sheets.**  I am deprecating the Google Sheets and wish to only use the CSV files from the Repo in the future.  Please check the CSV files and let me know if there are any updates I need to make to them.  Do not edit them yet.  If you find any issues, describe them in the 
+"Repo CSVs" section below and write a prompt (#13) to update them.
+Use Opus 5.5.  Log your work.
+
+13. **Fix the repo CSVs (Repo CSVs → A–C).** Use Opus 5.5. Log your work below.
+   - **Before running,** answer D1–D7 under "Repo CSVs → Decisions" (or accept the recommended defaults there). If any is unanswered, stop and ask.
+   - **Edit rules:** both CSVs have CRLF line endings, so keep them. Make field-level edits with a short script that rewrites only the changed fields, not a pandas round-trip (that reformats every number, e.g. `1.00E+00`, and the ra/dec digits). Keep the row order. Show the `git diff --stat` and a sample of the diff before moving on.
+   - **`public_hosts.csv`:**
+     - fix the 20230712A `Coord` (A1);
+     - fix the Coord and Projects formatting and fill 20200120E (B5);
+     - apply D5 (20210912A) and D6 (20181030A, 20190614D).
+   - **`FRBs_base.csv`:**
+     - rename FRB20180924A → FRB20180924B (A2);
+     - apply the z values chosen in D1 (A4), and the matching `z` in `public_hosts.csv`;
+     - drop the 7 scratch columns (B1);
+     - apply D2 (5 unlocalized DSA rows), D3 (P(O|x)) and D7 (refs labels).
+   - **JSONs:**
+     - rebuild with `build_frbs`: FRB20180924B, FRB20171020A, and every row whose z changed;
+     - rebuild with `build_hosts`: 20230712A, 20171020A, and every host whose z changed;
+     - `git rm` the stale files in B2 and A3, and the D4 files if deletion is chosen. List them for the user first.
+     - For 20230712A, check that the rebuilt JSON is at RA 167.36, Dec +72.56, has survey photometry, and has the Sharma2024 derived values.
+   - **`sharma2024_derived.csv`** (C1): flip the sign of the 88 negative `_loerr` values (`-999`/`-998` excepted). Then rebuild the 30 Sharma2024 hosts and check that only the `_loerr` values change in their JSONs.
+   - **Verify:**
+     - rerun `python prompts/check_repo_csvs.py`. The only expected output is the 20200120E host offset (M81, see the Prompt 12 log) and the FG181112_13_5 literature row;
+     - `FRB.by_name` should work for every `FRBs_base.csv` row that has a localization;
+     - every `public_hosts.csv` row should have a host JSON whose RA/Dec matches `Coord` to < 0.25″;
+     - no z mismatches between `FRBs_base.csv` and `public_hosts.csv` except those D1 keeps on purpose;
+     - run `pytest frb/tests/test_frb.py frb/tests/test_frbhosts.py`.
+   - Then remove the "Sync" sentences from PR Checklist → FRBs/Hosts and mark Q14 as moot.
+
+## PR
+
+1. I have issued a PR for this work.  Please see if you can figure out why
+the Tox env 3.11-test-astropydev test isn't running.  And then tell me how
+to fix it.  Use Opus 5.5.  Log your work.
+
+2. Sunil has requested changes to our PR based on work he had been doing.
+Please review his comments and make suggestions in the Q&A/PR section before
+proceeding.  Provide Recommendations in the Q&A/PR section.
+Use Opus 5.5.  Log your work.
+
+3. I have answered your questions in Q&A/PR.  Please read those responses
+and ask me another round in Q&A/PR. 
+Use Opus 5.5.  Log your work.
+
+4. I have answered your questions in Q&A/PR.  Please read those responses
+and go forth to do the work you can on this Laptop.
+Use Opus 5.5.  Log your work.
+
+5. **Workstation setup check (run on the workstation, `astro` env, before PR 6).** Use Opus 5.5. Log your work.
+   - `git fetch` and check out `repeater_updates` at origin (commits 24199d42 and 9c32917f must be present). Stop if there are local changes you did not expect.
+   - **Editable install:** from a directory outside the repo, `python -c "import frb; print(frb.__file__)"` must print this repo's path. If it prints a site-packages path, run `pip install -e . --no-deps` in the repo, rerun the check, and if a stub `site-packages/frb/` directory still shadows the package (see the PR 4 log), move it aside. Do not continue until the import resolves to the repo.
+   - **Environment:** `$FRB_GDB` must be a directory that contains the 17 product directories listed in PR-Q9 (`CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/{Heintz2020, Mahony2018, Woodland2023, shannon2024}`, `DSA/sharma2024`, `F4/{gordon2023, mannings2021}`, `Realfast/Bhandari2021`). List any that are missing. Check that `$NEDLVS` points to an existing file; if not, say so (the driver drops NED-LVS, which adds no photometry).
+   - Check the pPXF products exist for the 33 hosts with a `Spectrum` in `public_hosts.csv` (`<FRB_GDB>/<project>/<ref>/<host>_<Spectrum>_ppxf.ecsv`) and the Galfit files for 20190711A (WFC3_F160W) and 20210807D (GeMSGSAOI_Kshort). A missing pPXF file silently drops the nebular values, so list every missing one before building.
+   - `python prompts/rebuild_pr_hosts.py --dry-run` must list 55 hosts with no warnings.
+   - Run `pytest frb/tests/test_frbhosts.py frb/tests/test_galaxies.py frb/tests/test_photom.py frb/tests/test_surveys_offline.py`.
+   - Record the Python, astropy, numpy and astroquery versions in the log. Do not build anything yet.
+
+6. **Rebuild the 55 PR hosts (PR-Q5, Q9, Q11).** Use Opus 5.5. Log your work.
+   - Run `python prompts/rebuild_pr_hosts.py --retry 2` from the repo root (expect well over an hour; survey queries are slow and flaky). Keep the console output in a file.
+   - Read `rebuild_report.md` and `git diff --stat frb/data/Galaxies`. **Expected changes:**
+     - the DELVE `98`/`99` sentinels disappear from 20190711A (g, r, z), 20200223B (i), 20230222B (i), 20231223C (i, z) and 20240114A (i), because main's `clean_cat` now masks them. These show as "lost bands" and are fine;
+     - the zero errors in 20220319D (WISE W1-4) and 20231120A (Pan-STARRS i) may change or be masked;
+     - small float differences in survey magnitudes and fluxes;
+     - 20181030A keeps `SFR_nebular = 0.033` with `_err = -998` (from `Spec_scaled = False` and `bhardwaj2021b_derived.csv`), and 20220912A keeps `SFR_nebular_err = -998`;
+     - the `Bad_photom` bands stay absent (20231230A DECaL g/r/z; 20181030A Pan-STARRS).
+   - **Not acceptable:** any other lost photometry band, any lost `neb_lines`, `derived` or `morphology` key, a failed host, or a host at the wrong position. For each such host, rerun it alone (`--hosts <name> --retry 3`); if a survey keeps failing (SDSS 403, MAST, Data Lab), say which, and leave the old JSON in place by `git checkout -- <file>`.
+   - Diff two hosts by hand as a spot check, one Sharma2024 host and 20190711A, and explain every changed key.
+   - **Verify:** `FRBHost.by_frb(FRB.by_name(...))` loads all 103 hosts; `python prompts/check_repo_csvs.py` reports only the known items (20190614D, the 20200120E/M81 offset, FG181112_13_5); `pytest frb/tests/test_frbhosts.py`.
+   - Commit only the host JSONs (not `rebuild_report.md` or the console log; copy their summary into the log below), with a message that names the number of hosts rebuilt and the hosts left at the old JSON, and push. Add a short "Rebuild" entry to the PR Checklist → Hosts section.
+
+7. **Close out the review (PR-Q10).** Use Opus 5.5. Log your work.
+   - After PR 6 is pushed and CI is green (`gh pr checks 240`), post a PR comment, marked "posted by Claude Code on Xavier's behalf", that summarizes the rebuild: the number of hosts rebuilt, what changed (the DELVE sentinels, and anything unexpected), the hosts left unrebuilt and why, and that `Spec_scaled` is in `public_hosts.csv`.
+   - Re-request Sunil's review: `gh api -X POST repos/FRBs/FRB/pulls/240/requested_reviewers -f 'reviewers[]=SunilSimha'`.
+   - Check whether the stale required status check `Tox env 3.11-test-astropydev` is still in the branch protection (PR 1 log). If it is, remind me; it blocks the merge and only I can remove it.
+   - If `zdm/papers/Mo_Repeaters/` is present on this machine, rerun `py/build_host_table.py` and diff `CHIME_FRB_hosts.csv` against the previous version (prompt 9 rules: every change must be explainable, e.g. the 20181030A offsets, 20230712A, and any host whose photometry changed in PR 6). If it is not present, say so; I will run it on the laptop.
+
+8. **Rebuild the remaining hosts (after PR #240 is merged; new branch `rebuild_hosts`).** Use Opus 5.5. Log your work in a new prompts file, `prompts/rebuild_hosts.md`.
+   - Rebuild the 49 hosts not touched by PR #240 with the revamped survey code, using `prompts/rebuild_pr_hosts.py --hosts <list> --retry 2` (compute the list as all `public_hosts.csv` hosts minus `PR_HOSTS` in the script). The known cases are the DELVE sentinels in 20200430A, 20211127I and 20220105A.
+   - Same acceptance rules and verification as PR 6. Watch especially the Gordon2023 hosts (prompt 13 log: the G23 extinction law shifts optical/NIR magnitudes by 0.01-0.04 mag, and `-999` literature placeholders are dropped) and the hosts last built before 2024, whose offsets may follow updated FRB positions.
+   - Open a PR with a summary table of hosts rebuilt, bands lost or gained, and unrebuilt hosts.
+
+9. **Tests**  There is still one test failing for the PR. Please investigate and help me fix it.
+
+## Repo CSVs
+
+Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
+
+What is fine: every FRB JSON matches its `FRBs_base.csv` row (ra, dec, DM, z, repeater). There are no duplicate names. Where both CSVs have a P(O|x), the values agree. Every table in `all_refs.csv` exists, and each of its rows matches a host within 1″ (one exception, A1). The only other unmatched row is a foreground galaxy, FG181112_13_5, as expected.
+
+### A. Errors
+
+1. **20230712A host `Coord` is malformed, and its host JSON is wrong.** `public_hosts.csv` has `11 09 26.4746s +72 33 28.8396s` (spaces instead of `h`/`m` and `d`/`m`). `SkyCoord` parsed it without error, as RA = 0.0031°, Dec = 0.0202°. As a result, `FRB20230712A_host.json` (built 2024-12-13):
+   - is at that position, 107° from the FRB;
+   - has no photometry and no derived values: the Sharma2024 tables match by position, so they were never merged;
+   - has wrong offsets.
+
+   Fix: `11h09m26.4746s +72d33m28.8396s` (= 167.360311, +72.558011, as in `sharma2024_*.csv`), then rebuild.
+2. **FRB20180924A should be FRB20180924B.** `FRBs_base.csv` uses the A suffix, but the TNS name is FRB20180924B. B is also what the FRB JSON, the host directory, `public_hosts.csv`, `FRB_pulses.csv`, `associate/frbs.py` and the tests use. `FRB.by_name('FRB20180924A')` fails. As things stand, `build_frbs` would write a second JSON, `FRB20180924A.json`, and never update `FRB20180924B.json`.
+3. **FRB20171020A JSONs are under the old name.** Both CSVs use `20171020A`, but the files are `FRBs/FRB20171020.json` and `Galaxies/20171020/FRB20171020_host.json` (with `FRB = FRB20171020`). `FRB.by_name('FRB20171020A')` fails. Rebuild both under the A name and `git rm` the old files.
+4. **z differs between `FRBs_base.csv` and `public_hosts.csv`/the host JSON in 13 rows.** FRB JSONs follow `FRBs_base.csv`; host JSONs follow `public_hosts.csv`.
+
+   | FRB | `FRBs_base` z | `public_hosts`/host z | Kind |
+   |---|---|---|---|
+   | 20220610A | 1.015 | 1.016 | real (Ryder+2023 gives 1.016) |
+   | 20230718A | 0.035 | 0.0359 | real |
+   | 20201124A | 0.0982 | 0.0979 | real |
+   | 20231230D | — | 0.506 | missing in base (P_Ox 0.999) |
+   | 20240117B | — | 0.644 | missing in base (P_Ox 0.9999) |
+   | 20231020A | — | 0.0455 | P(O\|x) = 0.57. Base was blanked by the prompt-4 rule, but the host row and JSON keep z |
+   | 20180301A, 20190102C, 20190711A, 20191228A, 20200430A, 20210807D, 20211203C | 0.33044, 0.2912, 0.52172, 0.243, 0.161, 0.12927, 0.34386 | 0.3305, 0.29117, 0.522, 0.2432, 0.1608, 0.1293, 0.3439 | rounding (≤ 5e-4) |
+
+   See D1.
+
+### B. Clean-up (leftovers from the Sheets era)
+
+1. **Scratch columns in `FRBs_base.csv`:** `ra_new, dec_new, eea_new, eeb_new, ee_theta_new, Diff RA, Diff (DEC)`.
+   - They were added with the first version of the file (a7850614, 2024-07-12), are filled only for 12 ASKAP rows, and nothing in the repo reads them.
+   - `ra_new`/`dec_new` are float32-rounded copies of `ra`/`dec` (`Diff` ≤ 0.04″), and `eeb_new` for 20200906A is −0.470.
+   - Drop all seven.
+2. **Stale FRB JSONs with no suffix** (old names, superseded by the suffixed files): `FRB20201123`, `FRB20210320`, `FRB20210410`, `FRB20210807`, `FRB20210912`, `FRB20211127`, `FRB20211203`, `FRB20211212` (each has an `…A/C/D/I.json` twin), plus `FRB20171020` (A3). Delete them. For the 3 that have **no** `FRBs_base.csv` row at all, see D4.
+3. **Host directories with no `public_hosts.csv` row:** `20181030A` (made by script in prompt 1) and `20190614D` (2021 file `FRB20190614_host.json`, with no suffix in the file name). Neither can be regenerated from the CSVs. See D6.
+4. **P(O|x) is stored in two places.** `public_hosts.csv` `P_Ox` is filled for all 103 hosts (0 for 20171020A, 20210912A and 20230718A). `FRBs_base.csv` `P(O|x)` covers only the 84 KKO CHIME rows, and the 9 prompt-5 repeaters are blank there (their values are in `public_hosts.csv`). See D3.
+5. **`public_hosts.csv` formatting:**
+   - 10 more `Coord` values are in non-standard form. They parse, but some lack a trailing `s`, have a single-digit hour, or have double or trailing spaces: 20191001A, 20210410D, 20211127I, 20211203C, 20240210A, 20221113A, 20221116A, 20220726A, 20220310F, 20230216A. Normalize them to `HHhMMmSS.SSSSs ±DDdMMmSS.SSSs` without changing any digits.
+   - `Projects`: `"F4 "` (20210410D) has a trailing space. (Correction, prompt 13: the repeated tokens, e.g. `CRAFT,CRAFT,F4,F4,CRAFT`, are **not** duplicates. `Projects` and `References` are paired lists (`build_hosts` asserts equal length, and `search_for_file` looks in `$FRB_GDB/<project>/<ref>/`), so they stay.)
+   - 20200120E has blank `Projects` and `References`. Fill them: `CHIME,CHIME`; `Bhardwaj2021,Kirsten2021`.
+   - `P_Ox` for 20121102A is written `1.00E+00`. Use `1.0`.
+6. **`refs` labels in `FRBs_base.csv` use three styles:** `Name2023` (107), `Name+2025` (83, all the KKO rows) and `NameYY` (63, e.g. `Sherman23`, `Muller25`, `Connor24`, `Sharma24`). This is only cosmetic. See D7.
+
+### C. Literature tables
+
+1. **`sharma2024_derived.csv` stores `_loerr` as negative numbers** (88 values: `Mtotal`, `SFR_SED`, `AV_old`). Every other table stores them as positive. The negatives are copied into 29 DSA host JSONs (30 once A1 is fixed) (e.g. 20220319D `SFR_SED_loerr = -0.0209`). They could also be confused with the `-998`/`-999` flags. Flip the sign.
+2. Minor, no action: `sharma2024_orig.csv` (the raw source) is not listed in `all_refs.csv`, which is fine. `mahony2018_derived.csv` and `bhardwaj2021_derived.csv` have no `Name` column; matching is by position, so this does not matter.
+
+### Decisions (user)
+
+- **D1. z values (A4).** **Recommended:** the published spectroscopic z goes in **both** CSVs.
+  - Use the host value for 20220610A (1.016), 20230718A (0.0359), 20201124A (0.0979), 20231230D (0.506) and 20240117B (0.644). This needs your confirmation for 20230718A and 20201124A.
+  - For the rounding rows, use whichever has more digits.
+  - For 20231020A (P(O|x) = 0.57), either blank `z` in `public_hosts.csv` to match the prompt-4 rule, or keep it in both.
+  >A. I answer:
+     - I confirm
+     - I confirm
+     - Blank 
+- **D2. Five DSA rows with no localization:** FRB20220121B, 20220424E, 20220801A, 20220926A, 20221002A (`refs = Sherman23`; DM and RM only). They have no JSON, `FRB.by_name` fails, and `build_frbs.main(['all'])` would stop at them. Fill in positions from Sherman+2023/2024 if they exist, or **remove the rows** (recommended if they were never localized).
+  > A. I agree, fill in from Sherman+2023/2024 if they exist or remove the rows.
+- **D3. P(O|x).** **Recommended:** keep `public_hosts.csv` `P_Ox` as the master. Fill `FRBs_base.csv` `P(O|x)` for the 9 prompt-5 repeaters, so that the two CSVs agree for every CHIME row (`build_host_table.py` reads `FRBs_base.csv` first). The alternative is to drop the `FRBs_base.csv` column and change `build_host_table.py`.
+>A. Use your recommended approach.
+- **D4. JSONs with no CSV row:** `FRB20210123.json` (MeerTRAP, DM 750), `FRB20210407.json` (CRAFT, DM 1784) and `FRB20220222.json` (MeerTRAP, DM 1070). Add them to `FRBs_base.csv` (with TNS suffixes), or delete them.
+>A. Delete them
+- **D5. 20210912A host row** (hostless; Marnoch2023): it has no `Coord` (P_Ox = 0, no z), so `build_hosts` would crash on it. **Recommended:** delete the row. The FRB stays in `FRBs_base.csv`.
+>A. Use your recommended approach.
+- **D6. 20181030A and 20190614D hosts (B3).**
+  - **Recommended** for 20181030A: add a `public_hosts.csv` row, and move its prompt-1 values into `bhardwaj2021b_photom.csv`/`_derived.csv` so that a rebuild reproduces the JSON. Alternatively, leave it JSON-only and note that.
+  - For 20190614D (no secure host; Law+2020): delete the directory, or leave it as is.
+>A. Use your recommended for 20181030A and leave 20190614D as is.
+- **D7. `refs` labels (B6).** Normalize to `NameYYYY` (`Leung+2025` → `Leung2025`, `Sherman23` → `Sherman2023`, …), or leave them. **Recommended:** leave them, unless `build_host_table.py` needs to be simplified.
+>A. Leave them as is.
+
+## PR Checklist
+
+### FRBs
+
+Compared `frb/data/FRBs/FRBs_base.csv` (this branch, 188 rows) with `GDrive:Astronomy/Research/FRB/public_frbs` (Google Sheet, modified 2026-05-30, 179 rows; exported with rclone). Same 26 columns, and the common rows are in the same order.
+
+**A. Changes made in this PR (Drive does not have them yet):**
+1. **Renamed rows (prompt 3):**
+   - FRB20231204A → **FRB20190303A**, `refs` = `"Leung+2025,burst:FRB20231204A"`;
+   - FRB20231128A → **FRB20191106C**, `refs` = `"Leung+2025,burst:FRB20231128A"`.
+2. **9 new repeater rows (prompt 5):** FRB20180814A, 20190110C, 20200223B, 20190417A, 20220912A, 20240114A, 20240209A, 20190208A, 20181119A. All have `repeater = TRUE` and `telescope = CHIME`, with positions, ellipses, DMs and z from the papers. They are appended at the end of the file.
+3. **FRB20231201A** `z`: 0.119 → **0.1119** (prompt 4).
+4. **`z` blanked** (prompt 4) for the 12 rows with P(O|x) < 0.9: 20230410A, 20230616A, 20230702A, 20230828A, 20230918A, 20230923A, 20230924A, 20231006B, 20231102A, 20231223D, 20231224A, 20240210C.
+
+**B. Pre-existing differences (already on `main` before this branch):**
+5. **`P(O|x)` column.** In the Drive sheet, column 19 has **no header** and is **empty** (0 of 179 values). The repo has `P(O|x)` for the 84 CHIME/KKO rows (added in f28709c8, 2025-03-24). The Drive sheet needs the header and the values.
+6. **FRB20190711A `ee_b`:** Drive 1.281, repo 1.28 (changed in d5fbc4b8 "frbs", 2026-02-11, which also updated this row's ra/dec; Drive has the new ra/dec).
+7. **Rounding only:** ra/dec in 41 rows (and `ee_a` of 20181112A) differ by ≤ 3e-8 deg (≈ 0.1 mas). The Drive sheet stores full double precision, and the CSV has 7–9 decimals. Not meaningful.
+
+**Superseded (2026-10-10):** the Google Sheet is deprecated, and `FRBs_base.csv` is the master copy (prompt 12). It has since changed further in prompt 13 (Repo CSVs).
+
+### Hosts
+
+Compared `frb/data/Galaxies/public_hosts.csv` (this branch, 103 rows) with `GDrive:Astronomy/Research/FRB/Galaxies/Galaxy_DB/Public_Hosts.xlsx` (uploaded xlsx, modified 2025-08-09, 95 rows, one sheet). The 13 shared columns match by name, and the common rows are in the same order.
+
+**A. Changes made in this PR (Drive does not have them yet):**
+1. **Renamed rows (prompt 3):** 20231204A → **20190303A**, 20231128A → **20191106C**. Coordinates and other fields are unchanged.
+2. **8 new rows (prompt 6)**, all `Projects = CHIME`:
+
+   | FRB | P_Ox | z | References |
+   |---|---|---|---|
+   | 20180814A | 0.34 (prompt 10) | 0.06835 | michilli2023 |
+   | 20190110C | 0.779 | 0.12244 | ibik2024a |
+   | 20200223B | 0.899 | 0.06024 | ibik2024a |
+   | 20190417A | 1.0 | 0.12817 | moroianu2025 |
+   | 20220912A | 0.95 | 0.0771 | ravi2023 |
+   | 20240114A | 0.997 | 0.130287 | bhardwaj2025 |
+   | 20240209A | 0.99 | 0.1384 | eftekhari2024 |
+   | 20190208A | 0.9995 | — | hewitt2024 |
+3. **New column `Bad_photom`** (prompt 9, Q12), read by `build_hosts.run`. It is empty except for 20231230A: `"DECaL_g,DECaL_r,DECaL_z"`.
+
+**B. Pre-existing differences (already on `main`):**
+4. **Rounding only:** in the repo, P_Ox for 20181112A, 20190611B and 20191001A, and z for 20190102C (0.29117 vs 0.291168), are rounded to 5 digits. Drive has full precision. Not meaningful.
+
+**Superseded (2026-10-10):** `Public_Hosts.xlsx` is deprecated, and `public_hosts.csv` is the master copy (prompt 12). It has since changed further in prompt 13 (Repo CSVs).
+
+**Rebuild (PR 6, 2026-10-14):** all 55 PR hosts were rebuilt on `profx` with the branch code (main merged) and `dust_extinction` 1.7; 54 JSONs changed and none was left at the old version. The changes:
+- the DELVE `98`/`99` sentinels are gone;
+- the WISE/2MASS error flags are now `-99`;
+- extinction-corrected magnitudes are 0.001 to 0.04 mag brighter, from the G23 curve in `dust_extinction` 1.7 vs 1.5.
+
+`build_hosts.run` now drops each survey's `separation` column before merging.
+
+## TODO
+
+- [x] **20180814A localization ellipse (Q1).** Waiting on Dr. Michilli. Table 1 of Michilli+2023 gives σRA = 18″ and σDec = 20″, but Fig. 2 shows about 57″ × 20″. `FRBs_base.csv` has Table 1 for now. Once confirmed, update `ee_a`/`ee_b`/`ee_theta`, rerun `build_frbs` and `build_hosts` for 20180814A, and check `offsets`.
+- [x] **20180814A P_Ox (Q2).** Blank in `public_hosts.csv`, because Michilli+2023 did not run PATH on this host. Set it once Dr. Michilli replies.
+- [x] **20191106C stellar mass (Q11).** Waiting on the Leung+2025b authors. Leung Table 1 gives log M* = 9.47 (CIGALE), the same as 20231201A in the next row. The colour-M/L estimate (10.3–10.5) and Chang+2015 (10.65, via Ibik2024a) suggest about 10.6. The repo keeps `Leung2025b_CIGALE` 9.47 for now. If the authors confirm a typo, update `leung2025b_cigale_derived.csv` (or add `chang2015_derived.csv`) and rebuild 20191106C.
+
+### TODO anaswers
+- Use σRA = 18″ and σDec = 20″ for 20180814A
+- P(O|x) = 0.34 for the primary candidate.  Please use that and update files as need be
+- Here is the answer from Calvin: "FRB 20191106C = FRB 20231128A has M* = 10.43 +- 0.13 as measured by CIGALE. The 20231201A value is correct" 
+
+## Q&A
+
+**Q1. 20180814A localization ellipse (from Prompt 5).**
+Michilli+2023 Table 1 gives σRA = 18″ and σDec = 20″ ("approximately circular"). Their Fig. 2 1σ ellipse is about **57″ (RA) × 20″ (Dec)**. The host is 51.9″ from the FRB: ≈2.5σ with Table 1, but inside the Fig. 2 2σ ellipse, as the text says. `FRBs_base.csv` currently has Table 1 (20″ × 18″, θ = 0). The host JSON offsets use it too (`ang_best_err` = 17.9″). Keep Table 1, or switch to a = 57″, b = 20″, θ = 90° from the figure (and rebuild the FRB and host JSONs)?
+
+>A.  I will ask Dr. Michilli for the correct value.  Hold on for now and come back to it later.  Record this as a TODO item in the TODO section above
+
+**Q2. P_Ox for 20180814A.**
+Michilli+2023 did not run PATH on 20180814A. The association rests on the host being the only galaxy in the region with z < z_max (they ran PATH only for 20190303A). I left `P_Ox` blank in `public_hosts.csv`, which gives NaN in `build_table_of_hosts`. Leave it blank, or set a value? If `build_host_table.py` cuts on P(O|x) ≥ 0.9, a blank may drop this host.
+
+>A. Same as above.  Add to TODO
+
+**Q3. P_Ox for 20190110C and 20200223B: which prior on P(U)?**
+Ibik+2024a Table 1 gives PATH with P(U) = 0.0 and with P(U) = 0.1: 0.918 / 0.779 (20190110C) and 0.994 / 0.899 (20200223B). I entered the P(U) = 0 values (0.918, 0.994). With P(U) = 0.1, both fall below 0.9. Which do you want?
+
+>A. Use P(U) = 0.1 which means both fall below 0.9
+
+**Q4. P_Ox for 20220912A.**
+Ravi+2023 quote only "a 5% false-association probability" (PATH, standard priors, P(U) = 0.5). I entered `P_Ox = 0.95`. Hewitt+2023 (EVN) gives no PATH value. OK?
+
+>A. Ok
+
+**Q5. Hosts with no or inadequate survey photometry.**
+- 20190417A: no survey match. Moroianu fn. 39 says the host is not in the DECaLS catalog, so the JSON has no photometry and no `EBV`. Moroianu gives GMOS g, r, i, z = 23.45 ± 0.15, 22.42 ± 0.06, 22.42 ± 0.07, 23.32 ± 0.12 (AB, uncorrected, calibrated to PS1). Ibik+2024b Tab 4 gives r = 21.47.
+- 20190208A: r ≈ 27, so no survey photometry, as expected. Hewitt+2024 gives GTC r = 27.32 ± 0.16 (text) vs 27.17 (Tab 2).
+- 20240209A: the PS1 catalog r is 17.34 uncorrected (17.07 corrected). Eftekhari gives GMOS r = 16.79 ± 0.02 (14″ aperture, extinction-corrected). The host is a large elliptical, so the PS1 catalog magnitude probably misses flux.
+
+Should prompt 7 add `*_photom.csv` literature tables (e.g. `moroianu2025_photom.csv` with `GMOS_N_*`, `hewitt2024_photom.csv` with the GTC r, `eftekhari2024_photom.csv`)? Which value should the CHIME table use for 20240209A?
+
+>A.  Yes, add those.  And use the 14'' aperture flux for 20240209A
+
+**Q6. 20190208A has no redshift: NaN in the JSON.**
+`build_hosts.run` calls `Host.set_z(nan)`, so the JSON has `"z": NaN` (and `z_FRB`, `z_spec`) and `physical`/`physical_err` = NaN. The JSON loads fine, and other repo JSONs also contain NaN tokens, but NaN is not strict JSON. Leave it, or strip the NaN entries after the build (an empty `redshift` dict and no `physical`)?
+
+>A. Leave it
+
+**Q7. DELVE `98 ± 99` placeholders (repo-wide).**
+`DELVE_i = 98.0`, `DELVE_i_err = 99` (after the extinction correction) appears in the new 20200223B and 20240114A JSONs. It also appears in 20200430A, 20211127I, 20220105A, 20230222B and 20231223C (7 hosts in all, more for other bands). `surveys/delve.py` (L81) masks only NaN and 99.99, not DELVE's 99 non-detection value. Should I change `delve.py` to set mag = 99 / err = 99 to -999 and rebuild the affected hosts? This may be a separate PR.
+
+>A.  Let's ignore DELVE for now
+
+**Q8. NED-LVS.**
+`$NEDLVS` is not set, and there is no LVS file on this machine. `survey_utils.in_which_survey` asserts on it, so I ran the build with NEDLVS removed from `optical_surveys` in my driver script (no repo change). NED-LVS supplies only z, ebv and Mstar (no `defs` photometry bands), so the photometry is unaffected. If you want the hosts built exactly as on your main machine, set `$NEDLVS` and rerun. Also, `$FRB_GDB` here points to a nonexistent Linux path (`/u/xavier/...`), so no CIGALE, pPXF or Galfit products were found. None exist for these hosts anyway.
+
+>A.  Let's not worry about NEDLVS.  If we thought it were important, I could run on my workstation.
+
+**Q9. How to record the stellar-mass method (Leung+2025b CIGALE / NED-LVS masses; Michilli's SDSS mass for 20190303A).**
+Since `Mstar_ref` sets the method, a paper that mixes methods breaks that rule. Michilli2023 uses Prospector for 20180814A but quotes an SDSS-collaboration value for 20190303A, and Leung2025b mixes CIGALE and NED-LVS. Options:
+- (a) **Recommended:** add a string key `Mstar_method` (Prospector / CIGALE / NED-LVS / SDSS) to `defs.valid_derived`, set it in each literature table, and fall back to the `Mstar_ref` rule when it is absent.
+- (b) Separate keys (`Mstar_CIGALE`, `Mstar_NEDLVS`, ...), following the `Mstar_spec` precedent.
+- (c) Encode the method in the ref label (e.g. `Leung2025b_CIGALE`).
+
+The Leung masses have no per-object errors, so they would get `Mstar_err = -999`. I have **not** added the Leung masses or the 20190303A row yet. Per Q26, a host that already has an `Mstar` keeps it.
+
+>A. (c)
+
+**Q10. SFR for 20190303A (log SFR = 0.84 ± 0.04, SDSS-collaboration value, method not stated).**
+There is no `defs` key for it: `SFR_SED` is Prospector and `SFR_photom` is CIGALE. Options:
+- (a) Add `SFR_SDSS`.
+- (b) Use the Q9 approach with a generic key plus `_method`.
+- (c) Skip it.
+
+>A. Use SFR_photom.  We will figure it out from the reference
+
+**Q11. FRB20191106C stellar mass: keep Leung (tier rule) or switch to Chang+2015?**
+The colour-M/L check (Prompt 8 log) puts this host at log M* ≈ 10.3–10.8 in every survey (DECaL, SDSS, PS1): M_r = −21.2, g−r ≈ 0.7–0.8.
+- Chang+2015 (via Ibik2024a): **10.65 ± 0.12**, consistent with that.
+- Leung2025b CIGALE: **9.47**, about 1 dex low.
+- Leung Table 1 also gives exactly 9.47 for 20231201A (the next row). For 20231201A that value *is* consistent with the colour-M/L estimate (9.7), so 20191106C's 9.47 may be a transcription error in Leung.
+
+Options:
+- (a) **Recommended:** adopt Chang+2015, i.e. a `chang2015_derived.csv` with ref `Chang2015` (Ibik2024a does not state the method, and Chang+2015 is not in `papers/`), listed after the Leung table so that it wins. This overrides the Q38 tier rule for this one host because of the evidence above.
+- (b) Keep Leung (9.47), as agreed in Q38, and cite Chang in the CHIME-table `Refs` (prompt 9).
+- (c) Ask the Leung+2025b authors.
+
+>A. (c).  Add this as a TODO that I will follow up on once I get a response from them
+
+**Q12. 20231230A: DECaL r is a shredded fragment.**
+The host JSON has `DECaL_r = 19.89` but `Pan-STARRS_r = 15.00` and `DELVE_r = 14.56`. At z = 0.0298, DECaL gives M_r = −15.8; PS1 gives −20.7, which is consistent with Leung's log M* = 10.04. The DECaL Tractor catalog evidently matched a fragment of this bright, nearby galaxy (DECaL g, r, z are all affected). If `build_host_table.py` prefers DECaL magnitudes, the CHIME table will be about 5 mag too faint for this host. Options:
+- (a) **Recommended:** drop the DECaL bands for 20231230A, e.g. via a per-host exclusion such as `Bad_EM_lines`. That column is only for emission lines, so this needs a small `build_hosts` addition such as a `Bad_photom` column. Alternatively, delete them by hand after the build.
+- (b) Have the CHIME table prefer PS1 for this host.
+- (c) Leave it.
+
+Should I also screen all hosts for DECaL vs PS1 disagreements > 1 mag?
+
+>A. (a), and yes do that screening
+
+**Q13. Leftover files in zdm.**
+`py/lit_host_photom_cache.json` (tracked in git) is no longer read by `build_host_table.py`. I also left the previous output as `CHIME_FRB_hosts.prev.csv` (untracked) for comparison. OK to `git rm` the cache and delete the `.prev.csv`?
+
+>A. Yes, that is ok
+
+**Q14. Prompt 12 is blocked: no Google Sheets editor connector in this session.**
+jxp@ucsc.edu is now a writer on `public_frbs` (checked with `get_file_permissions`). But this session has only the Google **Drive** connector (search, read, create, rename, share), not the **Google Sheets** connector that edits cells in place (`update_values` etc.). Options:
+- (a) **Recommended:** turn on (or add) the Google Sheets connector for this chat, then rerun prompt 12. The edits land in the existing Sheet; the link, sharing and formatting are kept.
+- (b) Replace the Sheet's contents by uploading `FRBs_base.csv` with rclone (`--drive-import-formats csv`). This first needs a test on a copy to make sure rclone updates the existing file rather than creating a second one. It replaces everything, including formatting, and the old version stays in version history.
+- (c) You paste `FRBs_base.csv` into the Sheet by hand. The columns are in the same order; also add the `P(O|x)` header in column 19.
+
+>A. (a) (user, in chat, 2026-10-07). Waiting for the Google Sheets connector to be turned on in the chat; as of this answer it is still not available.
+
+>Moot (2026-10-09): the Google Sheets are deprecated (new prompt 12), and the repo CSVs are the master copies.
+
+**Q15. FRB20181030A position in `FRBs_base.csv` is the host position (found in prompt 13).**
+`FRBs_base.csv` has had ra, dec = 158.5963, 73.765 (ee 85″ × 29″) since 2023 (e32493f3). That is NGC 3252's position: the rebuilt host JSON puts the FRB 0.09″ from the host. Bhardwaj+2021b Table 2 gives the FRB at **10h34m20.1s ± 30.6s, +73°45′05″ ± 47″** (90%), i.e. 158.5838, +73.7514. The old prompt-1 JSON had 158.574, +73.7478. Options:
+- (a) **Recommended:** set ra/dec to Table 2; convert the 90% errors to the repo's 68% `ee_a`/`ee_b`/`ee_theta`; rerun `build_frbs` and `build_hosts` for 20181030A.
+- (b) Leave it.
+
+>A. (a)
+
+**Q16. P_Ox for 20181030A.**
+I left `P_Ox` blank in `public_hosts.csv` (and `P(O|x)` in `FRBs_base.csv`). Bhardwaj+2021b did not run PATH; they give only a chance-coincidence probability, Pcc < 0.0025. Leave it blank, or set a value?
+
+>A. Leave it blank.
+
+### PR review by Sunil (2026-10-11): questions and recommendations
+
+Sunil's review of PR #240 (CHANGES_REQUESTED) has three inline comments, a follow-up, and a top-level rebuild request. Each is restated below with a recommendation. Nothing has been changed yet; answer the `>A.` lines and the next prompt applies them.
+
+**PR-Q1. defs.py lines 30-31 (Sunil C1): the two new comment lines on 999/-998.**
+Sunil is right. They duplicate the block right below them (defs.py:33-42, his commit 35f34b7c), which already says: upper limits are `_err = 999` in the host photometry tables and `-99` in the `frb.surveys` catalogs, no measurement is `-999` / `-99`, and anything at or below `PHOTOM_MISSING_MAX = -90` is dropped. No photometric lower limit exists anywhere. **Recommended:** delete the two lines and reply "agreed". No data changes.
+
+>A. Use your Recommendation
+
+**PR-Q2. Derived-quantity error flags (Sunil C2): 999 or -99 for an upper limit?**
+Sunil suggests `-99` "to match photometry". But `-99` is the *survey-catalog* flag; the host tables and the 61 photometric upper limits already in the host JSONs use `999`, and the derived values sit in the same JSON. The only derived upper limits are the two new `SFR_SED` entries (20180814A, Michilli2023; 20240209A, Eftekhari2024; `_err = 999` in `michilli2023_derived.csv` and `eftekhari2024_derived.csv`). Neither flag is treated specially where derived errors are read: `figures/utils.log_me` hides the error bar for `err < 0` and gives NaN for 999; neither draws a limit arrow. **Recommended:** keep `999` for derived upper limits (consistent with the host tables), drop the `-998` lower-limit flag (see PR-Q3), and shorten the defs.py header to two lines: `999` = upper limit, `-999` = no error. Alternative: switch to `-99`, which means editing those two CSVs and rebuilding the two hosts.
+
+>A. Use your Recommendation
+
+**PR-Q3. The two lower limits (Sunil's follow-up): SFR_nebular for 20220912A (Ravi2023, 0.1) and 20181030A (Bhardwaj2021b, 0.033).**
+These are the only `-998` values in the repo (`ravi2023_derived.csv`, `bhardwaj2021b_derived.csv`, and the two JSONs). Sunil proposes treating both as measurements, because every other long-slit nebular SFR is taken at face value. That is consistent with the data: 23 hosts have `SFR_nebular`, and 17 of them have no error or a flag. One caveat: `figures/galaxies.py:290-296` prefers `SFR_nebular` over `SFR_photom`, so a 0.033 for 20181030A would plot 10x below the paper's preferred 0.36 (UV+IR, already stored as `SFR_photom`). **Recommended:**
+- 20220912A: keep 0.1 as a measurement with `SFR_nebular_err = -999` (no error) in `ravi2023_derived.csv`.
+- 20181030A: drop the nebular value. Set `SFR_nebular` and `SFR_nebular_err` to `-999` in `bhardwaj2021b_derived.csv`; the new skip in `build_hosts.py:490-493` then leaves `SFR_photom = 0.36` as the only SFR.
+- Do not leave an error cell blank: the build copies `float(lit_tbl[key])` verbatim (`build_hosts.py:507`), so a blank becomes NaN.
+- Remove `-998` from `defs.py` and the prompt-2 convention; update this document's prompt-2 note.
+- Alternative for 20181030A: keep 0.033 with `_err = -999`, accepting the figure caveat.
+Rebuild both hosts (`skip_surveys=True` is enough for a derived-only change, but see PR-Q5).
+
+>A.  Let's discuss further.  A number of the spectra have been corrected to match 
+their integrated photometry.  But, not all.  And probably none of the galaxies with large angular sizes.  
+
+**PR-Q4. sdss.py line 164 (Sunil C3): the `instrument` field.**
+Sunil's repeated test (11 of 14 queries succeed with or without `instrument`) shows the 403 pages are intermittent and unrelated to the field. I cannot reproduce either way offline. The change is harmless (`instrument` is never read) but the comment is wrong. **Recommended:** restore main's line, so `sdss.py` has no diff against main. Keep the `InconsistentTableError` catch in `survey_utils.is_inside` (added in prompt 7), but reword its warning to say SDSS is being skipped for this host. A retry (about 3 attempts, a few seconds apart, when SkyServer returns HTML or 403) belongs in `SDSS_Survey.get_catalog`, so all callers benefit, and in a follow-up PR coordinated with Sunil since that is his code. Reply to Sunil along those lines.
+
+>A. Use your Recommendation
+
+**PR-Q5. Rebuild request ("git rebase main ... rerun the build scripts").**
+No rebase is needed: `git log HEAD..origin/main` is empty, because `origin/main` was merged in 3470b7da. A rebase would rewrite a pushed branch with merge commits. The real point is the **data**: the host JSONs in this PR were built in prompt 13 (2026-10-10), before PR #237 (merged 2026-10-11) changed 36 code files (every survey module, `catalog_utils`, `photom.py`, `frbgalaxy.py`). The effect is visible now: three PR hosts carry unmasked DELVE sentinels (20190711A `DELVE_g/r/z = 98`, 20200223B `DELVE_i = 98`, 20230222B `DELVE_i = 98`, errors 99) that main's `clean_cat(mask_photometry=True)` plus `PHOTOM_MISSING_MAX` would now drop. Two more (20220319D `WISE_W1-4_err = 0.0`, 20231120A `Pan-STARRS_i_err = 0.0`) are pre-existing and may or may not change. **Recommended:** on the workstation (`astro` env, `$FRB_GDB`, `$NEDLVS`), after the PR-Q1 to PR-Q4 edits, rerun `build_hosts` with the current branch code for the **58 host JSONs this PR touches** (55 after the 3 deletions). Diff each JSON against the committed version, and rerun any host that merely lost a band to a flaky survey (SDSS 403, MAST, Data Lab). Rebuilding all 104 hosts can be a separate PR. Reply to Sunil: main is already merged; the touched hosts were rebuilt with the revamped survey code.
+
+>A.  Ok, that sounds fine.  Note that I may need to run it on my laptop and not the Workstation.  If I need to grab a file or two onto it, let me know.
+
+**PR-Q6. Your own comment on `PHOTOM_MISSING_MAX = -90.`**
+Nothing to implement in this PR. The constant is applied inside main's `photom.correct_photom_table` (photom.py:250) and `FRBGalaxy.parse_photom` (frbgalaxy.py:352), both called by `build_hosts.run`. The branch has that code since the merge; it takes effect only once the JSONs are rebuilt (PR-Q5). Suggested reply: "inherited through the main merge; it is applied in the rebuilt JSONs".
+
+>A. Ok
+
+
+#### Round 2 (2026-10-12)
+
+PR-Q1, Q2, Q4 and Q6 are accepted and will be applied with the next prompt. The open items are the nebular-SFR convention (PR-Q3) and the rebuild on the laptop (PR-Q5).
+
+**PR-Q7. Nebular SFRs: which spectra were scaled to the photometry, and how to record it.**
+The repo does not record whether a spectrum was flux-scaled to the integrated photometry: there is no column in `public_hosts.csv`, no key in `defs.py`, and the spectra live in `$SPECDB`, not in the repo. Of the 23 hosts with `SFR_nebular`:
+- 9 come from our own pPXF fits (`_ppxf.ecsv` in `$FRB_GDB`): 20180924B MUSE, 20181112A FORS2, 20190102C MagE, 20190608B SDSS fibre, 20190611B FORS2, 20190714A LRISr, 20191001A GMOS-S, 20200430A DEIMOS, 20200906A DEIMOS.
+- 5 are computed by the build from literature line fluxes (`neb_lines` refs): 20121102A Tendulkar2017, 20180916B Marcote2020, 20190523A and 20190711A Heintz2020, 20201124A Fong2021.
+- 9 are literature SFRs (Mahony2018, Ibik2024a ×2, Moroianu2025, Niu2022, Bhardwaj2021, Ravi2023, Bhardwaj2025, Bhardwaj2021b).
+None of the 14 computed values has an `_err`; `figures/galaxies.py:290-296` plots `SFR_nebular` ahead of `SFR_photom` with a nominal 30% error. Large hosts among them: 20180916B, 20190608B (3″ fibre), 20171020A, 20181030A, 20200120E (M81).
+- **Recommended (b):** add a `Spec_scaled` column to `public_hosts.csv` (True/False/blank). When False, the build writes `SFR_nebular_err = -998` (lower limit); literature CSVs carry the same flag in their `_err` column. This keeps `-998` in `defs.py` (reversing that part of PR-Q2/Q3), keeps Sunil's one-rule consistency, and needs a `-998` arrow in `figures/utils.log_me`. Please list which of the 9 pPXF spectra (and the 5 literature line-flux sets) were scaled.
+- (a) Sunil's option: every value is a measurement, with the caveat documented in `defs.py`. Simplest, but plots then mix scaled and aperture-limited SFRs silently.
+- (c) Flag only the values the papers call limits (Ravi2023 "≳"), treat the rest as measurements.
+Should a size criterion also force the flag even when a spectrum was scaled (for example z < 0.05, or r_eff larger than about 2× the slit width)?
+
+>A. Ok, let's go with (b) and for now set this to "blank" for all of the hosts for now. And do not set any as lower limits for now.
+
+**PR-Q8. 20181030A (Bhardwaj2021b, SFR_nebular = 0.033).**
+Aperture-limited on NGC 3252 (z = 0.0039); the paper's preferred 0.36 (UV+IR) is already stored as `SFR_photom`.
+- **Recommended:** drop it: set the value and its `_err` to `-999` in `bhardwaj2021b_derived.csv`, so the build skips it.
+- Alternative: keep it as a lower limit (`-998`, if PR-Q7 (b) is chosen). The figure would still plot 0.033 unless `galaxies.py` stops preferring nebular values that are limits.
+
+>A.  Keep it as a lower limit and use the right `Spec_scaled` flag
+
+**PR-Q9. Rebuilding on the laptop: what to copy.**
+This session runs on the laptop. Its shell sets `FRB_GDB` and `SPECDB` to workstation paths (`/u/xavier/...`) that do not exist here, `NEDLVS` is unset, and the `astro` env (Python 3.14.6, astropy 8.0.1, numpy 2.5.2, `frb` editable from this repo) lacks `mastcasjobs` (optional: Pan-STARRS photo-z only, guarded import) and `ppxf` (not needed; the build only reads `_ppxf.ecsv`). The `ci-repro-py311/312` envs have no astropy and are not usable. No spectra are needed (`build_ppxf` is off).
+The rebuild covers **55 hosts** (43 modified, 11 added, the 20171020 → 20171020A rename). Products are read from 17 `$FRB_GDB` subdirectories: `CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/{Heintz2020, Mahony2018, Woodland2023, shannon2024}`, `DSA/sharma2024` (30 hosts, `_ppxf.ecsv` for each), `F4/{gordon2023, mannings2021}`, `Realfast/Bhandari2021`. A missing pPXF or CIGALE file **silently** drops those values from the JSON; a missing Galfit file raises (`build_hosts.py:467`; 20190711A WFC3_F160W, 20210807D GeMSGSAOI_Kshort).
+- **Recommended:** copy just those 17 directories and point `FRB_GDB` at the copy, e.g. (`ws` = the workstation):
+  ```
+  rsync -av --relative ws:/u/xavier/Projects/FRB_Stuff/FRB/Galaxy_DB/./{CHIME/bhardwaj2021b,...,Realfast/Bhandari2021} ~/FRB_GDB/
+  export FRB_GDB=~/FRB_GDB/
+  ```
+  NED-LVS: without `$NEDLVS` the build crashes (`NEDLVS.__init__` asserts, outside the `is_inside` try). As in prompt 6 (Q8: "let's not worry about NEDLVS"), I would drop `'NEDLVS'` from `survey_utils.optical_surveys` in the driver script; it adds no photometry bands. Alternatively copy the LVS table and set `$NEDLVS`.
+- Alternative: run on the workstation after all, where everything is in place.
+
+>A. I will run on the workstation eventually.
+
+**PR-Q10. Commit order and who replies to Sunil.**
+- **Recommended:** commit and push the round-1 code edits first (defs.py, sdss.py, survey_utils.py warning), so Sunil can re-review the code separately. The PR-Q7/Q8 CSV changes and the rebuilt JSONs follow as a data commit.
+- Replies: I draft the four replies here and you post them. Alternatively I post them with `gh` once you approve the text.
+
+>A. I want you to post them with `gh`
+
+**PR-Q11. Rebuild scope check.**
+The 55 hosts already include every DELVE 98/99 case in the PR: 20190711A, 20200223B, 20230222B, 20231223C, and 20240114A (the old Q7 "ignore DELVE" case, now handled by main's masking). Hosts outside the PR with the same sentinels (20200430A, 20211127I, 20220105A) are **recommended** for the later all-104 rebuild PR. I will diff every rebuilt JSON and flag any host that lost photometry to a flaky survey, or lost `neb_lines`, CIGALE or morphology values.
+
+>A. Use your Recommendation
+
+
+## Logs
+
+### Prompt 1: FRB20181030A host (2026-10-04, Claude Opus 5.5)
+
+**(a)** Ran `python py/fix_frb20181030A_host.py` in the `astro` env, from `zdm/papers/Mo_Repeaters/`. It wrote `frb/data/Galaxies/20181030A/FRB20181030A_host.json`.
+- Photometry renamed to `defs.valid_filters` (DECaL_grz, 2MASS_jhk, WISE_W1–W4, GALEX_FUV/NUV), each with `_ref = Bhardwaj2021b`. The Herschel entries were dropped.
+- The old file had `DESI_g_ref` twice and no `DESI_r_ref`. This does not matter, because the script sets every `_ref` itself.
+- `EBV` changed from 0.42 (the host Balmer-decrement value) to the Galactic 0.0955 (`nebular.get_ebv`).
+- Derived values: `Mstar` 5.8e9 (+1.6e9/−2.0e9), `AV_nebular` 1.3 ± 0.2, `SFR_photom` 0.36 ± 0.08, and `SFR_nebular` 0.033 with `_err = -998` (lower limit). All have `_ref = Bhardwaj2021b`. The script dropped `Z_spec` and `Mstar_spec`.
+- The redshift block is unchanged (z = 0.0039).
+- Left for the user: `git rm frb/data/Galaxies/FRB20181030A_host.json` and `git add frb/data/Galaxies/20181030A/`. The old file still has the uncommitted trailing-comma fix, so use `git rm -f`.
+
+**(b)** `FRBHost.by_frb(FRB.by_name('FRB20181030A'))` loads the new file. `by_frb` reads `Galaxies/<name>/`, so the old top-level JSON is never used. The result is `<FRBHost: 10:34:23.10 +73:45:53.92, FRB=FRB20181030A z=0.0039>`, and `derived`, `photom` and `redshift` are as above.
+- Prompt 2 still needs to check that -998 survives any later `build_hosts` run or table builder.
+
+**(c)** `Literature/bhardwaj2021_derived_FRB20181030A.csv` (commit bdec78a8, 2023) is byte-identical to `fong2021_derived.csv` (`cmp`), which holds the HG20201124A row. Nothing referenced it: it is not in `all_refs.csv`, and no code uses it. I **removed** it (plain `rm`); the user should `git rm` it.
+- The real FRB20181030A values (Bhardwaj+2021b, ApJL 919 L24) are now in the host JSON itself (a). The Q26-style alternative would be a proper `bhardwaj2021b_derived.csv` with `Name = HG20181030A`, added to `all_refs.csv`. This would only matter if 20181030A is ever rebuilt with `build_hosts`, and it is not yet in `public_hosts.csv`.
+- `all_refs.csv` is unchanged. Its only Bhardwaj entry is `bhardwaj2021_derived.csv` (Bhardwaj2021, DOI 10.3847/2041-8213/abeaa6, the FRB20200120E/M81 paper).
+- Side note: `bhardwaj2021_derived.csv` (ra 148.888, dec 69.065 = FRB20200120E) has **no `Name` column**, unlike the other literature tables. It is probably not matched to any host by the literature merge. This was not changed.
+
+### Prompt 2: Lower-limit convention (2026-10-04, Claude Opus 5.5)
+
+**defs.py.** Documented `_err = -998.0` as a lower limit (derived quantities only) next to the 999/-999 lines, at about line 31. I also added a short block at the head of `# Derived quantities` that lists all three codes (999 upper limit, -998 lower limit, -999 no error/measurement).
+
+**Code that treats special or negative errors.** I searched for 999, 998, `err < 0`, `chk_fill` and `fill_value`:
+- `build_hosts.chk_fill` uses `np.isclose(value, -999.)`. -998 is not "close" (the tolerance is about 0.01), so -998 errors are not treated as fill values. They get a `_ref` and are merged. This function is only used for the photometry tables.
+- The `build_hosts.run` derived-literature loop copies the value, error and `_ref` verbatim. It has no sign checks, so -998 passes through.
+  - Caveat: this loop also has no `-999` skip. A -999 in a derived table is copied as a value.
+- `build_hosts.run` nebular-literature loop: verbatim copy.
+  - `nebular.calc_lum` (L178) sets `Lum_err = -999` for any line-flux error ≤ 0. This applies only to `neb_lines` errors, not to derived quantities.
+- `FRBGalaxy.vet_one` checks keys only, not values.
+- `galaxies/utils.build_table_of_hosts` copies dict values verbatim.
+- `photom.correct_photom_table`, `parse_photom` and `surveys/catalog_utils` (L326, L384) only look at photometric magnitudes and errors.
+- `figures/utils.log_me` (used by `figures/galaxies.py` for Mstar and SFR) treats `err < 0` as "no error bar". A -998 point plots without an arrow and does not crash.
+  - Pre-existing issue, not changed: `err = 999` would give `log10(val - 999)` = NaN error bars.
+- Historical note: `build_fg.py:88` and `old_build_hosts.py` used `SFR_nebular_err = -999` and `[NII]_err = -999` ("Upper limit") inconsistently. Existing JSONs with derived `_err = -999` therefore mean "no error", not a limit.
+
+**Bug fixed: `build_hosts.read_lit_table`.** It had `idx = int(np.where(match)[0])`, which raises `TypeError` under NumPy 2.5 (the `astro` env). Every `run()` that matched a literature table crashed. The line is now `int(np.where(match)[0][0])`. This is the only instance of the pattern in `frb/`. Prompts 6 and 7 need this fix.
+
+**Round-trip test.** I wrote a temporary `Literature/zz_tmp_lowerlim_derived.csv` (since deleted) with an HG20181030A row: `SFR_nebular_err = -998`, `SFR_SED_err = 999`, and `Mstar` with `_loerr`/`_uperr`. A temporary `all_refs` pointed at it. I then ran `build_hosts.run(row, lit_refs=..., skip_surveys=True, out_path=<scratch>)`.
+- The output JSON has `SFR_nebular_err = -998.0`, `SFR_SED_err = 999.0`, and the `Mstar` lo/up errors intact.
+- `FRBHost.from_json` keeps both values.
+- `utils.build_table_of_hosts()` (repo JSONs) gives HG20181030A `SFR_nebular_err = -998.0`.
+- Conclusion: -998 survives a build.
+
+**Tests.** `test_frbhosts`, `test_galaxies` and `test_photom` pass. `test_build::test_host_build` fails on survey access before the literature step: first on PS1 metadata, then on "NEDLVS environment variable not set". This is environmental.
+
+**Warnings for later prompts:**
+- The `astro` env has a **stale non-editable install** of `frb` (site-packages, dated Sep 11, with no `Galaxies/20181030A/`). A script run outside the repo root picks it up, for example `python py/build_host_table.py` from `zdm/` (prompt 9), or `fix_frb20181030A_host.py` in prompt 1, which only used it for `get_ebv`. Run `pip install -e .` in the `astro` env, or set `PYTHONPATH`.
+- `build_hosts` survey queries need `$NEDLVS` set (prompt 6).
+- Correction to the Prompt 1 side note: `read_lit_table` matches literature rows by **ra/dec (< 1″)**, not by `Name`. So `bhardwaj2021_derived.csv`, which has no `Name` column, still matches its host.
+
+### Prompt 3: Rename the two repeaters to their first-burst names (2026-10-04, Claude Opus 5.5)
+
+| Old (later burst) | New (source) | Check |
+|---|---|---|
+| FRB20231204A | FRB20190303A | CHIME Cat 1 (`chimefrbcat.csv`, `CHIME_catalog-2021-1-27.json`) lists FRB20190303A at RA 208.03, Dec 48.24, DM 221.67. This is consistent with the 2023 burst (207.999, 48.116, DM 222). |
+| FRB20231128A | FRB20191106C | Not in Cat 1. Identification per KKO §6.6. |
+
+**`FRBs_base.csv`.** Only the `Name` and `refs` fields changed. The localization, DM, fluence, z and P(O|x) of the later (KKO) burst were kept. `refs` changed from `Leung+2025` to `"Leung+2025,burst:FRB20231204A"` (and `burst:FRB20231128A`). `build_frbs` splits `refs` on commas, so the burst name becomes its own `refs` entry (`burst:` prefix) in the FRB JSON.
+- The rows stay in their old (2023) positions in the file, to keep the diff small.
+- The file has **CRLF** line endings. My first edit with Python text mode converted the whole file to LF. I redid it in binary mode from the HEAD version, so the diff is two lines. The same applies to `public_hosts.csv`.
+
+**Host directories.** `git mv Galaxies/20231204A → Galaxies/20190303A` and `Galaxies/20231128A → Galaxies/20191106C`, with the JSONs renamed to `FRB20190303A_host.json` and `FRB20191106C_host.json`. The `"FRB"` field was updated in each. Nothing else in the host JSONs referred to the old names.
+
+**`public_hosts.csv`.** The two rows were renamed (20231204A → 20190303A, 20231128A → 20191106C). Coordinates and references are unchanged.
+
+**FRB JSONs.** Both `FRB20231204A.json` and `FRB20231128A.json` existed; nothing existed under the new names.
+- Built `FRB20190303A.json` and `FRB20191106C.json` with `build_frbs.main([...])`. They are identical to the old files apart from `FRB`, `refs` and the last digit of DMISM.
+- `frb.list_of_frbs()` and `galaxies.utils.list_of_hosts()` glob `FRB*.json`, so the old files would have listed each source twice. With the user's OK, I removed them with `git rm` (git shows them as renames).
+- Checks:
+  - `FRB.by_name` and `FRBHost.by_frb` load both new names.
+  - `list_of_hosts()` returns 95 hosts with no duplicates, including FRB20190303A and FRB20191106C.
+
+**Other references.** The only other repo files that mention the old or new names are `chimefrbcat.csv` and `CHIME_catalog-2021-1-27.json`. These are catalog data and were left alone. `FRB_pulses.csv` and the literature tables have no entries for either name.
+- Downstream: `zdm/.../build_host_table.py` `RENAME` handles this mapping. It can be dropped in prompt 9.
+
+### Prompt 4: Base-table fixes (2026-10-04, Claude Opus 5.5)
+
+All `FRBs_base.csv` edits were made in binary mode and keep the CRLF line endings. Each change touches only the `z` field.
+
+**FRB20231201A.** `z` changed from 0.119 to **0.1119** in `FRBs_base.csv`. I rebuilt `FRB20231201A.json` with `build_frbs`. The host JSON and `public_hosts.csv` already had 0.1119.
+- The row still has `repeater = FALSE`. KKO/Leung+2025b do not mark it as a repeater, so I left it.
+
+**The 12 insecure z (P(O|x) < 0.9).** The values arrived in commit 0c665727 ("kko", profxj, 2025-02-27), with `refs = Leung+2025` and no source file or note. KKO Table 3 gives no z for any of them. Their origin is unknown; the user did not say.
+- Per the user's choice, I **blanked** z in `FRBs_base.csv` for 20230410A, 20230616A, 20230702A, 20230828A, 20230918A, 20230923A, 20230924A, 20231006B, 20231102A, 20231223D, 20231224A and 20240210C.
+- I rebuilt their `FRB*.json` with `build_frbs.main([...])`. The JSON diffs drop `"z"`; the only other change is DMISM in the 15th decimal place (NE2001 rounding).
+- `P(O|x)` was kept, so the candidate associations are still recorded.
+- None of the 12 has a host JSON or a `public_hosts.csv` row.
+
+**FRB20181119A.** I removed `"z": 0.26064` from `FRB20181119A.json` by editing the text, since the source is not yet in `FRBs_base.csv`. `FRB.by_name('FRB20181119A').z` is now `None`.
+- The JSON still has `refs = ["Astroflash"]` and a placeholder ellipse (a = b = 0.01). Prompt 5 replaces both when the row is added and the JSON is rebuilt.
+
+**Cross-match with CHIME Cat 1 (`CHIME_catalog-2021-1-27.json`, `repeater_of`).** Cat 1 has 18 repeating sources. I matched all 174 base rows with coordinates against the mean burst position of each source (< 1°, |ΔDM|/DM < 5%), and checked names as well. The only matches are rows already flagged `repeater = TRUE`:
+- FRB20180916B
+- FRB20190303A (4.4′ / 7.5′)
+- FRB20181030A, which Cat 1 lists under the source name **FRB20181030B** (Cat 1's burst FRB20181030A has `repeater_of = FRB20181030B`)
+- FRB20121102A, which Cat 1 lists as source **FRB20181119D**
+
+**No new repeaters to flag.** The Cat 1 repeating sources missing from the base table are:
+- 20180814A, 20181119A, 20190208A and 20190417A, which prompt 5 adds;
+- 20180908B, 20181017A, 20181128A, 20190116B, 20190117A, 20190209A, 20190212A, 20190213A, 20190222A and 20190604A. These have only Cat 1 (arcmin) positions and no host, so they are out of scope.
+
+**Other issues noticed (not changed):**
+- **Name mismatch for the ASKAP FRB.** The `FRBs_base.csv` row for the ASKAP FRB (RA 326.105) is named **FRB20180924A**. Everything else in the repo uses **FRB20180924B**: the `FRB20180924B.json`, `Galaxies/20180924B/`, `public_hosts`, the literature/PATH tables and `test_build`. FRB20180924A in TNS and Cat 1 is a CHIME one-off at RA 35.46. `build_frbs.main(['all'])` would therefore write a stray `FRB20180924A.json`.
+- **Missing coordinates.** Five DSA rows have no ra/dec: FRB20220121B, FRB20220424E, FRB20220801A, FRB20220926A and FRB20221002A (Sherman23). `build_frbs` would fail on them.
+
+### Prompt 5: Add the missing CHIME repeaters to `FRBs_base.csv` (2026-10-04, Claude Opus 5.5)
+
+I appended nine rows to `FRBs_base.csv` (now 188 rows, no duplicate names), in binary mode with CRLF line endings. The file was not sorted, so the rows go at the end.
+- All rows: `repeater = TRUE` and `telescope = CHIME`. In this table `telescope` means the discovery or CHIME-selection instrument, as for FRB20180916B, which has an EVN position but is labelled CHIME. `build_host_table.py` selects on `telescope == CHIME`. The localizing instrument is recorded through the refs.
+- `ee_a`/`ee_b` are 1σ semi-axes in arcsec, and `ee_theta` is the major axis in degrees E of N (`build_frbs` sets cl = 68).
+- Fluence, RM and P(O|x) were left blank.
+- Every value below was read from the PDF (text and tables). Figures were rendered at 300 dpi where needed.
+
+| FRB | Position (source) | 1σ ellipse a × b, θ | DM [pc cm⁻³] | z | refs |
+|---|---|---|---|---|---|
+| 20180814A | 4h22m44s +73°39′52″ (M23 Tab 1) | 20″ × 18″, 0° (σDec = 20, σRA = 18) | 189.4 ± 0.4 (M23 Tab 1) | 0.06835 (M23 Tab 2) | Michilli2023 |
+| 20190110C | 249.33, 41.445 deg (CHIME2023 Tab 1) | 21.9″ × 19.7″, 90° (see note) | 221.92 ± 0.01 (CHIME2023 Tab 1) | 0.12244 (I24a Tab 3) | CHIME2023, Ibik2024a |
+| 20200223B | 8.265, 28.831 deg (CHIME2023 Tab 1) | 17.5″ × 15.3″, 90° | 202.268 ± 0.007 (CHIME2023) | 0.06024 (I24a Tab 3) | CHIME2023, Ibik2024a |
+| 20190417A | 19h39m05.8919s +59°19′36.828″ (Moroianu §3, EVN) | 5.2 × 4.9 mas, 0° | 1378.9 ± 1.4 (Moroianu, mean of B2 and B5) | 0.12817 (Moroianu) | Moroianu2025, Ibik2024b |
+| 20220912A | 23h09m04.8988s +48°42′23.9078″ (Hewitt+23 §3.3, EVN final) | 5 × 5 mas | 219.46 ± 0.04 (CHIME; Hewitt+23 §1, Ravi) | 0.0771 (Ravi Tab 2) | Ravi2023, Hewitt2023 |
+| 20240114A | 21h27m39.835s +04°19′45.668″ (Bh25 §3.1.2, EVN) | 93 × 28 mas, **153°** (see note) | 527.723 ± 0.042 (Bh25 §3.1.3) | 0.130287 (Bh25) | Bhardwaj2025, Tian2024 |
+| 20240209A | 19h19m33s +86°03′52″ (Shah Tab 1, CHIME–KKO) | 2.12″ × 1.08″, 9.54° | 176.49 ± 0.01 (Shah Tab 2, B1) | 0.1384 (Eft Tab 2) | Shah2024, Eftekhari2024 |
+| 20190208A | 18h54m11.27s +46°55′21.67″ (Hewitt+24, EVN) | 260 × 260 mas | 580.03 ± 0.14 (Hewitt+24 Tab 1, B2 DM_S/N) | — | Hewitt2024 |
+| 20181119A | 12h41m52s +65°07′02″ (M23 Tab 1) | 29″ × 25″, 0° | 364.05 ± 0.09 (M23 Tab 1) | — | Michilli2023 |
+
+**Notes and decisions:**
+- **New reference: 20190110C / 20200223B.** Ibik2024a gives no FRB positions, only DMs (Tab 1) and host positions. Its positions come from CHIME/FRB Collaboration 2023 (ApJ 947, 83; arXiv:2301.08762), which was not in `papers/`. I downloaded it from arXiv and saved it as `papers/CHIME_2023_arXiv2301.08762.pdf`.
+  - Its Table 1 gives α, δ in degrees, with baseband uncertainties at **90% confidence**: 249.33(1), 41.445(9) and 8.265(8), 28.831(7).
+  - I converted these to 1σ assuming per-coordinate Gaussian errors (÷1.645) and treated the RA error as on-sky degrees. This is the more conservative choice; the paper does not say.
+  - The DMs used are the CHIME2023 inverse-variance averages (221.92 and 202.268). Ibik Tab 1 quotes 221.6(1.6) and 201.8(4).
+  - `CHIME2023` is a new ref label (not in the list above).
+- **Ellipse angle: 20240114A.** Bh25 says "rotated by 27°" without a convention. The combined ellipse in Fig. 1 (RA increasing to the left) leans from N toward **W**, so PA = −27° → θ = 153° E of N.
+- **Wrong FRB position in prompt 6: 20190417A.** The adopted FRB position is the fitted EVN one, +59°19′36.**828**″. Prompt 6's "19h39m05.8919s +59d19m36.99s" mixes the fitted RA with the Dec of Moroianu's footnote 37 (19h39m05.892s +59°19′36.99″), which appears to be a correlation phase centre. Use 36.828″ in prompt 6.
+- **Coarse position: 20240209A.** Shah Tab 1 rounds the centre to 1 s of RA (≈1.05″ at δ = 86°) and 1″ in Dec, which is comparable to the ellipse. The FRB–host offset is 15.7″ (≈38 kpc at z = 0.138), consistent with "outskirts".
+- **Paper inconsistency: 20180814A.** **Michilli+2023 contradicts itself.** Table 1 gives σRA = 18″ and σDec = 20″ ("approximately circular"), which is what I entered. But the 1σ (dashed) ellipse in Fig. 2 measures about **57″ (RA) × 20″ (Dec)** against the 30″ scale bar. Its centre agrees with Table 1 (≈4h22m43.4s +73°39′54″).
+  - The proposed host (PS1 J042256.01+733940.7) is 51.9″ from the FRB (ΔRA = +50.7″, ΔDec = −11.3″). That is ≈2.5σ with the Table 1 errors, but inside the 2σ ellipse of Fig. 2, as the text says.
+  - 20181119A (same table) may have the same problem; it has no figure to check against.
+  - **For the user:** keep Table 1 (as entered), or use a ≈ 57″, b = 20″, θ = 90° from the figure?
+- **Other offsets (sanity check).** 20190110C: 31.7″ (≈1.4σ; limited by the 0.01° RA precision). 20200223B: 14.2″. 20220912A: 0.5″ (PSO name truncation). 20240114A: 0.15″. 20190208A: 0″ (O4 at the EVN position).
+- **Existing JSONs overwritten.** `FRB20190208A.json` (579.4, 3″ ± 0.4″ sys, refs "Astroflash") and `FRB20181119A.json` (190.4799, 65.1119, 0.01″, "Astroflash") were replaced by `build_frbs` output from the new rows. The old sources are unknown. The other seven JSONs are new.
+
+**JSONs.** `build_frbs.main([...9 names...])` wrote all nine. `FRB.by_name` loads each with the ellipse, refs, `repeater = True` and an NE2001 DMISM.
+
+### Prompt 6: Build host JSONs for the new repeaters (2026-10-04, Claude Opus 5.5)
+
+**`public_hosts.csv`.** I appended 8 rows in binary mode with CRLF line endings, each with `Projects = CHIME` and one lowercase reference. (`run()` asserts that `Projects` and `References` have the same number of entries; the ref is only used to look up `$FRB_GDB/<Project>/<ref>/` products.)
+
+| FRB | Host Coord | Source | P_Ox | z | References |
+|---|---|---|---|---|---|
+| 20180814A | 04h22m56.01s +73d39m40.7s | PS1 J042256.01+733940.7 (M23 Tab 2) | — (Q2) | 0.06835 | michilli2023 |
+| 20190110C | 16h37m16.43s +41d26m36.30s | I24a §2.5 | 0.918 (Q3) | 0.12244 | ibik2024a |
+| 20200223B | 00h33m04.68s +28d49m52.60s | I24a §2.5 | 0.994 (Q3) | 0.06024 | ibik2024a |
+| 20190417A | 19h39m05.82s +59d19m36.7s | **Ibik+2024b Tab 4** (Gemini; Moroianu gives no host centroid) | 1.0 (Moroianu, P_PATH) | 0.12817 | moroianu2025 |
+| 20220912A | 23h09m04.848s +48d42m23.760s | PSO J347.2702+48.7066 (Ravi) | 0.95 (Q4) | 0.0771 | ravi2023 |
+| 20240114A | 21h27m39.84s +04d19m45.8s | DESI J212739.84+041945.8 (Bh25 Tab 3) | 0.997 (Tian+24 PATH) | 0.130287 | bhardwaj2025 |
+| 20240209A | 19h19m24.086s +86d03m39.240s | 289.85036 +86.06090 (Eft Tab 2) | 0.99 (Shah) | 0.1384 | eftekhari2024 |
+| 20190208A | 18h54m11.27s +46d55m21.67s | O4 at the EVN position (Hewitt+24) | 0.9995 (Hewitt+24) | — | hewitt2024 |
+
+20190417A: the FRB–host offset is 0.56″ with the Ibik+2024b centroid, which matches Ibik's 0.56 ± 0.06″. (The FRB position is the EVN fit, Dec 36.828″; see Prompt 5.)
+
+**Code fixes (NumPy 2.5 / missing import).** The first build failed for all 8 hosts:
+- `frb/surveys/galex.py`: `u` was used (`self.radius.to(u.deg)`) but never imported. Added `from astropy import units as u`.
+- `frb/surveys/catalog_utils.py:103` (`match_ids`) and `frb/galaxies/ppxf.py:226`: `np.in1d` was removed in NumPy 2.x. Replaced with `np.isin`, which gives the same result for 1-D inputs.
+- `test_frbsurveys.py` with and without the fixes:
+  - `test_galex` now passes;
+  - `test_in_which_survey` now gets past the `in1d` crash, then fails on its assertion (needs `$NEDLVS`);
+  - 7 other survey tests (euclid, nsc, hsc, first, panstarrs, tully, search_all) fail identically either way. They are pre-existing network or version problems.
+- `test_frbhosts`, `test_galaxies` and `test_photom` pass.
+
+**Build.** I ran `build_hosts.main([n])` for each of the 8 FRBs through a driver script that removes NEDLVS from `survey_utils.optical_surveys` (Q8). All 8 wrote `Galaxies/<FRB>/FRB<FRB>_host.json`.
+- `FRBHost.by_frb` loads all 8.
+- `list_of_hosts()` and `build_table_of_hosts()` now give 103 hosts (95 + 8).
+
+**Survey photometry vs the papers.** "Uncorrected" means the JSON value plus A_λ, recomputed with `photom.extinction_correction` and the JSON `EBV`.
+
+| FRB | EBV | Bands | Check |
+|---|---|---|---|
+| 20190110C | 0.0067 | DECaL grz, PS1, SDSS, GALEX, WISE (19) | DECaL r: corrected 17.992 → uncorrected **18.009** = paper 18.009 ✓ |
+| 20200223B | 0.0415 | DECaL, DELVE, PS1, SDSS, GALEX (19) | DECaL r: 15.974 → **16.080** = paper 16.080 ✓ |
+| 20220912A | 0.203 | PS1, WISE (9) | PS1 r: 19.113 → **19.656** vs paper 19.65 ✓ |
+| 20180814A | 0.1176 | PS1, 2MASS, WISE, GALEX NUV (13) | PS1 r uncorrected 17.03 vs M23 Kron rK 17.15. The 0.12 mag difference is plausibly the PS1 magnitude type. |
+| 20240114A | 0.0582 | DECaL, DELVE, PS1, SDSS (16) | SDSS r corrected **21.94** = Bh25 Tab 8 "extinction corrected" 21.94 ± 0.11 ✓. DECaL r corrected 21.69. |
+| 20240209A | 0.1011 | PS1, WISE (9) | PS1 r corrected 17.07 vs Eft GMOS 16.79 (14″ aperture, corrected). Catalog vs large aperture on a big elliptical (Q5). |
+| 20190417A | — | none | Host not in the DECaLS/PS1 catalogs (Moroianu fn. 39). No photometry and no EBV (Q5). |
+| 20190208A | — | none | Expected (r ≈ 27). z is NaN (Q6). |
+
+**Other notes:**
+- `DELVE_i = 98 ± 99` (non-detection placeholder) appears in 20200223B and 20240114A. This is a pre-existing `delve.py` issue (Q7).
+- Offsets: 20180814A `ang_best` 51.9″ ± 17.9″ (Q1); 20240209A 15.7″ = 39.7 ± 4.9 kpc, consistent with Shah's 40 ± 5 kpc ✓.
+- All 8 have an empty `derived` block; prompt 7 adds the literature tables.
+
+### Prompt 7: Literature derived-quantity tables (2026-10-04, Claude Opus 5.5). (completed 2026-10-05)
+
+**Answers applied (Q1–Q8):**
+- Q1 and Q2 recorded as TODO items.
+- Q3: `P_Ox` set to 0.779 (20190110C) and 0.899 (20200223B), the P(U) = 0.1 values.
+- Q5: photometry tables added (below).
+- Q4, Q6, Q7 and Q8: no action needed.
+
+**Done:**
+- `build_hosts.run` derived-literature loop: it now **skips** a quantity whose value is NaN or -999. Before, a multi-host table wrote NaN into any host that lacked that quantity.
+- New filter `GTC_OSIRIS_r`: added to `defs.valid_filters`, with the transmission curve from SVO (GTC/OSIRIS.sdss_r) in `data/analysis/CIGALE/GTC_OSIRIS_r.dat`. A_r ≈ GMOS_N_r.
+- `defs.py`: the `Mstar` comment now says the method is set by `Mstar_ref` and lists the Prospector refs.
+- New tables in `Galaxies/Literature/`, appended to `all_refs.csv` in this order (CRLF kept). All values were rechecked against the PDFs. dex values are converted to linear with lo/up errors. Rows use the host-JSON ra/dec.
+  - `michilli2023_derived.csv`: 20180814A. Mstar 10^10.78 (+0.12/−0.18); SFR_SED 0.316, `_err = 999`.
+  - `ibik2024a_derived.csv`:
+    - 20190110C: Mstar 2.5e10 (+0.10/−0.17 e10), SFR_SED 0.54 ± 0.04, SFR_nebular 0.1575 ± 0.0006.
+    - 20200223B: Mstar 5.6e10 (+1.14/−0.93 e10), SFR_SED 0.59 ± 0.04.
+    - 20191106C: SFR_nebular 1.53, `_err = -999` (SDSS fiber, no error given).
+  - `moroianu2025_photom.csv`: 20190417A GMOS_N g, r, i, z = 23.45 ± 0.15, 22.42 ± 0.06, 22.42 ± 0.07, 23.32 ± 0.12 (uncorrected). The text's "23.45 ± 15" is taken as 0.15.
+  - `moroianu2025_derived.csv`: 20190417A Mstar 10^7.88 (+0.12/−0.14), SFR_nebular 0.19 ± 0.01.
+  - `ravi2023_derived.csv`: 20220912A Mstar 10^10.0 ± 0.1, SFR_nebular 0.1, `_err = -998` (lower limit).
+  - `hewitt2024_photom.csv`: 20190208A GTC_OSIRIS_r 27.32 ± 0.16 (§3.3 and abstract; Table 2 gives 27.17).
+  - `bhardwaj2025_derived.csv`: 20240114A Mstar 10^8.55 (+0.12/−0.14), SFR_nebular 0.061 (+0.004/−0.003).
+  - `eftekhari2024_photom.csv`: 20240209A GMOS_N_r, 14″ aperture (Q5). The paper's value is extinction-corrected (16.79), and `build_hosts` corrects again, so the table stores the **uncorrected** value 16.79 + A_r(0.2655) = 17.0555. The build therefore returns 16.79.
+  - `eftekhari2024_derived.csv`: 20240209A Mstar 10^11.34 ± 0.01, SFR_SED 0.36, `_err = 999`.
+- Not added yet: the Leung2025b masses and the 20190303A Mstar/SFR (Q9, Q10).
+- No `ibik2024a_nebular.csv`. Adding the Hα/Hβ fluxes would make the build compute an `AV_nebular` from Ha/Hb (≈7.5), which nobody asked for.
+
+**Q9 (c) and Q10 applied (2026-10-05).** The method is now encoded as a suffix on the ref label. The `defs.py` `Mstar` comment documents this ("A method suffix on the ref overrides this list").
+- `leung2025b_cigale_derived.csv` (`Leung2025b_CIGALE`): 20230926A 10.49, 20231011A 9.59, 20231123A 9.42, 20191106C 9.47, 20231201A 9.47, 20231229A 9.87, 20231230A 10.04.
+  - Leung Table 1 marks 20231229A and 20231230A "bc": both estimates exist, and the printed value is the higher-priority CIGALE (b) one.
+  - Errors are ±0.16 dex, the paper's stated bound for its SED fits ("≤ 0.16 dex"; no per-object values).
+- `leung2025b_nedlvs_derived.csv` (`Leung2025b_NEDLVS`): 20230222B 10.19, 20231223C 10.40, ±0.3 dex (stated in the paper). All values are Chabrier.
+- `michilli2023_sdss_derived.csv` (`Michilli2023_SDSS`): 20190303A. The host is SDSS J135159.87+480714.2, the third column of M23 Table 3, matching the repo host position. Mstar 10^10.75 ± 0.03 dex; `SFR_photom` = 10^(0.84 ± 0.04) = 6.92 (+0.67/−0.61) (Q10).
+- Added to `all_refs.csv`, after the earlier tables.
+- None of these hosts had an `Mstar` before, so Q26 does not apply.
+
+**Rebuild.** I rebuilt 18 hosts with `build_hosts.main([n])`, with NEDLVS dropped from `optical_surveys` in the driver. These are the 9 from above plus 20190303A, 20230926A, 20231011A, 20231123A, 20231201A, 20231229A, 20231230A, 20230222B and 20231223C. All 18 succeeded, after two more code fixes:
+- **`frb/surveys/sdss.py`**: the spectroscopic query requested `instrument` in `spec_fields`, which now makes SkyServer return an HTML error page. That raised `InconsistentTableError` and stopped 20190303A every time (reproduced: the same query without `instrument` works). `instrument` is not used anywhere, so I removed it.
+- **`frb/surveys/survey_utils.is_inside`**: it now also catches `InconsistentTableError` (an unreadable survey response), warns, and treats the survey as not covering the position, as it already does for DALServiceError, ReadTimeout and HTTPError. For 20231011A, SkyServer returned a 403 page for the 1′ footprint query at the FRB position. The git JSON for 20231011A has no SDSS photometry anyway.
+
+**Checks:**
+- `derived` blocks are as tabulated, including 20220912A `SFR_nebular_err = -998`, the 999 limits (20180814A, 20240209A `SFR_SED`) and 20191106C `SFR_nebular_err = -999`. 20190208A has no derived block.
+- 20240209A `GMOS_N_r` = **16.790** after the build's extinction correction ✓ (stored uncorrected value 17.0555).
+- 20190417A: GMOS-N g, r, i, z and `EBV` added. 20190208A: `GTC_OSIRIS_r` 27.32 and `EBV` added.
+- New hosts from prompt 6: all other content is identical to git.
+- **The 10 previously built hosts** (20191106C, 20190303A and the KKO hosts) also changed outside `derived`:
+  - **Magnitude shifts:** −0.0005 to −0.013 mag, bluer bands more. These scale with the unchanged `EBV` (e.g. 20231123A, EBV 0.245: PS1 g −0.013, r −0.010). That is the current G23 extinction law in `photom.extinction_correction`; the hosts were last built 2025-02-27.
+  - **New bands:** GALEX (now working after the prompt 6 `galex.py` fix) or 2MASS. No bands were lost.
+- Tests: `test_frbhosts`, `test_galaxies`, `test_photom`, `test_frbsurveys::test_sdss` and `::test_galex` pass (12).
+- `build_table_of_hosts()`: 103 hosts, 44 with `Mstar`.
+
+### Prompt 8: Stellar-mass conflicts and non-Prospector masses (2026-10-05, Claude Opus 5.5)
+
+**Prompt rewritten.** Prospector cannot be run, so prompt 8 no longer asks for new fits. It now asks to keep the literature masses, record Chang+2015 for 20191106C, run a colour-M/L sanity check on the non-Prospector masses, and look for published Prospector masses.
+
+**Published Prospector masses.** I searched the PDFs in `papers/` for the KKO hosts with CIGALE/NED-LVS masses and for 20190303A. "Prospector" does not appear at all in the CHIME/KKO 2025, Leung2025b, CHIME 2023 or Ibik2024b papers, so there is nothing to add per Q26. FRB20181030A keeps Bhardwaj2021b (Prospector).
+
+**Colour-M/L sanity check (a check only; no values were stored).** Method:
+- Bell+2003 log(M/L_r) = −0.306 + 1.097(g−r), with the host's extinction-corrected g and r from the JSON (DECaL, else PS1, else SDSS). The distance modulus is Planck18, with no K-correction, and M_r,⊙ = 4.65.
+- Calibrated on the 17 Gordon2023 (Prospector) hosts at z < 0.5: median offset (Prospector − Bell) = −0.51 dex, robust scatter 0.31 dex, range −1.15 to +0.01.
+- Caveat: the calibration sample sits at higher z than the CHIME hosts and there is no K-correction, so absolute offsets are uncertain by a few tenths of a dex. The other literature Prospector masses (Ibik, Michilli, Ravi, Bhardwaj, Eftekhari) come out +0.1 to +0.7 dex above the calibrated estimate. Only outliers of about 1 dex are meaningful.
+
+| Host | z | phot | g−r | log M* (repo) | log M* (M/L, cal.) | Δ | ref |
+|---|---|---|---|---|---|---|---|
+| 20191106C | 0.108 | DECaL | 0.82 | 9.47 | 10.46 (SDSS 10.32, PS1 10.30) | **−0.99** | Leung2025b_CIGALE |
+| 20230926A | 0.055 | DECaL | 0.77 | 10.49 | 10.55 | −0.06 | Leung2025b_CIGALE |
+| 20231011A | 0.078 | PS1 | 0.37 | 9.59 | 9.48 | +0.11 | Leung2025b_CIGALE |
+| 20231123A | 0.073 | PS1 | 0.14 | 9.42 | 9.21 | +0.21 | Leung2025b_CIGALE |
+| 20231201A | 0.112 | PS1 | 0.78 | 9.47 | 9.73 | −0.26 | Leung2025b_CIGALE |
+| 20231229A | 0.019 | PS1 | 0.46 | 9.87 | 9.28 | +0.59 | Leung2025b_CIGALE |
+| 20231230A | 0.030 | DECaL → **PS1** | 0.43 | 10.04 | 8.27 → **9.77** | +0.27 (with PS1) | Leung2025b_CIGALE |
+| 20230222B | 0.110 | DECaL | 0.64 | 10.19 | 10.25 | −0.06 | Leung2025b_NEDLVS |
+| 20231223C | 0.106 | DECaL | 0.84 | 10.40 | 10.81 | −0.41 | Leung2025b_NEDLVS |
+| 20190303A | 0.064 | DECaL | 0.55 | 10.75 | 10.46 | +0.29 | Michilli2023_SDSS |
+
+**Findings:**
+- **20191106C:** Leung's 9.47 is about 1 dex below the photometric estimate in all three surveys. Chang+2015's 10.65 (Ibik2024a Tab 3, "previously published by Chang et al. 2015"; method not stated there) agrees. Leung lists the same 9.47 for 20231201A, the next row of Table 1. → **Q11**.
+  - For now the repo keeps Leung (Q38 tiers). Chang+2015 (4.5 ± 1.2 e10) is recorded here and in Q11 for the CHIME-table `Refs` (prompt 9).
+- **20231230A:** with DECaL the estimate is 1.8 dex below Leung, because DECaL_r = 19.89 is a shredded fragment (PS1_r = 15.00, DELVE_r = 14.56). With PS1 it agrees with Leung. Leung's mass is fine; the repo DECaL photometry is not. → **Q12**.
+- All other CIGALE, NED-LVS and SDSS masses are within ±0.6 dex of the estimate, inside the calibration spread. No action is needed.
+
+### Prompt 9: Regenerate the CHIME table (2026-10-05, Claude Opus 5.5)
+
+**Answers applied first:**
+- **Q11 (c):** TODO added (follow up with the Leung+2025b authors on 20191106C).
+- **Q12 (a): new per-host photometry exclusion.**
+  - `build_hosts.run` reads a new `public_hosts.csv` column, **`Bad_photom`** (comma-separated filter names). Those filters, with `_err` and `_ref`, are removed from the merged table before the extinction correction.
+  - `public_hosts.csv` gained the column. Every row got a trailing empty field (CRLF kept); 20231230A has `"DECaL_g,DECaL_r,DECaL_z"`.
+  - Rebuilt 20231230A: only the 12 DECaL entries were removed, and nothing else changed.
+- **Q12 screening.** I compared DECaL/PS1/SDSS/DELVE g, r, z for every host (350 band pairs) and flagged |Δ| > 1 mag.
+  - Only **20231230A** is a shred: DECaL is 4.7–5.6 mag *fainter* than PS1 and DELVE in all three bands.
+  - The rest go the other way, with DECaL 1.0–1.9 mag *brighter*:
+    - 20200120E (M81; PS1 saturated or shredded): g, r;
+    - 20220920A: r, z vs PS1;
+    - 20221219A: g vs SDSS (faint);
+    - 20230307A: z vs PS1, r and z vs SDSS;
+    - 20231230D: z vs PS1, g vs DELVE.
+  - These look like extended or faint galaxies where the PS1/SDSS catalog magnitudes miss flux. I took no action. For the CHIME table only 20231230A matters (the others are not CHIME hosts).
+
+**`zdm/papers/Mo_Repeaters/py/build_host_table.py`:**
+- **Removed:**
+  - `RENAME` (the repo now uses the source names);
+  - `LIT_HOSTS` and the whole literature-only branch, with `catalog_mag`, the photometry cache and the now-unused imports (`nebular`, `photom`, `survey_utils`, `SkyCoord`, `units`, `warnings`). The script no longer imports `frb` at all, so the stale `astro` install no longer matters;
+  - `LIT_SUPPLEMENT`. The only value it held that is not in the repo, the Chang+2015 note for 20191106C, moved to a small `NOTES` dict;
+  - `FIX_181030A` and its fallback in `load_host_json`;
+  - `LEUNG_L`.
+- **Added:**
+  - `PROSPECTOR_REFS` now includes Michilli2023, Ibik2024a, Moroianu2025, Ravi2023, Bhardwaj2025 and Eftekhari2024.
+  - `REF_SUFFIX` maps the Q9 ref suffixes to tiers: `_CIGALE` → `Photometric:CIGALE:<ref>`, `_NEDLVS` → `Other:NED-LVS:<ref>`, `_SDSS` → `Other:SDSS:<ref>`.
+  - An `SFR_photom` with an `_SDSS` ref gets `SFR_type = SDSS`.
+  - `GTC_OSIRIS_r` added to `POINTED`.
+  - **P(O|x)**: when `FRBs_base.csv` has no P(O|x), the script uses `public_hosts.csv` `P_Ox`. Without this the Q3 values (0.779, 0.899) would never trigger the 0.9 cut.
+- Ran `python py/build_host_table.py`: 97 rows, the same FRB list as before. The previous output is saved as `CHIME_FRB_hosts.prev.csv`.
+
+**Diff vs the previous table** (18 rows with value changes, 19 with `Refs` changes). Every change is explained:
+
+| Change | Rows | Why |
+|---|---|---|
+| All host values blanked; `Refs = host_ignored:P(O\|x)=0.779<0.9` / `0.899` | 20190110C, 20200223B | Q3: P(U) = 0.1 PATH values, read from `public_hosts.csv` |
+| Mag 19.89 (DECaL_r) → **14.56 (DELVE_r)** | 20231230A | Q12: shredded DECaL removed. DELVE ranks above PS1 in the Q18 order; PS1_r = 15.00 |
+| `Mstar_err` blank → 0.16 / 0.3 dex | 7 Leung CIGALE / 2 NED-LVS hosts | Leung's stated uncertainties, now in the repo tables (prompt 7) |
+| Mag −0.002 to −0.010 | 20231011A, 20231123A, 20231201A, 20231229A | Prompt 7 rebuild with the current G23 extinction law |
+| Mag 27.164 → 27.172; Band GTC_r → GTC_OSIRIS_r | 20190208A | Extinction now uses the GTC/OSIRIS r curve (was the SDSS_r stand-in) |
+| Mag 22.278 → 22.255 | 20190417A | Extinction now uses the repo GMOS_N_r curve and the repo EBV (was the GMOS_r stand-in) |
+| SFR_err 0.6372 → 0.6381 | 20190303A | Repo lo/up errors symmetrized, instead of the log-derivative approximation |
+| `Mstar_source` / `Refs` labels (`Michilli+2023` → `Michilli2023`, `Leung+2025(ApJL991,L25)` → `Leung2025b`, ...) | the literature hosts | Labels now come from the repo refs. `z:`/`mag:` refs now say `hostJSON`/`repo` instead of `catalog`. `name:repo_as_...` dropped (renamed in prompt 3) |
+
+The values for 20180814A, 20220912A, 20240114A and 20240209A are unchanged; the repo photometry matches the old catalog/literature magnitudes. 20181119A is still a repeater row with every host column blank.
+
+### Prompt 10: TODO updates (2026-10-06, Claude Opus 5.5)
+
+All three TODO items are closed (checked above), per the answers under "TODO answers".
+
+1. **20180814A ellipse.** Keep Michilli+2023 Table 1 (σRA = 18″, σDec = 20″). `FRBs_base.csv`, `FRB20180814A.json` and the host offsets already use it, so nothing changed.
+2. **20180814A P(O|x) = 0.34** (primary candidate, from Dr. Michilli). Set `P_Ox = 0.34` in `public_hosts.csv` (CRLF kept). `FRBs_base.csv` P(O|x) stays blank, as for the other prompt-5 rows; `build_host_table.py` falls back to `public_hosts.csv`. No host rebuild was needed, because `P_Ox` is not stored in the host JSON.
+3. **20191106C stellar mass.** C. Leung (priv. comm.): "FRB 20191106C = FRB 20231128A has M* = 10.43 ± 0.13 as measured by CIGALE. The 20231201A value is correct."
+   - Edited the 20191106C row of `leung2025b_cigale_derived.csv` (text edit, so no other row changed): log M* 10.43 ± 0.13 → Mstar = 2.69e10 (+9.39e9/−6.96e9). The ref stays `Leung2025b_CIGALE`.
+   - 20231201A (9.47) is unchanged.
+   - Rebuilt 20191106C with `build_hosts.main`; only `Mstar`, `Mstar_loerr` and `Mstar_uperr` changed in the JSON.
+   - The new value agrees with the colour-M/L estimate (10.3–10.5) and is 0.2 dex below Chang+2015 (10.65).
+
+**CHIME table (zdm).** In `build_host_table.py`, `NOTES['FRB20191106C']` now records the correction (`Mstar:Leung2025b_Table1_typo_corrected(C.Leung,priv.comm.)`) instead of the old Chang `Mstar_alt` note. I reran it: 97 rows. The diff vs the previous output has exactly 2 rows:
+- **FRB20180814A:** `P_Ox` blank → 0.34. Per Q41 (zdm doc), no P(O|x) cut is applied now, so the host values stay.
+- **FRB20191106C:** `Stellar_Mass` 9.47 → 10.43, `Mstar_err` 0.16 → 0.13, and the Refs note as above.
+
+### Prompt 11: Compare with the Google Drive copies (2026-10-07, Claude Opus 5.5)
+
+- The Google Drive connector (signed in as jxp@ucsc.edu) could not find `Astronomy/Research/FRB` (My Drive › Astronomy › Research contains only DISCO and GitHub). `GDrive:` turned out to be the user's **rclone** remote. I downloaded `public_frbs` (Google Sheet → xlsx) and `Galaxies/Galaxy_DB/Public_Hosts.xlsx` with `rclone copy` into a temporary directory, then deleted them. The download was read-only; nothing on Drive was changed.
+- `astro` has no `openpyxl`, so I used the existing `ocean14` env (pandas + openpyxl) for the comparison and installed nothing.
+- Compared by key (`Name` / `FRB`): rows present only on one side, columns, row order, and every shared cell (strings exactly; numbers exactly, then with a tolerance to separate real changes from rounding). Each difference was checked against `main` with `git log -S` to label it as this PR's change or pre-existing.
+- Results are in **PR Checklist → FRBs / Hosts** above. Every value difference is either a change made in prompts 3–10 or pre-existing. The pre-existing ones are: the empty, unheaded `P(O|x)` column in the Drive sheet; FRB20190711A `ee_b` 1.281 vs 1.28; and sub-mas or 5-digit rounding.
+
+### Prompt 12 (original): Sync the `public_frbs` Sheet (2026-10-07, Claude Opus 5.5). BLOCKED (Q14); superseded, as the Sheets are deprecated
+
+- **FRB20190711A `ee_b` = 1.281** (user's choice). Changed in `FRBs_base.csv` (binary edit, CRLF kept; one field) and rebuilt `FRB20190711A.json` with `build_frbs`. The JSON diff is `eellipse.b` 1.28 → 1.281, plus DMISM in the 15th decimal.
+- `get_file_permissions` on the Sheet (`1nNwhYZWOnTcLq6Uv0KJebxMet4NzAnUKW7SFZ6n3GoY`) confirms that **jxp@ucsc.edu is a writer**.
+- **Stopped before any Drive change.** This session has no Google Sheets editor tools (`update_values` etc.); a tool search found only Drive, Docs and Calendar tools. Drive alone cannot edit an existing Sheet in place. I did not make the backup copy, because no edit was attempted. See Q14.
+- Once the Sheets connector is on, prompt 12 can run as written. B6 then disappears, since repo and Drive will both have 1.281.
+
+### Prompt 12: Deprecating the Google Sheets: check the repo CSVs (2026-10-09, Claude Opus 5.5)
+
+The original prompt 12 (Sheet sync) was replaced by this one; its log is kept above. Q14 is marked moot.
+
+- **Read-only.** No CSV or JSON was changed. The findings, decisions D1–D7 and the fix-up prompt (#13) are in **Repo CSVs** above.
+- **Checks** (`prompts/check_repo_csvs.py`, new and untracked; run it from the repo root in any env with pandas + astropy):
+  - names, duplicates, and missing positions or refs;
+  - every FRB JSON against its `FRBs_base.csv` row;
+  - every host JSON against its `public_hosts.csv` `Coord`, and each host against its FRB position;
+  - z and P(O|x) between the two CSVs;
+  - orphan JSONs and directories;
+  - every `all_refs.csv` table: it exists, each row matches a host within 1″, and the `_loerr` sign.
+- **Main finding:** the 20230712A host JSON is at RA = 0.003°, Dec = 0.02°, because of a malformed `Coord` (A1). Comparing the JSON with `Coord` alone could not catch it, since both are wrong in the same way. The host–FRB separation check does. That check also flags 20200120E (1170″), which is expected: the FRB is in a globular cluster of M81, and `Coord` is the M81 centre.
+- `FRB.by_name` was tested in the `astro` env: it fails for FRB20171020A, FRB20180924A and the 5 unlocalized DSA rows. FRB20180924B loads. (The base env's `ne2001` cannot import with the current SciPy, because `cumtrapz` was removed; this is not related to this work.)
+- Also checked, with no problems found: every FRB JSON agrees with `FRBs_base.csv` (ra, dec, DM, z, repeater); the P(O|x) values agree between the CSVs; both CSVs are CRLF throughout.
+
+### Prompt 13: Fix the repo CSVs (2026-10-10, Claude Opus 5.5)
+
+Applied Repo CSVs A–C with the D1–D7 answers. Run on the workstation (`astro` env, with `$FRB_GDB` and `$NEDLVS` set).
+
+**`FRBs_base.csv`** (field-level script; CRLF kept, and still no newline after the last row; 188 → 183 rows, 26 → 19 columns):
+- FRB20180924A → **FRB20180924B** (A2).
+- z (D1): 20220610A 1.016, 20230718A 0.0359, 20201124A 0.0979, 20231230D 0.506 (was blank), 20240117B 0.644 (was blank), 20190102C 0.29117, 20191228A 0.2432, 20200430A 0.1608.
+- `P(O|x)` (D3), copied from `public_hosts.csv`, for every CHIME row that lacked it: 20180814A 0.34, 20180916B 1.0, 20190110C 0.779, 20190208A 0.9995, 20190417A 1.0, 20200120E 0.99999, 20200223B 0.899, 20220912A 0.95, 20240114A 0.997, 20240209A 0.99. It is still blank for 20181119A (no host) and 20181030A (Q16).
+- **Removed** the 5 DSA rows 20220121B, 20220424E, 20220801A, 20220926A, 20221002A (D2). Sherman+2024 (arXiv:2308.06813) Table 2 gives only the **beam** centres for these, with 0.01° precision; its table note says "coordinates of the beam in which the FRB was detected". There are no localizations to fill in.
+- Dropped the 7 scratch columns (B1).
+
+**`public_hosts.csv`** (same method; 103 rows: −20210912A, +20181030A):
+- 20230712A `Coord` → `11h09m26.4746s +72d33m28.8396s` (A1).
+- 10 other `Coord`s normalized, with no digit changes (B5). `F4 ` → `F4`. 20200120E: `Projects = CHIME,CHIME`, `References = Bhardwaj2021,Kirsten2021`. Four `1.00E+00` → `1.0`.
+- Correction to B5: the repeated `Projects` tokens are **not** duplicates. `Projects` and `References` are paired lists (`build_hosts` asserts equal length), so they were left alone.
+- z (D1): 20180301A 0.33044, 20190711A 0.52172, 20210807D 0.12927, 20211203C 0.34386; 20231020A blanked.
+- **Deleted** the 20210912A row (D5).
+- **Added** 20181030A (D6): `Coord` from the prompt-1 JSON, z = 0.0039, `CHIME`/`bhardwaj2021b`, `P_Ox` blank (Q16). It also has `Bad_photom` = all five Pan-STARRS bands. The PS1 catalog magnitudes of this large, nearby galaxy are about 0.8 mag fainter than Bhardwaj's (r 13.38 vs DECaL r 12.58), and D6 asked for a rebuild that reproduces the prompt-1 JSON.
+
+**Literature:**
+- `sharma2024_derived.csv`: the sign flipped on the 88 negative `_loerr` values (C1). This was a text edit; LF endings are kept.
+- New `bhardwaj2021b_photom.csv` and `bhardwaj2021b_derived.csv`, appended to `all_refs.csv` (DOI 10.3847/2041-8213/ac223b, checked with Crossref).
+  - The photometry is the prompt-1 JSON values with the Galactic extinction added back (EBV = 0.0955, A from `correct_photom_table`), rounded to 3 decimals. The results are round catalog numbers (DECaL g/r/z = 13.602/12.823/12.262).
+  - Derived: Mstar 5.8e9 (−2.0e9/+1.6e9), SFR_photom 0.36 ± 0.08, SFR_nebular 0.033 (−998, lower limit), AV_nebular 1.3 ± 0.2.
+
+**JSON rebuilds:**
+- `build_frbs`: FRB20180924B, FRB20171020A (new file), and the 8 rows with a new z. The only diffs are z and the `FRB` name.
+- `build_hosts` (37 hosts: 20171020A, 20181030A, the 5 hosts with a new z, and the 30 Sharma2024 hosts; 20220509G was rerun after a NOIRLab Data Lab timeout). Each JSON was diffed against its previous version, and no host lost a photometry band:
+  - **Sharma2024 hosts:** only the 3 `_loerr` signs changed, plus float32 noise (≤ 1e-6 mag) in a few WISE/2MASS values.
+  - **20230712A:** now at 167.3603, +72.5580, with DECaL, DECam, PS1 and WISE photometry, the Sharma2024 derived values, and an `ang_best` of 2.09″.
+  - **20171020A:** identical to the old `20171020/FRB20171020_host.json` apart from the name (sub-µas float noise in the offsets).
+  - **20181030A:** the photometry matches prompt 1 to ≤ 0.0005 mag (the 3-decimal rounding), and the derived values are identical. Offsets are new. They are computed from the `FRBs_base.csv` FRB position, which is the host position (Q15).
+  - **Side effects of current branch code** (the G23 extinction law, and skipping `-999` literature values) on the older hosts:
+    - 20180301A: optical/NIR magnitudes shift by 0.01–0.04 mag. The Gordon2023 `-999` placeholders for `agn_tau`, `f_AGN` and `Z_gas` are dropped (also in 20190711A and 20211203C).
+    - 20190711A: `f_AGN` is now 0.118 ± 0.077 from the Heintz2020 CIGALE file in `$FRB_GDB` (with no `_ref`, as for all CIGALE values). Before, the Gordon2023 `-999` overrode it. `SFR_nebular` 0.4159 → 0.4154. Offsets now follow the 2026-02 FRB position (`ang_best` 0.25″ → 1.21″); this host had last been built in 2024-11.
+    - Every host printed an "HTTP 500" from one survey query (non-fatal; no bands were lost relative to the old JSONs). MAST/PS1 was intermittently unreachable at the start.
+
+**Files removed** (`git rm`; still in history): FRB JSONs `FRB20171020`, `FRB20201123`, `FRB20210320`, `FRB20210410`, `FRB20210807`, `FRB20210912`, `FRB20211127`, `FRB20211203`, `FRB20211212` (B2/A3), `FRB20210123`, `FRB20210407`, `FRB20220222` (D4); host directory `Galaxies/20171020/`. Kept: `Galaxies/20190614D/` (D6).
+
+**Verification:**
+- `python prompts/check_repo_csvs.py` reports only the expected items: 20190614D (kept), the 20200120E/M81 offset, and the FG181112_13_5 foreground row.
+- `FRB.by_name` loads all 183 `FRBs_base.csv` rows, and `FRBHost.by_frb` loads all 103 hosts.
+- `pytest frb/tests/test_frb.py frb/tests/test_frbhosts.py`: 8 passed.
+- The zdm `Mo_Repeaters` directory is not on this machine (no zdm branch has it), so `build_host_table.py` was **not** rerun. Rerun it on the laptop. Expected changes: 20181030A (offsets; and the position if Q15 is applied), 20230712A, and any host whose z changed.
+
+**Open:** Q15 (20181030A FRB position) and Q16 (20181030A P_Ox).
+
+### Q15 / Q16 follow-up (2026-10-10, Claude Opus 5.5)
+
+- **Q15 (a).** FRB20181030A in `FRBs_base.csv` (field edit, CRLF kept):
+  - ra, dec 158.5963, 73.765 → **158.58375, 73.751389** (Bhardwaj+2021b Table 2: 10h34m20.1s, +73°45′05″).
+  - `ee_a`/`ee_b`/`ee_theta` 85/29/0 → **78.1/28.6/90**.
+  - Table 2 gives the semi-axes of the 90% ellipse: ±30.6 s of RA = 128.4″ on the sky, and ±47″ in Dec. π·128.4″·47″ = 5.3 arcmin², which matches the stated area. I converted them to 1σ with ÷1.645, as for the Ibik2024a baseband positions in prompt 5. θ = 90° because the major axis is along RA (E of N; cf. 20180814A, where θ = 0 is Dec-major).
+  - Reran `build_frbs` and `build_hosts` for 20181030A. The FRB JSON changes only in position, ellipse and DMISM (40.45 → 40.44). The host JSON changes only in its offsets: `ang_best` 0.09″ → **50.5″ ± 56.3″**, physical 4.2 ± 4.7 kpc. Photometry and derived values are unchanged.
+- **Q16.** `P_Ox` stays blank. No change.
+- `prompts/check_repo_csvs.py` reports only the expected items (20190614D, the 20200120E/M81 offset, FG181112_13_5).
+
+
+### PR 1: Why `Tox env 3.11-test-astropydev` is not running on PR #240 (2026-10-11, Claude Opus 5.5 via Claude Fable 5.1)
+
+**Cause.** The job is excluded on purpose, and it is not the PR's fault. The astropy `main` branch now has `requires-python = ">=3.12"` (`pyproject.toml` on GitHub), so `pip install git+https://github.com/astropy/astropy.git` fails on Python 3.11:
+
+```
+ERROR: Package 'astropy' requires a different Python: 3.11.17 not in '>=3.12'
+```
+
+(job log of run 38105901061, sha f53c051c). Two commits in PR #237 (`survey_revamp`, by Sunil Simha, 2026-10-10) react to this:
+- f53c051c "exclude 3.11-astropydev": `tox.ini` envlist `{3.11,3.12}-test-{numpy,astropy}dev` → `{3.11,3.12}-test-numpydev` + `3.12-test-astropydev`.
+- 2fa6c78a "ci tests": `.github/workflows/ci_tests.yml` adds `exclude: python '3.11' / toxenv test-astropydev` to the matrix.
+
+Both reached `repeater_updates` with the merge of `origin/main` (3470b7da). GitHub never starts an excluded matrix job, so there is no job to run. The `astropydev` deps line in `tox.ini` is a bare git URL with no Python guard, so pip has nothing to fall back to; the guard lives only in the envlist and the workflow exclude.
+
+**Run history** (`gh api repos/FRBs/FRB/actions/runs/<id>/jobs`):
+- 38083657840 (`repeater_updates` fa40eb5a, before merging main): 3.11-test-astropydev **failed**, the other 3 jobs were **cancelled** (`fail-fast`, the default).
+- 38105901061 (survey_revamp f53c051c, tox.ini changed but not yet the workflow): same pattern.
+- 38107143724 (2fa6c78a, with the exclude): 3 jobs, all pass.
+- 38138892582 (PR #240 head 206144ab): `3.11-test`, `3.12-test`, `3.12-test-astropydev` all **pass**.
+
+**Why the PR is still blocked.** Branch protection on `main` (`gh api repos/FRBs/FRB/branches/main/protection`) lists four required status checks: `Tox env 3.11-test`, `Tox env 3.11-test-astropydev`, `Tox env 3.12-test`, `Tox env 3.12-test-astropydev`, plus 1 approving review. The second one can never report, so the PR shows "Expected — Waiting for status", `mergeStateStatus = BLOCKED`, `reviewDecision = REVIEW_REQUIRED`.
+
+**Fix (recommended).** Drop the stale required check, and keep the exclusion:
+- GitHub: Settings → Branches → `main` → Require status checks → remove `Tox env 3.11-test-astropydev`; or
+  ```
+  gh api -X DELETE repos/FRBs/FRB/branches/main/protection/required_status_checks/contexts -f 'contexts[]=Tox env 3.11-test-astropydev'
+  ```
+- Optional: `fail-fast: false` under `strategy:` in `ci_tests.yml`, so one failing job no longer cancels the other three (that is why the earlier runs showed three "cancelled" jobs).
+- The PR then still needs one approving review.
+
+**Alternative, not recommended.** A 3.11 "latest astropy" job cannot install astropy `main`. PyPI (`curl https://pypi.org/pypi/astropy/json`) shows every 7.x and 8.x release, through 8.0.1, still has `requires_python >=3.11`, so the nearest substitute is `astropy>=8.0` with `--pre` on 3.11, under a different job name. Not worth it: the two `3.11-test` jobs already cover released astropy on 3.11.
+
+**Checked for consistency.** `pyproject.toml` (`requires-python >= 3.11`, `astropy>=7.1`, 3.11/3.12 classifiers) and `docs/installing.rst` (Python 3.11+) say nothing about the dev-astropy matrix, so nothing else needs changing. No files other than this log were edited, and no GitHub settings were changed.
+
+### PR 2: Review Sunil's requested changes on PR #240 (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Read-only. The recommendations are in the Q&A section, "PR review by Sunil" (PR-Q1 to PR-Q6). No code, data or GitHub state was changed.
+
+**Sources.** `gh api repos/FRBs/FRB/pulls/240/reviews` (one CHANGES_REQUESTED review, 2026-10-11 21:27 UTC, plus a COMMENTED follow-up at 23:19), `.../pulls/240/comments` (3 inline comments on `defs.py:30`, `defs.py:263`, `sdss.py:164`, and one reply), `.../issues/240/comments` (two notes by the owner).
+
+**Checks made:**
+- `git log HEAD..origin/main` is empty: the branch already contains main (merge 3470b7da). The PR's code diff vs main is 6 files: `build_hosts.py` (+14), `defs.py` (+20), `ppxf.py` (`np.in1d` → `np.isin`), `sdss.py` (1 line), `survey_utils.py` (+5, the `InconsistentTableError` catch from prompt 7, a00ba209) and the new `prompts/check_repo_csvs.py`. Data: 46 FRB JSONs, `FRBs_base.csv`, 58 host JSONs (3 deleted), `public_hosts.csv`, literature CSVs.
+- `defs.py:33-42` on main (Sunil, 35f34b7c, 2026-10-10) already documents 999 / -99 / -999 and `PHOTOM_MISSING_MAX`; the PR's lines 30-31 duplicate it. `PHOTOM_MISSING_MAX` is consumed in `photom.py:250` and `frbgalaxy.py:352`, both called by `build_hosts.run`.
+- Flag census over the 104 host JSONs (script in scratch, not kept): photometry `_err = 999` in 61 entries, `-99` in 75 `_flux_err`; derived `_err = 999` only in the two new `SFR_SED` entries (20180814A, 20240209A), `-998` only in the two new `SFR_nebular` entries (20181030A, 20220912A), `-999` in 49 old `agn_tau`/`f_AGN` lo/up errors. `-998` appears in `ravi2023_derived.csv` and `bhardwaj2021b_derived.csv` only.
+- `SFR_nebular` is present in 23 hosts; 17 have no error key or a flag, which supports Sunil's "take them at face value".
+- `figures/galaxies.py:290-296` prefers `SFR_nebular` over `SFR_photom`; `figures/utils.log_me` hides the bar for `err < 0` and returns NaN for 999 (pre-existing).
+- 36 code files changed on main between the prompt-13 builds (fa40eb5a, 2026-10-10) and the current main (`git diff --stat fa40eb5a origin/main -- 'frb/**/*.py'`): all survey modules, `catalog_utils.py` (+694), `photom.py`, `frbgalaxy.py`.
+- PR host JSONs scanned for unmasked bad photometry: DELVE `98`/`99` sentinels in 20190711A (g, r, z; also on main), 20200223B (i; new in this PR) and 20230222B (i; also on main); zero errors in 20220319D (WISE W1-4) and 20231120A (Pan-STARRS i), both pre-existing. These are exactly what PR #237's `clean_cat(mask_photometry=True)` now masks, so a rebuild changes real values.
+- The `sdss.py` `instrument` claim cannot be tested offline. The field is never read after the query, so Sunil's finding (harmless, but not a fix) stands.
+
+**Summary of recommendations** (details in PR-Q1 to PR-Q6): accept C1 (delete the two lines); keep `999` for derived upper limits rather than `-99`, and drop the `-998` lower-limit flag; convert the Ravi2023 SFR to a measurement with `_err = -999` and drop the Bhardwaj2021b nebular SFR in favour of the paper's `SFR_photom`; restore main's `sdss.py` line and keep the exception catch, with a retry deferred to a follow-up PR; no rebase, but rebuild the 55 surviving PR hosts with the merged main code on the workstation; nothing to implement for `PHOTOM_MISSING_MAX`.
+
+### PR 3: Second round of PR questions (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Read-only. Added "Round 2" (PR-Q7 to PR-Q11) to the "PR review by Sunil" block. No code, data or GitHub state changed. Round-1 answers: PR-Q1, Q2, Q4, Q6 accepted (to be applied with the next prompt); PR-Q3 open (slit-loss scaling); PR-Q5 accepted, possibly on the laptop.
+
+**Checks made:**
+- Provenance of the 23 `SFR_nebular` values (host JSONs, `public_hosts.csv` `Spectrum`, `neb_lines` `_ref` keys): 9 from our pPXF fits, 5 computed from literature line fluxes, 9 literature SFRs. The repo records no spectrum-to-photometry scaling anywhere (`public_hosts.csv` columns, `defs.py`, `ppxf.py`).
+- This machine is the laptop: `$FRB_GDB`/`$SPECDB` point to nonexistent `/u/xavier/...` paths, `$NEDLVS` unset, `astro` env is Python 3.14.6 / astropy 8.0.1 / numpy 2.5.2 with `frb` editable from the repo; `mastcasjobs` (new in main's `pyproject.toml`, lazy import in `panstarrs.py:158`) and `ppxf` missing; the `ci-repro-py311/312` envs have no astropy.
+- `build_hosts.run` → `in_which_survey` → `load_survey_by_name('NEDLVS')` asserts on `$NEDLVS` outside the `is_inside` try (`survey_utils.py:134`), so the build crashes without it; prompt 6 removed NEDLVS from `optical_surveys` in the driver.
+- Rebuild set from `git diff --name-status origin/main...HEAD -- 'frb/data/Galaxies/*host.json'`: 43 M, 11 A, 1 R (20171020 → 20171020A), 3 D; 55 hosts, mapped to 17 `$FRB_GDB` project/ref directories via `Projects`/`References`; 33 have `Spectrum` set (so `_ppxf.ecsv` files are read), none has `CIGALE_photom`. `search_for_file` returns not-found silently (pPXF, CIGALE), Galfit raises `IOError` (`build_hosts.py:467`).
+- DELVE 98/99 sentinels: inside the PR in 20190711A, 20200223B, 20230222B, 20231223C, 20240114A; outside it in 20200430A, 20211127I, 20220105A. The Opus draft listed 20231223C as outside; corrected (it is a Leung2025 host in the PR).
+
+### PR 4: Apply the PR decisions on the laptop (2026-10-12, Claude Opus 5.5 via Claude Fable 5.1)
+
+Applied PR-Q1, Q2, Q4, Q6, Q7 (b), Q8, Q10 and Q11. The rebuild (PR-Q5/Q9) is left for the workstation, with a driver script ready.
+
+**Code (commit 24199d42, pushed):**
+- `defs.py`: the two duplicate 999/-998 lines are gone (main's block at the top of the photometry section stands). The derived-quantities header now lists 999 = upper limit, -999 = no error, -998 = lower limit, with the rule that `build_hosts` sets -998 on `SFR_nebular` when the host's `Spec_scaled` is False.
+- `sdss.py`: main's line with `instrument` restored; no diff vs main.
+- `survey_utils.is_inside`: the `InconsistentTableError` warning now says the survey's photometry is skipped for that host.
+- `build_hosts.run`: after the literature derived loop, if `Spec_scaled` is False (string or bool) and `SFR_nebular` exists, `_loerr`/`_uperr` are dropped and `SFR_nebular_err = -998`. Docstring updated.
+
+**Data (this commit):**
+- `public_hosts.csv`: new last column `Spec_scaled`, blank for all 103 hosts except 20181030A = `False`. CRLF and the missing final newline are preserved; every row is byte-identical apart from the appended field.
+- Not changed: `ravi2023_derived.csv` keeps `SFR_nebular_err = -998` for 20220912A (the paper's "≳"); `bhardwaj2021b_derived.csv` keeps -998 for 20181030A. Under option (b) a literature table may carry the flag itself, and the build's `Spec_scaled` rule reproduces it for 20181030A. If you want 20220912A as a plain measurement instead, set that cell to -999 and the host's `Spec_scaled` blank.
+- No host JSON changed: with `skip_surveys=True` and an empty `$FRB_GDB`, `run()` for 20181030A reproduces the committed derived block exactly (`SFR_nebular 0.033`, `_err -998`, `SFR_photom 0.36`), with the flag False or blank; 20240209A (blank, no nebular SFR) is unchanged.
+
+**Tests:** `pytest frb/tests/test_frbhosts.py test_galaxies.py test_photom.py test_surveys_offline.py`: 48 passed (astro env). All four edited modules import.
+
+**Replies to Sunil, posted with `gh` as profxj, each marked "posted by Claude Code on Xavier's behalf":** inline replies 4253151552 (defs.py:30), 4253151722 (defs.py:263, the 999/-998/`Spec_scaled` outcome), 4253151843 (sdss.py:164, line restored, retry deferred to a follow-up PR with him), and PR comment 6134417272 (no rebase; `PHOTOM_MISSING_MAX` inherited; the 55 hosts to be rebuilt on the workstation; data commit to follow).
+
+**Laptop environment fix.** The `astro` env held a stale, non-editable copy of `frb` (site-packages, Sep 11), so any script run outside the repo root used old code (this was already noted for the workstation in prompt 2). Ran `pip install -e . --no-deps` in `astro`. pip left a stub `site-packages/frb/data/Public/Pan-STARRS/ps1_dr2_stack_metadata.csv` (a git-ignored runtime cache) that still shadowed the editable install as a namespace package; it is moved aside to `site-packages/frb.stale-cache-2026-10-12.bak` (deleting it was blocked by the permission classifier; you can `rm -r` it). `import frb` from any directory now resolves to the repo. **Do the same check on the workstation** before the rebuild: `cd /tmp; python -c "import frb; print(frb.__file__)"` must print the repo path.
+
+**Rebuild driver:** `prompts/rebuild_pr_hosts.py` (new). It rebuilds the 55 PR hosts (list embedded; `--hosts` overrides), drops NED-LVS from the survey list when `$NEDLVS` is unset, warns if `frb` is not imported from the repo or `$FRB_GDB` is missing, diffs each new JSON against `git HEAD`, flags lost photometry bands not covered by `Bad_photom` (with `--retry N` re-runs those), lost `neb_lines`/`derived`/`morphology` keys and changed values, and writes `rebuild_report.md`. `--dry-run` checks the setup. Tested on the laptop: the dry run and the comparison logic (simulated loss of the 20190711A DELVE bands and of its Hbeta line) behave as intended. On the workstation:
+```
+cd <repo>; git pull; pip install -e . --no-deps
+python prompts/rebuild_pr_hosts.py --dry-run
+python prompts/rebuild_pr_hosts.py --retry 2
+```
+then review `rebuild_report.md` and `git diff --stat frb/data/Galaxies`, and commit the JSONs.
+
+**Open:** the rebuild itself (PR-Q5/Q9); Sunil's re-review; the `figures/utils.log_me` arrow for -998 (not done; `err < 0` still just hides the bar).
+
+### PR 5: Workstation setup check (2026-10-13, Claude Opus 5.5)
+
+Run on host `profx`, `astro` env. **Result: not ready to build.** The import, git state, dry run and NED-LVS are fine, but most `$FRB_GDB` products are missing and `dust_extinction` is too old. Nothing was built.
+
+**Git.** `git fetch`: `repeater_updates` = `origin/repeater_updates` = 204c4c37, with 24199d42 and 9c32917f present. The only local change is an untracked `frb/data/Galaxies/PATH/tmp.csv` (a PATH scratch table from March 2026). It does not affect the rebuild; it was left in place.
+
+**Editable install.** From `/tmp`, `import frb` resolves to `/home/xavier/Projects/FRBs/FRB/frb/`. That is this repo: `~/Projects/FRBs` is a symlink to `/mnt/tank/Astronomy/FRBs`. pip shows it as an editable install, and no stub `site-packages/frb/` exists. The driver's repo check compared `abspath`s, so it warned falsely through the symlink. It now uses `realpath` (`prompts/rebuild_pr_hosts.py:116-117`).
+
+**Versions (astro env).** Python 3.13.2, astropy 7.0.1, numpy 2.2.5, astroquery 0.4.10, dust_extinction 1.5. ppxf, pcigale, EAZY and the Aemulus emulator are absent; none is needed for the rebuild.
+
+**Environment.**
+- `$NEDLVS` = `/mnt/tank/Astronomy/FRBs/NEDLVS_20210922_v2.fits`. The file exists, so the driver keeps NED-LVS.
+- `$FRB_GDB` = `/home/xavier/Projects/FRBs/FRB/Galaxy_DB/`. This is a git-ignored copy inside the repo, last touched June 2025, and it holds mostly images. `$SPECDB` = `/u/xavier/SPECDB/`, but `/u` does not exist on this machine.
+- Of the 17 PR-Q9 product directories, **12 are missing**: `CHIME/{bhardwaj2021b, bhardwaj2025, eftekhari2024, hewitt2024, ibik2024a, leung2025, michilli2023, moroianu2025, ravi2023}`, `CRAFT/Mahony2018`, `CRAFT/shannon2024`, and `DSA/sharma2024`. There is a `CRAFT/Shannon2024` (capital S), but it holds images and `_outputs.yaml` files, not the products, and paths are case-sensitive here. Present: `CRAFT/{Heintz2020, Woodland2023}`, `F4/{gordon2023, mannings2021}` and `Realfast/Bhandari2021`.
+
+**pPXF and Galfit.** These were checked with the same path logic as `build_hosts.search_for_file`. **All 33 PR hosts that have a `Spectrum` are missing their `_ppxf.ecsv`:** 20180301A (DEIMOS), 20210807D (LRIS), 20211203C (Goodman), and the 30 Sharma2024 hosts. Galfit: 20190711A WFC3_F160W is present; **20210807D GeMSGSAOI_Kshort is missing**, so `build_hosts.py:470` would raise for that host. A build here would therefore silently drop the nebular values of 33 hosts and crash on 20210807D.
+
+**Dry run.** `python prompts/rebuild_pr_hosts.py --dry-run` lists 55 hosts with no warnings, once the `realpath` fix is in. It does not check the product directories.
+
+**Tests.** `pytest frb/tests/test_frbhosts.py test_galaxies.py test_photom.py test_surveys_offline.py` gives 47 passed and **1 failed**: `test_photom.py::test_dust_correct` returns 1.38692 instead of 1.39365. The cause is `dust_extinction` 1.5, whose G23 curve differs from later releases. With 1.7 (installed to a scratch directory, not the env), `extinction_correction('GMOS_S_r', 0.138)` gives exactly 1.3936491887210187. Every rebuilt magnitude would carry this roughly 0.5% (about 0.005 mag) offset, so upgrade before building. The `>=1.4` pin in `pyproject.toml` and `requirements.txt` is too loose; it should probably be `>=1.6` or `>=1.7` (not changed; 1.6 not tested).
+
+**To do before PR 6:**
+1. `conda activate astro; pip install -U "dust_extinction==1.7"`, then rerun `pytest frb/tests/test_photom.py`.
+2. Point `$FRB_GDB` at a full Galaxy_DB that has the 17 directories. If none exists on `profx`, rsync them from the machine that has `/u/xavier/Projects/FRB_Stuff/FRB/Galaxy_DB/` (the PR-Q9 command). Then rerun the pPXF/Galfit check: all 33 `_ppxf.ecsv` files and both Galfit files must be found.
+
+**Correction (2026-10-14).** The "not ready" verdict above was wrong about the products. The 17-directory list in PR-Q9 was taken from the `Projects`/`References` columns: it says where `build_hosts` *would look*, not what exists. Most of those references (the CHIME papers, Sharma2024) reach the JSONs only through `frb/data/Galaxies/Literature/` tables. The committed JSONs of all 33 hosts with a `Spectrum` have no `neb_lines` and no nebular-derived values, so no pPXF file was ever read for them; `Spectrum` just names the instrument. Nothing is lost when the build doesn't find them. 20210807D has no `_galfit.fits`, but the build falls back to `CRAFT/Woodland2023/HG20210807D_GeMSGSAOI_Kshort_galight.json`, which exists; the check above missed that fallback. Galaxy_DB has since moved out of the repo, to `/mnt/tank/Astronomy/Galaxy_DB/`. Its contents are unchanged, apart from `F4/mannings2024`, which nothing references. `~/.bashrc` still sets the old path, so PR 6 sets `FRB_GDB` explicitly. `dust_extinction` was upgraded to 1.7, and Xavier reports that the tests pass.
+
+### PR 6: Rebuild the 55 PR hosts (2026-10-14, Claude Opus 5.5)
+
+Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, astroquery 0.4.10, dust_extinction 1.7), with `FRB_GDB=/mnt/tank/Astronomy/Galaxy_DB/` set explicitly because `~/.bashrc` line 30 still has the old in-repo path, and with `$NEDLVS` set. Command: `python prompts/rebuild_pr_hosts.py --retry 2`.
+
+**Bug fixed: survey merge (main's code).** The first run failed 7 of its first 16 hosts on all three tries with `TableMergeError: ... duplicates: ['separation_1', 'separation_2']`. Since PR #237, `catalog_utils.clean_cat` adds a `separation` column to every survey catalog. `photom.merge_photom_tables` stacks the survey tables side by side with `hstack`, which renames the second `separation` to `separation_1`/`separation_2`; any host found in three or more surveys then hits a name clash. `build_hosts.run` now drops `separation` from each survey table before the merge. The column is not photometry, so no host data changes. The fix was tested on 20190110C, then the run was restarted from scratch with the old JSONs restored.
+
+**Result (`rebuild_report.md`; committed in PR 7 as `rebuild_report_2026-10-14.md`).** 55 of 55 hosts built (`Failed: none`). 54 JSONs changed; 20171020A, 20190208A, 20190303A, 20190417A, 20191106C, 20230926A, 20231123A, 20231229A and 20231230A had no changes above the report's tolerance (only float noise); 20171020A is byte-identical. The 5 flagged hosts each needed all 3 tries, because the driver retries any lost band and the DELVE sentinels never come back:
+
+| Host | Lost bands | Why |
+|---|---|---|
+| 20190711A | DELVE_g, DELVE_r, DELVE_z | `98`/`99` sentinels, now masked by `clean_cat` |
+| 20200223B | DELVE_i | same |
+| 20230222B | DELVE_i | same |
+| 20231223C | DELVE_i, DELVE_z | same |
+| 20240114A | DELVE_i | same |
+
+**Full key-level check of all 54 JSONs:**
+- Outside `photom` there are no changes: no `neb_lines`, `derived`, `morphology`, `offsets` or `redshift` change beyond about 1e-6 relative float noise (12 apparent differences are NaN vs NaN).
+- In `photom`:
+  - No band was added. The only removed keys are the 32 DELVE sentinel keys above.
+  - Flags:
+    - `WISE_W2/W3/W4_err` changed from `999` to `-99` (36 cases);
+    - 20221101B `2MASS_h_err` changed from `-999` to `-99`;
+    - the zero flux errors (20220319D WISE W1-4, 20231120A Pan-STARRS i) are now `-99`.
+    This is main's survey convention (`defs.py`: the `frb.surveys` catalogs flag upper limits with `-99`, and `convert_mags_to_flux` understands both flags), and the matching `_flux_err` was already `-99` in the committed JSONs. Host JSONs now mix `999` (literature tables) and `-99` (surveys) for upper limits; I'll raise this with Sunil.
+  - No magnitude moved by more than 0.05 mag. The systematic shifts (0.001 to 0.036 mag brighter, larger in the blue and at high EBV) are exactly the change in the G23 extinction curve between `dust_extinction` 1.5 (the version prompt 13 used) and 1.7. Example: 20220319D, EBV = 0.696, Pan-STARRS_g correction −2.4701 → −2.5063 mag, a difference of −0.0362; the observed shift is −0.0362. EBV values are unchanged.
+- Expected items kept:
+  - 20181030A: `SFR_nebular = 0.033`, `_err = -998`, `SFR_photom = 0.36`.
+  - 20220912A: `SFR_nebular_err = -998`.
+  - The `Bad_photom` bands are still absent (20231230A DECaL; 20181030A Pan-STARRS).
+
+**Spot checks by hand:**
+- 20190711A (EBV 0.121): the DELVE g/r/z sentinels are gone; DELVE_i, DECaL, GMOS-S, FORS2 and WFC3 shift by −0.001 (F160W) to −0.011 (F300X) mag, scaling with wavelength as G23 does.
+- 20230712A (Sharma2024, EBV 0.037): DECaL, DECam and Pan-STARRS shift by −0.001 to −0.002 mag and WISE by −0.0001 mag; `WISE_W3/W4_err` changed from 999 to −99.
+- Every changed key is accounted for.
+
+**Survey errors.** Every host logged `500 Error` and "Couldn't reach MAST for PS1." (65 of 65 attempts). Testing each survey's `is_inside` on 20210807D shows the 500 comes from **Euclid**: `is_inside` catches every `HTTPError` under the MAST/PS1 message. Pan-STARRS itself worked, and no JSON has Euclid photometry, before or after. HSC has no credentials (no HSC bands before either). No SDSS 403s and no Data Lab failures.
+
+**Verification:**
+- `FRBHost.by_frb(FRB.by_name(...))` loads all 103 hosts.
+- `prompts/check_repo_csvs.py` reports only the known items: 20190614D, the 20200120E/M81 1170″ offset, and the prochaska2019 row FG181112_13_5.
+- `pytest frb/tests/test_frbhosts.py`: 6 passed.
+
+**For Sunil (main's code, follow-up):**
+1. The `separation` merge bug fixed above.
+2. The misleading MAST/PS1 message for any `HTTPError` (Euclid here).
+3. `999` vs `-99` upper-limit flags now mixed in host JSONs.
+4. Tighten the `dust_extinction>=1.4` pin; 1.5 gives a different G23 curve and fails `test_dust_correct`.
+
+### PR 7: Close out the review (2026-10-14, Claude Opus 5.5)
+
+- **CI:** `gh pr checks 240` is green on 9295c844 (Tox 3.11-test, 3.12-test, 3.12-test-astropydev). The merge state is CLEAN.
+- **Review status:** Sunil approved at 9c32917f (2026-10-12, "Approving with the latest changes."), before the rebuild and the `build_hosts` merge fix (08d8adf2).
+- **PR comment** 6173372450, marked "Posted by Claude Code on Xavier's behalf". It summarizes:
+  - the 55 hosts rebuilt (54 changed, none left at the old JSON) and the DELVE sentinels dropped;
+  - the 0.001 to 0.04 mag extinction shift from `dust_extinction` 1.7 vs 1.5, with the suggestion to tighten the pin;
+  - the `-99` survey flags, asking whether host JSONs should mix `999`/`-99`;
+  - the `separation` merge bug and its fix, and the Euclid HTTP 500 that `is_inside` reports as MAST/PS1;
+  - the `Spec_scaled` column.
+- **Re-requested Sunil's review** (`gh api ... requested_reviewers`; SunilSimha is now listed), for the `build_hosts` change.
+- **Branch protection:** the stale `Tox env 3.11-test-astropydev` is **gone**. The required checks on `main` are now `Tox env 3.11-test`, `Tox env 3.12-test` and `Tox env 3.12-test-astropydev`, all passing, so nothing blocks the merge.
+- **CHIME table:** `zdm/papers/Mo_Repeaters/` is not on `profx`; the `zdm` clone is on `NewQinLF`, last commit 2026-09-09, and has no `Mo_Repeaters` on any branch. Run `py/build_host_table.py` on the laptop and diff `CHIME_FRB_hosts.csv` (prompt 9 rules). Expected changes include photometry-derived columns for the rebuilt hosts (0.001 to 0.04 mag), the 20181030A offsets and 20230712A.
+- **Housekeeping:** `rebuild_report.md` renamed to `rebuild_report_2026-10-14.md` (`git mv`; Xavier had staged it).
+
+### PR 9: The failing test (2026-10-15, Claude Opus 5.5)
+
+- **Which:** `Tox env 3.12-test-astropydev` on 8be12f07, run 38600201027, failed on `frb/tests/test_galaxies.py::test_ebv` with `xml.etree.ElementTree.ParseError: mismatched tag: line 6, column 2` at `nebular.py:262` (1 failed, 108 passed). The same job passed on 9295c844, and 8be12f07 changed only the log and the rebuild report.
+- **Cause:** `test_ebv` queries the live IRSA dust service. `get_ebv` parses whatever comes back without checking it, and that time IRSA sent a non-XML (HTML) page. The failure is a transient outage, not the PR or astropy-dev. Locally the test passes, and IRSA returns `200 text/xml`.
+- **Fix (uncommitted; Xavier commits):**
+  - `nebular.get_ebv` calls `raise_for_status()` and turns an HTTP error, a non-XML reply or an undecodable reply into an `IOError` that names the query URL. The build then reports the failure clearly instead of with an XML parser traceback.
+  - `test_ebv` skips when `get_ebv` raises `IOError` or a `requests` exception.
+- **Tested:** `test_galaxies.py` passes against the live service. With `requests.get` patched to return an HTML page, `get_ebv` raises the `IOError` and `test_ebv` skips.
+- **To finish:** commit only `frb/galaxies/nebular.py`, `frb/tests/test_galaxies.py` and this log. The working tree also holds host JSONs from the PR 8 rebuild, which belong on `rebuild_hosts`. Push, or rerun the failed job (`gh run rerun 38600201027 --failed`).

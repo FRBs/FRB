@@ -168,7 +168,7 @@ def read_lit_table(lit_entry, coord=None):
         if nmatch == 0:
             return None
         elif nmatch == 1:
-            idx = int(np.where(match)[0])
+            idx = int(np.where(match)[0][0])
             return lit_tbl[idx:idx+1]
         else:
             embed(header="Multiple matches in literature table!")
@@ -189,7 +189,9 @@ def run(host_input:pandas.core.series.Series,
 
     Args:
         host_input (pandas.core.series.Series): Row of the CVS file
-            providing the host inputs
+            providing the host inputs.  If its Spec_scaled column is False
+            (the spectrum was not scaled to the integrated photometry),
+            SFR_nebular is written as a lower limit (SFR_nebular_err = -998).
         build_ppxf (bool, optional): Run pPXF?. Defaults to False.
         lit_refs (str, optional): File of literature references. Defaults to None.
         build_cigale (bool, optional): Run CIGALE?. Defaults to False.
@@ -287,6 +289,10 @@ def run(host_input:pandas.core.series.Series,
                 #embed(header='277 of build')
                 #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
         warnings.warn("We need a way to reference the survey")
+        # clean_cat adds a separation column to every survey; it is not
+        # photometry, and hstack-ing it from 3+ surveys raises TableMergeError
+        if 'separation' in srvy_tbl.colnames:
+            srvy_tbl.remove_column('separation')
         # Merge
         if merge_tbl is None:
             merge_tbl = srvy_tbl
@@ -333,6 +339,14 @@ def run(host_input:pandas.core.series.Series,
             if 'NSC' in key:
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
+    # Remove bad photometry (e.g. a shredded survey detection)
+    bad_photom = getattr(host_input, 'Bad_photom', None)
+    if merge_tbl is not None and isinstance(bad_photom, str):
+        for filt in bad_photom.split(','):
+            for key in [filt, filt+'_err', filt+'_ref']:
+                if key in merge_tbl.keys():
+                    merge_tbl.remove_column(key)
+            print(f"Removing bad photometry: {filt}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
@@ -479,6 +493,10 @@ def run(host_input:pandas.core.series.Series,
                 if err_type in key and '_uperr' not in key: 
                     valkey = key.replace(err_type, '')
                     refkey = valkey+'_ref'
+                    # Skip quantities not measured for this host
+                    val = float(lit_tbl[valkey].data[0])
+                    if not np.isfinite(val) or chk_fill(val):
+                        continue
                     # Scrub any existing!
                     if valkey in Host.derived.keys():
                         Host.derived.pop(valkey)
@@ -496,6 +514,14 @@ def run(host_input:pandas.core.series.Series,
                     if '_loerr' in key:
                         hikey = key.replace('lo', 'up')
                         Host.derived[hikey] = float(lit_tbl[hikey].data[0])
+
+    # Nebular SFR lower limit: the spectrum was not scaled to the photometry
+    spec_scaled = getattr(host_input, 'Spec_scaled', None)
+    if str(spec_scaled).strip().lower() in ['false', '0', 'no'] and 'SFR_nebular' in Host.derived.keys():
+        print("Spec_scaled is False: flagging SFR_nebular as a lower limit (_err = -998)")
+        for key in ['SFR_nebular_loerr', 'SFR_nebular_uperr']:
+            Host.derived.pop(key, None)
+        Host.derived['SFR_nebular_err'] = -998.
 
     # Vet all
     assert Host.vet_all()
