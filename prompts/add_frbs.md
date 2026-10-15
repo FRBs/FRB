@@ -207,6 +207,8 @@ Use Opus 5.5.  Log your work.
    - Same acceptance rules and verification as PR 6. Watch especially the Gordon2023 hosts (prompt 13 log: the G23 extinction law shifts optical/NIR magnitudes by 0.01-0.04 mag, and `-999` literature placeholders are dropped) and the hosts last built before 2024, whose offsets may follow updated FRB positions.
    - Open a PR with a summary table of hosts rebuilt, bands lost or gained, and unrebuilt hosts.
 
+9. **Tests**  There is still one test failing for the PR. Please investigate and help me fix it.
+
 ## Repo CSVs
 
 Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
@@ -1163,3 +1165,13 @@ Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, as
 - **Branch protection:** the stale `Tox env 3.11-test-astropydev` is **gone**. The required checks on `main` are now `Tox env 3.11-test`, `Tox env 3.12-test` and `Tox env 3.12-test-astropydev`, all passing, so nothing blocks the merge.
 - **CHIME table:** `zdm/papers/Mo_Repeaters/` is not on `profx`; the `zdm` clone is on `NewQinLF`, last commit 2026-09-09, and has no `Mo_Repeaters` on any branch. Run `py/build_host_table.py` on the laptop and diff `CHIME_FRB_hosts.csv` (prompt 9 rules). Expected changes include photometry-derived columns for the rebuilt hosts (0.001 to 0.04 mag), the 20181030A offsets and 20230712A.
 - **Housekeeping:** `rebuild_report.md` renamed to `rebuild_report_2026-10-14.md` (`git mv`; Xavier had staged it).
+
+### PR 9: The failing test (2026-10-15, Claude Opus 5.5)
+
+- **Which:** `Tox env 3.12-test-astropydev` on 8be12f07, run 38600201027, failed on `frb/tests/test_galaxies.py::test_ebv` with `xml.etree.ElementTree.ParseError: mismatched tag: line 6, column 2` at `nebular.py:262` (1 failed, 108 passed). The same job passed on 9295c844, and 8be12f07 changed only the log and the rebuild report.
+- **Cause:** `test_ebv` queries the live IRSA dust service. `get_ebv` parses whatever comes back without checking it, and that time IRSA sent a non-XML (HTML) page. The failure is a transient outage, not the PR or astropy-dev. Locally the test passes, and IRSA returns `200 text/xml`.
+- **Fix (uncommitted; Xavier commits):**
+  - `nebular.get_ebv` calls `raise_for_status()` and turns an HTTP error, a non-XML reply or an undecodable reply into an `IOError` that names the query URL. The build then reports the failure clearly instead of with an XML parser traceback.
+  - `test_ebv` skips when `get_ebv` raises `IOError` or a `requests` exception.
+- **Tested:** `test_galaxies.py` passes against the live service. With `requests.get` patched to return an HTML page, `get_ebv` raises the `IOError` and `test_ebv` skips.
+- **To finish:** commit only `frb/galaxies/nebular.py`, `frb/tests/test_galaxies.py` and this log. The working tree also holds host JSONs from the PR 8 rebuild, which belong on `rebuild_hosts`. Push, or rerun the failed job (`gh run rerun 38600201027 --failed`).
