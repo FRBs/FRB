@@ -94,7 +94,7 @@
         "WISE_W3_flux_err": 0.04437547371696008,
         "WISE_W3_ref": "Sharma2024",
         "WISE_W4": 15.399114608764648,
-        "WISE_W4_err": -99.0,
+        "WISE_W4_err": 999.0,
         "WISE_W4_flux": 2.5139355659484863,
         "WISE_W4_flux_err": -99.0
     },

@@ -223,6 +223,10 @@ Use Opus 5.5.  Log your work.
     If any questions arise, put them in the Q&A section.
     Log your work.
 
+13. **The end!**  I have answered FU-Q17 and FU-Q18.  Please read those, check the files
+    and let me know the last commits to make on this PR before asking for Sunil's approval. 
+    Log your work.
+
 ## Repo CSVs
 
 Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
@@ -1514,3 +1518,16 @@ Everything is uncommitted; Xavier does the git steps (FU-Q18). `origin/repeater_
   - `pytest` on `test_frbhosts`, `test_galaxies`, `test_photom`, `test_surveys_offline` and `test_build`: 49 passed.
 - **Working tree:** 29 host JSONs, `public_hosts.csv`, the two literature CSVs, `cigale.py`, plus the prompt PR-11 code.
 - **New questions:** FU-Q17 (Sharma2024 vs survey 2MASS), FU-Q18 (the two #240 commits).
+
+### PR 13: Final check before Sunil's re-review (2026-10-20, Claude Opus 5.5)
+
+FU-Q17: keep the Sharma2024 2MASS values (literature wins); nothing to change. FU-Q18: Xavier commits.
+- **Already committed:**
+  - 6dd70066 "mo" (pushed; CI green on all three Tox envs): the prompt PR-11 code (`build_hosts`, `survey_utils`, `photom`, `rebuild_pr_hosts.py`, the `dust_extinction` pins), the `SOAR_u.dat` → `SOAR_U.dat` rename and the two literature CSV renames.
+  - fc942a09 "ok" (local, **not pushed**): the `cigale.py` 2MASS keys.
+  - HEAD was spot-checked: `parse_survey_match`, nearest-source selection, the `999` survey upper limits, the `separation` drop, the named-survey warning, `dust_extinction>=1.7`, lowercase 2MASS in `cigale.py`, `SOAR_U.dat` tracked. No code file differs from HEAD.
+- **Still uncommitted, checked:**
+  - `public_hosts.csv`: every row differs from HEAD only by the appended `Survey_match` field (103 rows, CRLF), with entries 20211127I = `DECaL:2` and 20220418A = `Pan-STARRS:skip`.
+  - 29 host JSONs, all #240 hosts: the 12 rebuilt in prompt PR-12, and 17 whose diffs touch only `_err` lines (`-99` → `999`).
+  - This file.
+- **Not for #240:** `prompts/rebuild_hosts.md` (for `rebuild_hosts`), `frb/data/Galaxies/PATH/tmp.csv`, and the stale `rebuild_report.md` (delete).

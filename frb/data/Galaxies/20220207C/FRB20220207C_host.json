@@ -26,6 +26,11 @@
         "physical_err": 0.5242639894130404
     },
     "photom": {
+        "2MASS_h": 15.085487686403601,
+        "2MASS_h_err": 0.04,
+        "2MASS_h_flux": 3.3558683849417235,
+        "2MASS_h_flux_err": 0.12363476027546909,
+        "2MASS_h_ref": "Sharma2024",
         "EBV": 0.6973,
         "Pan-STARRS_g": 13.917971052136359,
         "Pan-STARRS_g_err": 0.03,
