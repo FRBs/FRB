@@ -209,6 +209,20 @@ Use Opus 5.5.  Log your work.
 
 9. **Tests**  There is still one test failing for the PR. Please investigate and help me fix it.
 
+10. **Still at it**  I have answered questions FU-Q1 to FU-Q8 as best I can but
+    also raised a few questions of my own.  Please continue the Disucssion with me.
+    Log your work.
+
+11. **Continuing**  I have answered the FU-Q9 to Q12 questions.  Proceed to do as much as you
+    can and then let me know what comes next.
+    If any questions arise, put them in the Q&A section.
+    Log your work.
+
+12. **Nearing the end??**  I have answered the new questions.  Please read those and respond
+    accordingly.
+    If any questions arise, put them in the Q&A section.
+    Log your work.
+
 ## Repo CSVs
 
 Checked on 2026-10-09 (prompt 12). Scope: `frb/data/FRBs/FRBs_base.csv` (188 rows), `frb/data/Galaxies/public_hosts.csv` (103 rows) and `Galaxies/Literature/all_refs.csv` with the 38 tables it lists. Each was checked against the FRB and host JSONs, against each other, and against the code that reads it (`build_frbs`, `build_hosts`). **No files were edited.**
@@ -350,6 +364,224 @@ Compared `frb/data/Galaxies/public_hosts.csv` (this branch, 103 rows) with `GDri
 - Here is the answer from Calvin: "FRB 20191106C = FRB 20231128A has M* = 10.43 +- 0.13 as measured by CIGALE. The 20231201A value is correct" 
 
 ## Q&A
+
+### Finishing up
+
+Open issues from PR 5–9 (2026-10-13 to 2026-10-15). Details are in the PR 5–9 logs below and in `prompts/rebuild_hosts.md`. FU-Q1 to FU-Q5 block the PR 8 rebuild (`rebuild_hosts`); the rest are follow-ups.
+
+**FU-Q1. `build_hosts.run` drops the nearest survey source.**
+When a survey returns more than one source within 1″ (and `override=False`), `build_hosts.py:287` keeps `srvy_tbl[1:]`. That line dates from 2024-11-16 ("host updates galore"); Alexa's `srvy_tbl[:1]` is commented out below it. The catalogs are sorted by separation, so this throws away the nearest source, the host. Main's survey revamp (PR #237) now returns secondary detections, so in PR 8:
+- **20231230D:** DELVE comes from a neighbour (no r/i; g −0.49 mag, z −0.21 mag).
+- **20240210A:** DECaL is lost; the second entry is all `-99`.
+- **20240310A:** VISTA is lost.
+
+The PR 6 hosts ran through the same code. Their diffs showed no shifts beyond the extinction change, but a second source with similar magnitudes would not stand out.
+- **Recommended:** change to `srvy_tbl[:1]`. Rebuild those 3 hosts, and log which PR 6/PR 8 hosts had more than one match per survey, so their values can be checked.
+- Alternative: leave the code as is, and restore the 3 JSONs (`git checkout --`).
+
+>A. Do your recommendation.  There are times when we want the current line, but not for the 3 you identify
+
+**FU-Q2. Uppercase 2MASS columns in two literature tables.**
+`gordon2023_photom.csv` (20201124A, 20211212A) and `sharma2024_photom.csv` (20220319D, 20231120A, 20220207C, 20220509G, 20230124A, 20221101B, 20221012A) use `2MASS_J/H/K`, but `defs.py` has `2MASS_j/h/k`. The current code drops these columns.
+- **20211212A** loses its 2MASS bands (15.90/15.90/15.39 ± 0.03). Its survey 2MASS query is also skipped, because `is_inside` finds only 1 object within 1′.
+- **20201124A** gets the survey values instead (the same magnitudes).
+- The Sharma2024 values have been ignored since at least prompt 13.
+
+Note: the literature values come after the surveys in the build, so they override the survey magnitudes. For 20211212A the literature value (15.90 ± 0.03) and the survey value (15.83 ± 0.16) differ, probably extended vs point-source photometry.
+- **Recommended:** rename the columns to `2MASS_j/h/k` in both CSVs. Then rebuild 20211212A and 20201124A (PR 8) and the 7 Sharma2024 hosts (already in main from PR #240, so in `rebuild_hosts`).
+- Alternative: leave the columns, and restore 20211212A.
+
+>A. Do your recommendation.
+
+**FU-Q3. 20190520B: the `SOAR_U` filter curve.**
+`gordon2023_photom.csv` and `defs.py` use `SOAR_U`, but the repo's curve is `frb/data/analysis/CIGALE/SOAR_u.dat` ("SOAR u (SDSS u')", added by Alexa Gordon in 2023). The 2023 build probably ran on a case-insensitive (macOS) file system. On Linux the build now raises, so the host is still at its 2023 JSON. No code refers to the lowercase name.
+- **Recommended**, if Gordon's U is SDSS u′: `git mv frb/data/analysis/CIGALE/SOAR_u.dat frb/data/analysis/CIGALE/SOAR_U.dat`, then rebuild 20190520B. This reproduces the 2023 build.
+- If it is Goodman U-Bessell: add that curve as `SOAR_U.dat` instead.
+
+>A. The correct filter is SDSS u’.  Use your Recommendation
+
+**FU-Q4. Missing Galfit files (4 hosts not rebuilt).**
+These hosts have a `Galfit_filter`, but no `_galfit.fits` or `_galight.json` is in `/mnt/tank/Astronomy/Galaxy_DB/`. The build raises for them, so they keep their old JSONs (all with full morphology):
+- 20180916B (WFC3_F110W) and 20190608B (WFC3_F160W) were found in the old in-repo `Galaxy_DB` on 2026-10-13, so they were apparently lost in the move. `F4/mannings2024` is gone too, and `/mnt/tank` has no ZFS snapshots.
+- 20190523A (LRIS_r) and 20200120E (SDSS_g) were missing already then; they are probably in the master Galaxy_DB (`/u/xavier/...`).
+- **Recommended:** check the move, and copy the 4 files (and `F4/mannings2024`, if wanted) into `/mnt/tank/Astronomy/Galaxy_DB/`; I then rebuild the 4 hosts.
+- Alternative: leave them at the old JSONs and say so in the PR.
+
+>A. Leave their Galfit values at the old JSONs
+
+**FU-Q5. SDSS outages (3 hosts not rebuilt).**
+20231005A, 20231017A and 20240117B failed all 3 attempts with SkyServer 503s or connect timeouts; their JSONs are untouched.
+- **Recommended:** rerun them together with the FU-Q1 to FU-Q4 hosts (`--hosts ... --retry 3`).
+
+>A. Use your recommendation
+
+**FU-Q6. `~/.bashrc` still points `FRB_GDB` at the old Galaxy_DB.**
+Line 30 is `export FRB_GDB=/home/xavier/Projects/FRBs/FRB/Galaxy_DB/`, which no longer exists. PR 6 and PR 8 passed `FRB_GDB=/mnt/tank/Astronomy/Galaxy_DB/` explicitly. With the old path, Galfit lookups fail (the build stops on those hosts), and CIGALE and pPXF values are silently dropped.
+- **Recommended:** change line 30 to `/mnt/tank/Astronomy/Galaxy_DB/`.
+
+>A. Updated, thanks.
+
+**FU-Q7. Follow-ups for Sunil (main's code).**
+These were raised in the PR #240 comment (6173372450); none is fixed yet:
+1. Host JSONs now mix `999` (literature tables) and `-99` (survey catalogs) as the upper-limit flag. Since PR 6, the survey magnitude errors are `-99` too.
+2. `survey_utils.is_inside` reports any `HTTPError` as "Couldn't reach MAST for PS1." In PR 6/8 the error came from Euclid.
+3. Tighten the `dust_extinction>=1.4` pin to `>=1.7`, the version the PR 6/8 hosts were rebuilt with. 1.5 gives a different G23 curve and fails `test_dust_correct`; 1.6 is untested.
+4. The `separation`-column fix in `build_hosts.run` (08d8adf2). Is that the right place, or should `merge_photom_tables` handle it?
+- **Recommended:** a separate issue or follow-up PR with Sunil, with item 3 done in `rebuild_hosts`.
+
+>A.  I wish to fix these now, in this PR. What do you recommend?
+
+**FU-Q8. Smaller leftovers.**
+- **`-998` in figures:** `figures/utils.log_me` still just hides the error bar for `err < 0` (open since PR 4), and `figures/galaxies.py` still prefers `SFR_nebular`, even when it is a lower limit (20181030A, 20220912A).
+- **CHIME table:** `zdm/papers/Mo_Repeaters/` is not on `profx`, so rerun `py/build_host_table.py` on the laptop and diff `CHIME_FRB_hosts.csv` (PR 7).
+- **PR 8 report:** rename `rebuild_report.md` to `rebuild_report_<date>.md` once the PR 8 rebuild is final, as for PR 6.
+- **Untracked files:** `frb/data/Galaxies/PATH/tmp.csv` (a March 2026 PATH scratch table) can be deleted, or kept out of the repo. `prompts/rebuild_hosts.md` should go into the `rebuild_hosts` branch.
+- **Host count:** PR 8 covers 48 hosts (103 − 55), not 49. The 49 counted the `20190614D` directory, which `check_repo_csvs.py` still lists as a host directory without a `public_hosts.csv` row. Delete that directory?
+
+>A. What do you mean by "PR 6" and "PR 8"?
+
+#### Round 2 (2026-10-20)
+
+Accepted, to be done in the next prompt:
+- **FU-Q2:** rename the 2MASS columns.
+- **FU-Q3:** SDSS u′. The rename is a `git mv`, so it is yours; see FU-Q12.
+- **FU-Q5:** rerun the SDSS hosts.
+- **FU-Q6:** done.
+
+FU-Q1, Q4, Q7 and Q8 need one more round.
+
+**FU-Q8 answer: "PR 6" and "PR 8".**
+They are the numbered prompts under the `## PR` heading near the top of this file, not GitHub pull requests:
+- PR 6 = "Rebuild the 55 PR hosts" (done; commits 08d8adf2 and 9295c844, in GitHub PR #240).
+- PR 8 = "Rebuild the remaining hosts" (the 40 rebuilt JSONs, uncommitted, for the future `rebuild_hosts` branch).
+
+The logs below use the same names ("PR 6: Rebuild the 55 PR hosts"). To avoid confusion with GitHub PR numbers, I will write **prompt PR-6**, **prompt PR-8**, etc. from now on, and **GitHub #240** for the pull request. The FU-Q8 leftovers, restated with those names:
+- the `-998` lower limit is not drawn as a limit in the figures (open since prompt PR-4);
+- the CHIME table must be rerun on the laptop (prompt PR-7);
+- rename the prompt PR-8 `rebuild_report.md` with its date once that rebuild is final;
+- delete or ignore `frb/data/Galaxies/PATH/tmp.csv`;
+- `prompts/rebuild_hosts.md` goes into the `rebuild_hosts` branch;
+- prompt PR-8 covers 48 hosts, and the "49" counted the stray `frb/data/Galaxies/20190614D/` directory. Delete that directory?
+
+**FU-Q9. FU-Q1: how to choose the survey match per host.**
+You want the current behaviour (`srvy_tbl[1:]`, drop the nearest match) for some hosts, but the nearest match for 20231230D (DELVE), 20240210A (DECaL) and 20240310A (VISTA). Background: before 2024-11-16 (0e09a84d) the build **raised** on any multiple match, so `[1:]` was added for the hosts built that day, and the repo does not record which ones.
+- **Recommended:** make the nearest match the default (`srvy_tbl[:1]`), and add a `public_hosts.csv` column, `Survey_match`, for the exceptions. For example, `DECaL:2` takes the 2nd-nearest DECaL source, and `DECaL:skip` drops that survey; blank means nearest. `[:1]` also avoids merging several rows when `[1:]` leaves more than one.
+- Alternative: keep `[1:]` as the default and list the 3 hosts in the column as `DELVE:1`, `DECaL:1` and `VISTA:1`.
+
+Either way, the hosts that need the exception must be identified. Do you know which hosts the `[1:]` was meant for? If not, I can run a read-only pass that queries every survey for all 103 hosts and lists each (host, survey) with more than one source within 1″, with their magnitudes, for you to choose from. It takes about an hour and writes no JSONs. Note: these choices change the code, not just data. Should the code go into GitHub #240 (Sunil re-reviews) or `rebuild_hosts`? See FU-Q11.
+
+>A.  Perform the read-only pass as you describe and we will work out those with multiples.
+
+**FU-Q10. FU-Q4: "Leave their Galfit values at the old JSONs".**
+My reading: rebuild 20180916B, 20190523A, 20190608B and 20200120E like the others (surveys, literature, extinction, offsets), but keep their `morphology` block from the committed JSON, since the Galfit files are missing. The build cannot do this as is: it raises when the Galfit file is missing.
+- **Recommended:** handle it in the rebuild driver (`prompts/rebuild_pr_hosts.py`), not in `build_hosts`. The driver runs these 4 with `Galfit_filter` blanked, then copies the old `morphology` block into the new JSON and reports it. No library change, and the old values stay exactly as they are.
+- Alternative: you meant leave these 4 JSONs entirely unrebuilt.
+
+>A.  Do your Recommendation
+
+**FU-Q11. FU-Q7: fixing the Sunil items now. Which PR, and how.**
+"This PR" = GitHub #240, still open with Sunil's approval? If so, any code commit there needs his re-review, and item 1 changes the host JSONs already in #240. My recommendations:
+1. **Upper-limit flag.** Keep the `defs.py` rule that host JSONs use `999`. In `build_hosts.run`, after the survey merge and before `correct_photom_table`, set `<band>_err = 999` wherever the survey error is `-99` and the magnitude is real (`> PHOTOM_MISSING_MAX`). Leave the `_flux_err = -99` that `convert_mags_to_flux` writes for limits, since that is the flux-side convention. The prompt PR-6 JSONs then need the same change. That is a mechanical edit (36 WISE `_err`, one 2MASS), equivalent to a rebuild; I would script it and diff it, rather than rerun 55 hosts.
+2. **Misleading warning.** In `survey_utils.is_inside`, name the survey in the `HTTPError` message: "Couldn't reach {surveyname}" instead of "MAST for PS1". One line.
+3. **`dust_extinction` pin.** Set `>=1.7` in `pyproject.toml` and `frb/requirements.txt`; the `test_dust_correct` value is from 1.7. CI already installs 1.7, so nothing else changes.
+4. **The `separation` column.** Keep the drop in `build_hosts.run`. That is where survey tables are assembled for the hosts. `merge_photom_tables` is a general utility, and silently dropping columns there could surprise other callers. A one-line comment in `merge_photom_tables` noting that inputs must not share non-photometry columns would cover it.
+- **Recommended placement:** items 2, 3 and 4 plus the FU-Q9 code go into GitHub #240 as one small commit, with a re-review request to Sunil. Item 1 also goes there, with the prompt PR-6 JSON edit as a separate data commit. Prompt PR-8 then rebuilds on top of that (`rebuild_hosts`).
+- Alternative: merge #240 as approved now, and put all of this in `rebuild_hosts`.
+
+>A. Use your Recommendations
+
+**FU-Q12. Order of the git steps (yours).**
+For the next prompt, you would run:
+- `git mv frb/data/analysis/CIGALE/SOAR_u.dat frb/data/analysis/CIGALE/SOAR_U.dat` (FU-Q3);
+- if you choose to restore instead of fixing: `git checkout -- <file>` for any host that should stay at the old JSON.
+
+The 40 prompt PR-8 JSONs in the working tree will be **regenerated** after the FU-Q9/Q11 changes. Do not commit them on `repeater_updates`. If the FU-Q11 code goes into #240, I suggest you set them aside (`git stash`) until #240 is merged, and I rebuild them on `rebuild_hosts`.
+
+>A.  I have done the `git mv` command.  I have not performed any other git
+
+#### Round 3 (2026-10-20)
+
+Done in prompt PR-11 (uncommitted, for GitHub #240). Details are in the prompt PR-11 log.
+- **FU-Q9 code:**
+  - `build_hosts.run` now takes the **nearest** source when a survey has several within 1″ (sorted by separation from the host).
+  - A new `public_hosts.csv` column, `Survey_match`, overrides that per survey (`DECaL:2` takes the 2nd nearest, `DECaL:skip` drops the survey). It is blank for all 103 hosts until the read-only pass is reviewed.
+  - The pass itself is running: about 2 minutes per host, so about 3.5 hours for all 103.
+- **FU-Q10:** `prompts/rebuild_pr_hosts.py --keep-morphology <hosts>` builds without Galfit and copies the committed `morphology` block into the new JSON.
+- **FU-Q11:**
+  1. Survey `_err = -99` with a real magnitude is written as `999` (in `build_hosts.run`, right after the survey merge).
+  2. The `is_inside` HTTP-error warning names the survey.
+  3. `dust_extinction>=1.7` in `pyproject.toml` and `frb/requirements.txt`.
+  4. A docstring note in `merge_photom_tables`; the `separation` drop stays in `build_hosts`.
+- **FU-Q2:** the `2MASS_J/H/K` columns are now `2MASS_j/h/k` in `gordon2023_photom.csv` and `sharma2024_photom.csv`.
+- **FU-Q3:** with your `git mv`, `extinction_correction('SOAR_U', ...)` resolves.
+- **Tests:** `test_frbhosts`, `test_galaxies`, `test_photom`, `test_surveys_offline`, `test_build`: 49 passed.
+
+**FU-Q13. The GitHub #240 commits (yours) and the host JSONs they need.**
+Suggested order:
+1. **Code commit now:** `frb/builds/build_hosts.py`, `frb/surveys/survey_utils.py`, `frb/galaxies/photom.py`, `pyproject.toml`, `frb/requirements.txt`, `prompts/rebuild_pr_hosts.py`, and the staged `SOAR_U.dat` rename.
+2. **Data commit after the pass:** `public_hosts.csv` (with any `Survey_match` entries), the two literature CSVs, and the #240 host JSONs regenerated with the new code.
+
+For those JSONs, **recommended:**
+- Rebuild only the #240 hosts the changes actually affect: those with a multiple match in the pass, and the 7 Sharma2024 hosts with 2MASS (20220319D, 20231120A, 20220207C, 20220509G, 20230124A, 20221101B, 20221012A).
+- For the other #240 hosts, apply the `-99` → `999` error change with a script (36 WISE `_err` and one 2MASS `_err`, all from the prompt PR-6 diff). That is the only effect the new code has on them, and it avoids another 1.5-hour rebuild with flaky surveys.
+
+Alternative: rebuild all 55 again.
+
+>A.  I have pushed the code you suggested.  And I agree with your Recommendation.  Let's do that
+
+**FU-Q14. `cigale.py` uses uppercase 2MASS names.**
+`frb/galaxies/cigale.py:222-224` maps `2MASS_J`, `2MASS_H` and `2MASS_Ks` to the CIGALE filters, but the host photometry uses `2MASS_j/h/k`, so 2MASS would never reach a CIGALE input. It only matters when CIGALE inputs are generated (the build has CIGALE off).
+- **Recommended:** change the keys to `2MASS_j`, `2MASS_h` and `2MASS_k` in the same code commit.
+
+>A. Use your Recommendation
+
+**FU-Q15. The 40 stale prompt PR-8 JSONs.**
+They were built with the old `[1:]` rule and the `-99` flags, and they will be regenerated on `rebuild_hosts`. They are still modified in the working tree, which makes the #240 commits error-prone. Today they are the only modified host JSONs. **Recommended:** set them aside before committing:
+```
+git stash push -m "prompt PR-8 JSONs (stale)" -- $(git diff --name-only -- 'frb/data/Galaxies/*/*_host.json')
+```
+(or discard them with `git checkout --` on the same list).
+
+>A.  I discarded them
+
+**FU-Q16. The multiple matches: which `Survey_match` entries?**
+The read-only pass is done: all 103 hosts, no survey errors. **17 hosts** have more than one source within 1″ in some survey, 20 (host, survey) cases in all. Below, #1 is the nearest (the new default) and #2 is what the old `[1:]` took. Magnitudes are raw survey values; the committed values are extinction-corrected.
+
+| Host (set) | Survey | #1 nearest | #2 | Committed JSON | Recommendation |
+|---|---|---|---|---|---|
+| 20211127I (PR-8) | DECaL | 0.44″: g 20.33, z 19.03 | 0.76″: g 15.45, z 14.36 | g 15.22, z 14.27 (#2) | **`DECaL:2`**: #1 is a knot; the host (z = 0.046, 15th mag) is #2 |
+| 20220418A (#240) | Pan-STARRS | 0.45″: g 22.59, z 20.69 only | 0.48″: r 21.31, i 20.60 only | r/i/z from Sharma2024; no g | **`Pan-STARRS:skip`**: a split detection; r/i/z come from Sharma2024 anyway, and #1 would add a doubtful g |
+| 20240210A (PR-8) | DECaL | 0.58″: g 15.29, r 14.89, z 14.60 | 0.65″: all −99 | g 15.24 (#1) | blank (nearest): restores DECaL |
+| 20231206A (PR-8) | DECaL | 0.01″: g 16.95, r 16.12, z 15.44 | 0.19″: all −99 | `inf` | blank: **gains** a real DECaL g/r/z |
+| 20231230D (PR-8) | DELVE | 0.09″: g 23.12, r 20.93, i 20.63, z 20.58 | 0.48″: g 22.63, z 20.37 | #1 | blank: restores DELVE |
+| 20231230D (PR-8) | NSC | 0.05″ | 0.75″ | — | blank (NSC is removed by the build) |
+| 20231230A (#240) | DECaL | 0.01″: g 15.32 | 0.05″: g 20.92 | — (`Bad_photom` DECaL g/r/z) | blank (removed anyway) |
+| 20240310A (PR-8) | VISTA | 0.32″: J 19.29, H 19.28, Ks 19.37 | 0.34″: J 19.43, H 19.14, Ks 19.10 | #1 | blank: restores VISTA |
+| 20240310A (PR-8) | GALEX | 0.64″: NUV 22.46 | 0.75″: NUV 22.15 | — | blank (duplicate tiles) |
+| 20200906A (PR-8) | VISTA | 0.18″: J 19.29, Ks 18.63 | 0.29″: J 19.30, Ks 18.54 | J/Ks from Gordon2023 | blank (literature wins) |
+| 20210320C (PR-8) | VISTA | 0.07″: Y 18.82, J 18.84, Ks 18.19 | 0.14″: Y 18.93, J 18.69, Ks 18.69 | Y/J/Ks from Gordon2023 | blank (literature wins) |
+| 20201123A (PR-8) | VISTA | 0.12″: J 14.76, Ks 14.24 | 0.13″: J 14.64, Ks 14.46 | — (new bands) | blank; the two entries differ by 0.1–0.2 mag |
+| 20190110C (#240) | GALEX | 6 entries, 0.36–0.69″, NUV 20.25–20.39 | | NUV 20.22 | blank (duplicate tiles) |
+| 20230307A (#240) | GALEX | 0.27″: NUV 21.93 | 0.95″: NUV 22.00 | NUV 21.89 (#2) | blank |
+| 20230222B (#240) | GALEX | 0.55″: FUV 19.87, NUV 19.92 | 0.73″: FUV 20.04, NUV 19.74 | #2 | blank (−0.17 mag in NUV) |
+| 20231011A (#240) | GALEX | 0.63″: FUV 20.99, NUV 20.34 | 0.67″: FUV 20.91, NUV 20.21 | #2 | blank (+0.13 mag in NUV) |
+| 20230703A (PR-8) | GALEX | 0.34″: NUV 20.80 | 0.66″: FUV 21.17, NUV 20.50 | — (new bands) | blank; #2 alone has FUV |
+| 20211212A (PR-8) | GALEX | 0.65″: FUV 20.14, NUV 19.49 | 0.79″: FUV 20.03, NUV 19.51 | — (new bands) | blank (duplicate tiles) |
+| 20190303A (#240) | NEDLVS | 0.21″ | 0.26″ | — | blank (no photometry) |
+
+Summary:
+- Only **20211127I** truly wants the old behaviour (`DECaL:2`).
+- **20220418A** is better off without Pan-STARRS.
+- The GALEX cases are duplicate entries from overlapping tiles, 0.0–0.3 mag apart. The nearest is a reasonable rule there.
+- Under the new default, these **#240** hosts change and need rebuilding: 20190110C, 20230307A, 20230222B and 20231011A (GALEX, nearest instead of #2), and 20220418A (Pan-STARRS skip). With the 7 Sharma2024 2MASS hosts (FU-Q13), that is **12 #240 hosts to rebuild**; the other 43 get the scripted `-99` → `999` edit.
+
+**Recommended:**
+- `Survey_match`: 20211127I = `DECaL:2`, 20220418A = `Pan-STARRS:skip`, all others blank.
+- 20230703A: keep the nearest (no FUV), or `GALEX:2` (FUV 21.17)?
+
+>A.  Use your Recommendation
+
+### Original
 
 **Q1. 20180814A localization ellipse (from Prompt 5).**
 Michilli+2023 Table 1 gives σRA = 18″ and σDec = 20″ ("approximately circular"). Their Fig. 2 1σ ellipse is about **57″ (RA) × 20″ (Dec)**. The host is 51.9″ from the FRB: ≈2.5σ with Table 1, but inside the Fig. 2 2σ ellipse, as the text says. `FRBs_base.csv` currently has Table 1 (20″ × 18″, θ = 0). The host JSON offsets use it too (`ang_best_err` = 17.9″). Keep Table 1, or switch to a = 57″, b = 20″, θ = 90° from the figure (and rebuild the FRB and host JSONs)?
@@ -1175,3 +1407,39 @@ Run on `profx` in the `astro` env (Python 3.13.2, astropy 7.0.1, numpy 2.2.5, as
   - `test_ebv` skips when `get_ebv` raises `IOError` or a `requests` exception.
 - **Tested:** `test_galaxies.py` passes against the live service. With `requests.get` patched to return an HTML page, `get_ebv` raises the `IOError` and `test_ebv` skips.
 - **To finish:** commit only `frb/galaxies/nebular.py`, `frb/tests/test_galaxies.py` and this log. The working tree also holds host JSONs from the PR 8 rebuild, which belong on `rebuild_hosts`. Push, or rerun the failed job (`gh run rerun 38600201027 --failed`).
+
+### PR 10: Finishing-up discussion, round 2 (2026-10-20, Claude Opus 5.5)
+
+Read the FU-Q1 to FU-Q8 answers and wrote round 2 under Q&A → Finishing up. No code, data or git changes; Xavier does the git steps.
+- Accepted for the next prompt: FU-Q2 (rename the 2MASS columns), FU-Q3 (SDSS u′; Xavier runs the `git mv`), FU-Q5 (rerun the SDSS hosts). FU-Q6 is done: `~/.bashrc` line 30 is now `/mnt/tank/Astronomy/Galaxy_DB/`.
+- FU-Q8: explained that "PR n" means the numbered prompts under `## PR` here, not GitHub PRs. From now on these are written "prompt PR-n" and the pull request "GitHub #240".
+- New questions:
+  - FU-Q9: how to choose the survey match per host. `[1:]` dates from 0e09a84d (2024-11-16); before that the build raised on multiple matches, and the repo does not record which hosts needed `[1:]`. Proposed: nearest by default, plus a `Survey_match` column in `public_hosts.csv`, with an optional read-only pass to list multiple matches.
+  - FU-Q10: reading of "leave their Galfit values at the old JSONs". Proposed: the driver rebuilds the 4 hosts without Galfit and copies the old `morphology` block.
+  - FU-Q11: which PR gets the Sunil fixes, with a recommendation per item (`999` upper limits set in `build_hosts`, the named-survey warning, `dust_extinction>=1.7`, the `separation` drop kept in `build_hosts`).
+  - FU-Q12: the order of the git steps, including stashing the 40 prompt PR-8 JSONs, which will be regenerated.
+- State: GitHub #240 open and approved; `repeater_updates` at 3402aa60 ("wip": the `get_ebv`/`test_ebv` fix from prompt PR-9). The 40 prompt PR-8 JSONs, `prompts/rebuild_hosts.md` and `rebuild_report.md` are uncommitted.
+
+### PR 11: Continuing the finishing-up items (2026-10-20, Claude Opus 5.5)
+
+Applied the FU-Q9 to FU-Q12 answers. Everything is uncommitted; Xavier does the git steps (FU-Q13). The 40 prompt PR-8 JSONs were not touched.
+- **FU-Q9 (survey match):**
+  - `build_hosts.run`: for more than one source within 1″ (and `override=False`), the sources are sorted by separation from `gal_coord` and the nearest is kept. This replaces `srvy_tbl[1:]`, which dropped the nearest.
+  - New `parse_survey_match()` reads `public_hosts.csv` `Survey_match` (`Survey:N` for the N-th nearest, `Survey:skip` to drop that survey). A rank larger than the number of sources raises. The build prints how many sources it found and which one it took.
+  - `public_hosts.csv`: new blank last column `Survey_match`, appended byte-safely (CRLF and the missing final newline kept; 103 rows).
+  - **Read-only pass** (`multimatch_pass.py` in the session scratchpad; results in `multimatch.json`): for all 103 hosts it mirrors the build's survey loop (`in_which_survey(Frb.coord)`, 1″ around `Coord`) and records every (host, survey) with more than one source, with separations and magnitudes. It writes no JSONs. About 2 min per host; started 10:05.
+- **FU-Q10:** `prompts/rebuild_pr_hosts.py --keep-morphology <hosts>` blanks `Galfit_filter` for those hosts and, after the build, copies the committed `morphology` block into the new JSON (`frb.utils.savejson`, as the build writes).
+- **FU-Q11:**
+  1. `build_hosts.run`, after the survey merge: `<band>_err = 999` wherever the survey error is `-99` and the magnitude is above `PHOTOM_MISSING_MAX`.
+  2. `survey_utils.is_inside`: the warning is now "Couldn't reach {surveyname} (HTTP error)." instead of "Couldn't reach MAST for PS1."
+  3. `dust_extinction>=1.7` in `pyproject.toml` and `frb/requirements.txt`.
+  4. A docstring note in `photom.merge_photom_tables` that the inputs must not share non-photometry columns.
+- **FU-Q2:** header-only rename `2MASS_J/H/K` → `2MASS_j/h/k` in `gordon2023_photom.csv` and `sharma2024_photom.csv`.
+- **FU-Q3:** after Xavier's `git mv`, `photom.extinction_correction('SOAR_U', 0.1)` = 1.577.
+- **Tests:** `test_frbhosts.py`, `test_galaxies.py`, `test_photom.py`, `test_surveys_offline.py`, `test_build.py`: 49 passed. `parse_survey_match` was checked on blank, NaN and `'DECaL:2, VISTA:skip'`.
+- **New questions:** FU-Q13 (commit plan and which #240 JSONs to regenerate), FU-Q14 (`cigale.py` uppercase 2MASS keys), FU-Q15 (set the stale prompt PR-8 JSONs aside).
+- **Multiple-match pass done** (2026-10-20, about 3.5 h, 103 hosts, no errors): 17 hosts and 20 (host, survey) cases with more than one source within 1″. They are tabulated in FU-Q16 against the committed values; literature overrides were checked through the `_ref` keys.
+  - Only 20211127I DECaL truly needs the 2nd source.
+  - 20220418A Pan-STARRS is a split detection, with r/i/z overridden by Sharma2024.
+  - GALEX duplicates make up most of the rest.
+  - Under the nearest rule, five #240 hosts change (20190110C, 20230307A, 20230222B, 20231011A, 20220418A).

@@ -99,6 +99,25 @@ def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     # Set redshift 
     host.set_z(ztbl['ZEM'][idx], 'spec')
 
+def parse_survey_match(value) -> dict:
+    """Parse the Survey_match column of public_hosts.csv
+
+    Args:
+        value (str or float): e.g. 'DECaL:2,VISTA:skip'. Blank (NaN) means
+            the nearest source is used for every survey.
+
+    Returns:
+        dict: survey name -> 1-based rank by separation (int), or 'skip'
+    """
+    if not isinstance(value, str) or not value.strip():
+        return {}
+    choices = {}
+    for item in value.split(','):
+        survey, choice = item.strip().split(':')
+        choice = choice.strip()
+        choices[survey.strip()] = 'skip' if choice == 'skip' else int(choice)
+    return choices
+
 def search_for_file(projects, references, root:str,
                     prefix='ref', return_last_file=False):
     """ Search for a given data file
@@ -262,16 +281,22 @@ def run(host_input:pandas.core.series.Series,
     else:
         inside = {}
 
+    # Which source to take when a survey has several within search_r
+    survey_match = parse_survey_match(getattr(host_input, 'Survey_match', None))
+
     # Loop on em
     merge_tbl = None
     for key in inside.keys():
-        # Skip? 
+        # Skip?
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
+            continue
+        if survey_match.get(key) == 'skip':
+            print(f"Skipping survey {key} (Survey_match)")
             continue
 
         # Slurp
-        survey = survey_utils.load_survey_by_name(key, 
-                                                    gal_coord, 
+        survey = survey_utils.load_survey_by_name(key,
+                                                    gal_coord,
                                                     search_r)
         srvy_tbl = survey.get_catalog()#print_query=True)
 
@@ -283,11 +308,15 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                #print("You found more than 1 galaxy.  Taking the 2nd one")
-                srvy_tbl = srvy_tbl[1:]
-                #srvy_tbl = srvy_tbl[:1]
-                #embed(header='277 of build')
-                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                # Take the nearest source, unless Survey_match says otherwise
+                srvy_tbl = srvy_tbl[np.argsort(gal_coord.separation(
+                    SkyCoord(srvy_tbl['ra'], srvy_tbl['dec'], unit='deg')))]
+                rank = survey_match.get(key, 1)
+                if rank > len(srvy_tbl):
+                    raise ValueError(f"Survey_match asks for source {rank} of {key}, "
+                                     f"but only {len(srvy_tbl)} were found")
+                print(f"Found {len(srvy_tbl)} sources in {key}; taking number {rank} by separation")
+                srvy_tbl = srvy_tbl[rank-1:rank]
         warnings.warn("We need a way to reference the survey")
         # clean_cat adds a separation column to every survey; it is not
         # photometry, and hstack-ing it from 3+ surveys raises TableMergeError
@@ -299,6 +328,15 @@ def run(host_input:pandas.core.series.Series,
             merge_tbl['Name'] = file_root
         else:
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+
+    # The frb.surveys catalogs flag an upper limit with an error of -99;
+    # the host photometry uses 999 (see galaxies/defs.py)
+    if merge_tbl is not None:
+        for key in merge_tbl.keys():
+            if key in galaxy_defs.valid_filters and key+'_err' in merge_tbl.keys():
+                limit = np.isclose(merge_tbl[key+'_err'], -99.) & (
+                    merge_tbl[key] > galaxy_defs.PHOTOM_MISSING_MAX)
+                merge_tbl[key+'_err'][limit] = 999.
 
     # Literature time
     if lit_refs is None:

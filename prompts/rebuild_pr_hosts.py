@@ -1,5 +1,5 @@
 """ Rebuild the host JSONs touched by PR #240 with the current code and
-report what changed (add_frbs.md, PR items 2-4).
+report what changed (add_frbs.md, prompts PR-2 to PR-11).
 
 Run from the repo root, in the `astro` env, on a machine with $FRB_GDB
 (and ideally $NEDLVS) set:
@@ -8,6 +8,8 @@ Run from the repo root, in the `astro` env, on a machine with $FRB_GDB
     python prompts/rebuild_pr_hosts.py                    # all 55 PR hosts
     python prompts/rebuild_pr_hosts.py --hosts 20190711A,20200223B
     python prompts/rebuild_pr_hosts.py --retry 2          # re-run hosts that lost a band
+    python prompts/rebuild_pr_hosts.py --hosts 20180916B --keep-morphology 20180916B
+                                    # build without Galfit, keep the committed morphology
 
 For every host the committed JSON (git HEAD) is compared with the rebuilt
 one.  A host that *lost* photometry bands not listed in its Bad_photom
@@ -105,11 +107,15 @@ def main():
                     help='Rebuild a host up to N more times if it lost photometry bands')
     ap.add_argument('--keep-nedlvs', action='store_true',
                     help='Query NED-LVS even if $NEDLVS is unset (the build will crash)')
+    ap.add_argument('--keep-morphology', default='',
+                    help='Comma-separated hosts to build without Galfit (Galfit file missing); '
+                         'their committed morphology block is copied into the new JSON')
     ap.add_argument('--dry-run', action='store_true', help='Check the setup and list the hosts')
     ap.add_argument('--report', default='rebuild_report.md', help='Markdown report file')
     args = ap.parse_args()
 
     hosts = args.hosts.split(',') if args.hosts else PR_HOSTS
+    keep_morph = [h for h in args.keep_morphology.split(',') if h]
 
     # ---- Setup checks
     import frb
@@ -143,6 +149,9 @@ def main():
     rows = []
     for host in hosts:
         row = host_tbl[host_tbl.FRB == host].iloc[0]
+        if host in keep_morph:
+            row = row.copy()
+            row['Galfit_filter'] = np.nan
         bad_photom = [s.strip() for s in str(row.Bad_photom).split(',')] \
             if isinstance(row.Bad_photom, str) else []
         old = committed_json(host)
@@ -159,6 +168,11 @@ def main():
             if error is None:
                 with open(json_path(host), encoding='utf-8') as f:
                     new = json.load(f)
+                if host in keep_morph and old is not None and 'morphology' in old:
+                    from frb import utils as frb_utils
+                    new['morphology'] = old['morphology']
+                    frb_utils.savejson(json_path(host), new, easy_to_read=True, overwrite=True)
+                    print(f"Kept the committed morphology for {host}")
                 flags, details = compare(old, new, bad_photom)
             if error is None and 'lost_bands' not in flags:
                 break

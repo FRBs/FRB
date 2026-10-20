@@ -144,7 +144,7 @@ def is_inside(surveyname:str, coord:SkyCoord)->bool:
         warnings.warn("Do not have credentials to search HSC.", RuntimeWarning)
         cat = None
     except (HTTPError, URLHTTPError):
-        warnings.warn("Couldn't reach MAST for PS1.", RuntimeWarning)
+        warnings.warn(f"Couldn't reach {surveyname} (HTTP error).", RuntimeWarning)
         cat = None
     except InconsistentTableError:
         # e.g. SkyServer returning an HTML error page (often a 403) instead of CSV

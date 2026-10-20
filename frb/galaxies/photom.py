@@ -37,6 +37,9 @@ def merge_photom_tables(new_tbl, old_file, tol=1*units.arcsec, debug=False):
     """
     Merge photometry tables
 
+    The tables are joined with hstack when the sources match, so they must
+    not share non-photometry columns (e.g. 'separation'); astropy renames a
+    shared column to <name>_1/<name>_2 and fails on a third table.
 
     Args:
         new_tbl (astropy.table.Table):
