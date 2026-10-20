@@ -581,6 +581,58 @@ Summary:
 
 >A.  Use your Recommendation
 
+#### Round 4 (2026-10-20)
+
+Done in prompt PR-12 (uncommitted; details in its log):
+- FU-Q14: `cigale.py` 2MASS keys fixed.
+- FU-Q16: `Survey_match` = `DECaL:2` (20211127I) and `Pan-STARRS:skip` (20220418A).
+- FU-Q13: 12 GitHub #240 hosts rebuilt, and the scripted `999` edit applied to 17 more (the other 26 #240 hosts had no survey upper limits).
+- Verification: all 103 hosts load, `check_repo_csvs.py` shows only the known items, 49 tests pass.
+- FU-Q15: noted (you discarded the stale prompt PR-8 JSONs).
+
+**FU-Q17. Sharma2024 2MASS vs the 2MASS survey.**
+With the FU-Q2 rename, `sharma2024_photom.csv` now supplies 2MASS for 7 #240 hosts. Literature comes after the surveys in the build, so it wins. For 5 hosts these are new bands (20220319D, 20231120A, 20220207C h only, 20220509G, 20230124A j only). Two hosts also have survey values, and they disagree:
+
+| Host | Band | Survey (corrected) | Sharma2024 (corrected) | Δ |
+|---|---|---|---|---|
+| 20221101B | j | 17.18 ± 0.18 | 16.77 ± 0.18 | −0.41 |
+| 20221101B | k | 16.79 ± 0.17 | 16.62 ± 0.17 | −0.17 |
+| 20221012A | j | 17.79 ± 0.19 | 17.75 ± 0.11 | −0.04 |
+| 20221012A | h | 17.33 ± 0.18 | 17.80 ± 0.07 | +0.47 |
+| 20221012A | k | 17.06 ± 0.20 | 17.88 ± 0.09 | +0.82 |
+
+Both are AB: `twomass.py` converts the survey to AB, and the Sharma2024 colours are nearly flat (J−K from −0.1 to +0.1), as expected for AB. The survey uses the XSC (fiducial Kron) when there is an XSC match, and the PSC otherwise, so the two most likely differ in aperture. The differences are 1σ to 4σ.
+- **Recommended:** keep the literature values (the rule that literature wins; smaller errors; a published reduction). Check the Sharma+2024 photometry table, if you have it, to see whether their 2MASS is their own aperture photometry.
+- Alternative: keep the survey values where both exist, by dropping the 20221101B and 20221012A 2MASS cells from `sharma2024_photom.csv` (setting them to −999).
+
+>A. Use your Recommendation
+
+**FU-Q18. The two GitHub #240 commits (yours).**
+`origin/repeater_updates` is still at 3402aa60 ("wip"). The code from prompt PR-11 is **not committed yet**: `build_hosts.py`, `requirements.txt`, `pyproject.toml` and the `SOAR_U.dat` rename are staged, and `survey_utils.py`, `photom.py` and `rebuild_pr_hosts.py` are not. Suggested:
+```
+# 1. code
+git add frb/builds/build_hosts.py frb/surveys/survey_utils.py frb/galaxies/photom.py \
+        frb/galaxies/cigale.py pyproject.toml frb/requirements.txt prompts/rebuild_pr_hosts.py
+git commit -m "Nearest survey match with Survey_match overrides; 999 survey upper limits; dust_extinction>=1.7; SOAR_U curve"
+# (the staged SOAR_u.dat -> SOAR_U.dat rename goes in with it)
+# 2. data
+git add frb/data/Galaxies/public_hosts.csv frb/data/Galaxies/Literature/gordon2023_photom.csv \
+        frb/data/Galaxies/Literature/sharma2024_photom.csv prompts/add_frbs.md
+git add $(git diff --name-only -- 'frb/data/Galaxies/*/*_host.json')
+git commit -m "Survey_match column; lowercase 2MASS literature columns; rebuild 12 #240 hosts, 999 upper limits in 17"
+git push
+```
+Then re-request Sunil's review: these are code changes since his approval.
+
+Leave out of #240:
+- `prompts/rebuild_hosts.md` (for the `rebuild_hosts` branch);
+- `frb/data/Galaxies/PATH/tmp.csv`;
+- `rebuild_report.md`. That is the prompt PR-8 report, whose JSONs you discarded. Delete it; the prompt PR-8 rebuild will write a new one.
+
+If you choose the FU-Q17 alternative, do that before commit 2.
+
+>A. Ok, will commit after you approve of these answers
+
 ### Original
 
 **Q1. 20180814A localization ellipse (from Prompt 5).**
@@ -1443,3 +1495,22 @@ Applied the FU-Q9 to FU-Q12 answers. Everything is uncommitted; Xavier does the 
   - 20220418A Pan-STARRS is a split detection, with r/i/z overridden by Sharma2024.
   - GALEX duplicates make up most of the rest.
   - Under the nearest rule, five #240 hosts change (20190110C, 20230307A, 20230222B, 20231011A, 20220418A).
+
+### PR 12: Applying FU-Q13 to FU-Q16 (2026-10-20, Claude Opus 5.5)
+
+Everything is uncommitted; Xavier does the git steps (FU-Q18). `origin/repeater_updates` is still at 3402aa60, so the prompt PR-11 code was not pushed, contrary to the FU-Q13 answer. Part of it is staged.
+- **FU-Q14:** `cigale.py` maps `2MASS_j/h/k` (was `2MASS_J/H/Ks`) to `2mass.J/H/Ks`.
+- **FU-Q16:** `public_hosts.csv` `Survey_match`: 20211127I = `DECaL:2`, 20220418A = `Pan-STARRS:skip` (byte-safe edit; CRLF kept).
+- **FU-Q13, rebuild of 12 #240 hosts** (`prompts/rebuild_pr_hosts.py --hosts ... --retry 2`; report in the scratchpad): 12 of 12 ok on the first try, no lost bands.
+  - **GALEX, nearest source:** 20190110C (6 sources), 20230307A, 20230222B and 20231011A. Changes of −0.17 to +0.13 mag, as tabulated in FU-Q16.
+  - **20220418A:** Pan-STARRS skipped; r/i/z still from Sharma2024, and no g.
+  - **Sharma2024 2MASS** now read: new bands for 20220319D, 20231120A, 20220207C (h), 20220509G and 20230124A (j). Literature replaces the survey values for 20221101B (j, k) and 20221012A (j, h, k); the differences are 0.04–0.82 mag (FU-Q17).
+  - Survey upper limits are written as `999` by the build.
+- **FU-Q13, scripted `999` edit** (`flag999.py` in the scratchpad): applied to the other 43 #240 hosts. A survey band (no `_ref`) with `_err == -99` and a real magnitude gets `_err = 999`; files are written with `frb.utils.savejson` (round trip checked byte-identical). 17 files changed, 27 one-line `_err` edits (WISE W2–W4); 20171020A has no photometry.
+- **Reconciled:** no survey `-99` error is left in the 55 #240 hosts. Survey `999` limits now number 37: all 36 that prompt PR-6 had turned into `-99`, plus 20221101B `2MASS_h` (`-999` before prompt PR-6).
+- **Verification:**
+  - `FRBHost.by_frb` loads all 103 hosts.
+  - `check_repo_csvs.py` reports only the known items (20190614D, 20200120E/M81, prochaska2019 row 0).
+  - `pytest` on `test_frbhosts`, `test_galaxies`, `test_photom`, `test_surveys_offline` and `test_build`: 49 passed.
+- **Working tree:** 29 host JSONs, `public_hosts.csv`, the two literature CSVs, `cigale.py`, plus the prompt PR-11 code.
+- **New questions:** FU-Q17 (Sharma2024 vs survey 2MASS), FU-Q18 (the two #240 commits).
