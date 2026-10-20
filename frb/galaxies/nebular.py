@@ -259,7 +259,12 @@ def get_ebv(coords,definition="SandF",
     query_url = \
         "https://irsa.ipac.caltech.edu/cgi-bin/DUST/nph-dust?locstr={:s}+{:s}+equ+J2000&regSize={:s}".format(ra,dec,radius)
     result = requests.get(query_url)
-    tree = ET.ElementTree(ET.fromstring(result.content.decode("ascii")))
+    # IRSA sometimes returns an HTML error page instead of the XML
+    try:
+        result.raise_for_status()
+        tree = ET.ElementTree(ET.fromstring(result.content.decode("ascii")))
+    except (requests.HTTPError, ET.ParseError, UnicodeDecodeError) as e:
+        raise IOError(f"The IRSA dust service did not return valid XML for {query_url}: {e}") from e
     root = tree.getroot()
 
     #By default it looks at the first entry with the name "results"

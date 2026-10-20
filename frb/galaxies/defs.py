@@ -80,6 +80,11 @@ for band in GMOS_bands:
 for band in GMOS_bands:
     valid_filters.append('GMOS_N_{:s}'.format(band))
 
+#GTC OSIRIS
+GTC_OSIRIS_bands = ['r']
+for band in GTC_OSIRIS_bands:
+    valid_filters.append('GTC_OSIRIS_{:s}'.format(band))
+
 #NOT
 NOT_bands = ['u', 'g','r','i','z']
 for band in NOT_bands:
@@ -252,11 +257,24 @@ valid_positional_error = [
 
 ##############################################################
 # Derived quantities
+#   Errors follow the host-table photometry convention above:
+#     _err = 999.0  -- the value is an upper limit
+#     _err = -999.0 -- no error/measurement
+#     _err = -998.0 -- the value is a lower limit.  For SFR_nebular this is
+#       set by build_hosts when the host's Spec_scaled flag (public_hosts.csv)
+#       is False, i.e. the spectrum was not scaled to the integrated photometry
+#       (slit/fibre losses).  A literature table may also carry -998.
 
 valid_derived_photom = [
     'z_SED',           # Redshift; Prospector-derived
     'Mtotal',          # Total mass; linear in Msun; Prospector
-    'Mstar',           # Stellar mass; linear in Msun CIGALE (or Prospector if Gordon2023)
+    'Mstar',           # Stellar mass; linear in Msun. The method is set by Mstar_ref:
+                      #   Prospector -- Gordon2023, Bhardwaj2021b, Michilli2023, Ibik2024a,
+                      #     Moroianu2025, Ravi2023, Bhardwaj2025, Eftekhari2024
+                      #   A method suffix on the ref overrides this list,
+                      #     e.g. Leung2025b_CIGALE, Leung2025b_NEDLVS, Michilli2023_SDSS
+                      #   Other refs (e.g. Mahony2018, Bhardwaj2021): as given in that paper
+                      #   No Mstar_ref: CIGALE run by the repo build
     'Mstar_spec',      # Stellar mass from pPXF; linear in Msun
     'f_AGN',           # Fraction of AGN contribution to light; CIGALE (or Prospector if Gordon2023)
     'agn_tau',         # Optical depth of AGN dust torus; Prospector 

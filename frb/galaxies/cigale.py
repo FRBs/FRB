@@ -219,9 +219,9 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'HSC_Y': 'subaru.suprime.Y',
         'GALEX_FUV': 'galex.FUV',
         'GALEX_NUV': 'galex.NUV',
-        '2MASS_J': '2mass.J',
-        '2MASS_H': '2mass.H',
-        '2MASS_Ks': '2mass.Ks'
+        '2MASS_j': '2mass.J',
+        '2MASS_h': '2mass.H',
+        '2MASS_k': '2mass.Ks'
     }
     for key in new_names:
         if key in photom_cols:

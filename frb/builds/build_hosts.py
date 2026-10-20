@@ -99,6 +99,25 @@ def assign_z(ztbl_file:str, host:frbgalaxy.FRBHost):
     # Set redshift 
     host.set_z(ztbl['ZEM'][idx], 'spec')
 
+def parse_survey_match(value) -> dict:
+    """Parse the Survey_match column of public_hosts.csv
+
+    Args:
+        value (str or float): e.g. 'DECaL:2,VISTA:skip'. Blank (NaN) means
+            the nearest source is used for every survey.
+
+    Returns:
+        dict: survey name -> 1-based rank by separation (int), or 'skip'
+    """
+    if not isinstance(value, str) or not value.strip():
+        return {}
+    choices = {}
+    for item in value.split(','):
+        survey, choice = item.strip().split(':')
+        choice = choice.strip()
+        choices[survey.strip()] = 'skip' if choice == 'skip' else int(choice)
+    return choices
+
 def search_for_file(projects, references, root:str,
                     prefix='ref', return_last_file=False):
     """ Search for a given data file
@@ -168,7 +187,7 @@ def read_lit_table(lit_entry, coord=None):
         if nmatch == 0:
             return None
         elif nmatch == 1:
-            idx = int(np.where(match)[0])
+            idx = int(np.where(match)[0][0])
             return lit_tbl[idx:idx+1]
         else:
             embed(header="Multiple matches in literature table!")
@@ -189,7 +208,9 @@ def run(host_input:pandas.core.series.Series,
 
     Args:
         host_input (pandas.core.series.Series): Row of the CVS file
-            providing the host inputs
+            providing the host inputs.  If its Spec_scaled column is False
+            (the spectrum was not scaled to the integrated photometry),
+            SFR_nebular is written as a lower limit (SFR_nebular_err = -998).
         build_ppxf (bool, optional): Run pPXF?. Defaults to False.
         lit_refs (str, optional): File of literature references. Defaults to None.
         build_cigale (bool, optional): Run CIGALE?. Defaults to False.
@@ -260,16 +281,22 @@ def run(host_input:pandas.core.series.Series,
     else:
         inside = {}
 
+    # Which source to take when a survey has several within search_r
+    survey_match = parse_survey_match(getattr(host_input, 'Survey_match', None))
+
     # Loop on em
     merge_tbl = None
     for key in inside.keys():
-        # Skip? 
+        # Skip?
         if key in ['NVSS', 'FIRST', 'WENSS'] or not inside[key]:
+            continue
+        if survey_match.get(key) == 'skip':
+            print(f"Skipping survey {key} (Survey_match)")
             continue
 
         # Slurp
-        survey = survey_utils.load_survey_by_name(key, 
-                                                    gal_coord, 
+        survey = survey_utils.load_survey_by_name(key,
+                                                    gal_coord,
                                                     search_r)
         srvy_tbl = survey.get_catalog()#print_query=True)
 
@@ -281,18 +308,35 @@ def run(host_input:pandas.core.series.Series,
                 print("Proceeding without using this survey")
                 continue
             else:
-                #print("You found more than 1 galaxy.  Taking the 2nd one")
-                srvy_tbl = srvy_tbl[1:]
-                #srvy_tbl = srvy_tbl[:1]
-                #embed(header='277 of build')
-                #raise ValueError("You found more than 1 galaxy.  Uh-oh!")
+                # Take the nearest source, unless Survey_match says otherwise
+                srvy_tbl = srvy_tbl[np.argsort(gal_coord.separation(
+                    SkyCoord(srvy_tbl['ra'], srvy_tbl['dec'], unit='deg')))]
+                rank = survey_match.get(key, 1)
+                if rank > len(srvy_tbl):
+                    raise ValueError(f"Survey_match asks for source {rank} of {key}, "
+                                     f"but only {len(srvy_tbl)} were found")
+                print(f"Found {len(srvy_tbl)} sources in {key}; taking number {rank} by separation")
+                srvy_tbl = srvy_tbl[rank-1:rank]
         warnings.warn("We need a way to reference the survey")
+        # clean_cat adds a separation column to every survey; it is not
+        # photometry, and hstack-ing it from 3+ surveys raises TableMergeError
+        if 'separation' in srvy_tbl.colnames:
+            srvy_tbl.remove_column('separation')
         # Merge
         if merge_tbl is None:
             merge_tbl = srvy_tbl
             merge_tbl['Name'] = file_root
         else:
             merge_tbl = frbphotom.merge_photom_tables(srvy_tbl, merge_tbl)
+
+    # The frb.surveys catalogs flag an upper limit with an error of -99;
+    # the host photometry uses 999 (see galaxies/defs.py)
+    if merge_tbl is not None:
+        for key in merge_tbl.keys():
+            if key in galaxy_defs.valid_filters and key+'_err' in merge_tbl.keys():
+                limit = np.isclose(merge_tbl[key+'_err'], -99.) & (
+                    merge_tbl[key] > galaxy_defs.PHOTOM_MISSING_MAX)
+                merge_tbl[key+'_err'][limit] = 999.
 
     # Literature time
     if lit_refs is None:
@@ -333,6 +377,14 @@ def run(host_input:pandas.core.series.Series,
             if 'NSC' in key:
                 merge_tbl.remove_column(key)
                 print(f"Removing NSC column: {key}")
+    # Remove bad photometry (e.g. a shredded survey detection)
+    bad_photom = getattr(host_input, 'Bad_photom', None)
+    if merge_tbl is not None and isinstance(bad_photom, str):
+        for filt in bad_photom.split(','):
+            for key in [filt, filt+'_err', filt+'_ref']:
+                if key in merge_tbl.keys():
+                    merge_tbl.remove_column(key)
+            print(f"Removing bad photometry: {filt}")
     # Finish
     if merge_tbl is not None:
         # Dust correct
@@ -479,6 +531,10 @@ def run(host_input:pandas.core.series.Series,
                 if err_type in key and '_uperr' not in key: 
                     valkey = key.replace(err_type, '')
                     refkey = valkey+'_ref'
+                    # Skip quantities not measured for this host
+                    val = float(lit_tbl[valkey].data[0])
+                    if not np.isfinite(val) or chk_fill(val):
+                        continue
                     # Scrub any existing!
                     if valkey in Host.derived.keys():
                         Host.derived.pop(valkey)
@@ -496,6 +552,14 @@ def run(host_input:pandas.core.series.Series,
                     if '_loerr' in key:
                         hikey = key.replace('lo', 'up')
                         Host.derived[hikey] = float(lit_tbl[hikey].data[0])
+
+    # Nebular SFR lower limit: the spectrum was not scaled to the photometry
+    spec_scaled = getattr(host_input, 'Spec_scaled', None)
+    if str(spec_scaled).strip().lower() in ['false', '0', 'no'] and 'SFR_nebular' in Host.derived.keys():
+        print("Spec_scaled is False: flagging SFR_nebular as a lower limit (_err = -998)")
+        for key in ['SFR_nebular_loerr', 'SFR_nebular_uperr']:
+            Host.derived.pop(key, None)
+        Host.derived['SFR_nebular_err'] = -998.
 
     # Vet all
     assert Host.vet_all()
