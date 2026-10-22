@@ -53,3 +53,13 @@
 
 Failed: none
 Flagged (check before committing): 20121102A, 20180916B, 20180924B, 20181112A, 20190102C, 20190520B, 20190523A, 20190611B, 20191001A, 20200120E, 20200430A, 20201124A, 20210117A, 20210320C, 20210410D, 20211127I, 20211212A, 20220105A, 20220918A, 20230718A
+
+## Follow-up rebuilds (2026-10-21/22; see prompts/rebuild_hosts.md, Q2-Q4)
+
+| Host | Why | Status |
+|---|---|---|
+| 20180301A | lettered CIGALE/pPXF files on Drive (Q2); then `Bad_EM_lines` = Hbeta (Q4) | ok |
+| 20190523A | lettered CIGALE/Galfit files (Q2); rebuilt without `--keep-morphology` | ok |
+| 20191228A | lettered CIGALE/pPXF files (Q2); then `Bad_EM_lines` = Hbeta (Q4) | ok |
+| 20201123A | lettered pPXF file (Q2) | ok |
+| 20200120E | `Survey_match` = SDSS/DECaL/Pan-STARRS/WISE skip (Q3); `--keep-morphology` | ok (survey bands dropped by design) |
