@@ -463,6 +463,9 @@ def run(host_input:pandas.core.series.Series,
         print(f"No pPXF file to read for {file_root}")
 
     # Slurp in literature Nebular
+    #   Unlike the photometry tables, these are NOT corrected for Galactic
+    #   extinction here; the tables must already be corrected (as pPXF is).
+    #   tendulkar2017 and marcote2020 were corrected when the tables were made.
     for kk in range(len(lit_tbls)):
         lit_entry = lit_tbls.iloc[kk]
         if 'nebular' not in lit_entry.Table:

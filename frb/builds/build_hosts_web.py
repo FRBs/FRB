@@ -321,17 +321,13 @@ def build_single(
         data["dec_frb"] = dec_frb
 
     # ------------------------------------------------------------------
-    # eellipse: 'a' and 'b' from FRB JSON, convert deg -> arcsec
+    # eellipse: 'a' and 'b' from FRB JSON
     # ------------------------------------------------------------------
     eellipse_src = frb_data.get("eellipse", {})
     if isinstance(eellipse_src, dict):
-        # Values in FRB JSON are assumed to be in degrees
-        a_deg = get_scalar_from_source(eellipse_src, "a")
-        b_deg = get_scalar_from_source(eellipse_src, "b")
-
-        # Convert to arcseconds
-        a_arcsec = a_deg * 3600.0 if a_deg is not None else None
-        b_arcsec = b_deg * 3600.0 if b_deg is not None else None
+        # Values in FRB JSON are already in arcsec (see frb.frb.FRB.set_ee)
+        a_arcsec = get_scalar_from_source(eellipse_src, "a")
+        b_arcsec = get_scalar_from_source(eellipse_src, "b")
 
         if a_arcsec is not None or b_arcsec is not None:
             # Ensure we have an 'eellipse' dict in the data block

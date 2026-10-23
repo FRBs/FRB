@@ -9,11 +9,11 @@ This document maps each column of the FRB Hosts Google Sheet to where the same q
 There are two CSV files next to this document. Please edit them, not this document:
 
 - **`link_sheet_and_repo.csv`**: one row per sheet column (110 rows). Fill in `confirm` (Y or N). If N, write the right mapping in `correct_mapping`. Add anything else in `comment`.
-- **`link_sheet_refs.csv`**: one row per reference code used in the sheet (157 codes). Fill in `confirm`, and if needed `correct_repo_code` and `correct_mag_convention`. We need this file because the magnitudes are matched by reference (section 5).
+- **`link_sheet_refs.csv`**: one row per reference code used in the sheet (157 codes). Fill in `confirm`, and if needed `correct_repo_code` and `correct_mag_convention`. We need this file because the magnitudes are matched by reference (section 5). Where a code differs only by year (for example `Shannon2025` vs `Shannon2024`), please say whether it is the same paper.
 
 Leave every other column as it is. The "agreement" numbers in the CSV come from a first test on the **102 FRBs that have a host in both the sheet and the repo**. They are there to show whether a mapping is plausible, not to report discrepancies yet.
 
-The questions where we most need your help are collected in section 10.
+Section 10 lists the 59 FRBs that are only in the sheet, as candidates to add to the repo. The questions where we most need your help are collected in section 11.
 
 ## 1. The two sides
 
@@ -39,7 +39,7 @@ The questions where we most need your help are collected in section 10.
 
 When the host JSON is built, survey photometry (Pan-STARRS, DECaL, DES, DELVE, SDSS, 2MASS, WISE, VISTA, ...) is queried first. The literature tables are then merged in, and they win over the surveys. Every magnitude is then corrected for Galactic extinction.
 
-**Which FRBs.** 102 FRBs are in both. 59 are only in the sheet: 16 of them are in `FRBs_base.csv` but have no host in the repo, and 43 are not in the repo at all. They will be listed as hosts we could add to the repo. One repo host, 20231020A, has no redshift and is not in the sheet, which is expected.
+**Which FRBs.** 102 FRBs are in both. 59 are only in the sheet: 16 of them are in `FRBs_base.csv` but have no host in the repo, and 43 are not in the repo at all. They are listed in section 10 as hosts we could add to the repo. One repo host, 20231020A, has no redshift and is not in the sheet, which is expected.
 
 ## 2. Conventions
 
@@ -140,10 +140,19 @@ Example: 20121102A, Bassa2017 *r*: sheet 25.46, repo literature table 25.46, rep
 | `OII_flux` | `[OII] 3726` + `[OII] 3729` (the repo keeps the doublet separately) | no overlap |
 
 The repo values are in erg/s/cm². Multiply by 1e17 to get the sheet units. The repo has line fluxes for only about 15 hosts; the sheet has them for about 45. A repo value comes from one of two places:
-- a literature nebular table, when the line has a `_ref` key. The build copies these values as they are in the table, with no extinction correction;
-- the repo's own pPXF fit of the spectrum, corrected for Galactic extinction (no `_ref` key).
+- the repo's own pPXF fit of the spectrum, which is corrected for Galactic extinction before the fit (no `_ref` key);
+- a literature nebular table, when the line has a `_ref` key. The build copies these values as they are in the table.
 
-The values from literature tables usually agree. One exception is 20121102A Hα, where both sides cite Tendulkar2017: the repo has 26.1 and the sheet 6.52. The sheet notes that these fluxes are not corrected for Galactic absorption. The repo table seems to have been corrected when it was entered: the factor of 4 matches A(Hα) ≈ 1.5 mag at E(B-V) = 0.68. Please confirm (Q7) whether the sheet fluxes are as published or corrected for Galactic extinction.
+**The repo rule: all line fluxes are corrected for Galactic extinction.** Literature tables are therefore stored already corrected. This differs from the photometry, whose tables are stored as observed and corrected by the build. The four literature tables follow the rule:
+
+| Table | Host | As published? | Corrected for Galactic extinction |
+|---|---|---|---|
+| `fong2021_nebular.csv` | 20201124A | yes | in the paper (the spectrum was corrected, A_V = 2.02) |
+| `heintz2020_nebular.csv` | 20190711A, 20190523A | yes | in the paper; Hβ only |
+| `tendulkar2017_nebular.csv` | 20121102A | no | when the table was made (A_V = 2.42; the published values are not corrected) |
+| `marcote2020_nebular.csv` | 20180916B | no | when the table was made (published core fluxes × 6.1 for Hα and [NII], × 15 for [OIII]) |
+
+So for 20121102A, the sheet (Tendulkar2017 as published, 6.52 for Hα) and the repo (26.1) differ **by convention only**. The pPXF values agree with Heintz2020 and Bhandari2022, which were fit the same way. Please confirm (Q7) which convention each sheet line flux follows.
 
 ## 7. Morphology
 
@@ -161,7 +170,7 @@ The sheet uses 157 reference codes (132 of them in at least one `ref_` column) a
 - **Not references:** `?`, `TODO`, `_computed_`, `this_work`, `Photo-z`, `CIGALE`, `NED`, `TNS`.
 - **Not in the `References` tab:** 34 codes used in the sheet, for example `Lee-Waddel2023` (vs `Lee-Waddell2023`), `Bruni25`, `Chen25`, `Xu22`, `CHME2025`, `Bassa2023`.
 
-`link_sheet_refs.csv` gives a proposed repo code for each sheet code: exact, case only, the same first author with a year within 1 (**to confirm**), or a survey name. 92 codes have no proposal; most are papers that the repo does not use yet. The repo `all_refs.csv` has a DOI for each literature table, and the `References` tab has ADS links. A later step can match the two by bibcode, which would settle the year-drift cases.
+`link_sheet_refs.csv` gives a proposed repo code for each sheet code: exact, case only, the same first author with a year within 1 (**to confirm**), or a survey name. 92 codes have no proposal; most are papers that the repo does not use yet. The repo `all_refs.csv` has a DOI for each literature table, and the `References` tab has ADS links. Matching the two by bibcode would settle the year-drift cases; for now, we ask you to confirm them in the CSV.
 
 ## 9. Repo quantities that the sheet does not have
 
@@ -169,12 +178,104 @@ These could go on the website later; they are not compared now.
 - **Host:** `Mtotal`, `age_mass`, `Z_stellar`, `lg_sSFR`, `AV_old`, `AV_young`, `AV_nebular`, `f_AGN`, `agn_tau`, `M_r`, `u-r`, `z_SED`, `SFR_photom`, `Mstar_spec`, Sérsic `n`. Also the Mannings2021 local quantities (`UV_SB`, `IR_SB`, `SSFR`, `SMStar`, `UVff`, `IRff`, `IRfe`).
 - **FRB:** fluence, pulse width and scattering (9 FRBs), the systematic part of the error ellipse and its confidence level.
 
-**The template.** `frb_host_template.json` has 39 fields; each one is in the `template_key` column of the CSV. While mapping, I noticed three things in `build_hosts_web.py`, for Xavier rather than for this review:
-- It multiplies `eellipse` `a` and `b` by 3600, as if they were in degrees. They are already in arcsec.
+**The template.** `frb_host_template.json` has 39 fields; each one is in the `template_key` column of the CSV. While mapping, I noticed three issues in `build_hosts_web.py`, for Xavier rather than for this review:
+- It multiplied `eellipse` `a` and `b` by 3600, as if they were in degrees. They are already in arcsec. This is now fixed.
 - It writes the full FRB `refs` list into `DM_ref`, `RM_ref` and `z_ref`.
 - `P_cc` and `offset_ref` have no source in the repo.
 
-## 10. Questions for the reviewers
+## 10. FRBs only in the sheet (59)
+
+These FRBs have a row in the sheet but no host in the repo. 16 of them are in `FRBs_base.csv`, but **none of those 16 has a z there**, even where the sheet has a spectroscopic redshift. The tables below list the host information that the sheet has for each one: magnitudes (with their references), the number of line fluxes, and the derived quantities. They are grouped by how ready they are to add.
+
+**What the repo needs for a new host:**
+1. **`FRBs_base.csv`**: a row with the FRB position, error ellipse, DM, z, `repeater`, `telescope`, `refs` and P(O|x). For the 16 already there, only z (and P(O|x) if missing) is needed. The FRB JSON is then built with `frb/builds/build_frbs.py`.
+2. **`public_hosts.csv`**: a row with the host `Coord`, `P_Ox`, `z`, `Projects` and `References`. If we have the data, also `Spectrum` (pPXF), `Galfit_filter` and `CIGALE_photom`.
+3. **Literature tables** in `frb/data/Galaxies/Literature/`, one per paper and kind (`<paper>_photom.csv`, `<paper>_nebular.csv`, `<paper>_derived.csv`), each listed with its DOI in `all_refs.csv`. Photometry goes in **as observed**, line fluxes **corrected for Galactic extinction**, and derived values as published.
+4. **Survey photometry** (Pan-STARRS, Legacy Survey, DES, SDSS, 2MASS, WISE, ...) does **not** need entering: the build queries the surveys.
+5. `frb/builds/build_hosts.py` then writes the host JSON.
+
+The sheet values can tell us what to look for. Before anything goes into the repo, the values are read again from the papers.
+
+**A. Spectroscopic z and P_host ≥ 0.9** (38)
+
+| FRB | In `FRBs_base.csv` | z | z ref | P_host | Mags (refs) | Lines | Derived |
+|---|---|---|---|---|---|---|---|
+| 20181220A |  | 0.02746 | Bhardwaj2024a | 0.97 |  | 1 | M*,SFR_SED,SFR_neb |
+| 20181223C |  | 0.03024 | Bhardwaj2024a | 0.96 | grizyJHK (2MASS;PanSTARRS) |  | M*,SFR_SED,SFR_neb |
+| 20190418A |  | 0.07132 | Bhardwaj2024a | 0.92 |  |  | M*,SFR_SED,SFR_neb |
+| 20200723B |  | 0.008469 | NED | 0.985 | grizyJHK (2MASS-XSC;PanSTARRS) |  |  |
+| 20210405I |  | 0.066 | Driessen2024 | 0.991 | K (Driessen2024) |  | M*,SFR_SED |
+| 20210603A |  | 0.1772 | Cassanelli2023 | 1 | r (PannSTARRS) |  | M*,SFR_SED |
+| 20220222C |  | 0.853 | Pastor-Marazuela2026 | 0.944 | rzJ (Pastor-Marazuela2026) |  | M*,SFR_SED |
+| 20220224C |  | 0.6271 | Pastor-Marazuela2026 | 0.996 | griz (Pastor-Marazuela2026) |  | M*,SFR_SED |
+| 20220529A |  | 0.1839 | Li2025 | 0.99 | griz (Dong2026;SDSS) | 4 | M*,SFR_SED,SFR_neb,Z_gas |
+| 20220717A |  | 0.36295 | Rajwade2024 | 0.969 | grizy (PanSTARRS) | 1 | SFR_neb |
+| 20220831A | yes | 0.262 | Connor2024 | 0.99 | r (Connor2024) |  |  |
+| 20221022A |  | 0.0149 | Mckinven2025 | 0.99 | gr (Mckinven2025) |  | M*,SFR_SED |
+| 20230125D |  | 0.3265 | Pastor-Marazuela2026 | 0.978 | r (Pastor-Marazuela2026) |  |  |
+| 20230506C |  | 0.3896 | Anna-Thomas2025 | 0.972 | r (Anna-Thomas2025) | 4 | M*,SFR_SED |
+| 20230521B | yes | 1.354 | Connor2024 | 0.95 | J (Connor2024) |  |  |
+| 20230613A |  | 0.3923 | Pastor-Marazuela2026 | 0.999 | griz (Pastor-Marazuela2026) |  | M*,SFR_SED |
+| 20230808F |  | 0.3472 | Hanmer2025 | 0.9 | grizy (Legacy Survey) |  |  |
+| 20230814B |  | 0.553 | Connor2024 | 0.99 | r (Connor2024) |  |  |
+| 20230907D |  | 0.4638 | Pastor-Marazuela2026 | 0.959 | griz (Pastor-Marazuela2026) |  | M*,SFR_SED |
+| 20230930A |  | 0.0925 | Anna-Thomas2025 | 0.999 | grizyJHK (2MASS;PanSTARRS) | 1 | M*,SFR_SED |
+| 20231020B |  | 0.4775 | Pastor-Marazuela2026 | 0.998 | griz (Pastor-Marazuela2026) |  | M*,SFR_SED |
+| 20231220A | yes | 0.3355 | Connor2024 | 0.99 | grizy (PanSTARRS) |  |  |
+| 20240119A | yes | 0.376 | Connor2024 | 0.98 | r (Connor2024) |  |  |
+| 20240123A | yes | 0.968 | Connor2024 | 0.99 | r (Connor2024) |  |  |
+| 20240203C |  | 0.2426 | Gordon2025 | 0.991 |  |  | M* |
+| 20240213A | yes | 0.1185 | Connor2024 | 0.99 | grizy (Connor2024;PanSTARRS) |  |  |
+| 20240215A | yes | 0.21 | Connor2024 | 0.99 | grizy (Connor2024;PanSTARRS) |  |  |
+| 20240229A | yes | 0.287 | Connor2024 | 0.99 | rizy (Connor2024;PanSTARRS) |  |  |
+| 20240304B |  | 2.148 | Caleb2025 | 0.975 | r (Caleb2025) |  | M*,SFR_neb,Z_gas |
+| 20240312D |  | 0.0495 | Gordon2025 | 0.99 | grizJHK (2MASS-XSC;SkyMapper) |  | M*,SFR_SED,SFR_neb |
+| 20240318A | yes | 0.112 | Gordon2025 | 1 | grizy (PanSTARRS) |  | M* |
+| 20240525A |  | 0.3266 | Gordon2025 | 0.998 |  |  | M* |
+| 20240615B |  | 0.073 | Bilicki2014 | 0.999 | grizyJHK (2MASS-XSC;PanSTARRS) |  | M* |
+| 20241027B |  | 0.336 | Gordon2025 | 1 |  |  | M* |
+| 20241228A |  | 0.1614 | Curtin2025 | 0.96 | grizyJHK (2MASS;PanSTARRS) | 5 | M*,SFR_neb |
+| 20250316A |  | 0.006354 | Springbob2005 | 1 | grizy (Dong2026;PanSTARRS;SDSS) | 4 | M*,SFR_SED,Z_gas |
+| 20250613A |  | 0.0987 | Dial2026 | 0.999 | griz (Dial2026;Legacy Survey) |  | M*,SFR_SED,Z_gas |
+| 20251130A |  | 0.4191 | Gordon2026 | 0.995 | r (Legacy Survey) |  |  |
+
+**B. Photometric z, or P_host < 0.9** (10)
+
+| FRB | In `FRBs_base.csv` | z | z ref | P_host | Mags (refs) | Lines | Derived |
+|---|---|---|---|---|---|---|---|
+| 20190303B |  | 0.0656 | Sun2026 | 0.65 | grizyJHK (2MASS-XSC;PanSTARRS) |  | M*,SFR_SED,SFR_neb |
+| 20190425A |  | 0.03122 | Bhardwaj2024a | 0.79 | grizyJHK (2MASS-XSC;PanSTARRS) | 2 | M*,SFR_SED,SFR_neb |
+| 20190502A |  | 0.2803 | Sun2026 | 0.45 | grizy (PanSTARRS) |  | M*,SFR_SED,SFR_neb |
+| 20190614D | yes | 0.6 (phot) | Law2020 | 0.929 |  |  |  |
+| 20200419A |  | 0.15 (phot) | Pastor-Marazuela2024 | 0.704 | grizy (PanSTARRS) |  |  |
+| 20230503E |  | 0.32 (phot) | Pastor-Marazuela2026 | 0.973 | griz (Pastor-Marazuela2026) |  |  |
+| 20231010A |  | 0.61 (phot) | Pastor-Marazuela2026 | 0.523 | griz (Pastor-Marazuela2026) |  | SFR_SED |
+| 20231210F |  | 0.5 (phot) | Pastor-Marazuela2026 | 0.81 | griz (Pastor-Marazuela2026) |  | M* |
+| 20240208A | yes | 0.4 (phot) | Photo-z |  | gri (PanSTARRS) |  |  |
+| 20251229A |  | 0.12 (phot) | Cigale fit | 0.834 | grizy (PanSTARRS;PanSTARRs) |  | M*,SFR_SED |
+
+**C. No host redshift in the sheet** (10)
+
+| FRB | In `FRBs_base.csv` | z | z ref | P_host | Mags (refs) | Lines | Derived |
+|---|---|---|---|---|---|---|---|
+| 20210407E |  |  | Shannon2025 |  |  |  |  |
+| 20210912A | yes |  | Shannon2025 |  |  |  |  |
+| 20220905A |  |  |  |  |  |  |  |
+| 20230731A | yes |  | Shannon2025 |  |  |  |  |
+| 20230814F |  |  |  | 0.92 | r (Pastor-Marazuela2026) |  |  |
+| 20230827E |  |  |  |  |  |  |  |
+| 20231007B | yes |  | CHIME2025 | 0.946 | r (CHIME2025) |  |  |
+| 20231025C | yes |  | CHIME2025 | 0.948 | r (CHIME2025) |  |  |
+| 20231027A |  |  | Wang2025 | 0.67 | rK (Wang2025) |  |  |
+| 20231202A | yes |  | CHIME2025 | 0.988 | r (CHIME2025) |  |  |
+
+**D. Galactic source** (1)
+
+| FRB | In `FRBs_base.csv` | z | z ref | P_host | Mags (refs) | Lines | Derived |
+|---|---|---|---|---|---|---|---|
+| 20200428A |  |  |  | 1 |  |  | M*,SFR_SED |
+
+## 11. Questions for the reviewers
 
 - **Q1. Sentinels.** What do `999`, `99`, `-99`, `-999`, `0` (in an error column) and `?` mean in each tab? In particular: is a magnitude error of `999` an upper limit, and is a magnitude of `999` "no data"?
 - **Q2. Errors.** When the published error is asymmetric, what goes into the sheet's single error column: the mean, the larger of the two, or something else?
@@ -182,7 +283,8 @@ These could go on the website later; they are not compared now.
 - **Q4. PanSTARRS.** Which Pan-STARRS magnitude does the sheet use (PSF, Kron, aperture), and from which data release? The repo uses the DR2 Kron magnitude.
 - **Q5. FRB error ellipse.** Is `FRB_semi_a/b` statistical only, or statistical and systematic combined? At what confidence level? For the 38 hosts that disagree, we will check the convention before calling a discrepancy.
 - **Q6. Morphology.** What are `Semiaxis_a`, `Semiaxis_b` and `PosAngle`, and how were they measured? Where do `Reff` and `Reff_kpc` come from?
-- **Q7. Line fluxes.** Are they as published, or corrected for Galactic extinction? Is `OII_flux` the sum of the doublet?
+- **Q7. Line fluxes.** Are the sheet fluxes always as published, or sometimes corrected for Galactic extinction (as Heintz2020 and Bhandari2022 are)? Is `OII_flux` the sum of the doublet?
 - **Q8. Flags.** What do `Mstar_UL` and `SFR-Neb_UL-Dust` mean? Both are mostly `?`.
 - **Q9. Photometric redshifts.** 20240304A has `is_zphot = y` in the sheet, but the repo stores its redshift as spectroscopic (`z_spec`), as for all 103 repo hosts. Which is right?
 - **Q10. Offsets.** Is `calc_ang_off` meant to be the offset between the two sheet positions, and `Offset_ang` the published one? Which of the two should the website show?
+- **Q11. Sheet-only FRBs (section 10).** For group C, is a host known but not yet in the sheet, or is there no host? Should 20200428A (SGR 1935+2154, in the Milky Way) stay out of the host list? For group B, which hosts are secure enough for the website?

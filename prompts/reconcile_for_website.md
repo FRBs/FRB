@@ -122,11 +122,17 @@ Findings that change what prompt 1 said:
 
 Questions:
 - **Q11. Two CSVs.** You asked for one CSV. I added a second (`link_sheet_refs.csv`), because the magnitude matching depends on the reference crosswalk and on each reference's extinction convention. Keep both, or merge them?
+>A. Keep both
 - **Q12. Location and sharing.** The three files are in the repo `website/` folder (not committed). How will Tarraneh and Matteo get them: the repo, Google Drive, or a private claude.ai page? If they edit the CSVs in Google Sheets, I will read back an export.
+>A. I will deal with that
 - **Q13. `tendulkar2017_nebular.csv`.** Was it corrected for Galactic extinction on purpose? If so, should other literature tables follow the same rule, or should this one be reverted to the published values?
+>A. Examine how literature values are dealt with in `build_hosts.py` and react accordingly.
 - **Q14. `build_hosts_web.py`.** Fix the `eellipse` ×3600 bug now (small, separate), or wait until the template is revised after the review?
+>A. Fix it
 - **Q15. Reference matching by bibcode.** The repo `all_refs.csv` has DOIs and the `References` tab has ADS links. Should I resolve the year-drift cases through the ADS API (needs an ADS token), or leave them to the reviewers?
+>A. Leave to the reviewers
 - **Q16. Scope of the doc.** It covers the 102 shared hosts and only mentions the 59 sheet-only FRBs. Should it also say which repo files a new host would need (a `public_hosts.csv` row, `FRBs_base.csv`, literature tables)?
+>A. Yes, include the 59 sheet-only FRBs if there is useful host information for them.
 
 ## Logs
 
@@ -139,3 +145,24 @@ Read-only. Read the three sources: the sheet CSV (161 rows plus a units row), `p
 Read the four sheet CSVs (`FRBhosts`, `FRB_observed_parameters`, `Hosts_derived_parameters`, `References`), `frb_host_template.json`, `build_hosts_web.py`, and the 103 host JSONs and their FRB JSONs. Tested each candidate mapping on the 102 shared hosts with scratchpad scripts (`probe.py`, `probe_mag.py`, `probe_refs.py`), in the `astro` env (`/home/xavier/miniconda3/envs/astro/bin/python`; the default `python` has no `frb`). Matched the sheet magnitudes to repo filters by reference, or by survey name, and classified each match as observed or corrected using `frb.galaxies.photom.extinction_correction`. Checked the raw literature tables (`gordon2023_photom.csv`, `sharma2024_photom.csv`, `tendulkar2017_nebular.csv`) against the JSONs.
 
 Wrote `website/link_sheet_and_repo.md`, and generated `website/link_sheet_and_repo.csv` and `website/link_sheet_refs.csv` (scratchpad `make_csv.py`, `make_refs.py`). Added Q11–Q16 under Q&A / Planning. No repo data or code was changed, and nothing was committed.
+
+### Answers to Q11–Q16 (2026-10-23, Claude Opus 5.5)
+
+- **Q11, Q12, Q15:** kept both CSVs; sharing and the bibcode matching are left to Xavier and the reviewers. Doc §1 now asks the reviewers to confirm the year-drift reference codes.
+- **Q13 (literature line fluxes):** `build_hosts.py` corrects every **photometry** table (survey and literature) for Galactic extinction after the merge. It copies **nebular** tables as they are, with no correction, while the pPXF path dereddens the spectrum before the fit. So the repo rule is that all `neb_lines` are corrected, and literature nebular tables must be stored already corrected. Checked all four tables:
+  - `fong2021`: the paper corrected the spectrum for Galactic extinction (A_V = 2.02), so the table is as published.
+  - `heintz2020`: as published, Hβ only, for 2 hosts with low E(B-V). The pPXF values equal Heintz2020/Bhandari2022 exactly, so those papers are corrected too.
+  - `tendulkar2017`: made by `frb/galaxies/convert_tables.py` from the old host JSON. `old_build_hosts.py` corrected the published fluxes with A_V = 2.42 and A_λ/A_V per line.
+  - `marcote2020`: the paper's Extended Data Table 2 says "not corrected for extinction". The repo values are the core fluxes × 6.1 (Hα, [NII]) and × 15 ([OIII]), which is consistent with a Galactic correction at E(B-V) ≈ 0.8.
+
+  The tables are consistent with the rule, so no data were changed. I added a comment stating the rule above the nebular loop in `frb/builds/build_hosts.py`, and rewrote doc §6 and the line-flux notes in the CSV. The Tendulkar2017 and Marcote2020 differences from the sheet are by convention. (Papers fetched from arXiv into the scratchpad and read with `pdftotext`.)
+- **Q14:** fixed `frb/builds/build_hosts_web.py`. It no longer multiplies `eellipse` `a`/`b` by 3600; they are in arcsec (`FRB.set_ee`). Tested on FRB20190608B with the file write patched out: `a` = 0.19″ (it was 684″). No `_host_web.json` was written. Doc §9 updated.
+- **Q16:** added doc §10, which lists what a new host needs in the repo, and the 59 sheet-only FRBs in four groups with their sheet host information:
+  - A (38): spectroscopic z and P_host ≥ 0.9;
+  - B (10): photometric z or P_host < 0.9;
+  - C (10): no host z;
+  - D (1): 20200428A, SGR 1935+2154.
+
+  None of the 16 that are in `FRBs_base.csv` has a z there. Questions are renumbered to §11; a new Q11 asks about groups B, C and D.
+
+Changed: `frb/builds/build_hosts.py` (comment only), `frb/builds/build_hosts_web.py`, `website/link_sheet_and_repo.md`, `website/link_sheet_and_repo.csv`. Nothing committed.
