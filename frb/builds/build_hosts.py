@@ -509,6 +509,7 @@ def run(host_input:pandas.core.series.Series,
                 project_list, ref_list, '_galight.json',
                 prefix=file_root+'_'+host_input.Galfit_filter)
             if not found_galfit:
+                embed(header='Check 450')
                 raise IOError(f"Galfit file with filter {host_input.Galfit_filter} not found!")
         print(f"Galfit analysis slurped in via: {galfit_file}")
         Host.parse_galfit(galfit_file)
@@ -560,6 +561,18 @@ def run(host_input:pandas.core.series.Series,
         for key in ['SFR_nebular_loerr', 'SFR_nebular_uperr']:
             Host.derived.pop(key, None)
         Host.derived['SFR_nebular_err'] = -998.
+
+    # Add PATH
+    hosts_file = importlib_resources.files('frb.data.Galaxies')/'public_hosts.csv'
+    hosts_df = pandas.read_csv(hosts_file, index_col=False)
+
+    indx = file_root == 'HG'+hosts_df.FRB.values
+    if np.any(indx):
+        # Get the row
+        host_row = hosts_df.loc[indx].iloc[0]
+        # Set P_Ox
+        Host.path['P_Ox'] = host_row.P_Ox
+        # Reference would go here
 
     # Vet all
     assert Host.vet_all()

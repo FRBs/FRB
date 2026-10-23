@@ -1,4 +1,4 @@
-""" Top-level module to build or re-build the JSON files for
+""" Top-level module to run PATH analysis on a list of
 FRB host galaxies"""
 
 from importlib.resources import files
@@ -149,6 +149,7 @@ def main(options:str=None, frb:str=None):
     Args:
         options (str, optional): [description]. Defaults to None.
         frb (str, optional): FRB name
+            If None, will read the public host table and run on those
     """
     # Read public host table
     if frb is None:

@@ -256,6 +256,13 @@ valid_positional_error = [
 ]
 
 ##############################################################
+# P_Ox
+valid_path = [
+    'P_Ox',   # Posterior for PATH
+    'PATH_Ref',   # Reference for PATH
+]
+
+##############################################################
 # Derived quantities
 #   Errors follow the host-table photometry convention above:
 #     _err = 999.0  -- the value is an upper limit
