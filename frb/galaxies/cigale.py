@@ -221,7 +221,11 @@ def gen_cigale_in(photometry_table, zcol, idcol=None, infile="cigale_in.fits",
         'GALEX_NUV': 'galex.NUV',
         '2MASS_j': '2mass.J',
         '2MASS_h': '2mass.H',
-        '2MASS_k': '2mass.Ks'
+        '2MASS_k': '2mass.Ks',
+        'F2_Y':    'F2_Y',
+        'F2_J':    'F2_J',
+        'F2_H':    'F2_H',
+        'F2_Ks':   'F2_Ks',
     }
     for key in new_names:
         if key in photom_cols:
