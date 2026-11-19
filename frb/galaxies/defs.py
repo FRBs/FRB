@@ -178,8 +178,8 @@ DELVE_bands = ['g', 'r', 'i', 'z']
 for band in DELVE_bands:
     valid_filters.append('DELVE_{:s}'.format(band))
 
-# DECaLS
-DECaL_bands = ['g', 'r', 'z']
+# DECaLS / DESI Legacy Imaging Surveys (i: DR10 south and DR11, DECam)
+DECaL_bands = ['g', 'r', 'i', 'z']
 for band in DECaL_bands:
     valid_filters.append('DECaL_{:s}'.format(band))
 
@@ -193,6 +193,26 @@ SOAR_bands = ['U','g','r','i','z','bessell_B','bessell_V','bessell_R',
             'cousins_R','stromgren_v','stromgren_b','stromgren_y']
 for band in SOAR_bands:
     valid_filters.append("SOAR_{:s}".format(band))
+
+# Gemini-S FLAMINGOS-2
+F2_bands = ['Y', 'J', 'H', 'Ks']
+for band in F2_bands:
+    valid_filters.append('F2_{:s}'.format(band))
+
+# JWST imaging: NIRCam + MIRI (filter names do not overlap). NIRISS is left out: it
+# reuses NIRCam names. Curves: data/analysis/CIGALE/JWST_<band>.dat; CIGALE names in
+# galaxies/cigale.py (jwst.nircam.* / jwst.miri.*)
+JWST_bands = [
+    # NIRCam short wavelength
+    'F070W', 'F090W', 'F115W', 'F140M', 'F150W', 'F150W2', 'F162M', 'F164N',
+    'F182M', 'F187N', 'F200W', 'F210M', 'F212N',
+    # NIRCam long wavelength
+    'F250M', 'F277W', 'F300M', 'F322W2', 'F323N', 'F335M', 'F356W', 'F360M',
+    'F405N', 'F410M', 'F430M', 'F444W', 'F460M', 'F466N', 'F470N', 'F480M',
+    # MIRI
+    'F560W', 'F770W', 'F1000W', 'F1130W', 'F1280W', 'F1500W', 'F1800W', 'F2100W', 'F2550W']
+for band in JWST_bands:
+    valid_filters.append('JWST_{:s}'.format(band))
 
 
 # For upper limits, the flux is 3sigma and the error is set to -99.0
