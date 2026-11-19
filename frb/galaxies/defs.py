@@ -178,8 +178,8 @@ DELVE_bands = ['g', 'r', 'i', 'z']
 for band in DELVE_bands:
     valid_filters.append('DELVE_{:s}'.format(band))
 
-# DECaLS
-DECaL_bands = ['g', 'r', 'z']
+# DECaLS / DESI Legacy Imaging Surveys (i: DR10 south and DR11, DECam)
+DECaL_bands = ['g', 'r', 'i', 'z']
 for band in DECaL_bands:
     valid_filters.append('DECaL_{:s}'.format(band))
 
